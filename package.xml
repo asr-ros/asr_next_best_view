@@ -1,0 +1,27 @@
+<package>
+  <name>next_best_view</name>
+  <description>next_best_view</description>
+  <author>Ralf Schleicher</author>
+  <version>1.0.0</version>
+  <license>BSD</license>
+  <maintainer email="pascal.meissner@kit.edu">Pascal Meissner</maintainer>
+  <url>http://ros.org/wiki/next_best_view</url>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>object_database</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>costmap_2d</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <export>
+    <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp -I${prefix}/srv/cpp" lflags="-L${prefix}/lib"/>
+  </export>
+</package>
+
+

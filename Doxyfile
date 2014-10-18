@@ -1,0 +1,26 @@
+# Set encoding
+DOXYFILE_ENCODING = UTF-8
+
+# Project name and description
+PROJECT_NAME = Next Best View
+PROJECT_BRIEF = This package returns a next best view estimation for a given scene hypothesis set.
+
+# output settings
+OUTPUT_DIRECTORY = ./docs/
+OUTPUT_LANGUAGE = English
+
+# markdown support incl. html and xml
+MARKDOWN_SUPPORT = YES
+
+# extracts all class types
+EXTRACT_ALL = YES
+
+# sorts the dtors and ctors to the first position
+SORT_MEMBERS_CTORS_1ST = YES
+
+# set the in put
+INPUT = mainpage.dox include/
+FILE_PATTERNS = *.h, *.hpp
+RECURSIVE = YES
+
+

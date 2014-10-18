@@ -1,0 +1,244 @@
+\hypertarget{classnext__best__view_1_1DefaultRatingModule}{\section{next\-\_\-best\-\_\-view\-:\-:\-Default\-Rating\-Module \-Class \-Reference}
+\label{classnext__best__view_1_1DefaultRatingModule}\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+}
+
+
+\hyperlink{classnext__best__view_1_1DefaultRatingModule}{\-Default\-Rating\-Module} implements the functionlities offered by \hyperlink{classnext__best__view_1_1RatingModule}{\-Rating\-Module}.  
+
+
+
+
+{\ttfamily \#include $<$\-Default\-Rating\-Module.\-hpp$>$}
+
+\-Inheritance diagram for next\-\_\-best\-\_\-view\-:\-:\-Default\-Rating\-Module\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classnext__best__view_1_1DefaultRatingModule}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classnext__best__view_1_1DefaultRatingModule_a01596dd2a2444ec1e52db5c7b57c28ac}{\-Default\-Rating\-Module} ()
+\item 
+virtual \hyperlink{classnext__best__view_1_1DefaultRatingModule_a80b1655c699f6d1a8369a764d07f6d55}{$\sim$\-Default\-Rating\-Module} ()
+\item 
+bool \hyperlink{classnext__best__view_1_1DefaultRatingModule_a7af840273ead9ce348eddc4f2b804254}{get\-Rating} (\hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&rating\-Ptr, const \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{\-Viewport\-Point} \&current\-Viewport, const \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{\-Viewport\-Point} \&candidate\-Viewport\-Point)
+\begin{DoxyCompactList}\small\item\em returns if the rating was feasible and writes the result into the rating\-Ptr variable \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1DefaultRatingModule_acefb9ef90c21219429718dc95e301c98}{normalize\-Rating} (\hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&subject\-Rating, const \hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&normalizer)
+\begin{DoxyCompactList}\small\item\em normalizes a rating by a normalization rating object. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1DefaultRatingModule_ab46cd58bd34cba50a225735f5aebbd41}{maximize\-Rating} (\hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&current\-Maximum, const \hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&rating)
+\begin{DoxyCompactList}\small\item\em maximizes the rating entries by taking the maximum values of rating and write it into current\-Maximum. \end{DoxyCompactList}\item 
+bool \hyperlink{classnext__best__view_1_1DefaultRatingModule_a6a9afecd2a1afad09f033f02a8713c32}{compare\-Rating} (const \hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&a, const \hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \&b)
+\begin{DoxyCompactList}\small\item\em compares two ratings. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1DefaultRatingModule_a24f23ffbf9df77c40b535405d4dd528b}{update\-Object\-Points} (const \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{\-Viewport\-Point} \&viewport\-Point)
+\begin{DoxyCompactList}\small\item\em updates the object points of the point cloud. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a24cf26ec1dec2cc4c167e32798d1abeb}{\-Rating\-Ptr} \hyperlink{classnext__best__view_1_1DefaultRatingModule_ab4a7962b0caf0197b51591d0147832f1}{get\-Empty\-Rating} ()
+\item 
+void \hyperlink{classnext__best__view_1_1DefaultRatingModule_a569ec32a0515a1acc44c41d45896dbf0}{set\-Normality\-Rating\-Angle} (double angle)
+\begin{DoxyCompactList}\small\item\em sets the normality rating angle. \end{DoxyCompactList}\item 
+double \hyperlink{classnext__best__view_1_1DefaultRatingModule_ae8acb4e3622a54370ea2e60fd919fb9f}{get\-Normality\-Rating\-Angle} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\hyperlink{classnext__best__view_1_1DefaultRatingModule}{\-Default\-Rating\-Module} implements the functionlities offered by \hyperlink{classnext__best__view_1_1RatingModule}{\-Rating\-Module}. 
+
+\begin{DoxyAuthor}{\-Author}
+\-Ralf \-Schleicher 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2014 
+\end{DoxyDate}
+\begin{DoxyVersion}{\-Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyCopyright}{\-Copyright}
+\-G\-N\-U \-Public \-License 
+\end{DoxyCopyright}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_a01596dd2a2444ec1e52db5c7b57c28ac}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!\-Default\-Rating\-Module@{\-Default\-Rating\-Module}}
+\index{\-Default\-Rating\-Module@{\-Default\-Rating\-Module}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{\-Default\-Rating\-Module}]{\setlength{\rightskip}{0pt plus 5cm}{\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::\-Default\-Rating\-Module} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1DefaultRatingModule_a01596dd2a2444ec1e52db5c7b57c28ac}
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_a80b1655c699f6d1a8369a764d07f6d55}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!$\sim$\-Default\-Rating\-Module@{$\sim$\-Default\-Rating\-Module}}
+\index{$\sim$\-Default\-Rating\-Module@{$\sim$\-Default\-Rating\-Module}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{$\sim$\-Default\-Rating\-Module}]{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::$\sim$\-Default\-Rating\-Module} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_a80b1655c699f6d1a8369a764d07f6d55}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_a6a9afecd2a1afad09f033f02a8713c32}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!compare\-Rating@{compare\-Rating}}
+\index{compare\-Rating@{compare\-Rating}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{compare\-Rating}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::compare\-Rating} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Rating\-Ptr} \&}]{a, }
+\item[{const {\bf \-Rating\-Ptr} \&}]{b}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_a6a9afecd2a1afad09f033f02a8713c32}
+
+
+compares two ratings. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em a} & \mbox{[}in\mbox{]} comparison object \-A \\
+\hline
+{\em b} & \mbox{[}in\mbox{]} comparison object \-B \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+if \-A is smaller than \-B 
+\end{DoxyReturn}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1RatingModule_a3ee6e5530fc0e09c8ae03c0b91ed4d06}{next\-\_\-best\-\_\-view\-::\-Rating\-Module}.
+
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_ab4a7962b0caf0197b51591d0147832f1}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!get\-Empty\-Rating@{get\-Empty\-Rating}}
+\index{get\-Empty\-Rating@{get\-Empty\-Rating}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{get\-Empty\-Rating}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Rating\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::get\-Empty\-Rating} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_ab4a7962b0caf0197b51591d0147832f1}
+\begin{DoxyReturn}{\-Returns}
+a shared pointer containing an empty rating object. 
+\end{DoxyReturn}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1RatingModule_a81892991d0b55cabd588db1151033891}{next\-\_\-best\-\_\-view\-::\-Rating\-Module}.
+
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_ae8acb4e3622a54370ea2e60fd919fb9f}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!get\-Normality\-Rating\-Angle@{get\-Normality\-Rating\-Angle}}
+\index{get\-Normality\-Rating\-Angle@{get\-Normality\-Rating\-Angle}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{get\-Normality\-Rating\-Angle}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::get\-Normality\-Rating\-Angle} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1DefaultRatingModule_ae8acb4e3622a54370ea2e60fd919fb9f}
+\begin{DoxyReturn}{\-Returns}
+the normality angle. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_a7af840273ead9ce348eddc4f2b804254}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!get\-Rating@{get\-Rating}}
+\index{get\-Rating@{get\-Rating}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{get\-Rating}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::get\-Rating} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Rating\-Ptr} \&}]{rating\-Ptr, }
+\item[{const {\bf \-Viewport\-Point} \&}]{current\-Viewport\-Point, }
+\item[{const {\bf \-Viewport\-Point} \&}]{candidate\-Viewport\-Point}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_a7af840273ead9ce348eddc4f2b804254}
+
+
+returns if the rating was feasible and writes the result into the rating\-Ptr variable 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em rating\-Ptr} & \mbox{[}out\mbox{]} the shared pointer for writing a rating into it \\
+\hline
+{\em current\-Viewport\-Point} & \mbox{[}in\mbox{]} the current viewport point \\
+\hline
+{\em candidate\-Viewport\-Point} & \mbox{[}in\mbox{]} the candidate viewport point \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+if the rating is feasible or not 
+\end{DoxyReturn}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1RatingModule_ad979e53bbe8fea74eb4112e07d3a0ec2}{next\-\_\-best\-\_\-view\-::\-Rating\-Module}.
+
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_ab46cd58bd34cba50a225735f5aebbd41}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!maximize\-Rating@{maximize\-Rating}}
+\index{maximize\-Rating@{maximize\-Rating}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{maximize\-Rating}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::maximize\-Rating} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Rating\-Ptr} \&}]{current\-Maximum, }
+\item[{const {\bf \-Rating\-Ptr} \&}]{rating}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_ab46cd58bd34cba50a225735f5aebbd41}
+
+
+maximizes the rating entries by taking the maximum values of rating and write it into current\-Maximum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em current\-Maximum} & \mbox{[}in / out\mbox{]} the currently maximum values. \\
+\hline
+{\em rating} & \mbox{[}in\mbox{]} the rating to compare with. \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1RatingModule_abaed52bfc5bd246c69c945dc88f94866}{next\-\_\-best\-\_\-view\-::\-Rating\-Module}.
+
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_acefb9ef90c21219429718dc95e301c98}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!normalize\-Rating@{normalize\-Rating}}
+\index{normalize\-Rating@{normalize\-Rating}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{normalize\-Rating}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::normalize\-Rating} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Rating\-Ptr} \&}]{subject\-Rating, }
+\item[{const {\bf \-Rating\-Ptr} \&}]{normalizer}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_acefb9ef90c21219429718dc95e301c98}
+
+
+normalizes a rating by a normalization rating object. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em subject\-Rating} & \mbox{[}in / out\mbox{]} the rating which should be normalied \\
+\hline
+{\em normalizer} & \mbox{[}in\mbox{]} the rating which normalized the subject rating. \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1RatingModule_ab24c85e3486432079ec6821a61b954bd}{next\-\_\-best\-\_\-view\-::\-Rating\-Module}.
+
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_a569ec32a0515a1acc44c41d45896dbf0}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!set\-Normality\-Rating\-Angle@{set\-Normality\-Rating\-Angle}}
+\index{set\-Normality\-Rating\-Angle@{set\-Normality\-Rating\-Angle}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{set\-Normality\-Rating\-Angle}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::set\-Normality\-Rating\-Angle} (
+\begin{DoxyParamCaption}
+\item[{double}]{angle}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1DefaultRatingModule_a569ec32a0515a1acc44c41d45896dbf0}
+
+
+sets the normality rating angle. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em angle} & the angle for the rating \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1DefaultRatingModule_a24f23ffbf9df77c40b535405d4dd528b}{\index{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}!update\-Object\-Points@{update\-Object\-Points}}
+\index{update\-Object\-Points@{update\-Object\-Points}!next_best_view::DefaultRatingModule@{next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module}}
+\subsubsection[{update\-Object\-Points}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Default\-Rating\-Module\-::update\-Object\-Points} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Viewport\-Point} \&}]{viewport\-Point}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1DefaultRatingModule_a24f23ffbf9df77c40b535405d4dd528b}
+
+
+updates the object points of the point cloud. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em viewport\-Point} & \mbox{[}in\mbox{]} the viewport point which was just visited. \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1RatingModule_ad23bfcef2a0ee4fa6d90bc3b7d722bfc}{next\-\_\-best\-\_\-view\-::\-Rating\-Module}.
+
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/rating/impl/\hyperlink{DefaultRatingModule_8hpp}{\-Default\-Rating\-Module.\-hpp}\end{DoxyCompactItemize}

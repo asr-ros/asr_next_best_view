@@ -1,0 +1,186 @@
+\hypertarget{classnext__best__view_1_1MarkerHelper}{\section{next\-\_\-best\-\_\-view\-:\-:\-Marker\-Helper \-Class \-Reference}
+\label{classnext__best__view_1_1MarkerHelper}\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+}
+
+
+\hyperlink{classnext__best__view_1_1MarkerHelper}{\-Marker\-Helper} is a convenience class to reduce the mess created if marker initialization is used by hand.  
+
+
+
+
+{\ttfamily \#include $<$\-Marker\-Helper.\-hpp$>$}
+
+\subsection*{\-Static \-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+static geometry\-\_\-msgs\-::\-Point \hyperlink{classnext__best__view_1_1MarkerHelper_ab7c0ca576102d089459f566ebeacced8}{get\-Point} (\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} vector)
+\item 
+static visualization\-\_\-msgs\-::\-Marker \hyperlink{classnext__best__view_1_1MarkerHelper_abdd817e6d021d2f87fb94f2b5a36059e}{get\-Basic\-Marker} (int id)
+\item 
+static visualization\-\_\-msgs\-::\-Marker \hyperlink{classnext__best__view_1_1MarkerHelper_abd56db4892bbe470b5fae761e006860a}{get\-Delete\-Marker} (int id)
+\item 
+static visualization\-\_\-msgs\-::\-Marker \hyperlink{classnext__best__view_1_1MarkerHelper_a415e5ed5041fa22699c5c1243bb4ff70}{get\-Mesh\-Marker} (int id, std\-::string mesh\-\_\-resource, \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} centroid, \hyperlink{namespacenext__best__view_a165f1f159539ff8e583fb7fe3620390c}{\-Simple\-Quaternion} quaternion)
+\item 
+static visualization\-\_\-msgs\-::\-Marker \hyperlink{classnext__best__view_1_1MarkerHelper_a8e0a028e836fb124e6f2f1e58a08bbc5}{get\-Mesh\-Marker} (int id, std\-::string mesh\-\_\-resource, geometry\-\_\-msgs\-::\-Pose pose)
+\item 
+static visualization\-\_\-msgs\-::\-Marker \hyperlink{classnext__best__view_1_1MarkerHelper_a346813e14430a95ba39daea0f000cf10}{get\-Arrow\-Marker} (int id, \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} start\-Point, \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} end\-Point, \hyperlink{namespacenext__best__view_a209f68566d35160dd94fca758a33df33}{\-Simple\-Vector4} color=\hyperlink{namespacenext__best__view_a209f68566d35160dd94fca758a33df33}{\-Simple\-Vector4}(1.\-0, 0.\-0, 0.\-0, 1.\-0))
+\item 
+static void \hyperlink{classnext__best__view_1_1MarkerHelper_a097aa0af180674a001da9a29bafd9b8f}{get\-Rainbow\-Color} (visualization\-\_\-msgs\-::\-Marker \&marker, double x, double alpha=1.\-0)
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\hyperlink{classnext__best__view_1_1MarkerHelper}{\-Marker\-Helper} is a convenience class to reduce the mess created if marker initialization is used by hand. 
+
+\begin{DoxyAuthor}{\-Author}
+\-Ralf \-Schleicher 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2014 
+\end{DoxyDate}
+\begin{DoxyVersion}{\-Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyCopyright}{\-Copyright}
+\-G\-N\-U \-Public \-License 
+\end{DoxyCopyright}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1MarkerHelper_a346813e14430a95ba39daea0f000cf10}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Arrow\-Marker@{get\-Arrow\-Marker}}
+\index{get\-Arrow\-Marker@{get\-Arrow\-Marker}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Arrow\-Marker}]{\setlength{\rightskip}{0pt plus 5cm}static visualization\-\_\-msgs\-::\-Marker {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Arrow\-Marker} (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{{\bf \-Simple\-Vector3}}]{start\-Point, }
+\item[{{\bf \-Simple\-Vector3}}]{end\-Point, }
+\item[{{\bf \-Simple\-Vector4}}]{color = {\ttfamily {\bf \-Simple\-Vector4}(1.0,~0.0,~0.0,~1.0)}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_a346813e14430a95ba39daea0f000cf10}
+
+\begin{DoxyParams}{\-Parameters}
+{\em id} & the id of the marker \\
+\hline
+{\em start\-Point} & the 3d point of start \\
+\hline
+{\em end\-Point} & the 3d point of end \\
+\hline
+{\em color} & a 4d point which encodes color in \-R\-G\-B\-A \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+a marker with all settings for a visualization of an arrow 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1MarkerHelper_abdd817e6d021d2f87fb94f2b5a36059e}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Basic\-Marker@{get\-Basic\-Marker}}
+\index{get\-Basic\-Marker@{get\-Basic\-Marker}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Basic\-Marker}]{\setlength{\rightskip}{0pt plus 5cm}static visualization\-\_\-msgs\-::\-Marker {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Basic\-Marker} (
+\begin{DoxyParamCaption}
+\item[{int}]{id}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_abdd817e6d021d2f87fb94f2b5a36059e}
+
+\begin{DoxyParams}{\-Parameters}
+{\em id} & the id of the marker \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+a marker with all basic settings 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1MarkerHelper_abd56db4892bbe470b5fae761e006860a}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Delete\-Marker@{get\-Delete\-Marker}}
+\index{get\-Delete\-Marker@{get\-Delete\-Marker}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Delete\-Marker}]{\setlength{\rightskip}{0pt plus 5cm}static visualization\-\_\-msgs\-::\-Marker {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Delete\-Marker} (
+\begin{DoxyParamCaption}
+\item[{int}]{id}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_abd56db4892bbe470b5fae761e006860a}
+
+\begin{DoxyParams}{\-Parameters}
+{\em id} & the id of the marker \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+a marker which will delete the corresponding marker with the same id 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1MarkerHelper_a415e5ed5041fa22699c5c1243bb4ff70}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Mesh\-Marker@{get\-Mesh\-Marker}}
+\index{get\-Mesh\-Marker@{get\-Mesh\-Marker}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Mesh\-Marker}]{\setlength{\rightskip}{0pt plus 5cm}static visualization\-\_\-msgs\-::\-Marker {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Mesh\-Marker} (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{std\-::string}]{mesh\-\_\-resource, }
+\item[{{\bf \-Simple\-Vector3}}]{centroid, }
+\item[{{\bf \-Simple\-Quaternion}}]{quaternion}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_a415e5ed5041fa22699c5c1243bb4ff70}
+
+\begin{DoxyParams}{\-Parameters}
+{\em id} & the id of the marker \\
+\hline
+{\em mesh\-\_\-resource} & a uri to the mesh's resource \\
+\hline
+{\em centroid} & the centroid of the mesh object \\
+\hline
+{\em quaternion} & the orientation of the mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+a marker with all settings for a visualization of a mesh 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1MarkerHelper_a8e0a028e836fb124e6f2f1e58a08bbc5}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Mesh\-Marker@{get\-Mesh\-Marker}}
+\index{get\-Mesh\-Marker@{get\-Mesh\-Marker}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Mesh\-Marker}]{\setlength{\rightskip}{0pt plus 5cm}static visualization\-\_\-msgs\-::\-Marker {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Mesh\-Marker} (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{std\-::string}]{mesh\-\_\-resource, }
+\item[{geometry\-\_\-msgs\-::\-Pose}]{pose}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_a8e0a028e836fb124e6f2f1e58a08bbc5}
+
+\begin{DoxyParams}{\-Parameters}
+{\em id} & the id of the marker \\
+\hline
+{\em mesh\-\_\-resource} & a uri to the mesh's resource \\
+\hline
+{\em pose} & the pose of the mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+a marker with all settings for a visualization of a mesh 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1MarkerHelper_ab7c0ca576102d089459f566ebeacced8}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Point@{get\-Point}}
+\index{get\-Point@{get\-Point}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Point}]{\setlength{\rightskip}{0pt plus 5cm}static geometry\-\_\-msgs\-::\-Point {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Point} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Simple\-Vector3}}]{vector}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_ab7c0ca576102d089459f566ebeacced8}
+
+\begin{DoxyParams}{\-Parameters}
+{\em vector} & a 3d vector \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the corresponding geometry\-\_\-msgs\-::\-Point object 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1MarkerHelper_a097aa0af180674a001da9a29bafd9b8f}{\index{next\-\_\-best\-\_\-view\-::\-Marker\-Helper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}!get\-Rainbow\-Color@{get\-Rainbow\-Color}}
+\index{get\-Rainbow\-Color@{get\-Rainbow\-Color}!next_best_view::MarkerHelper@{next\-\_\-best\-\_\-view\-::\-Marker\-Helper}}
+\subsubsection[{get\-Rainbow\-Color}]{\setlength{\rightskip}{0pt plus 5cm}static void {\bf next\-\_\-best\-\_\-view\-::\-Marker\-Helper\-::get\-Rainbow\-Color} (
+\begin{DoxyParamCaption}
+\item[{visualization\-\_\-msgs\-::\-Marker \&}]{marker, }
+\item[{double}]{x, }
+\item[{double}]{alpha = {\ttfamily 1.0}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classnext__best__view_1_1MarkerHelper_a097aa0af180674a001da9a29bafd9b8f}
+
+\begin{DoxyParams}{\-Parameters}
+{\em marker} & \mbox{[}in / out\mbox{]} the marker which color gets set \\
+\hline
+{\em x} & a value between 0 and 1 \\
+\hline
+{\em alpha} & the alpha value between 0 and 1 \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/helper/\hyperlink{MarkerHelper_8hpp}{\-Marker\-Helper.\-hpp}\end{DoxyCompactItemize}

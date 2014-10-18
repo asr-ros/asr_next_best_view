@@ -1,0 +1,115 @@
+\hypertarget{typedef_8hpp}{\section{include/typedef.hpp \-File \-Reference}
+\label{typedef_8hpp}\index{include/typedef.\-hpp@{include/typedef.\-hpp}}
+}
+{\ttfamily \#include $<$vector$>$}\*
+{\ttfamily \#include $<$\-Eigen/\-Dense$>$}\*
+{\ttfamily \#include $<$pcl/point\-\_\-cloud.\-h$>$}\*
+{\ttfamily \#include $<$pcl/kdtree/kdtree\-\_\-flann.\-h$>$}\*
+{\ttfamily \#include $<$pcl/filters/frustum\-\_\-culling.\-h$>$}\*
+{\ttfamily \#include \char`\"{}next\-\_\-best\-\_\-view/pcl/\-Real\-Object\-Point.\-hpp\char`\"{}}\*
+{\ttfamily \#include \char`\"{}next\-\_\-best\-\_\-view/pcl/\-Space\-Sample\-Point.\-hpp\char`\"{}}\*
+{\ttfamily \#include \char`\"{}next\-\_\-best\-\_\-view/pcl/\-Default\-Viewport\-Point.\-hpp\char`\"{}}\*
+\subsection*{\-Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \hyperlink{namespacenext__best__view}{next\-\_\-best\-\_\-view}
+\begin{DoxyCompactList}\small\item\em this namespace contains all generally usable classes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef float \hyperlink{namespacenext__best__view_a471681a7c47e921eda8b6b1ba32b1786}{next\-\_\-best\-\_\-view\-::\-Precision}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, 2, 2 $>$ \hyperlink{namespacenext__best__view_ac133d93bd53e4270c384bed16adbcdda}{next\-\_\-best\-\_\-view\-::\-Simple\-Matrix2}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, 3, 3 $>$ \hyperlink{namespacenext__best__view_ac6b088f069768b63919889e90588aa69}{next\-\_\-best\-\_\-view\-::\-Simple\-Matrix3}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, 4, 4 $>$ \hyperlink{namespacenext__best__view_a77d41215b9a830f85cdf8e2ad175e9c2}{next\-\_\-best\-\_\-view\-::\-Simple\-Matrix4}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, \-Eigen\-::\-Dynamic, \*
+\-Eigen\-::\-Dynamic $>$ \hyperlink{namespacenext__best__view_a547bea8e33e3c78bfa2f6ad90da0c04e}{next\-\_\-best\-\_\-view\-::\-Simple\-Matrix\-X}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, 2, 1 $>$ \hyperlink{namespacenext__best__view_aeeab418972bc511118bde8d6d016af7f}{next\-\_\-best\-\_\-view\-::\-Simple\-Vector2}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, 3, 1 $>$ \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{next\-\_\-best\-\_\-view\-::\-Simple\-Vector3}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, 4, 1 $>$ \hyperlink{namespacenext__best__view_a209f68566d35160dd94fca758a33df33}{next\-\_\-best\-\_\-view\-::\-Simple\-Vector4}
+\item 
+typedef \-Eigen\-::\-Matrix\*
+$<$ \-Precision, \-Eigen\-::\-Dynamic, 1 $>$ \hyperlink{namespacenext__best__view_a1b2e77aebfe02c317fdae78c64312df9}{next\-\_\-best\-\_\-view\-::\-Simple\-Vector\-X}
+\item 
+typedef std\-::vector\*
+$<$ \-Simple\-Vector3, \*
+\-Eigen\-::aligned\-\_\-allocator\*
+$<$ \-Simple\-Vector3 $>$ $>$ \hyperlink{namespacenext__best__view_a4a345e75760a974fd27b07c10dca3269}{next\-\_\-best\-\_\-view\-::\-Simple\-Vector3\-Collection}
+\item 
+typedef boost\-::shared\-\_\-ptr\*
+$<$ \-Simple\-Vector3\-Collection $>$ \hyperlink{namespacenext__best__view_ad0c836f196d199ad5f3b89c2eb24e96e}{next\-\_\-best\-\_\-view\-::\-Simple\-Vector3\-Collection\-Ptr}
+\item 
+typedef \-Eigen\-::\-Quaternion\*
+$<$ \-Precision $>$ \hyperlink{namespacenext__best__view_a165f1f159539ff8e583fb7fe3620390c}{next\-\_\-best\-\_\-view\-::\-Simple\-Quaternion}
+\item 
+typedef std\-::vector\*
+$<$ \-Simple\-Quaternion, \*
+\-Eigen\-::aligned\-\_\-allocator\*
+$<$ \-Simple\-Quaternion $>$ $>$ \hyperlink{namespacenext__best__view_a841975b577c4a40b2acabb87fd735488}{next\-\_\-best\-\_\-view\-::\-Simple\-Quaternion\-Collection}
+\item 
+typedef boost\-::shared\-\_\-ptr\*
+$<$ \-Simple\-Quaternion\-Collection $>$ \hyperlink{namespacenext__best__view_a56eab77c28120ee9265ea6fa82a4a3c5}{next\-\_\-best\-\_\-view\-::\-Simple\-Quaternion\-Collection\-Ptr}
+\item 
+typedef \-Real\-Object\-Point \hyperlink{namespacenext__best__view_aa3f3b5e178ddd208eb1d973e44c1fc70}{next\-\_\-best\-\_\-view\-::\-Object\-Point}
+\item 
+typedef \-Space\-Sample\-Point \hyperlink{namespacenext__best__view_a56af5e88564f59e1a7cf1e754ad35ff6}{next\-\_\-best\-\_\-view\-::\-Sample\-Point}
+\item 
+typedef \-Default\-Viewport\-Point \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{next\-\_\-best\-\_\-view\-::\-Viewport\-Point}
+\item 
+typedef pcl\-::\-Point\-Cloud\*
+$<$ \-Object\-Point $>$ \hyperlink{namespacenext__best__view_a8f34dc68b2ea59f714017595a2e0a728}{next\-\_\-best\-\_\-view\-::\-Object\-Point\-Cloud}
+\item 
+typedef \-Object\-Point\-Cloud\-::\-Ptr \hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{next\-\_\-best\-\_\-view\-::\-Object\-Point\-Cloud\-Ptr}
+\item 
+typedef \-Object\-Point\-Cloud\-::\-Const\-Ptr \hyperlink{namespacenext__best__view_a5d5064a7af2a815261264964022c84b8}{next\-\_\-best\-\_\-view\-::\-Object\-Point\-Cloud\-Const\-Ptr}
+\item 
+typedef pcl\-::\-Point\-Cloud\*
+$<$ \-Sample\-Point $>$ \hyperlink{namespacenext__best__view_a4e69b847b3bd97988ee2907059ba132e}{next\-\_\-best\-\_\-view\-::\-Sample\-Point\-Cloud}
+\item 
+typedef \-Sample\-Point\-Cloud\-::\-Ptr \hyperlink{namespacenext__best__view_a6351e8a1adb34a715016b1768ad51120}{next\-\_\-best\-\_\-view\-::\-Sample\-Point\-Cloud\-Ptr}
+\item 
+typedef \-Sample\-Point\-Cloud\-::\-Const\-Ptr \hyperlink{namespacenext__best__view_a4da3a155b2c3c37ab995df628dbeeafa}{next\-\_\-best\-\_\-view\-::\-Sample\-Point\-Cloud\-Const\-Ptr}
+\item 
+typedef pcl\-::\-Point\-Cloud\*
+$<$ \-Viewport\-Point $>$ \hyperlink{namespacenext__best__view_a072dee7ff4942d17fc1c613b3e25b9d3}{next\-\_\-best\-\_\-view\-::\-Viewport\-Point\-Cloud}
+\item 
+typedef \-Viewport\-Point\-Cloud\-::\-Ptr \hyperlink{namespacenext__best__view_abcfb9d5ad60ea8ca9414e42d2f61952c}{next\-\_\-best\-\_\-view\-::\-Viewport\-Point\-Cloud\-Ptr}
+\item 
+typedef \*
+\-Viewport\-Point\-Cloud\-::\-Const\-Ptr \hyperlink{namespacenext__best__view_a552a5600ef9c772f22688838bbaffc1b}{next\-\_\-best\-\_\-view\-::\-Viewport\-Point\-Cloud\-Const\-Ptr}
+\item 
+typedef pcl\-::\-Frustum\-Culling\*
+$<$ \-Object\-Point $>$ \hyperlink{namespacenext__best__view_aa1201b49d32ff76f8a0c36a110dcfe63}{next\-\_\-best\-\_\-view\-::\-Frustum\-Culling}
+\item 
+typedef \-Frustum\-Culling\-::\-Ptr \hyperlink{namespacenext__best__view_a74d8e247c31e7c8d1bb9ad36281ee154}{next\-\_\-best\-\_\-view\-::\-Frustum\-Culling\-Ptr}
+\item 
+typedef pcl\-::\-Kd\-Tree\-F\-L\-A\-N\-N\*
+$<$ \-Object\-Point $>$ \hyperlink{namespacenext__best__view_aecdb1ccea5275c5dc31783d031d38d26}{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}
+\item 
+typedef \-Kd\-Tree\-::\-Ptr \hyperlink{namespacenext__best__view_aab5cd60b86a4a57ae8c69c2e2570679f}{next\-\_\-best\-\_\-view\-::\-Kd\-Tree\-Ptr}
+\item 
+typedef \-Kd\-Tree\-::\-Const\-Ptr \hyperlink{namespacenext__best__view_a9f78a5f1d066677e7ff7993ae14b857b}{next\-\_\-best\-\_\-view\-::\-Kd\-Tree\-Const\-Ptr}
+\item 
+typedef std\-::vector$<$ float $>$ \hyperlink{namespacenext__best__view_aa80b6e9e4088f9660b210d1b3482513b}{next\-\_\-best\-\_\-view\-::\-Squared\-Distances}
+\item 
+typedef std\-::vector$<$ int $>$ \hyperlink{namespacenext__best__view_a5f7bbbd3006b454db2619c31098a6e61}{next\-\_\-best\-\_\-view\-::\-Indices}
+\item 
+typedef boost\-::shared\-\_\-ptr\*
+$<$ \-Indices $>$ \hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{next\-\_\-best\-\_\-view\-::\-Indices\-Ptr}
+\item 
+typedef boost\-::shared\-\_\-ptr\*
+$<$ const \-Indices\-Ptr $>$ \hyperlink{namespacenext__best__view_aff39a56fc33771e72386f8cc4c9dadfc}{next\-\_\-best\-\_\-view\-::\-Indices\-Const\-Ptr}
+\end{DoxyCompactItemize}

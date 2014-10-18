@@ -1,0 +1,405 @@
+\hypertarget{classnext__best__view_1_1CameraModelFilter}{\section{next\-\_\-best\-\_\-view\-:\-:\-Camera\-Model\-Filter \-Class \-Reference}
+\label{classnext__best__view_1_1CameraModelFilter}\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+}
+
+
+\hyperlink{classnext__best__view_1_1CameraModelFilter}{\-Camera\-Model\-Filter} class was built to generalize the filtering for different camera models.  
+
+
+
+
+{\ttfamily \#include $<$\-Camera\-Model\-Filter.\-hpp$>$}
+
+\-Inheritance diagram for next\-\_\-best\-\_\-view\-:\-:\-Camera\-Model\-Filter\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classnext__best__view_1_1CameraModelFilter}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classnext__best__view_1_1CameraModelFilter_a48e633d374a546db1b1f6fedd8aabcda}{\-Camera\-Model\-Filter} ()
+\begin{DoxyCompactList}\small\item\em constructs a new camera model filter. \end{DoxyCompactList}\item 
+virtual \hyperlink{classnext__best__view_1_1CameraModelFilter_ad5705648a0e3ab194f458c08ae02721a}{$\sim$\-Camera\-Model\-Filter} ()
+\begin{DoxyCompactList}\small\item\em destructs the camera model filter. \end{DoxyCompactList}\item 
+virtual viz\-::\-Marker\-Array\-Ptr \hyperlink{classnext__best__view_1_1CameraModelFilter_a0c8b846280f21a94ca69c694a3214ad1}{get\-Visualization\-Marker\-Array} (uint32\-\_\-t \&sequence, double lifetime=30.\-0)=0
+\begin{DoxyCompactList}\small\item\em returns a array of markers containing the visualization of the camera frustum. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classnext__best__view_1_1CameraModelFilter_ae8cbc5f9451ea9e32ff6942ce9f89a87}{filter} (\hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \&indices\-Ptr)=0
+\begin{DoxyCompactList}\small\item\em returns all objects which are inside of the camera frustum. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a953c8d38411573ef015b8c60c1fcc42c}{set\-Pivot\-Point\-Pose} (const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \&position, const \hyperlink{namespacenext__best__view_a165f1f159539ff8e583fb7fe3620390c}{\-Simple\-Quaternion} \&orientation)
+\begin{DoxyCompactList}\small\item\em sets the pose of the pivot point. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a10a975639c9f9ebf9842741b1394026c}{set\-Pivot\-Point\-Position} (const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \&position)
+\begin{DoxyCompactList}\small\item\em sets the position of the pivot point. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \hyperlink{classnext__best__view_1_1CameraModelFilter_a1350983ba32b8ae4e83403095363de43}{get\-Pivot\-Point\-Position} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a1c0d1eeeb45e854f34578caf04e3f4bb}{set\-Orientation} (const \hyperlink{namespacenext__best__view_a165f1f159539ff8e583fb7fe3620390c}{\-Simple\-Quaternion} \&orientation)
+\begin{DoxyCompactList}\small\item\em sets the orientation of the pivot point \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a165f1f159539ff8e583fb7fe3620390c}{\-Simple\-Quaternion} \hyperlink{classnext__best__view_1_1CameraModelFilter_a6db0dba10b55a0d501daa2b0a7fc7b16}{get\-Orientation} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a979831f7ccc9b2df46c276f17cec547d}{set\-Horizontal\-F\-O\-V} (double fov\-Degrees)
+\begin{DoxyCompactList}\small\item\em sets the horizontal field of view. \end{DoxyCompactList}\item 
+double \hyperlink{classnext__best__view_1_1CameraModelFilter_afd348d97365cc51c2b8f947897d4abcd}{get\-Horizontal\-F\-O\-V} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a0c7e8b10b31f02f1bf7120fdff31ac02}{set\-Vertical\-F\-O\-V} (double fov\-Degrees)
+\begin{DoxyCompactList}\small\item\em sets the vertical field of view. \end{DoxyCompactList}\item 
+double \hyperlink{classnext__best__view_1_1CameraModelFilter_a07a4f25b4a648946f6029c6effbecc31}{get\-Vertical\-F\-O\-V} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a20e729203ed4a88e23790e42304bb828}{set\-Near\-Clipping\-Plane} (double ncp)
+\begin{DoxyCompactList}\small\item\em sets the near clipping plane. \end{DoxyCompactList}\item 
+double \hyperlink{classnext__best__view_1_1CameraModelFilter_aeba1bec7a8823193aeee3ff72677efc6}{get\-Near\-Clipping\-Plane} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a074c3e501dba403e23d8cef29d812088}{set\-Far\-Clipping\-Plane} (double fcp)
+\begin{DoxyCompactList}\small\item\em sets the far clipping plane.  fcp the far clipping distance \end{DoxyCompactList}\item 
+double \hyperlink{classnext__best__view_1_1CameraModelFilter_a6b6aaa667db199017cb1021c19dfb319}{get\-Far\-Clipping\-Plane} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_a9969d4afc50bcc123426dfa151870a06}{set\-Input\-Cloud} (const \hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \&point\-Cloud\-Ptr)
+\begin{DoxyCompactList}\small\item\em setting the input cloud. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \hyperlink{classnext__best__view_1_1CameraModelFilter_a0806b22fb4cf1a5f193fab114684ce06}{get\-Input\-Cloud} ()
+\item 
+void \hyperlink{classnext__best__view_1_1CameraModelFilter_ad9569c2d8bd1000e7cc1d220697d90ff}{set\-Indices} (const \hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \&indices\-Ptr)
+\begin{DoxyCompactList}\small\item\em setting the shared pointer to the active indices of the point cloud. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \hyperlink{classnext__best__view_1_1CameraModelFilter_ab49e25f898ac21ccb7d2abfe75dd9445}{get\-Indices} ()
+\end{DoxyCompactItemize}
+\subsection*{\-Static \-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{namespacenext__best__view_a77d41215b9a830f85cdf8e2ad175e9c2}{\-Simple\-Matrix4} \hyperlink{classnext__best__view_1_1CameraModelFilter_af11db0adda7d790d5c2073a97cfc9820}{get\-Camera\-Pose\-Matrix} (const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \&position, const \hyperlink{namespacenext__best__view_a165f1f159539ff8e583fb7fe3620390c}{\-Simple\-Quaternion} \&orientation)
+\begin{DoxyCompactList}\small\item\em convenience function to get a camera pose matrix. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\hyperlink{classnext__best__view_1_1CameraModelFilter}{\-Camera\-Model\-Filter} class was built to generalize the filtering for different camera models. 
+
+\begin{DoxyAuthor}{\-Author}
+\-Ralf \-Schleicher 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2014 
+\end{DoxyDate}
+\begin{DoxyVersion}{\-Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyCopyright}{\-Copyright}
+\-G\-N\-U \-Public \-License 
+\end{DoxyCopyright}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a48e633d374a546db1b1f6fedd8aabcda}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!\-Camera\-Model\-Filter@{\-Camera\-Model\-Filter}}
+\index{\-Camera\-Model\-Filter@{\-Camera\-Model\-Filter}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}{\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a48e633d374a546db1b1f6fedd8aabcda}
+
+
+constructs a new camera model filter. 
+
+\hypertarget{classnext__best__view_1_1CameraModelFilter_ad5705648a0e3ab194f458c08ae02721a}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!$\sim$\-Camera\-Model\-Filter@{$\sim$\-Camera\-Model\-Filter}}
+\index{$\sim$\-Camera\-Model\-Filter@{$\sim$\-Camera\-Model\-Filter}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{$\sim$\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::$\sim$\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1CameraModelFilter_ad5705648a0e3ab194f458c08ae02721a}
+
+
+destructs the camera model filter. 
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_ae8cbc5f9451ea9e32ff6942ce9f89a87}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!filter@{filter}}
+\index{filter@{filter}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{filter}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::filter} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Indices\-Ptr} \&}]{indices\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{classnext__best__view_1_1CameraModelFilter_ae8cbc5f9451ea9e32ff6942ce9f89a87}
+
+
+returns all objects which are inside of the camera frustum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em indices\-Ptr} & \mbox{[}out\mbox{]} a pointer to indices which gets filled with the indices of objects which are in the frustum \\
+\hline
+\end{DoxyParams}
+
+
+\-Implemented in \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_aff3d4b4ab7190c685d3f5d038875a998}{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}, and \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a7a79f48ef0338edf335235ad9375983a}{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}.
+
+\hypertarget{classnext__best__view_1_1CameraModelFilter_af11db0adda7d790d5c2073a97cfc9820}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Camera\-Pose\-Matrix@{get\-Camera\-Pose\-Matrix}}
+\index{get\-Camera\-Pose\-Matrix@{get\-Camera\-Pose\-Matrix}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Camera\-Pose\-Matrix}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf \-Simple\-Matrix4} {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Camera\-Pose\-Matrix} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Vector3} \&}]{position, }
+\item[{const {\bf \-Simple\-Quaternion} \&}]{orientation}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}static, protected\mbox{]}}}}\label{classnext__best__view_1_1CameraModelFilter_af11db0adda7d790d5c2073a97cfc9820}
+
+
+convenience function to get a camera pose matrix. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em position} & \mbox{[}in\mbox{]} the position of the camera \\
+\hline
+{\em orientation} & \mbox{[}in\mbox{]} the orientation of the camera \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a6b6aaa667db199017cb1021c19dfb319}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Far\-Clipping\-Plane@{get\-Far\-Clipping\-Plane}}
+\index{get\-Far\-Clipping\-Plane@{get\-Far\-Clipping\-Plane}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Far\-Clipping\-Plane}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Far\-Clipping\-Plane} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a6b6aaa667db199017cb1021c19dfb319}
+\begin{DoxyReturn}{\-Returns}
+the far clipping distance 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_afd348d97365cc51c2b8f947897d4abcd}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Horizontal\-F\-O\-V@{get\-Horizontal\-F\-O\-V}}
+\index{get\-Horizontal\-F\-O\-V@{get\-Horizontal\-F\-O\-V}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Horizontal\-F\-O\-V}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Horizontal\-F\-O\-V} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_afd348d97365cc51c2b8f947897d4abcd}
+\begin{DoxyReturn}{\-Returns}
+the fov in degrees 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_ab49e25f898ac21ccb7d2abfe75dd9445}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Indices@{get\-Indices}}
+\index{get\-Indices@{get\-Indices}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Indices}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Indices\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Indices} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_ab49e25f898ac21ccb7d2abfe75dd9445}
+\begin{DoxyReturn}{\-Returns}
+the shared pointer to the active indices of the point cloud. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a0806b22fb4cf1a5f193fab114684ce06}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Input\-Cloud@{get\-Input\-Cloud}}
+\index{get\-Input\-Cloud@{get\-Input\-Cloud}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Input\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Object\-Point\-Cloud\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Input\-Cloud} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a0806b22fb4cf1a5f193fab114684ce06}
+\begin{DoxyReturn}{\-Returns}
+the shared pointer to the point cloud. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_aeba1bec7a8823193aeee3ff72677efc6}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Near\-Clipping\-Plane@{get\-Near\-Clipping\-Plane}}
+\index{get\-Near\-Clipping\-Plane@{get\-Near\-Clipping\-Plane}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Near\-Clipping\-Plane}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Near\-Clipping\-Plane} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_aeba1bec7a8823193aeee3ff72677efc6}
+\begin{DoxyReturn}{\-Returns}
+the near clipping distance 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a6db0dba10b55a0d501daa2b0a7fc7b16}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Orientation@{get\-Orientation}}
+\index{get\-Orientation@{get\-Orientation}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Orientation}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Simple\-Quaternion} {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Orientation} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a6db0dba10b55a0d501daa2b0a7fc7b16}
+\begin{DoxyReturn}{\-Returns}
+the orientation of the pivot point as quaternion 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a1350983ba32b8ae4e83403095363de43}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Pivot\-Point\-Position@{get\-Pivot\-Point\-Position}}
+\index{get\-Pivot\-Point\-Position@{get\-Pivot\-Point\-Position}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Pivot\-Point\-Position}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Simple\-Vector3} {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Pivot\-Point\-Position} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a1350983ba32b8ae4e83403095363de43}
+\begin{DoxyReturn}{\-Returns}
+the position of the pivot point 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a07a4f25b4a648946f6029c6effbecc31}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Vertical\-F\-O\-V@{get\-Vertical\-F\-O\-V}}
+\index{get\-Vertical\-F\-O\-V@{get\-Vertical\-F\-O\-V}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Vertical\-F\-O\-V}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Vertical\-F\-O\-V} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a07a4f25b4a648946f6029c6effbecc31}
+\begin{DoxyReturn}{\-Returns}
+the fov in degrees 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a0c8b846280f21a94ca69c694a3214ad1}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!get\-Visualization\-Marker\-Array@{get\-Visualization\-Marker\-Array}}
+\index{get\-Visualization\-Marker\-Array@{get\-Visualization\-Marker\-Array}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Visualization\-Marker\-Array}]{\setlength{\rightskip}{0pt plus 5cm}virtual viz\-::\-Marker\-Array\-Ptr {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::get\-Visualization\-Marker\-Array} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t \&}]{sequence, }
+\item[{double}]{lifetime = {\ttfamily 30.0}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{classnext__best__view_1_1CameraModelFilter_a0c8b846280f21a94ca69c694a3214ad1}
+
+
+returns a array of markers containing the visualization of the camera frustum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em sequence} & \mbox{[}in / out\mbox{]} a number used for unique identifying of the markers in the array \\
+\hline
+{\em lifetime} & the lifetime of each marker \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the visualization for that camera filter setting 
+\end{DoxyReturn}
+
+
+\-Implemented in \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_afdacd39e902f1fb1e1f5893d60849d11}{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}, and \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a6571b3bc2a6d318bbdb26183e89fd585}{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}.
+
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a074c3e501dba403e23d8cef29d812088}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Far\-Clipping\-Plane@{set\-Far\-Clipping\-Plane}}
+\index{set\-Far\-Clipping\-Plane@{set\-Far\-Clipping\-Plane}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Far\-Clipping\-Plane}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Far\-Clipping\-Plane} (
+\begin{DoxyParamCaption}
+\item[{double}]{fcp}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a074c3e501dba403e23d8cef29d812088}
+
+
+sets the far clipping plane.  fcp the far clipping distance 
+
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a979831f7ccc9b2df46c276f17cec547d}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Horizontal\-F\-O\-V@{set\-Horizontal\-F\-O\-V}}
+\index{set\-Horizontal\-F\-O\-V@{set\-Horizontal\-F\-O\-V}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Horizontal\-F\-O\-V}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Horizontal\-F\-O\-V} (
+\begin{DoxyParamCaption}
+\item[{double}]{fov\-Degrees}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a979831f7ccc9b2df46c276f17cec547d}
+
+
+sets the horizontal field of view. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em fov} & the field of view in degrees \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_ad9569c2d8bd1000e7cc1d220697d90ff}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Indices@{set\-Indices}}
+\index{set\-Indices@{set\-Indices}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Indices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Indices} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Indices\-Ptr} \&}]{indices\-Ptr}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_ad9569c2d8bd1000e7cc1d220697d90ff}
+
+
+setting the shared pointer to the active indices of the point cloud. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em indices\-Ptr} & the shared pointer to indices. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a9969d4afc50bcc123426dfa151870a06}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Input\-Cloud@{set\-Input\-Cloud}}
+\index{set\-Input\-Cloud@{set\-Input\-Cloud}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Input\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Input\-Cloud} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Object\-Point\-Cloud\-Ptr} \&}]{point\-Cloud\-Ptr}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a9969d4afc50bcc123426dfa151870a06}
+
+
+setting the input cloud. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em point\-Cloud\-Ptr} & the shared pointer to point cloud \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a20e729203ed4a88e23790e42304bb828}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Near\-Clipping\-Plane@{set\-Near\-Clipping\-Plane}}
+\index{set\-Near\-Clipping\-Plane@{set\-Near\-Clipping\-Plane}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Near\-Clipping\-Plane}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Near\-Clipping\-Plane} (
+\begin{DoxyParamCaption}
+\item[{double}]{ncp}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a20e729203ed4a88e23790e42304bb828}
+
+
+sets the near clipping plane. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em ncp} & the near clipping distance \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a1c0d1eeeb45e854f34578caf04e3f4bb}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Orientation@{set\-Orientation}}
+\index{set\-Orientation@{set\-Orientation}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Orientation}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Orientation} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Quaternion} \&}]{orientation}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a1c0d1eeeb45e854f34578caf04e3f4bb}
+
+
+sets the orientation of the pivot point 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em orientation} & \mbox{[}in\mbox{]} a quaternion which denotes the orientation \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a953c8d38411573ef015b8c60c1fcc42c}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Pivot\-Point\-Pose@{set\-Pivot\-Point\-Pose}}
+\index{set\-Pivot\-Point\-Pose@{set\-Pivot\-Point\-Pose}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Pivot\-Point\-Pose}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Pivot\-Point\-Pose} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Vector3} \&}]{position, }
+\item[{const {\bf \-Simple\-Quaternion} \&}]{orientation}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a953c8d38411573ef015b8c60c1fcc42c}
+
+
+sets the pose of the pivot point. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em position} & \mbox{[}in\mbox{]} a 3d vector pointing to a position \\
+\hline
+{\em orientation} & \mbox{[}in\mbox{]} a quaternion which denotes the orientation \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a10a975639c9f9ebf9842741b1394026c}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Pivot\-Point\-Position@{set\-Pivot\-Point\-Position}}
+\index{set\-Pivot\-Point\-Position@{set\-Pivot\-Point\-Position}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Pivot\-Point\-Position}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Pivot\-Point\-Position} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Vector3} \&}]{position}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a10a975639c9f9ebf9842741b1394026c}
+
+
+sets the position of the pivot point. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em position} & \mbox{[}in\mbox{]} a 3d vector pointing to a position \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1CameraModelFilter_a0c7e8b10b31f02f1bf7120fdff31ac02}{\index{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}!set\-Vertical\-F\-O\-V@{set\-Vertical\-F\-O\-V}}
+\index{set\-Vertical\-F\-O\-V@{set\-Vertical\-F\-O\-V}!next_best_view::CameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Vertical\-F\-O\-V}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter\-::set\-Vertical\-F\-O\-V} (
+\begin{DoxyParamCaption}
+\item[{double}]{fov\-Degrees}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1CameraModelFilter_a0c7e8b10b31f02f1bf7120fdff31ac02}
+
+
+sets the vertical field of view. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em fov} & the field of view in degrees \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/camera\-\_\-model\-\_\-filter/\hyperlink{CameraModelFilter_8hpp}{\-Camera\-Model\-Filter.\-hpp}\end{DoxyCompactItemize}

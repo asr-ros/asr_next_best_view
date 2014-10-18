@@ -1,0 +1,211 @@
+\hypertarget{classnext__best__view_1_1SpaceSampler}{\section{next\-\_\-best\-\_\-view\-:\-:\-Space\-Sampler \-Class \-Reference}
+\label{classnext__best__view_1_1SpaceSampler}\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+}
+
+
+\hyperlink{classnext__best__view_1_1SpaceSampler}{\-Space\-Sampler} class generalizes the sampling of the space.  
+
+
+
+
+{\ttfamily \#include $<$\-Space\-Sampler.\-hpp$>$}
+
+\-Inheritance diagram for next\-\_\-best\-\_\-view\-:\-:\-Space\-Sampler\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classnext__best__view_1_1SpaceSampler}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classnext__best__view_1_1SpaceSampler_a673bf8ba80b977d803cd921c23a4bb6b}{\-Space\-Sampler} ()
+\begin{DoxyCompactList}\small\item\em constructor for \hyperlink{classnext__best__view_1_1SpaceSampler}{\-Space\-Sampler} object \end{DoxyCompactList}\item 
+virtual \hyperlink{classnext__best__view_1_1SpaceSampler_a62d868b54a1dcd8de6c2e624f335fc1f}{$\sim$\-Space\-Sampler} ()
+\begin{DoxyCompactList}\small\item\em destructor for \hyperlink{classnext__best__view_1_1SpaceSampler}{\-Space\-Sampler} object \end{DoxyCompactList}\item 
+virtual \hyperlink{namespacenext__best__view_a6351e8a1adb34a715016b1768ad51120}{\-Sample\-Point\-Cloud\-Ptr} \hyperlink{classnext__best__view_1_1SpaceSampler_a0213aa3d023846cb9daee94cc9e1e109}{get\-Sampled\-Space\-Point\-Cloud} (\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} current\-Space\-Position, float contractor)=0
+\item 
+void \hyperlink{classnext__best__view_1_1SpaceSampler_a49f695fd72c33dfeb7bea4caf7a65145}{set\-Samples} (const uint32\-\_\-t \&samples)
+\item 
+uint32\-\_\-t \hyperlink{classnext__best__view_1_1SpaceSampler_af5451f2ea7ca63bf5cafb0590591d4a4}{get\-Samples} ()
+\item 
+void \hyperlink{classnext__best__view_1_1SpaceSampler_a3af6c8aaf1466552ae21b9de35ef7649}{set\-Input\-Cloud} (const \hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \&point\-Cloud\-Ptr)
+\begin{DoxyCompactList}\small\item\em sets the point cloud we're operating on. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \hyperlink{classnext__best__view_1_1SpaceSampler_ac3d7505e708c13d1ef922e2e594665d7}{get\-Input\-Cloud} ()
+\item 
+void \hyperlink{classnext__best__view_1_1SpaceSampler_af22de7c91c564ba0729c3338ecd14d8f}{set\-Indices} (const \hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \&indices\-Ptr)
+\begin{DoxyCompactList}\small\item\em sets the active indices. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \hyperlink{classnext__best__view_1_1SpaceSampler_a536ca80f9d9218894b8dec02b63722cc}{get\-Indices} ()
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+uint32\-\_\-t \hyperlink{classnext__best__view_1_1SpaceSampler_adae3c611301e1f2775ef02f2dd2b07f5}{m\-Samples}
+\begin{DoxyCompactList}\small\item\em sample count \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \hyperlink{classnext__best__view_1_1SpaceSampler_a8e4e79adc565f8620e2b77349875f744}{m\-Point\-Cloud\-Ptr}
+\begin{DoxyCompactList}\small\item\em the shared pointer to the point cloud. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \hyperlink{classnext__best__view_1_1SpaceSampler_a3c4bb1ee94e86b22b6489797a412fae2}{m\-Indices\-Ptr}
+\begin{DoxyCompactList}\small\item\em the shared pointer to the active indices of the point cloud. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\hyperlink{classnext__best__view_1_1SpaceSampler}{\-Space\-Sampler} class generalizes the sampling of the space. 
+
+\begin{DoxyAuthor}{\-Author}
+\-Ralf \-Schleicher 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2014 
+\end{DoxyDate}
+\begin{DoxyVersion}{\-Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyCopyright}{\-Copyright}
+\-G\-N\-U \-Public \-License 
+\end{DoxyCopyright}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classnext__best__view_1_1SpaceSampler_a673bf8ba80b977d803cd921c23a4bb6b}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!\-Space\-Sampler@{\-Space\-Sampler}}
+\index{\-Space\-Sampler@{\-Space\-Sampler}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{\-Space\-Sampler}]{\setlength{\rightskip}{0pt plus 5cm}{\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::\-Space\-Sampler} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_a673bf8ba80b977d803cd921c23a4bb6b}
+
+
+constructor for \hyperlink{classnext__best__view_1_1SpaceSampler}{\-Space\-Sampler} object 
+
+\hypertarget{classnext__best__view_1_1SpaceSampler_a62d868b54a1dcd8de6c2e624f335fc1f}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!$\sim$\-Space\-Sampler@{$\sim$\-Space\-Sampler}}
+\index{$\sim$\-Space\-Sampler@{$\sim$\-Space\-Sampler}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{$\sim$\-Space\-Sampler}]{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::$\sim$\-Space\-Sampler} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1SpaceSampler_a62d868b54a1dcd8de6c2e624f335fc1f}
+
+
+destructor for \hyperlink{classnext__best__view_1_1SpaceSampler}{\-Space\-Sampler} object 
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1SpaceSampler_a536ca80f9d9218894b8dec02b63722cc}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!get\-Indices@{get\-Indices}}
+\index{get\-Indices@{get\-Indices}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{get\-Indices}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Indices\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::get\-Indices} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_a536ca80f9d9218894b8dec02b63722cc}
+\begin{DoxyReturn}{\-Returns}
+the shared pointer indices. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1SpaceSampler_ac3d7505e708c13d1ef922e2e594665d7}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!get\-Input\-Cloud@{get\-Input\-Cloud}}
+\index{get\-Input\-Cloud@{get\-Input\-Cloud}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{get\-Input\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Object\-Point\-Cloud\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::get\-Input\-Cloud} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_ac3d7505e708c13d1ef922e2e594665d7}
+\begin{DoxyReturn}{\-Returns}
+the shared pointer to the input cloud. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1SpaceSampler_a0213aa3d023846cb9daee94cc9e1e109}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!get\-Sampled\-Space\-Point\-Cloud@{get\-Sampled\-Space\-Point\-Cloud}}
+\index{get\-Sampled\-Space\-Point\-Cloud@{get\-Sampled\-Space\-Point\-Cloud}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{get\-Sampled\-Space\-Point\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf \-Sample\-Point\-Cloud\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::get\-Sampled\-Space\-Point\-Cloud} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Simple\-Vector3}}]{current\-Space\-Position, }
+\item[{float}]{contractor}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{classnext__best__view_1_1SpaceSampler_a0213aa3d023846cb9daee94cc9e1e109}
+\begin{DoxyReturn}{\-Returns}
+a point cloud containing a set of points in the space. 
+\end{DoxyReturn}
+
+
+\-Implemented in \hyperlink{classnext__best__view_1_1PlaneSubSpaceSampler_ad0ec12391d12b52599a1f59b185200ce}{next\-\_\-best\-\_\-view\-::\-Plane\-Sub\-Space\-Sampler}.
+
+\hypertarget{classnext__best__view_1_1SpaceSampler_af5451f2ea7ca63bf5cafb0590591d4a4}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!get\-Samples@{get\-Samples}}
+\index{get\-Samples@{get\-Samples}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{get\-Samples}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::get\-Samples} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_af5451f2ea7ca63bf5cafb0590591d4a4}
+\begin{DoxyReturn}{\-Returns}
+count of samples to be created. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1SpaceSampler_af22de7c91c564ba0729c3338ecd14d8f}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!set\-Indices@{set\-Indices}}
+\index{set\-Indices@{set\-Indices}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{set\-Indices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::set\-Indices} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Indices\-Ptr} \&}]{indices\-Ptr}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_af22de7c91c564ba0729c3338ecd14d8f}
+
+
+sets the active indices. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em indices\-Ptr} & the shared pointer to the indices \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1SpaceSampler_a3af6c8aaf1466552ae21b9de35ef7649}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!set\-Input\-Cloud@{set\-Input\-Cloud}}
+\index{set\-Input\-Cloud@{set\-Input\-Cloud}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{set\-Input\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::set\-Input\-Cloud} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Object\-Point\-Cloud\-Ptr} \&}]{point\-Cloud\-Ptr}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_a3af6c8aaf1466552ae21b9de35ef7649}
+
+
+sets the point cloud we're operating on. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em point\-Cloud\-Ptr} & the shared pointer to the point cloud \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1SpaceSampler_a49f695fd72c33dfeb7bea4caf7a65145}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!set\-Samples@{set\-Samples}}
+\index{set\-Samples@{set\-Samples}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{set\-Samples}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::set\-Samples} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t \&}]{samples}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SpaceSampler_a49f695fd72c33dfeb7bea4caf7a65145}
+
+\begin{DoxyParams}{\-Parameters}
+{\em samples} & the count of samples to be created \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Data \-Documentation}
+\hypertarget{classnext__best__view_1_1SpaceSampler_a3c4bb1ee94e86b22b6489797a412fae2}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!m\-Indices\-Ptr@{m\-Indices\-Ptr}}
+\index{m\-Indices\-Ptr@{m\-Indices\-Ptr}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{m\-Indices\-Ptr}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Indices\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::m\-Indices\-Ptr}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classnext__best__view_1_1SpaceSampler_a3c4bb1ee94e86b22b6489797a412fae2}
+
+
+the shared pointer to the active indices of the point cloud. 
+
+\hypertarget{classnext__best__view_1_1SpaceSampler_a8e4e79adc565f8620e2b77349875f744}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!m\-Point\-Cloud\-Ptr@{m\-Point\-Cloud\-Ptr}}
+\index{m\-Point\-Cloud\-Ptr@{m\-Point\-Cloud\-Ptr}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{m\-Point\-Cloud\-Ptr}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Object\-Point\-Cloud\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::m\-Point\-Cloud\-Ptr}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classnext__best__view_1_1SpaceSampler_a8e4e79adc565f8620e2b77349875f744}
+
+
+the shared pointer to the point cloud. 
+
+\hypertarget{classnext__best__view_1_1SpaceSampler_adae3c611301e1f2775ef02f2dd2b07f5}{\index{next\-\_\-best\-\_\-view\-::\-Space\-Sampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}!m\-Samples@{m\-Samples}}
+\index{m\-Samples@{m\-Samples}!next_best_view::SpaceSampler@{next\-\_\-best\-\_\-view\-::\-Space\-Sampler}}
+\subsubsection[{m\-Samples}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf next\-\_\-best\-\_\-view\-::\-Space\-Sampler\-::m\-Samples}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classnext__best__view_1_1SpaceSampler_adae3c611301e1f2775ef02f2dd2b07f5}
+
+
+sample count 
+
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/space\-\_\-sampler/\hyperlink{SpaceSampler_8hpp}{\-Space\-Sampler.\-hpp}\end{DoxyCompactItemize}
