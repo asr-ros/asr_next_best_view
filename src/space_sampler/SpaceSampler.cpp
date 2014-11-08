@@ -8,7 +8,7 @@
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 
 namespace next_best_view {
-	SpaceSampler::SpaceSampler() : mSamples(0) {
+	SpaceSampler::SpaceSampler() : CommonClass(), mSamples(0) {
 
 	}
 

@@ -20,10 +20,15 @@ namespace next_best_view {
 	 * \sa DefaultRating
 	 */
 	struct BaseScoreContainer {
+	public:
+		float costs;
+	public:
+		BaseScoreContainer();
+
 		/*!
 		 * \brief destructor of the object.
 		 */
-		virtual ~BaseScoreContainer() { };
+		virtual ~BaseScoreContainer() = 0;
 	};
 
 	/*!

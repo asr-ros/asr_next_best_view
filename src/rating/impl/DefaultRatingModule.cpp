@@ -22,25 +22,23 @@ namespace next_best_view {
 	}
 
 	float DefaultRatingModule::getSingleNormalityRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector, float angleThreshold) {
-		float cosinus = MathHelper::getCosinus(viewportNormalVector, objectSurfaceNormalVector);
+		float cosinus = MathHelper::getCosinus(-viewportNormalVector, objectSurfaceNormalVector);
 		float angle = acos(cosinus);
-		return MathHelper::getRatingFunction(angle, angleThreshold);
+		if (angle < angleThreshold) {
+			return .5 + .5 * cos(angle * M_PI / angleThreshold);
+		}
+		return 0.0;
 	}
 
 	float DefaultRatingModule::getSingleNormalityRatingByQuaternion(const SimpleQuaternion &quaternionA, const SimpleQuaternion &quaternionB, float angleThreshold) {
-		SimpleVector3 a = quaternionA.toRotationMatrix() * SimpleVector3::UnitX();
-		SimpleVector3 b = quaternionB.toRotationMatrix() * SimpleVector3::UnitX();
+		SimpleVector3 a = MathHelper::getVisualAxis(quaternionA);
+		SimpleVector3 b = MathHelper::getVisualAxis(quaternionB);
 
 		return getSingleNormalityRating(a, b, angleThreshold);
 	}
 
-	float DefaultRatingModule::getWeightedRating(const DefaultScoreContainerPtr &a) {
-		static float elementCountWeight = 1.0;
-		static float normalityWeight = 1.0;
-		static float localityWeight = 1.0;
-		static float equalityWeight = 1.25;
-		static float angleWeight = 1.0;
-		return elementCountWeight * a->element_density + normalityWeight * a->normality + localityWeight * a->locality + equalityWeight * a->equality + angleWeight * a->angle * a->equality;
+	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
+		return (a->element_density * a->normality) / (1 + a->costs);
 	}
 
 	DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalityRatingAngle(M_PI * .5) {
@@ -55,6 +53,8 @@ namespace next_best_view {
 		SimpleQuaternion candidateOrientation = candidateViewportPoint.getSimpleQuaternion();
 
 		DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
+
+		double maxElements = this->getInputCloud()->size();
 
 		BOOST_FOREACH(int index, *this->getIndices()) {
 			ObjectPoint &objectPoint = this->getInputCloud()->at(index);
@@ -73,42 +73,17 @@ namespace next_best_view {
 			defRatingPtr->normality = std::max(defRatingPtr->normality, currentNormalityRating);
 		}
 
-		defRatingPtr->locality = (currentPosition - candidatePosition).lpNorm<2>();
-		defRatingPtr->equality = (currentPosition == candidatePosition ? 1.0 : 0.0);
-		defRatingPtr->angle = getSingleNormalityRatingByQuaternion(currentOrientation, candidateOrientation);
+		defRatingPtr->element_density /= maxElements;
 
 		scoreContainerPtr = defRatingPtr;
 
 		return (defRatingPtr->element_density > 0.0);
 	}
-
-	void DefaultRatingModule::normalizeScoreContainer(const BaseScoreContainerPtr &normalizingScoreContainerPtr, BaseScoreContainerPtr &subjectScoreContainerPtr) {
-		// cast defScoreContainerPtr to used defScoreContainerPtr type
-		DefaultScoreContainerPtr defScoreContainerPtr = boost::static_pointer_cast<DefaultScoreContainer>(subjectScoreContainerPtr);
-		// get the normalizingScoreContainerPtr
-		DefaultScoreContainerPtr defNormalizerScoreContainerPtr = boost::static_pointer_cast<DefaultScoreContainer>(normalizingScoreContainerPtr);
-
-		defScoreContainerPtr->element_density /= defNormalizerScoreContainerPtr->element_density;
-		defScoreContainerPtr->locality = (defNormalizerScoreContainerPtr->locality == 0 ? 1.0 : 1.0 - (defScoreContainerPtr->locality / defNormalizerScoreContainerPtr->locality));
-		defScoreContainerPtr->normality /= defNormalizerScoreContainerPtr->normality;
-	}
-
-	void DefaultRatingModule::maximizeScoreContainer(const BaseScoreContainerPtr &scoreContainerPtr, BaseScoreContainerPtr &currentMaximumScoreContainerPtr) {
-		// cast rating to used rating type
-		DefaultScoreContainerPtr curMax = boost::static_pointer_cast<DefaultScoreContainer>(currentMaximumScoreContainerPtr);
-		// get the normalizer
-		DefaultScoreContainerPtr ratingPtr = boost::static_pointer_cast<DefaultScoreContainer>(scoreContainerPtr);
-
-		curMax->normality = std::max(curMax->normality, ratingPtr->normality);
-		curMax->locality = std::max(curMax->locality, ratingPtr->locality);
-		curMax->element_density = std::max(curMax->element_density, ratingPtr->element_density);
-	}
-
 	bool DefaultRatingModule::compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) {
 		DefaultScoreContainerPtr defA = boost::static_pointer_cast<DefaultScoreContainer>(a);
 		DefaultScoreContainerPtr defB = boost::static_pointer_cast<DefaultScoreContainer>(b);
 
-		return this->getWeightedRating(defA) < this->getWeightedRating(defB);
+		return this->getRating(defA) < this->getRating(defB);
 	}
 
 	void DefaultRatingModule::updateObjectPoints(const ViewportPoint &viewportPoint) {

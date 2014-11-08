@@ -8,7 +8,7 @@
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 
 namespace next_best_view {
-	CameraModelFilter::CameraModelFilter() : mFOVX(0.0), mFOVY(0.0), mNcp(0.0), mFcp(0.0) {
+	CameraModelFilter::CameraModelFilter() : CommonClass(), mFOVX(0.0), mFOVY(0.0), mNcp(0.0), mFcp(0.0) {
 	}
 
 	CameraModelFilter::~CameraModelFilter() { }

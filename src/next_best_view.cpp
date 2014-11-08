@@ -8,9 +8,11 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <nav_msgs/Path.h>
 #include "typedef.hpp"
-#include "next_best_view/utility/MapUtility.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 
@@ -28,8 +30,9 @@ int main(int argc, char** argv) {
 //		}
 //	}
 
-	next_best_view::MapUtility mapUtility;
+	printf("%e, %e, %e \n", std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0 / std::numeric_limits<float>::max());
 
+	next_best_view::MapHelper mapHelper;
 	next_best_view::NextBestView nbv;
 	std::vector<std::string> objectTypeNames;
 	objectTypeNames.push_back("Smacks");
@@ -38,20 +41,20 @@ int main(int argc, char** argv) {
 	float roomHeight = 2.2;
 
 	next_best_view::AttributedPointCloud msg;
-	next_best_view::SimpleVector3 mue(mapUtility.getMetricWidth() / 2.0, mapUtility.getMetricHeight() / 2.0, roomHeight / 2.0);
-	next_best_view::SimpleVector3 deviation(mapUtility.getMetricWidth() / 4.0, mapUtility.getMetricHeight() / 4.0, roomHeight / 8.0);
+	next_best_view::SimpleVector3 mue(mapHelper.getMetricWidth() / 2.0, mapHelper.getMetricHeight() / 2.0, roomHeight / 2.0);
+	next_best_view::SimpleVector3 deviation(mapHelper.getMetricWidth() / 4.0, mapHelper.getMetricHeight() / 4.0, roomHeight / 8.0);
 	next_best_view::SimpleVector3 mean = mue;
 	ROS_DEBUG("Start creation of pointcloud");
-	for (std::size_t i = 0; i < 2000; i += 1) {
+	for (std::size_t i = 0; i < 400; i += 1) {
 		int8_t occupancyValue = -1;
 		while (i % 200 == 0 && occupancyValue != 0) {
 			mean = next_best_view::MathHelper::getRandomVector(mue, deviation);
-			occupancyValue = mapUtility.getMapOccupancyValue(mean);
+			occupancyValue = mapHelper.getMapOccupancyValue(mean);
 		}
 		next_best_view::SimpleVector3 randomVector;
 		do {
 			randomVector = next_best_view::MathHelper::getRandomVector(mean, next_best_view::SimpleVector3(0.2, 0.2, 0.005));
-			occupancyValue = mapUtility.getMapOccupancyValue(randomVector);
+			occupancyValue = mapHelper.getMapOccupancyValue(randomVector);
 
 			if (randomVector[2] <= 0 || randomVector[2] >= roomHeight) {
 				ROS_DEBUG_STREAM("Retry, occupancy value " << occupancyValue << "\n" << randomVector);

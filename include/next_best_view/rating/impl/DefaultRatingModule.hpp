@@ -32,10 +32,6 @@ namespace next_best_view {
 
 		bool getScoreContainer(const ViewportPoint &currentViewport, const ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr);
 
-		void normalizeScoreContainer(const BaseScoreContainerPtr &normalizingScoreContainerPtr, BaseScoreContainerPtr &subjectScoreContainerPtr);
-
-		void maximizeScoreContainer(const BaseScoreContainerPtr &scoreContainerPtr, BaseScoreContainerPtr &currentMaximumScoreContainerPtr);
-
 		bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
 
 		void updateObjectPoints(const ViewportPoint &viewportPoint);
@@ -73,7 +69,7 @@ namespace next_best_view {
 		 * \param a [in] the rating object.
 		 * \return the weighted rating
 		 */
-		float getWeightedRating(const DefaultScoreContainerPtr &a);
+		float getRating(const DefaultScoreContainerPtr &a);
 
 		/*!
 		 * \brief sets the normality rating angle.

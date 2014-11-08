@@ -7,15 +7,12 @@
 
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/helper/TypeHelper.hpp"
 
 namespace next_best_view {
-	geometry_msgs::Point MarkerHelper::getPoint(SimpleVector3 vector) {
-		geometry_msgs::Point point;
-		point.x = vector[0];
-		point.y = vector[1];
-		point.z = vector[2];
-		return point;
-	}
+	MarkerHelper::MarkerHelper() { }
+
+	MarkerHelper::~MarkerHelper() { }
 
 	visualization_msgs::Marker MarkerHelper::getBasicMarker(int id) {
 		visualization_msgs::Marker marker;
@@ -83,8 +80,8 @@ namespace next_best_view {
 		lmarker.color.b = color[2];
 		lmarker.color.a = color[3];
 
-		lmarker.points.push_back(MarkerHelper::getPoint(startPoint));
-		lmarker.points.push_back(MarkerHelper::getPoint(endPoint));
+		lmarker.points.push_back(TypeHelper::getGeometryMsgsPoint(startPoint));
+		lmarker.points.push_back(TypeHelper::getGeometryMsgsPoint(endPoint));
 
 		return lmarker;
 	}

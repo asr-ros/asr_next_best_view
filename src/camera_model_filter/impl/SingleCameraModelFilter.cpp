@@ -8,6 +8,7 @@
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
+#include "next_best_view/helper/TypeHelper.hpp"
 
 namespace next_best_view {
 	SingleCameraModelFilter::SingleCameraModelFilter(const SimpleVector3 pivotPointOffset) : CameraModelFilter(), mPivotPointOffset(pivotPointOffset), mFrustumCullingPtr(new FrustumCulling()) {
@@ -102,12 +103,12 @@ namespace next_best_view {
 		triangleListMarker.type = viz::Marker::TRIANGLE_LIST;
 		triangleListMarker.lifetime = ros::Duration(lifetime);
 		triangleListMarker.scale.x = triangleListMarker.scale.y = triangleListMarker.scale.z = 1.0;
-		triangleListMarker.pose.position = MarkerHelper::getPoint(cameraPosition);
+		triangleListMarker.pose.position = TypeHelper::getGeometryMsgsPoint(cameraPosition);
 		MarkerHelper::getRainbowColor(triangleListMarker, 1.0 / 6.0, 0.2);
 
 		BOOST_FOREACH(int index, triangleList) {
 			SimpleVector3 frustumPoint = completeFrustumCornerMatrix.block<3, 1>(0, index);
-			geometry_msgs::Point pt = MarkerHelper::getPoint(frustumPoint);
+			geometry_msgs::Point pt = TypeHelper::getGeometryMsgsPoint(frustumPoint);
 			triangleListMarker.points.push_back(pt);
 		}
 		markerArrayPtr->markers.push_back(triangleListMarker);
@@ -121,12 +122,12 @@ namespace next_best_view {
 		lineListMarker.type = viz::Marker::LINE_LIST;
 		lineListMarker.lifetime = ros::Duration(lifetime);
 		lineListMarker.scale.x = 0.05;
-		lineListMarker.pose.position = MarkerHelper::getPoint(cameraPosition);
+		lineListMarker.pose.position = TypeHelper::getGeometryMsgsPoint(cameraPosition);
 		MarkerHelper::getRainbowColor(lineListMarker, 1.0 / 6.0, 0.2);
 
 		BOOST_FOREACH(int index, lineList) {
 			SimpleVector3 frustumPoint = completeFrustumCornerMatrix.block<3, 1>(0, index);
-			geometry_msgs::Point pt = MarkerHelper::getPoint(frustumPoint);
+			geometry_msgs::Point pt = TypeHelper::getGeometryMsgsPoint(frustumPoint);
 			lineListMarker.points.push_back(pt);
 		}
 		markerArrayPtr->markers.push_back(lineListMarker);

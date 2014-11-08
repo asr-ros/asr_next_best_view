@@ -8,7 +8,7 @@
 #ifndef RATING_MODULE_HPP_
 #define RATING_MODULE_HPP_
 
-#include "next_best_view/common/CommonPCLClass.hpp"
+#include "next_best_view/common/CommonClass.hpp"
 #include "next_best_view/rating/BaseScoreContainer.hpp"
 
 
@@ -21,7 +21,7 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa DefaultRatingModule
 	 */
-	class RatingModule : public CommonPCLClass {
+	class RatingModule : public CommonClass {
 	public:
 		/*!
 		 * \brief constructor of the RatingModule object
@@ -41,20 +41,6 @@ namespace next_best_view {
 		 * \return if the rating is feasible or not
 		 */
 		virtual bool getScoreContainer(const ViewportPoint &currentViewportPoint, const ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr) = 0;
-
-		/*!
-		 * \brief normalizes a rating by a normalization rating object.
-		 * \param normalizingScoreContainerPtr [in] the rating which normalized the subject rating.
-		 * \param subjectScoreContainerPtr [in / out] the rating which should be normalied
-		 */
-		virtual void normalizeScoreContainer(const BaseScoreContainerPtr &normalizingScoreContainerPtr, BaseScoreContainerPtr &subjectScoreContainerPtr) = 0;
-
-		/*!
-		 * \brief maximizes the rating entries by taking the maximum values of rating and write it into currentMaximum.
-		 * \param rating [in] the rating to compare with.
-		 * \param currentMaximum [in / out] the currently maximum values.
-		 */
-		virtual void maximizeScoreContainer(const BaseScoreContainerPtr &scoreContainerPtr, BaseScoreContainerPtr &currentMaximumScoreContainerPtr) = 0;
 
 		/*!
 		 * \return a shared pointer containing an empty rating object.

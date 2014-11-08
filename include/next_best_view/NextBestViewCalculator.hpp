@@ -52,21 +52,29 @@ namespace next_best_view {
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
 			ROS_DEBUG("Starting calculation of next best view");
 
+			RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getSimpleVector3(), currentCameraViewport.getSimpleQuaternion());
+			mRobotModelPtr->setCurrentRobotState(currentState);
+
 			// Settings
 			mSpaceSamplerPtr->setInputCloud(mPointCloudPtr);
 
 			// Get the orientations.
 			ROS_DEBUG("Create and filter unit sphere");
 			SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
-			mRobotModelPtr->filterReachableOrientations(sampledOrientationsPtr);
+			SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
+			BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
+				if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
+					feasibleOrientationsCollectionPtr->push_back(q);
+				}
+			}
 
 			// create the next best view point cloud
-			return this->doIteration(currentCameraViewport, sampledOrientationsPtr, resultViewport);
+			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 		}
 
 	private:
-		void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &feasibleIndicesPtr) {
-			feasibleIndicesPtr = IndicesPtr(new Indices());
+		void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &resultIndicesPtr) {
+			resultIndicesPtr = IndicesPtr(new Indices());
 			// get max radius by far clipping plane of camera. this marks the limit for the visible object distance.
 			double radius = mCameraModelFilterPtr->getFarClippingPlane();
 			for(std::size_t index = 0; index < sampledSpacePointCloudPtr->size(); index++) {
@@ -92,7 +100,7 @@ namespace next_best_view {
 				spaceSamplePoint.child_point_cloud = mSpaceSamplerPtr->getInputCloud();
 
 				// add the index to active indices.
-				feasibleIndicesPtr->push_back(index);
+				resultIndicesPtr->push_back(index);
 			}
 		}
 
@@ -108,7 +116,7 @@ namespace next_best_view {
 				}
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
-				ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Locality: %f, Equality: %f, Angle: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->element_density, drPtr->normality, drPtr->locality, drPtr->equality, drPtr->angle, contractor);
+				ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->element_density, drPtr->normality, contractor);
 
 				if (currentCameraViewport.getSimpleVector3() == intermediateResultViewport.getSimpleVector3() || (intermediateResultViewport.getSimpleVector3() - currentBestViewport.getSimpleVector3()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
@@ -139,8 +147,6 @@ namespace next_best_view {
 			}
 
 			ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
-			// rating.
-			BaseScoreContainerPtr maxScoreContainer = mRatingModulePtr->getScoreContainerInstance();
 			// do the frustum culling by camera model filter
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
@@ -177,8 +183,8 @@ namespace next_best_view {
 					if (!mRatingModulePtr->getScoreContainer(currentCameraViewport, candidateViewportPoint, candidateViewportPoint.score)) {
 						continue;
 					}
-
-					mRatingModulePtr->maximizeScoreContainer(candidateViewportPoint.score, maxScoreContainer);
+					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(candidateViewportPoint.getSimpleVector3(), candidateViewportPoint.getSimpleQuaternion());
+					candidateViewportPoint.score->costs = mRobotModelPtr->getMovementCosts(targetRobotState);
 
 					// add the candidate viewport to the next best view point cloud.
 					nextBestViewports->push_back(candidateViewportPoint);
@@ -190,18 +196,13 @@ namespace next_best_view {
 				return false;
 			}
 
-			// normalize
-			BOOST_FOREACH(ViewportPoint &viewportPoint, *nextBestViewports) {
-				mRatingModulePtr->normalizeScoreContainer(maxScoreContainer, viewportPoint.score);
-			}
-
 			ViewportPointCloud::iterator maxElement = std::max_element(nextBestViewports->begin(), nextBestViewports->end(), boost::bind(&NextBestViewCalculator::compareViewports, *this, _1, _2));
 			resultViewport = *maxElement;
 
 			return true;
 		}
 	public:
-		void updateObjectPoints(const ViewportPoint &viewportPoint) {
+		void updateObjectPointCloud(const ViewportPoint &viewportPoint) {
 			mHypothesisUpdaterPtr->update(viewportPoint);
 		}
 	private:
@@ -211,7 +212,7 @@ namespace next_best_view {
 		 * @param b - viewport b
 		 * @return a < b
 		 */
-		bool compareViewports(ViewportPoint a, ViewportPoint b) {
+		bool compareViewports(ViewportPoint &a, ViewportPoint &b) {
 			return mRatingModulePtr->compareScoreContainer(a.score, b.score);
 		}
 	public:

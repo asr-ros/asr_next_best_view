@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   nav_msgs
   costmap_2d
+  navfn
 )
 
 find_package(PCL REQUIRED)
@@ -64,16 +65,18 @@ add_library(
 	${PROJECT_NAME}_helper
 	src/helper/MathHelper.cpp
 	src/helper/MarkerHelper.cpp
+	src/helper/TypeHelper.cpp
 )
 
 add_library(
 	${PROJECT_NAME}_packages
-	src/common/CommonPCLClass.cpp
+	src/common/CommonClass.cpp
 	src/hypothesis_updater/HypothesisUpdater.cpp
 	src/camera_model_filter/CameraModelFilter.cpp
 	src/rating/BaseScoreContainer.cpp
 	src/rating/RatingModule.cpp
 	src/robot_model/RobotModel.cpp
+	src/robot_model/RobotState.cpp
 	src/space_sampler/SpaceSampler.cpp
 	src/unit_sphere_sampler/UnitSphereSampler.cpp
 )
@@ -84,13 +87,20 @@ add_library(
 	src/hypothesis_updater/impl/PerspectiveHypothesisUpdater.cpp
 	src/camera_model_filter/impl/SingleCameraModelFilter.cpp
 	src/camera_model_filter/impl/StereoCameraModelFilter.cpp
-	src/camera_model_filter/impl/CostmapBasedStereoCameraModelFilter.cpp
+	src/camera_model_filter/impl/MapBasedSingleCameraModelFilter.cpp
+	src/camera_model_filter/impl/MapBasedStereoCameraModelFilter.cpp
 	src/rating/impl/DefaultRatingModule.cpp
 	src/rating/impl/DefaultScoreContainer.cpp
-	src/robot_model/impl/PTURobotModel.cpp
+	src/robot_model/impl/MILDRobotModel.cpp
+	src/robot_model/impl/MILDRobotState.cpp
 	src/space_sampler/impl/PlaneSubSpaceSampler.cpp
-	src/space_sampler/impl/CostmapBasedSpaceSampler.cpp
+	src/space_sampler/impl/MapBasedSpaceSampler.cpp
 	src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
+)
+target_link_libraries(
+	${PROJECT_NAME}_packages_impl
+	${PROJECT_NAME}_packages
+	${catkin_LIBRARIES}
 )
 
 ## Declare a cpp executable
@@ -105,7 +115,24 @@ target_link_libraries(
 	${PROJECT_NAME}_packages
 	${PROJECT_NAME}_packages_impl
 	${PCL_LIBRARIES}
+	glpk
 	${catkin_LIBRARIES}
 )
 
+
+
+add_executable(
+	${PROJECT_NAME}_test
+	src/test_cases/Test.cpp
+)
+
+target_link_libraries(
+	${PROJECT_NAME}_test
+	${PROJECT_NAME}_helper
+	${PROJECT_NAME}_packages
+	${PROJECT_NAME}_packages_impl
+	${PCL_LIBRARIES}
+	glpk
+	${catkin_LIBRARIES}
+)
 

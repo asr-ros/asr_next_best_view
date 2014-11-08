@@ -54,7 +54,7 @@ namespace next_best_view {
 		 * \param rightCameraPivotPointOffset [in] the offset to the pivot point for the right camera
 		 */
 		StereoCameraModelFilter(const SimpleVector3 &leftCameraPivotPointOffset = SimpleVector3(), const SimpleVector3 &rightCameraPivotPointOffset = SimpleVector3());
-	private:
+	protected:
 		/*!
 		 * \brief copies the settings of this objects to the settings of the two SingeCameraModelFilter objects.
 		 */

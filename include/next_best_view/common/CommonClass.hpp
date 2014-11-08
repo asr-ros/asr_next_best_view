@@ -5,13 +5,13 @@
  *      Author: ralfschleicher
  */
 
-#ifndef COMMONPCLCLASS_HPP_
-#define COMMONPCLCLASS_HPP_
+#ifndef COMMONCLASS_HPP_
+#define COMMONCLASS_HPP_
 
 #include "typedef.hpp"
 
 namespace next_best_view {
-	class CommonPCLClass {
+	class CommonClass {
 	private:
 		/*!
 		 * \brief shared pointer to the object point cloud.
@@ -25,6 +25,16 @@ namespace next_best_view {
 
 	public:
 		/*!
+		 * \brief ctor
+		 */
+		CommonClass();
+
+		/*!
+		 * \brief pure virtual dtor.
+		 */
+		virtual ~CommonClass() = 0;
+
+		/*!
 		 * \brief setting the input cloud.
 		 * \param pointCloudPtr the shared pointer to point cloud
 		 */
@@ -33,7 +43,7 @@ namespace next_best_view {
 		/*!
 		 * \return the shared pointer to the point cloud.
 		 */
-		ObjectPointCloudPtr getInputCloud();
+		ObjectPointCloudPtr& getInputCloud();
 
 		/*!
 		 * \brief setting the shared pointer to the active indices of the point cloud.
@@ -44,7 +54,7 @@ namespace next_best_view {
 		/*!
 		 * \return the shared pointer to the active indices of the point cloud.
 		 */
-		IndicesPtr getIndices();
+		IndicesPtr& getIndices();
 	};
 }
 

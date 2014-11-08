@@ -8,7 +8,7 @@
 #ifndef NEXTBESTVIEW_HPP_
 #define NEXTBESTVIEW_HPP_
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <pcl/point_cloud.h>
@@ -21,19 +21,20 @@
 #include <actionlib/client/simple_action_client.h>
 
 #include "typedef.hpp"
-#include "next_best_view/utility/MapUtility.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/AttributedPointCloud.h"
 #include "next_best_view/AttributedPoint.h"
-#include "next_best_view/camera_model_filter/impl/CostmapBasedStereoCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/MapBasedStereoCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
-#include "next_best_view/robot_model/impl/PTURobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.hpp"
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
-#include "next_best_view/space_sampler/impl/CostmapBasedSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 
 
@@ -80,23 +81,16 @@ namespace next_best_view {
 			float fcp = 5.0;
 
 			SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
-			unitSphereSamplerPtr->setSamples(24);
+			unitSphereSamplerPtr->setSamples(128);
 
 //			PlaneSubSpaceSamplerPtr spaceSamplerPtr(new PlaneSubSpaceSampler());
 //			spaceSamplerPtr->setSamples(32);
-			MapUtilityPtr mapUtilityPtr(new MapUtility());
+			MapHelperPtr mapHelperPtr(new MapHelper());
 
-			SimpleVector3 startPoint(22.1536, 10.5516, 0.0);
-			for (double x = 0; x < 2 * M_PI; x += 2 * M_PI / 9.0) {
-				SimpleVector3 targetPoint(cos(x), sin(x), 0);
-				targetPoint += startPoint;
-				ROS_INFO("CollisionFree: %s", (mapUtilityPtr->doRaytracing(startPoint, targetPoint) ? " true" : "false"));
-			}
-
-			CostmapBasedSpaceSamplerPtr spaceSamplerPtr(new CostmapBasedSpaceSampler(mapUtilityPtr));
+			MapBasedSpaceSamplerPtr spaceSamplerPtr(new MapBasedSpaceSampler(mapHelperPtr));
 			spaceSamplerPtr->setSamples(128);
 
-			CostmapBasedStereoCameraModelFilterPtr cameraModelFilterPtr(new CostmapBasedStereoCameraModelFilter(mapUtilityPtr, SimpleVector3(0.0, 0.05, 0.1), SimpleVector3(0.0, -0.05, 0.1)));
+			MapBasedStereoCameraModelFilterPtr cameraModelFilterPtr(new MapBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.05, 0.1), SimpleVector3(0.0, -0.05, 0.1)));
 			cameraModelFilterPtr->setHorizontalFOV(fovx);
 			cameraModelFilterPtr->setVerticalFOV(fovy);
 			cameraModelFilterPtr->setNearClippingPlane(ncp);
@@ -105,12 +99,20 @@ namespace next_best_view {
 			//cameraModelFilterPtr->setFilteringType(StereoCameraModelFilter::BOTH);
 			cameraModelFilterPtr->setPivotPointPosition(initialCameraViewport.getSimpleVector3());
 
-			PTURobotModelPtr robotModelPtr(new PTURobotModel());
+			MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
 			robotModelPtr->setTiltAngleLimits(-45, 45);
 			robotModelPtr->setPanAngleLimits(-60, 60);
 
+			MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
+			currentRobotStatePtr->pan = 0;
+			currentRobotStatePtr->tilt = 0;
+			currentRobotStatePtr->rotation = 0;
+			currentRobotStatePtr->x = initialCameraViewport.x;
+			currentRobotStatePtr->y = initialCameraViewport.y;
+			robotModelPtr->setCurrentRobotState(currentRobotStatePtr);
+
 			DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule());
-			ratingModulePtr->setNormalityRatingAngle(60.0 / 180.0 * M_PI);
+			ratingModulePtr->setNormalityRatingAngle(30.0 / 180.0 * M_PI);
 
 			PerspectiveHypothesisUpdaterPtr hypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
 			hypothesisUpdaterPtr->setDefaultRatingModule(ratingModulePtr);
@@ -126,13 +128,15 @@ namespace next_best_view {
 
 			ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
 			ViewportPoint currentCameraViewport = initialCameraViewport;
+			uint32_t ccount = 0;
 			while(ros::ok()) {
 				ViewportPoint viewportPoint;
 				if (!calculator.calculateNextBestView(currentCameraViewport, viewportPoint)) {
 					break;
 				}
-
-				calculator.updateObjectPoints(viewportPoint);
+				ccount++;
+				ROS_INFO("Iteration Count: %d", ccount);
+				calculator.updateObjectPointCloud(viewportPoint);
 				viewportPointCloudPtr->push_back(viewportPoint);
 				currentCameraViewport = viewportPoint;
 			}
@@ -150,6 +154,9 @@ namespace next_best_view {
 //			MarkerHelper::getRainbowColor(pointMarker, 2.0 / 6.0, 1.0);
 //			pointMarker.points.push_back(viewportPoint.getPoint());
 
+			SimpleVector4 poisonGreenColorVector = SimpleVector4(191.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0, 1.0);
+			SimpleVector4 darkBlueColorVector = SimpleVector4(4.0 / 255.0, 59.0 / 255.0, 89.0 / 255.0, 1.0);
+			SimpleVector4 blueColorVector = SimpleVector4(56.0 / 255.0, 129.0 / 255.0, 168.0 / 255.0, 1.0);
 			viz::MarkerArray arrowMarkerArray;
 			double ratio = 1.0 / ((double) viewportPointCloudPtr->size());
 			SimpleVector3 displacement(0.0, 0.0, 1.0);
@@ -164,8 +171,7 @@ namespace next_best_view {
 				endPoint[2] = 0.0;
 				endPoint += (idx + 1) * ratio * displacement;
 
-				viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint);
-				MarkerHelper::getRainbowColor(arrowMarker, idx * ratio * 5.0 / 6.0, 1.0);
+				viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, blueColorVector);
 				arrowMarkerArray.markers.push_back(arrowMarker);
 			}
 
@@ -173,14 +179,23 @@ namespace next_best_view {
 				ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
 
 				SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-				startPoint[2] = 1.0;
+				startPoint[2] = 1.32;
 
 				SimpleVector3 endPoint(startPoint);
 				endPoint[2] = 0.0;
 
-				viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint);
-				MarkerHelper::getRainbowColor(arrowMarker, idx * ratio, 1.0);
+
+				viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, darkBlueColorVector);
 				arrowMarkerArray.markers.push_back(arrowMarker);
+
+
+
+				SimpleVector3 orientationStart = startPoint;
+				SimpleVector3 orientationVector = startViewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
+				SimpleVector3 orientationEnd = orientationStart + orientationVector / 3.0;
+
+				viz::Marker orientationMarker = MarkerHelper::getArrowMarker(seq++, orientationStart, orientationEnd, poisonGreenColorVector);
+				arrowMarkerArray.markers.push_back(orientationMarker);
 			}
 
 			ROS_WARN("%d points", viewportPointCloudPtr->size());

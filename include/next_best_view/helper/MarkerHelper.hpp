@@ -8,8 +8,9 @@
 #ifndef MARKER_HELPER_HPP_
 #define MARKER_HELPER_HPP_
 
-#include "typedef.hpp"
+#include <geometry_msgs/Pose.h>
 #include <visualization_msgs/Marker.h>
+#include "typedef.hpp"
 
 namespace next_best_view {
 	/*!
@@ -20,13 +21,10 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 */
 	class MarkerHelper {
+	private:
+		MarkerHelper();
+		~MarkerHelper();
 	public:
-		/*!
-		 * \param vector a 3d vector
-		 * \return the corresponding geometry_msgs::Point object
-		 */
-		static geometry_msgs::Point getPoint(SimpleVector3 vector);
-
 		/*!
 		 * \param id the id of the marker
 		 * \return a marker with all basic settings

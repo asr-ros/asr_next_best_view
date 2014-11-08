@@ -8,7 +8,7 @@
 #include "next_best_view/unit_sphere_sampler/UnitSphereSampler.hpp"
 
 namespace next_best_view {
-	UnitSphereSampler::UnitSphereSampler(const uint32_t &samples) : mSamples(samples) {
+	UnitSphereSampler::UnitSphereSampler(const uint32_t &samples) : CommonClass(), mSamples(samples) {
 	}
 
 	UnitSphereSampler::~UnitSphereSampler() { }

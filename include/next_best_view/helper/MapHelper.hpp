@@ -5,18 +5,20 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MAPUTILITY_HPP_
-#define MAPUTILITY_HPP_
+#ifndef MAPHELPER_HPP_
+#define MAPHELPER_HPP_
 #include <ros/ros.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/GetPlan.h>
+#include <navfn/navfn_ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <cmath>
 #include <vector>
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/helper/TypeHelper.hpp"
 #include "typedef.hpp"
 
 namespace next_best_view {
@@ -42,7 +44,8 @@ namespace next_best_view {
 	typedef boost::shared_ptr<RayTracingIndex> RayTracingIndexPtr;
 	typedef std::vector<RayTracingIndex> Ray;
 
-	class MapUtility {
+
+	class MapHelper {
 	private:
 		bool mMapReceived;
 		bool mCostmapReceived;
@@ -53,9 +56,9 @@ namespace next_best_view {
 		nav_msgs::OccupancyGrid mCostmap;
 		nav_msgs::OccupancyGrid mRaytracingMap;
 	public:
-		MapUtility(const std::string &mapTopicName = "map", const std::string &costmapTopicName = "move_base/global_costmap/costmap", const std::string &getPlanServiceName = "move_base/make_plan") : mMapReceived(false), mCostmapReceived(false), mCollisionThreshold(45) {
-			ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapUtility::mapReceived, this);
-			ros::Subscriber costmapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(costmapTopicName, 1, &MapUtility::costmapReceived, this);
+		MapHelper(const std::string &mapTopicName = "map", const std::string &costmapTopicName = "move_base/global_costmap/costmap", const std::string &getPlanServiceName = "move_base/make_plan") : mMapReceived(false), mCostmapReceived(false), mCollisionThreshold(45) {
+			ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapHelper::mapReceived, this);
+			ros::Subscriber costmapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(costmapTopicName, 1, &MapHelper::costmapReceived, this);
 			while(ros::ok() && !this->hasReceivedMaps()) {
 				ROS_INFO("Waiting for maps to arrive on topics '%s' and '%s'", mapSubscriber.getTopic().c_str(), costmapSubscriber.getTopic().c_str());
 
@@ -63,7 +66,7 @@ namespace next_best_view {
 				ros::Duration(0.5).sleep();
 			}
 
-			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName);
+			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName, true);
 			while(ros::ok() && !mGetPlanServiceClient.exists()) {
 				ROS_INFO("Waiting for planning server to start on service '%s'...", mGetPlanServiceClient.getService().c_str());
 				ros::spinOnce();
@@ -73,7 +76,7 @@ namespace next_best_view {
 			this->aggregateRaytracingMap(mMap, mCostmap);
 		}
 
-		virtual ~MapUtility() { }
+		virtual ~MapHelper() { }
 	private:
 		void mapReceived(nav_msgs::OccupancyGrid map) {
 			ROS_DEBUG("Map received");
@@ -305,25 +308,14 @@ namespace next_best_view {
 			return mCollisionThreshold;
 		}
 
-		nav_msgs::Path getPath(const SimpleVector3 &start, const SimpleVector3 &goal) {
-			nav_msgs::GetPlan planCall;
-
-			// preparing call
-			planCall.request.start.pose.position = MarkerHelper::getPoint(start);
-			planCall.request.goal.pose.position = MarkerHelper::getPoint(goal);
-			planCall.request.tolerance = 0.05;
-
-			// call
-			mGetPlanServiceClient.call(planCall);
-
-			// return response.
-			return planCall.response.plan;
+		float getSquaredDistance(const SimpleVector3 &start, const SimpleVector3 &goal) {
+			return (goal - start).squaredNorm();
 		}
 	};
 
-	typedef boost::shared_ptr<MapUtility> MapUtilityPtr;
+	typedef boost::shared_ptr<MapHelper> MapHelperPtr;
 }
 
 
 
-#endif /* MAPUTILITY_HPP_ */
+#endif /* MAPHELPER_HPP_ */

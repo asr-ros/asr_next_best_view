@@ -29,21 +29,6 @@ namespace next_best_view {
 		 * \brief the normality rating.
 		 */
 		float normality;
-
-		/*!
-		 * \brief the degree of locality.
-		 */
-		float locality;
-
-		/*!
-		 * \brief the equality.
-		 */
-		float equality;
-
-		/*!
-		 * \brief the angle rating.
-		 */
-		float angle;
 	public:
 		/*!
 		 * \brief constructor of the DefaultRating object.

@@ -9,7 +9,7 @@
 #define TYPEDEF_HPP_
 
 #include <vector>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <pcl/point_cloud.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/frustum_culling.h>
@@ -37,6 +37,7 @@ namespace next_best_view {
 	// vector types
 	typedef Eigen::Matrix<Precision, 2, 1> SimpleVector2;
 	typedef Eigen::Matrix<Precision, 3, 1> SimpleVector3;
+	typedef SimpleVector3 SimpleSphereCoordinates;
 	typedef Eigen::Matrix<Precision, 4, 1> SimpleVector4;
 	typedef Eigen::Matrix<Precision, Eigen::Dynamic, 1> SimpleVectorX;
 

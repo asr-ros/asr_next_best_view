@@ -14,6 +14,40 @@ namespace next_best_view {
 		return gen;
 	}
 
+	SimpleSphereCoordinates MathHelper::convertC2S(const SimpleVector3 &cartesian) {
+		SimpleSphereCoordinates ssc;
+		convertC2S(cartesian, ssc);
+		return ssc;
+	}
+
+	void MathHelper::convertC2S(const SimpleVector3 &cartesian, SimpleSphereCoordinates &sphere) {
+		sphere[0] = cartesian.lpNorm<2>();
+		sphere[1] = asin(cartesian[2]);
+		sphere[2] = atan2(cartesian[1], cartesian[0]);
+	}
+
+	SimpleVector3 MathHelper::convertS2C(const SimpleSphereCoordinates &sphere) {
+		SimpleVector3 cartesian;
+		convertS2C(sphere, cartesian);
+		return cartesian;
+	}
+
+	void MathHelper::convertS2C(const SimpleSphereCoordinates &sphere, SimpleVector3 &cartesian) {
+		cartesian[0] = sphere[0] * cos(sphere[1]) * cos(sphere[2]);
+		cartesian[1] = sphere[0] * cos(sphere[1]) * sin(sphere[2]);
+		cartesian[2] = sphere[0] * sin(sphere[1]);
+	}
+
+	SimpleVector3 MathHelper::getVisualAxis(const SimpleQuaternion &orientation) {
+		SimpleVector3 resultAxis;
+		getVisualAxis(orientation, resultAxis);
+		return resultAxis;
+	}
+
+	void MathHelper::getVisualAxis(const SimpleQuaternion &orientation, SimpleVector3 &resultAxis) {
+		resultAxis = orientation.toRotationMatrix() * SimpleVector3::UnitX();
+	}
+
 	double MathHelper::getSignum(const double &value) {
 		return (value == 0 ? 0.0 : (value < 0 ? -1.0 : 1.0));
 	};
@@ -32,28 +66,9 @@ namespace next_best_view {
 		return X.dot(Y) / xNorm / yNorm;
 	}
 
-	Precision MathHelper::getRatingFunction(const Precision &angle, const Precision &angleThreshold) {
-		if (angle < angleThreshold) {
-			return .5 + .5 * cos(angle * M_PI / angleThreshold);
-		}
-		return 0.0;
-	}
-
 	Precision MathHelper::getMinimumAngleDifference(const Precision &firstAngle, const Precision &secondAngle) {
 		Precision angleDiff = fabs(firstAngle - secondAngle);
 		return fmin(angleDiff, 2 * M_PI - angleDiff);
-	}
-
-	SimpleVector3 MathHelper::getSphericalCoords(const SimpleVector3 &X) {
-		SimpleVector3 e1(1, 0, 0);
-		SimpleVector3 proj = getProjection(2, X);
-
-		Precision acosPhi = acos(getCosinus(e1, proj));
-		acosPhi = getSignum(X[1]) == -1.0 ? 2 * M_PI - acosPhi : acosPhi;
-
-		Precision acosTheta = getSignum(X[2]) * acos(getCosinus(proj, X));
-
-		return SimpleVector3(X.lpNorm<2>(), acosPhi, acosTheta);
 	}
 
 	int MathHelper::getRandomInteger(const int &min, const int &max) {
@@ -126,8 +141,8 @@ namespace next_best_view {
 			point[1] = sin(longitude) * r;
 			point[2] = z;
 
-			SimpleVector3 sphereCoords = getSphericalCoords(point);
-			SimpleQuaternion orientation = MathHelper::getQuaternionByAngles(sphereCoords[1], sphereCoords[2], 0.0);
+			SimpleSphereCoordinates sphereCoords = convertC2S(point);
+			SimpleQuaternion orientation = MathHelper::getQuaternionByAngles(sphereCoords[2], sphereCoords[1], 0.0);
 			oritentationCollectionPtr->push_back(orientation);
 
 			z -= dz;

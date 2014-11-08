@@ -5,15 +5,15 @@
  *      Author: ralfschleicher
  */
 
-#include "next_best_view/space_sampler/impl/CostmapBasedSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
 
 namespace next_best_view {
-	CostmapBasedSpaceSampler::CostmapBasedSpaceSampler(const MapUtilityPtr &mapUtilityPtr) : mMapUtilityPtr(mapUtilityPtr) {
+	MapBasedSpaceSampler::MapBasedSpaceSampler(const MapHelperPtr &mapUtilityPtr) : mMapHelperPtr(mapUtilityPtr) {
 	}
 
-	CostmapBasedSpaceSampler::~CostmapBasedSpaceSampler() { }
+	MapBasedSpaceSampler::~MapBasedSpaceSampler() { }
 
-	SamplePointCloudPtr CostmapBasedSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
+	SamplePointCloudPtr MapBasedSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
 		SamplePointCloudPtr sampledSpacePointCloudPtr = SamplePointCloudPtr(new SamplePointCloud());
 
 		// Calculate maximum span
@@ -38,11 +38,11 @@ namespace next_best_view {
 
 
 			Ray ray;
-			if (!mMapUtilityPtr->doRaytracing(currentSpacePosition, vector, ray)) {
+			if (!mMapHelperPtr->doRaytracing(currentSpacePosition, vector, ray)) {
 				SimpleVector3 obstacle;
 				for (Ray::reverse_iterator iter = ray.rbegin(); iter != ray.rend(); iter++) {
-					if (mMapUtilityPtr->isOccupancyValueAcceptable(iter->occupancy)) {
-						mMapUtilityPtr->mapToWorldCoordinates(iter->x, iter->y, obstacle);
+					if (mMapHelperPtr->isOccupancyValueAcceptable(iter->occupancy)) {
+						mMapHelperPtr->mapToWorldCoordinates(iter->x, iter->y, obstacle);
 						break;
 					}
 				}

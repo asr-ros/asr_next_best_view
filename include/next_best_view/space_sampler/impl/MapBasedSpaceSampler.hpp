@@ -1,15 +1,15 @@
 /*
- * CostmapBasedSpaceSampler.hpp
+ * MapBasedSpaceSampler.hpp
  *
  *  Created on: Oct 16, 2014
  *      Author: ralfschleicher
  */
 
-#ifndef COSTMAPBASEDSPACESAMPLER_HPP_
-#define COSTMAPBASEDSPACESAMPLER_HPP_
+#ifndef MAPBASEDSPACESAMPLER_HPP_
+#define MAPBASEDSPACESAMPLER_HPP_
 
 #include <boost/foreach.hpp>
-#include "next_best_view/utility/MapUtility.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 
 namespace next_best_view {
@@ -20,19 +20,19 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class CostmapBasedSpaceSampler : public SpaceSampler {
+	class MapBasedSpaceSampler : public SpaceSampler {
 	private:
-		MapUtilityPtr mMapUtilityPtr;
+		MapHelperPtr mMapHelperPtr;
 	public:
 		/*!
 		 * \brief constructor for CostmapBasedSpaceSampler object
 		 */
-		CostmapBasedSpaceSampler(const MapUtilityPtr &mapUtilityPtr);
+		MapBasedSpaceSampler(const MapHelperPtr &mapHelperPtr);
 
 		/*!
 		 * \brief destructor for CostmapBasedSpaceSampler object
 		 */
-		virtual ~CostmapBasedSpaceSampler();
+		virtual ~MapBasedSpaceSampler();
 
 		SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
 	};
@@ -40,8 +40,8 @@ namespace next_best_view {
 	/*!
 	 * \brief Definition for the shared pointer type of the class.
 	 */
-	typedef boost::shared_ptr<CostmapBasedSpaceSampler> CostmapBasedSpaceSamplerPtr;
+	typedef boost::shared_ptr<MapBasedSpaceSampler> MapBasedSpaceSamplerPtr;
 }
 
 
-#endif /* COSTMAPBASEDSPACESAMPLER_HPP_ */
+#endif /* MAPBASEDSPACESAMPLER_HPP_ */

@@ -8,7 +8,7 @@
 #ifndef CAMERAMODELFILTER_HPP_
 #define CAMERAMODELFILTER_HPP_
 
-#include "next_best_view/common/CommonPCLClass.hpp"
+#include "next_best_view/common/CommonClass.hpp"
 #include <visualization_msgs/MarkerArray.h>
 
 namespace next_best_view {
@@ -21,7 +21,7 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class CameraModelFilter : public CommonPCLClass {
+	class CameraModelFilter : public CommonClass {
 	private:
 		/*!
 		 * \brief the horizontal field of view.
@@ -63,7 +63,7 @@ namespace next_best_view {
 		/*!
 		 * \brief destructs the camera model filter.
 		 */
-		virtual ~CameraModelFilter();
+		virtual ~CameraModelFilter() = 0;
 
 		/*!
 		 * \brief returns a array of markers containing the visualization of the camera frustum.

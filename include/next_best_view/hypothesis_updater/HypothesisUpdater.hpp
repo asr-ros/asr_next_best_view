@@ -8,16 +8,17 @@
 #ifndef HYPOTHESISUPDATER_HPP_
 #define HYPOTHESISUPDATER_HPP_
 
+#include "next_best_view/common/CommonClass.hpp"
 #include "typedef.hpp"
 
 namespace next_best_view {
 	/*!
 	 * \brief HypothesisUpdater is an abstract class for updating the objects in the point cloud.
 	 */
-	class HypothesisUpdater {
+	class HypothesisUpdater : public CommonClass {
 	public:
 		HypothesisUpdater();
-		virtual ~HypothesisUpdater();
+		virtual ~HypothesisUpdater() = 0;
 		virtual void update(const ViewportPoint &viewportPoint) = 0;
 	};
 

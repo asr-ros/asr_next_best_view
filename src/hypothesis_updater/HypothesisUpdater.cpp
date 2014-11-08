@@ -8,7 +8,7 @@
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 
 namespace next_best_view {
-	HypothesisUpdater::HypothesisUpdater() { }
+	HypothesisUpdater::HypothesisUpdater() : CommonClass() { }
 
 	HypothesisUpdater::~HypothesisUpdater() { }
 }

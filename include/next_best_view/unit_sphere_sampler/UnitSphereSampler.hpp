@@ -8,6 +8,7 @@
 #ifndef UNITSPHERESAMPLER_HPP_
 #define UNITSPHERESAMPLER_HPP_
 
+#include "next_best_view/common/CommonClass.hpp"
 #include "typedef.hpp"
 
 namespace next_best_view {
@@ -18,7 +19,7 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class UnitSphereSampler {
+	class UnitSphereSampler : public CommonClass {
 	protected:
 		/*!
 		 * \brief sample count.

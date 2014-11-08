@@ -8,7 +8,7 @@
 #ifndef SPACESAMPLER_HPP_
 #define SPACESAMPLER_HPP_
 
-#include "next_best_view/common/CommonPCLClass.hpp"
+#include "next_best_view/common/CommonClass.hpp"
 
 namespace next_best_view {
 	/*!
@@ -18,8 +18,8 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class SpaceSampler : public CommonPCLClass {
-	protected:
+	class SpaceSampler : public CommonClass {
+	private:
 		/*!
 		 * \brief sample count
 		 */

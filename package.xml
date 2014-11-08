@@ -15,7 +15,9 @@
   <build_depend>nav_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>costmap_2d</build_depend>
+  <build_depend>navfn</build_depend>
 
+  <build_depend>object_database</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>message_runtime</run_depend>

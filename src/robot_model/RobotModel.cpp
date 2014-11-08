@@ -8,27 +8,22 @@
 #include "next_best_view/robot_model/RobotModel.hpp"
 
 namespace next_best_view {
-	RobotModel::RobotModel() {}
+	RobotModel::RobotModel() : CommonClass() {}
 	RobotModel::~RobotModel() {}
 
-	void RobotModel::filterReachableOrientations(SimpleQuaternionCollectionPtr &orientationsPtr) {
-		// Test every quaternion if its orientation is according to the robot's possibilities.
-		// do a in-place selection of the right quaternions
-		SimpleQuaternionCollection::iterator currentPosition = orientationsPtr->begin();
-		SimpleQuaternionCollection::iterator currentEndPosition = orientationsPtr->end();
+	RobotStatePtr RobotModel::calculateRobotState(const SimpleVector3 &position, const SimpleQuaternion &orientation) {
+		return this->calculateRobotState(mCurrentRobotState, position, orientation);
+	}
 
-		// test each quaternion if it fits the possibilities.
-		while (currentPosition != currentEndPosition) {
-			SimpleQuaternion orientation = *currentPosition;
-			bool reachable = this->isOrientationReachable(orientation);
-			if (!reachable) {
-				currentEndPosition--;
-				std::swap(*currentPosition, *currentEndPosition);
-				continue;
-			}
-			currentPosition++;
-		}
+	float RobotModel::getMovementCosts(const RobotStatePtr &targetRobotState) {
+		return this->getMovementCosts(mCurrentRobotState, targetRobotState);
+	}
 
-		orientationsPtr->resize(std::distance(orientationsPtr->begin(), currentPosition));
+	void RobotModel::setCurrentRobotState(const RobotStatePtr &currentRobotState) {
+		mCurrentRobotState = currentRobotState;
+	}
+
+	RobotStatePtr RobotModel::getCurrentRobotState() {
+		return mCurrentRobotState;
 	}
 }

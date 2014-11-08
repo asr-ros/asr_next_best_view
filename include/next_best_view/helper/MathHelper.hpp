@@ -33,6 +33,38 @@ namespace next_best_view {
 		static boost::mt19937& getRandomnessGenerator();
 	public:
 		/*!
+		 * \brief converts cartesian coordinates to sphere coordinates
+		 * \param cartestian any cartesian coordinates
+		 * \return sphere coordinates (radius,inclinate,azimuth)
+		 */
+		static SimpleSphereCoordinates convertC2S(const SimpleVector3 &cartesian);
+
+		/*!
+		 * \brief converts cartesian coordinates to sphere coordinates (lightweight)
+		 * \param cartestian any cartesian coordinates
+		 * \param sphere (out) sphere coordinates (radius,inclinate,azimuth)
+		 */
+		static void convertC2S(const SimpleVector3 &cartesian, SimpleSphereCoordinates &sphere);
+
+		/*!
+		 * \brief converts sphere coordinates to cartesian coordinates (lightweight)
+		 * \param sphere any sphere coordinates (radius,inclinate,azimuth)
+		 * \return cartesian coordinates
+		 */
+		static SimpleVector3 convertS2C(const SimpleSphereCoordinates &sphere);
+
+		/*!
+		 * \brief converts sphere coordinates to cartesian coordinates (lightweight)
+		 * \param sphere any sphere coordinates (radius,inclinate,azimuth)
+		 * \param cartesian (out) cartesian coordinates
+		 */
+		static void convertS2C(const SimpleSphereCoordinates &sphere, SimpleVector3 &cartesian);
+
+		static SimpleVector3 getVisualAxis(const SimpleQuaternion &orientation);
+
+		static void getVisualAxis(const SimpleQuaternion &orientation, SimpleVector3 &resultAxis);
+
+		/*!
 		 * \param value [in]
 		 * \return the signum of value
 		 */
@@ -65,12 +97,6 @@ namespace next_best_view {
 		 * \return the minimum angle difference.
 		 */
 		static Precision getMinimumAngleDifference(const Precision &firstAngle, const Precision &secondAngle);
-
-		/*!
-		 * \param X [in] the subjected cartesian coord vector.
-		 * \return the spherical coords 3d vector (r, phi, theta)
-		 */
-		static SimpleVector3 getSphericalCoords(const SimpleVector3 &X);
 
 		/*!
 		 * \param min [in] the minumum integer
