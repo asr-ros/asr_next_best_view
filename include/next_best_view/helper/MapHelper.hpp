@@ -12,7 +12,6 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/GetPlan.h>
-#include <navfn/navfn_ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <cmath>
 #include <vector>

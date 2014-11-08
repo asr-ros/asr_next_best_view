@@ -9,12 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
   nav_msgs
-  costmap_2d
-  navfn
 )
 
 find_package(PCL REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(cmake_modules REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 
 add_message_files(
