@@ -80,8 +80,8 @@ namespace next_best_view {
 		lmarker.color.b = color[2];
 		lmarker.color.a = color[3];
 
-		lmarker.points.push_back(TypeHelper::getGeometryMsgsPoint(startPoint));
-		lmarker.points.push_back(TypeHelper::getGeometryMsgsPoint(endPoint));
+		lmarker.points.push_back(TypeHelper::getPointMSG(startPoint));
+		lmarker.points.push_back(TypeHelper::getPointMSG(endPoint));
 
 		return lmarker;
 	}

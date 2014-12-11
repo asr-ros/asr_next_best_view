@@ -30,7 +30,7 @@ namespace next_best_view {
 
 		virtual ~DefaultRatingModule();
 
-		bool getScoreContainer(const ViewportPoint &currentViewport, const ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr);
+		bool getScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr);
 
 		bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
 

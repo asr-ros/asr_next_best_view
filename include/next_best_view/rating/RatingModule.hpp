@@ -40,7 +40,7 @@ namespace next_best_view {
 		 * \param scoreContainerPtr [out] the shared pointer for writing a rating into it
 		 * \return if the rating is feasible or not
 		 */
-		virtual bool getScoreContainer(const ViewportPoint &currentViewportPoint, const ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr) = 0;
+		virtual bool getScoreContainer(const ViewportPoint &currentViewportPoint, ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr) = 0;
 
 		/*!
 		 * \return a shared pointer containing an empty rating object.

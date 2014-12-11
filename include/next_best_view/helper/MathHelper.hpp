@@ -120,12 +120,6 @@ namespace next_best_view {
 		static SimpleVectorX getRandomVector(const SimpleVectorX &mean, const SimpleVectorX &standardDeviation);
 
 		/*!
-		 * \param quat quaternion geometry_msg
-		 * \return simple quaternion
-		 */
-		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Quaternion &quat);
-
-		/*!
 		 * \return a random rotation quaternion
 		 */
 		static SimpleQuaternion getRandomQuaternion();

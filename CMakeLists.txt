@@ -9,6 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
   nav_msgs
+  actionlib
+  tf
+  std_srvs
+  visualization_msgs
 )
 
 find_package(PCL REQUIRED)
@@ -24,11 +28,17 @@ add_message_files(
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+   DIRECTORY
+   srv
+   FILES
+   GetNextBestView.srv
+   GetPointCloud2.srv
+   GetAttributedPointCloud.srv
+   SetAttributedPointCloud.srv
+   GetSpaceSampling.srv
+   UpdatePointCloud.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -42,12 +52,14 @@ generate_messages(
 	DEPENDENCIES
 	std_msgs  # Or other packages containing msgs
 	geometry_msgs
+	sensor_msgs
+	visualization_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper
-  CATKIN_DEPENDS roscpp roslib
+  CATKIN_DEPENDS roscpp roslib message_runtime
   DEPENDS system_lib
 )
 
@@ -93,10 +105,12 @@ add_library(
 	src/robot_model/impl/MILDRobotState.cpp
 	src/space_sampler/impl/PlaneSubSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedSpaceSampler.cpp
+	src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
 	src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
 )
 target_link_libraries(
 	${PROJECT_NAME}_packages_impl
+	${PROJECT_NAME}_helper
 	${PROJECT_NAME}_packages
 	${catkin_LIBRARIES}
 )
@@ -105,6 +119,12 @@ target_link_libraries(
 add_executable(
 	${PROJECT_NAME}
 	src/next_best_view.cpp
+)
+
+add_dependencies(
+	${PROJECT_NAME}
+	${PROJECT_NAME}_generate_messages_cpp
+	object_database
 )
 
 target_link_libraries(

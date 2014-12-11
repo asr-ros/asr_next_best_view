@@ -10,7 +10,7 @@
 namespace next_best_view {
 
 	boost::mt19937& MathHelper::getRandomnessGenerator() {
-		static boost::mt19937 gen(std::time(0));
+		static boost::mt19937 gen(0);
 		return gen;
 	}
 
@@ -89,16 +89,6 @@ namespace next_best_view {
 		for (int i = 0; i < mean.rows(); i++) {
 			result[i] = getRandomNumber(mean[i], standardDeviation[i]);
 		}
-		return result;
-	}
-
-	SimpleQuaternion MathHelper::getSimpleQuaternion(const geometry_msgs::Quaternion &quat) {
-		SimpleQuaternion result;
-		result.w() = quat.w;
-		result.x() = quat.x;
-		result.y() = quat.y;
-		result.z() = quat.z;
-
 		return result;
 	}
 

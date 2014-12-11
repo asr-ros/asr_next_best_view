@@ -12,9 +12,10 @@ namespace next_best_view {
 	float DefaultRatingModule::getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint) {
 		float maxRating = 0.0;
 		SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
-		SimpleVector3 viewportNormalVector = viewportOrientation.toRotationMatrix() * SimpleVector3::UnitX();
+		SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportOrientation);
 
-		BOOST_FOREACH(SimpleVector3 objectSurfaceNormalVector, *objectPoint.normal_vectors) {
+		BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
+			SimpleVector3 objectSurfaceNormalVector = objectPoint.normal_vectors->at(index);
 			maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
 		}
 
@@ -30,13 +31,6 @@ namespace next_best_view {
 		return 0.0;
 	}
 
-	float DefaultRatingModule::getSingleNormalityRatingByQuaternion(const SimpleQuaternion &quaternionA, const SimpleQuaternion &quaternionB, float angleThreshold) {
-		SimpleVector3 a = MathHelper::getVisualAxis(quaternionA);
-		SimpleVector3 b = MathHelper::getVisualAxis(quaternionB);
-
-		return getSingleNormalityRating(a, b, angleThreshold);
-	}
-
 	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
 		return (a->element_density * a->normality) / (1 + a->costs);
 	}
@@ -46,7 +40,7 @@ namespace next_best_view {
 
 	DefaultRatingModule::~DefaultRatingModule() { }
 
-	bool DefaultRatingModule::getScoreContainer(const ViewportPoint &currentViewport, const ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr) {
+	bool DefaultRatingModule::getScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr) {
 		SimpleVector3 currentPosition = currentViewport.getSimpleVector3();
 		SimpleQuaternion currentOrientation = currentViewport.getSimpleQuaternion();
 		SimpleVector3 candidatePosition = candidateViewportPoint.getSimpleVector3();
@@ -56,28 +50,28 @@ namespace next_best_view {
 
 		double maxElements = this->getInputCloud()->size();
 
-		BOOST_FOREACH(int index, *this->getIndices()) {
+		BOOST_FOREACH(int index, *candidateViewportPoint.child_indices) {
 			ObjectPoint &objectPoint = this->getInputCloud()->at(index);
 
-			if (objectPoint.normal_vectors->size() == 0) {
+			if (objectPoint.active_normal_vectors->size() == 0) {
 				continue;
 			}
 
 			float currentNormalityRating = this->getNormalityRating(candidateViewportPoint, objectPoint);
+			defRatingPtr->element_density += 1.0;
 
 			if (currentNormalityRating == 0.0) {
 				continue;
 			}
-
-			defRatingPtr->element_density += 1.0;
-			defRatingPtr->normality = std::max(defRatingPtr->normality, currentNormalityRating);
+			defRatingPtr->normality += currentNormalityRating;
 		}
 
+		defRatingPtr->normality /= maxElements;
 		defRatingPtr->element_density /= maxElements;
 
 		scoreContainerPtr = defRatingPtr;
 
-		return (defRatingPtr->element_density > 0.0);
+		return (defRatingPtr->element_density > 0.0 && defRatingPtr->normality > 0.0);
 	}
 	bool DefaultRatingModule::compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) {
 		DefaultScoreContainerPtr defA = boost::static_pointer_cast<DefaultScoreContainer>(a);

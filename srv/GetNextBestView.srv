@@ -1,0 +1,8 @@
+geometry_msgs/Pose initial_pose
+---
+bool found
+geometry_msgs/Pose resulting_pose
+visualization_msgs/MarkerArray frustum_marker_array
+sensor_msgs/PointCloud2 frustum_point_cloud
+sensor_msgs/PointCloud2 point_cloud
+sensor_msgs/PointCloud2 unit_sphere_sampling_point_cloud

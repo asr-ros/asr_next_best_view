@@ -40,8 +40,8 @@ namespace next_best_view {
 	 * \sa pcl::PointXYZ
 	 */
 	struct RealObjectPoint {
-	public:
 		PCL_ADD_POINT4D;
+		PCL_ADD_RGB;
 
 		union {
 			struct {
@@ -54,9 +54,10 @@ namespace next_best_view {
 
 		std::string object_type_name;
 		SimpleVector3CollectionPtr normal_vectors;
+		IndicesPtr active_normal_vectors;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-		RealObjectPoint(const gm::Pose &pose = gm::Pose()) : normal_vectors(new SimpleVector3Collection()) {
+		RealObjectPoint(const gm::Pose &pose = gm::Pose()) : normal_vectors(new SimpleVector3Collection()), active_normal_vectors(new Indices()) {
 			x = pose.position.x;
 			y = pose.position.y;
 			z = pose.position.z;

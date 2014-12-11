@@ -42,7 +42,7 @@ namespace next_best_view {
 	/*!
 	 * \brief the type definition for the corresponding shared pointer of the class.
 	 */
-	typedef boost::shared_ptr<MapBasedSingleCameraModelFilter> MapBasedStereoCameraModelFilterPtr;
+	typedef boost::shared_ptr<MapBasedSingleCameraModelFilter> MapBasedSingleCameraModelFilterPtr;
 }
 
 

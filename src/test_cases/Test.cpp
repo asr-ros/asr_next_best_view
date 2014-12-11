@@ -8,25 +8,50 @@
 
 #include <ros/ros.h>
 #include <boost/test/included/unit_test.hpp>
+#include <boost/array.hpp>
 #include <iostream>
 #include <vector>
+#include <string>
 #include <glpk.h>
 
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <move_base_msgs/MoveBaseAction.h>
+#include <actionlib/client/simple_action_client.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include "object_database/ObjectType.h"
 #include "object_database/ObjectManager.hpp"
+#include "next_best_view/NextBestView.hpp"
+#include "next_best_view/GetNextBestView.h"
+#include "next_best_view/GetPointCloud2.h"
+#include "next_best_view/SetAttributedPointCloud.h"
+#include "next_best_view/UpdatePointCloud.h"
+#include "next_best_view/AttributedPoint.h"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include <tf/tf.h>
+
+#include "next_best_view/GetSpaceSampling.h"
 
 using namespace next_best_view;
 using namespace boost::unit_test;
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+typedef boost::shared_ptr<MoveBaseClient> MoveBaseClientPtr;
+
 class Test {
+private:
+	ros::NodeHandle mNodeHandle;
+	MoveBaseClientPtr mMoveBaseClient;
+	ros::Publisher mInitPosePub;
 public:
 	Test() {
+		mInitPosePub = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
+		mMoveBaseClient = MoveBaseClientPtr(new MoveBaseClient("move_base", true));
 	}
 
 	virtual ~Test() {}
@@ -81,13 +106,8 @@ public:
 	}
 
 	void visualizeSingleObjectWithNormals() {
-		int argc = 0;
-		char** argv = new char*[0];
-		ros::init(argc, argv, "nbv_test");
-		ros::start();
-
-		ros::NodeHandle nodeHandle;
-		ros::Publisher pub = nodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 100, false);
+		ros::Publisher pubOne = mNodeHandle.advertise<visualization_msgs::Marker>("/visualization_marker", 100, false);
+		ros::Publisher pub = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 100, false);
 
 		visualization_msgs::MarkerArray markerArray;
 		object_database::ObjectManager manager;
@@ -95,27 +115,44 @@ public:
 
 		ros::Duration(5).sleep();
 
-		visualization_msgs::MarkerArray deleteMarkerArray;
+		visualization_msgs::Marker deleteMarker = MarkerHelper::getBasicMarker(0);
 
-		for (int id = 0; id < 200; id++) {
-			 visualization_msgs::Marker deleteMarker = MarkerHelper::getBasicMarker(id);
-			 deleteMarker.action = visualization_msgs::Marker::DELETE;
+		deleteMarker.action = 3u;
+		pubOne.publish(deleteMarker);
 
-			 deleteMarkerArray.markers.push_back(deleteMarker);
-		}
-
-		pub.publish(deleteMarkerArray);
 
 		ros::Duration(5).sleep();
 		int id = 0;
 		SimpleVector3 zero(0, 0, 0);
-		SimpleQuaternion rotation = MathHelper::getQuaternionByAngles(0, M_PI / 2, 0);
-		BOOST_FOREACH(geometry_msgs::Point pt, objectTypeResPtr->normal_vectors) {
+		SimpleQuaternion rotation = MathHelper::getQuaternionByAngles(0, 0, -M_PI / 2.0);
+
+		Indices ind;
+		for (std::size_t idx = 0; idx < objectTypeResPtr->normal_vectors.size(); idx++) {
+			geometry_msgs::Point pt = objectTypeResPtr->normal_vectors.at(idx);
+			SimpleVector3 pos = TypeHelper::getSimpleVector3(pt);
+			bool rebel = false;
+			BOOST_FOREACH(std::size_t index, ind) {
+				geometry_msgs::Point pt2 = objectTypeResPtr->normal_vectors.at(index);
+				SimpleVector3 pos2 = TypeHelper::getSimpleVector3(pt2);
+				double val = pos.dot(pos2);
+				if (val >= cos(M_PI / 3.0)) {
+					rebel = true;
+				}
+			}
+
+			if (!rebel) {
+				ind.push_back(idx);
+			}
+		}
+
+		BOOST_FOREACH(std::size_t index, ind) {
+			geometry_msgs::Point pt = objectTypeResPtr->normal_vectors.at(index);
 			SimpleVector3 pos = TypeHelper::getSimpleVector3(pt);
 			pos = rotation.toRotationMatrix() * pos;
 			visualization_msgs::Marker arrowMarker = MarkerHelper::getArrowMarker(id, zero, pos, SimpleVector4(0.3, 0.3, 1.0, 1.0));
 			markerArray.markers.push_back(arrowMarker);
 			id++;
+
 		}
 
 		visualization_msgs::Marker objectMarker = MarkerHelper::getMeshMarker(id, objectTypeResPtr->object_mesh_resource, zero, rotation);
@@ -124,20 +161,294 @@ public:
 		pub.publish(markerArray);
 
 		ros::spinOnce();
-		ros::Rate(10).sleep();
+	}
 
-		ros::shutdown();
+	void setInitialPose(const geometry_msgs::Pose &initialPose) {
+		// waiting for buffers to fill
+		ros::Duration(5.0).sleep();
+
+		geometry_msgs::PoseWithCovarianceStamped pose;
+		pose.header.frame_id = "map";
+		boost::array<double, 36> a =  {
+				// x, y, z, roll, pitch, yaw
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+		};
+		pose.pose.covariance = a;
+		pose.pose.pose = initialPose;
+
+		mInitPosePub.publish(pose);
+	}
+
+	void moveToPose(const geometry_msgs::Pose &pose) {
+
+		while(!mMoveBaseClient->waitForServer(ros::Duration(5.0))) {
+			ROS_INFO("Waiting for the move_base action server to come up");
+		}
+
+		move_base_msgs::MoveBaseGoal goal;
+		goal.target_pose.header.frame_id = "map";
+		goal.target_pose.header.stamp = ros::Time::now();
+
+		goal.target_pose.pose = pose;
+
+		mMoveBaseClient->sendGoal(goal);
+
+		mMoveBaseClient->waitForResult();
+		if(mMoveBaseClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+			ROS_INFO("Hooray, the base moved");
+		} else {
+			ROS_ERROR("The base failed to move");
+		}
+	}
+
+	void visualizeSpaceSampling() {
+		ros::ServiceClient client = mNodeHandle.serviceClient<GetSpaceSampling>("/next_best_view/get_space_sampling");
+		ros::Publisher pub = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/space_sampling_point_cloud", 100);
+
+
+		GetSpaceSampling* sampling = new GetSpaceSampling[20];
+		for (int i = 0; i < 20; i++) {
+			sampling[i].request.contractor = 1.0 / (double) (pow(2, i));
+			if (!client.call(sampling[i])) {
+				ROS_INFO("Some error occured");
+				return;
+			}
+		}
+
+		ros::Duration(5).sleep();
+
+		while(ros::ok()) {
+			for (int i = 0; i < 20 && ros::ok(); i++) {
+				pub.publish(sampling[i].response.point_cloud);
+
+				ros::spinOnce();
+				ros::Duration(2.5).sleep();
+			}
+
+			ros::spinOnce();
+			ros::Duration(5).sleep();
+		}
+	}
+
+	void iterationTest() {
+		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/next_best_view/set_point_cloud");
+		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/next_best_view/get_point_cloud2");
+		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/next_best_view/next_best_view");
+		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/next_best_view/update_point_cloud");
+
+		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/next_best_view/get_space_sampling");
+
+		ros::Publisher spaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/space_sampling_point_cloud", 100);
+		ros::Publisher pointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
+		ros::Publisher frustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/frustum_point_cloud", 1000);
+		ros::Publisher unitSpherPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/unit_sphere_point_cloud", 1000);
+		ros::Publisher markerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1000);
+
+
+		NextBestView nextBestView;
+
+		SetAttributedPointCloud apc;
+
+		ROS_INFO("Generiere Häufungspunkte");
+		// Häufungspunkte
+		int hpSize = 3;
+		SimpleVector3* hp = new SimpleVector3[hpSize];
+		hp[0] = SimpleVector3(16.0, 16.0, 0.98);
+		hp[1] = SimpleVector3(25.0, 11.0, 1.32);
+		hp[2] = SimpleVector3(18.6, 7.3, 1.80);
+
+		std::vector<std::string> objectTypeNames;
+		objectTypeNames.push_back("Smacks");
+		//objectTypeNames.push_back("Coffeebox");
+
+		int sampleSize = 200;
+
+		MapHelper mapHelper;
+
+		for (std::size_t idx = 0; idx < hpSize; idx++) {
+			for (std::size_t cnt = 0; cnt < sampleSize; cnt++) {
+				SimpleVector3 randomVector;
+				int8_t occupancyValue;
+				do {
+					randomVector = MathHelper::getRandomVector(hp[idx], SimpleVector3(.5, .5, 0.1));
+					occupancyValue = mapHelper.getRaytracingMapOccupancyValue(randomVector);
+				} while(!mapHelper.isOccupancyValueAcceptable(occupancyValue));
+
+				SimpleQuaternion randomQuat = next_best_view::MathHelper::getRandomQuaternion();
+
+				AttributedPoint element;
+
+				geometry_msgs::Pose pose;
+				pose.orientation.w = randomQuat.w();
+				pose.orientation.x = randomQuat.x();
+				pose.orientation.y = randomQuat.y();
+				pose.orientation.z = randomQuat.z();
+				pose.position.x = randomVector[0];
+				pose.position.y = randomVector[1];
+				pose.position.z = randomVector[2];
+
+				element.object_type = objectTypeNames[next_best_view::MathHelper::getRandomInteger(0, objectTypeNames.size() - 1)];
+				element.pose = pose;
+
+				apc.request.point_cloud.elements.push_back(element);
+			}
+		}
+
+		ROS_INFO("Setze initiale Pose");
+		geometry_msgs::Pose initialPose;
+		initialPose.position.x = 2.45717;
+		initialPose.position.y = 22.276;
+		initialPose.position.z = 1.32;
+
+		initialPose.orientation.w = 0.971467;
+		initialPose.orientation.x = 0.0;
+		initialPose.orientation.y = 0.0;
+		initialPose.orientation.z = -0.237177;
+		this->setInitialPose(initialPose);
+
+		apc.request.pose = initialPose;
+
+		nextBestView.processSetPointCloudServiceCall(apc.request, apc.response);
+
+//		ROS_INFO("Setze PointCloud");
+//		if (!setPointCloudClient.call(apc)) {
+//			ROS_ERROR("Something went wrong during the sending of the point cloud");
+//			return;
+//		}
+//
+//		ROS_INFO("Hole PointCloud");
+		GetPointCloud2 gpc2;
+		nextBestView.processGetPointCloud2ServiceCall(gpc2.request, gpc2.response);
+//		if (!getPointCloud2Client.call(gpc2)) {
+//			ROS_ERROR("Something went wrong during the sending of get point cloud 2 service call");
+//			return;
+//		}
+		pointCloudPublisher.publish(gpc2.response.point_cloud);
+		waitForEnter();
+
+		GetNextBestView nbv;
+		nbv.request.initial_pose = initialPose;
+		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
+		int x = 1;
+		while(ros::ok()) {
+			ROS_INFO("Kalkuliere NBV (%d)", x);
+			nextBestView.processGetNextBestViewServiceCall(nbv.request, nbv.response);
+//			if (!getNextBestViewClient.call(nbv)) {
+//				ROS_ERROR("Something went wrong in next best view");
+//			}
+
+			if (!nbv.response.found) {
+				break;
+			}
+			viewportPointCloudPtr->push_back(ViewportPoint(nbv.response.resulting_pose));
+
+			double yaw = tf::getYaw(nbv.response.resulting_pose.orientation);
+
+			geometry_msgs::Pose movePose(nbv.response.resulting_pose);
+			movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+			this->setInitialPose(movePose);
+			markerArrayPublisher.publish(nbv.response.frustum_marker_array);
+			nbv.request.initial_pose = nbv.response.resulting_pose;
+
+			unitSpherPointCloudPublisher.publish(nbv.response.unit_sphere_sampling_point_cloud);
+			frustumPointCloudPublisher.publish(nbv.response.frustum_point_cloud);
+			pointCloudPublisher.publish(nbv.response.point_cloud);
+
+//			UpdatePointCloud upc;
+//			upc.request.update_pose = nbv.response.resulting_pose;
+//			if (!updatePointCloudClient.call(upc)) {
+//				ROS_ERROR("Something went wrong during update of point cloud");
+//			}
+			x++;
+
+			ros::spinOnce();
+			waitForEnter();
+			ros::Duration(.01).sleep();
+		}
+
+
+		uint32_t seq = 0;
+
+		SimpleVector4 poisonGreenColorVector = SimpleVector4(191.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0, 1.0);
+		SimpleVector4 darkBlueColorVector = SimpleVector4(4.0 / 255.0, 59.0 / 255.0, 89.0 / 255.0, 1.0);
+		SimpleVector4 blueColorVector = SimpleVector4(56.0 / 255.0, 129.0 / 255.0, 168.0 / 255.0, 1.0);
+		viz::MarkerArray arrowMarkerArray;
+		double ratio = 1.0 / ((double) viewportPointCloudPtr->size());
+		SimpleVector3 displacement(0.0, 0.0, 1.0);
+		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size() - 1; idx++) {
+			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
+			ViewportPoint endViewportPoint = viewportPointCloudPtr->at(idx + 1);
+
+			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
+			startPoint[2] = 0.0;
+			startPoint += idx * ratio * displacement;
+			SimpleVector3 endPoint = endViewportPoint.getSimpleVector3();
+			endPoint[2] = 0.0;
+			endPoint += (idx + 1) * ratio * displacement;
+
+			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, blueColorVector);
+			arrowMarkerArray.markers.push_back(arrowMarker);
+		}
+
+		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size(); idx++) {
+			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
+
+			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
+			startPoint[2] = 1.32;
+
+			SimpleVector3 endPoint(startPoint);
+			endPoint[2] = 0.0;
+
+
+			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, darkBlueColorVector);
+			arrowMarkerArray.markers.push_back(arrowMarker);
+
+
+
+			SimpleVector3 orientationStart = startPoint;
+			SimpleVector3 orientationVector = startViewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
+			SimpleVector3 orientationEnd = orientationStart + orientationVector / 3.0;
+
+			viz::Marker orientationMarker = MarkerHelper::getArrowMarker(seq++, orientationStart, orientationEnd, poisonGreenColorVector);
+			arrowMarkerArray.markers.push_back(orientationMarker);
+		}
+
+		while(ros::ok()) {
+			markerArrayPublisher.publish(arrowMarkerArray);
+
+			ros::spinOnce();
+			ros::Duration(20.0).sleep();
+		}
+	}
+
+	static void waitForEnter() {
+//		std::string dummy;
+//		std::cout << "Press ENTER to continue.." << std::endl << ">";
+//		std::getline(std::cin, dummy);
+//		std::cout << std::endl;
 	}
 };
 
 test_suite* init_unit_test_suite( int argc, char* argv[] ) {
+	ros::init(argc, argv, "nbv_test");
+	ros::start();
+
+	ros::Duration(5).sleep();
+
 	test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV");
 
 	boost::shared_ptr<Test> testPtr(new Test());
 
-	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::evaluateS2CandC2S, testPtr));
-	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::solveLinearProblem, testPtr));
-	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::visualizeSingleObjectWithNormals, testPtr));
+//	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::evaluateS2CandC2S, testPtr));
+//	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::solveLinearProblem, testPtr));
+//	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::visualizeSingleObjectWithNormals, testPtr));
+//	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::visualizeSpaceSampling, testPtr));
+	evaluation->add(BOOST_CLASS_TEST_CASE(&Test::iterationTest, testPtr));
 //	interfaceTest->add(BOOST_CLASS_TEST_CASE(&Test::testCategoryList, testRecognitionManagerPtr));
 //	interfaceTest->add(BOOST_CLASS_TEST_CASE(&Test::testEachCategoryEntryList, testRecognitionManagerPtr));
 //	interfaceTest->add(BOOST_CLASS_TEST_CASE(&Test::testGetRecognizerNoInput, testRecognitionManagerPtr));

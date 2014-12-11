@@ -292,7 +292,7 @@ namespace next_best_view {
 		}
 
 		SimpleQuaternion getOrientation() {
-			return MathHelper::getSimpleQuaternion(mMap.info.origin.orientation);
+			return TypeHelper::getSimpleQuaternion(mMap.info.origin.orientation);
 		}
 
 		bool isOccupancyValueAcceptable(const int8_t &occupancyValue) {

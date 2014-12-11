@@ -58,7 +58,7 @@ namespace next_best_view {
 		BaseScoreContainerPtr score;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-		DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) {
+		DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) : child_indices(new Indices()) {
 			x = pose.position.x;
 			y = pose.position.y;
 			z = pose.position.z;
@@ -69,7 +69,7 @@ namespace next_best_view {
 			qz = pose.orientation.z;
 		}
 
-		DefaultViewportPoint(const SimpleVector3 &vector) : qw(1.0), qx(0.0), qy(0.0), qz(0.0) {
+		DefaultViewportPoint(const SimpleVector3 &vector, const SimpleQuaternion &orientation = SimpleQuaternion(1.0, 0.0, 0.0, 0.0)) : qw(orientation.w()), qx(orientation.x()), qy(orientation.y()), qz(orientation.z()) {
 			x = vector[0];
 			y = vector[1];
 			z = vector[2];

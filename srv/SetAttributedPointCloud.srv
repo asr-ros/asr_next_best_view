@@ -1,0 +1,4 @@
+AttributedPointCloud point_cloud
+geometry_msgs/Pose pose
+---
+bool is_valid

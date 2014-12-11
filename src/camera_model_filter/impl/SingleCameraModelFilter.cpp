@@ -51,6 +51,7 @@ namespace next_best_view {
 
 	viz::MarkerArrayPtr SingleCameraModelFilter::getVisualizationMarkerArray(uint32_t &sequence, double lifetime) {
 		viz::MarkerArrayPtr markerArrayPtr(new viz::MarkerArray());
+		ros::Duration lifetimeDur = lifetime > 0 ? ros::Duration(lifetime) : ros::Duration();
 
 		// get the position of the pivot point.
 		SimpleVector3 pivotPointPosition = this->getPivotPointPosition();
@@ -68,20 +69,20 @@ namespace next_best_view {
 		double fcp = this->getFarClippingPlane();
 
 		// Mark Frustum
-		viz::Marker axisX = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 0));
-		MarkerHelper::getRainbowColor(axisX, 0.0, 0.8);
-		axisX.lifetime = ros::Duration(lifetime);
+		viz::Marker axisX = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 0) * fcp);
+		MarkerHelper::getRainbowColor(axisX, 1.0 / 6.0, 0.8);
+		axisX.lifetime = lifetimeDur;
 		markerArrayPtr->markers.push_back(axisX);
 
-		viz::Marker axisY = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 1));
-		MarkerHelper::getRainbowColor(axisY, 2.0 / 6.0, 0.8);
-		axisY.lifetime = ros::Duration(lifetime);
-		markerArrayPtr->markers.push_back(axisY);
-
-		viz::Marker axisZ = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 2));
-		MarkerHelper::getRainbowColor(axisZ, 4.0 / 6.0, 0.8);
-		axisZ.lifetime = ros::Duration(lifetime);
-		markerArrayPtr->markers.push_back(axisZ);
+//		viz::Marker axisY = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 1));
+//		MarkerHelper::getRainbowColor(axisY, 2.0 / 6.0, 0.8);
+//		axisY.lifetime = lifetimeDur;
+//		markerArrayPtr->markers.push_back(axisY);
+//
+//		viz::Marker axisZ = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 2));
+//		MarkerHelper::getRainbowColor(axisZ, 4.0 / 6.0, 0.8);
+//		axisZ.lifetime = lifetimeDur;
+//		markerArrayPtr->markers.push_back(axisZ);
 
 		Eigen::Matrix<Precision, 3, 4> frustumMatrix;
 		frustumMatrix << 	1,					1,					1, 					1,
@@ -101,14 +102,14 @@ namespace next_best_view {
 
 		viz::Marker triangleListMarker = MarkerHelper::getBasicMarker(sequence++);
 		triangleListMarker.type = viz::Marker::TRIANGLE_LIST;
-		triangleListMarker.lifetime = ros::Duration(lifetime);
+		triangleListMarker.lifetime = lifetimeDur;
 		triangleListMarker.scale.x = triangleListMarker.scale.y = triangleListMarker.scale.z = 1.0;
-		triangleListMarker.pose.position = TypeHelper::getGeometryMsgsPoint(cameraPosition);
+		triangleListMarker.pose.position = TypeHelper::getPointMSG(cameraPosition);
 		MarkerHelper::getRainbowColor(triangleListMarker, 1.0 / 6.0, 0.2);
 
 		BOOST_FOREACH(int index, triangleList) {
 			SimpleVector3 frustumPoint = completeFrustumCornerMatrix.block<3, 1>(0, index);
-			geometry_msgs::Point pt = TypeHelper::getGeometryMsgsPoint(frustumPoint);
+			geometry_msgs::Point pt = TypeHelper::getPointMSG(frustumPoint);
 			triangleListMarker.points.push_back(pt);
 		}
 		markerArrayPtr->markers.push_back(triangleListMarker);
@@ -120,21 +121,21 @@ namespace next_best_view {
 
 		viz::Marker lineListMarker = MarkerHelper::getBasicMarker(sequence++);
 		lineListMarker.type = viz::Marker::LINE_LIST;
-		lineListMarker.lifetime = ros::Duration(lifetime);
+		lineListMarker.lifetime = lifetimeDur;
 		lineListMarker.scale.x = 0.05;
-		lineListMarker.pose.position = TypeHelper::getGeometryMsgsPoint(cameraPosition);
+		lineListMarker.pose.position = TypeHelper::getPointMSG(cameraPosition);
 		MarkerHelper::getRainbowColor(lineListMarker, 1.0 / 6.0, 0.2);
 
 		BOOST_FOREACH(int index, lineList) {
 			SimpleVector3 frustumPoint = completeFrustumCornerMatrix.block<3, 1>(0, index);
-			geometry_msgs::Point pt = TypeHelper::getGeometryMsgsPoint(frustumPoint);
+			geometry_msgs::Point pt = TypeHelper::getPointMSG(frustumPoint);
 			lineListMarker.points.push_back(pt);
 		}
 		markerArrayPtr->markers.push_back(lineListMarker);
 
 		if (pivotPointPosition != cameraPosition) {
 			viz::Marker offsetArrow = MarkerHelper::getArrowMarker(sequence++, pivotPointPosition, cameraPosition);
-			offsetArrow.lifetime = ros::Duration(lifetime);
+			offsetArrow.lifetime = lifetimeDur;
 			MarkerHelper::getRainbowColor(offsetArrow, 1.0 / 6.0, 1.0);
 			markerArrayPtr->markers.push_back(offsetArrow);
 		}

@@ -164,7 +164,7 @@ namespace next_best_view {
 		float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
 		float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
 		float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-		float costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance + 1);
+		float costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
 		return costs;
 	}
 }

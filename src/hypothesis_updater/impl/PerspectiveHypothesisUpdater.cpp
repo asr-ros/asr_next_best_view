@@ -7,24 +7,45 @@
 
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
 
+#include "next_best_view/helper/MathHelper.hpp"
+#include "typedef.hpp"
+#include <ros/ros.h>
+
 namespace next_best_view {
 	PerspectiveHypothesisUpdater::PerspectiveHypothesisUpdater() { }
 	PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
 	void PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
-		SimpleVector3 viewportNormalVector = viewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
+		SimpleVector3 viewportNormalVector;
+		MathHelper::getVisualAxis(viewportPoint.getSimpleQuaternion(), viewportNormalVector);
 
 		BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
 
-			SimpleVector3CollectionPtr normalVectorCollectionPtr(new SimpleVector3Collection());
-			BOOST_FOREACH(SimpleVector3 normalVector, *objectPoint.normal_vectors) {
+			Indices::iterator begin = objectPoint.active_normal_vectors->begin();
+			Indices::iterator end = objectPoint.active_normal_vectors->end();
+			for (Indices::iterator iter = begin; iter != end;) {
+				int normalIndex = *iter;
+				SimpleVector3 normalVector = objectPoint.normal_vectors->at(normalIndex);
+
 				float rating = mDefaultRatingModulePtr->getSingleNormalityRating(viewportNormalVector, normalVector, mDefaultRatingModulePtr->getNormalityRatingAngle());
-				if (rating == 0.0) {
-					normalVectorCollectionPtr->push_back(normalVector);
+				if (rating != 0.0) {
+					end--;
+					std::iter_swap(iter, end);
+					continue;
 				}
+
+				iter++;
 			}
-			objectPoint.normal_vectors = normalVectorCollectionPtr;
+
+			objectPoint.active_normal_vectors->resize(std::distance(begin, end));
+
+			// RGB
+			double ratio = double(objectPoint.active_normal_vectors->size()) / double(objectPoint.normal_vectors->size());
+
+			objectPoint.r = ratio > .5 ? int((2.0 - 2 * ratio) * 255) : 255;
+			objectPoint.g = ratio > .5 ? 255 : int(2.0  * ratio * 255);
+			objectPoint.b = 0;
 		}
 	}
 
