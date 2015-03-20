@@ -12,7 +12,6 @@
 #include <vector>
 
 #include <boost/foreach.hpp>
-#include <boost/algorithm/cxx11/iota.hpp>
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -112,6 +111,7 @@ namespace next_best_view {
 			ViewportPoint currentBestViewport = currentCameraViewport;
 			while (ros::ok()) {
 				ViewportPoint intermediateResultViewport;
+				ROS_INFO("Prepare iteration step");
 				if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor, intermediateResultViewport)) {
 					return false;
 				}
@@ -158,6 +158,7 @@ namespace next_best_view {
 
 					// set the input cloud
 					this->doFrustumCulling(samplePoint.getSimpleVector3(), orientation, samplePoint.child_indices, candidateViewportPoint);
+
 					if (candidateViewportPoint.child_indices->size() == 0) {
 						continue;
 					}
@@ -166,6 +167,7 @@ namespace next_best_view {
 					if (!mRatingModulePtr->getScoreContainer(currentCameraViewport, candidateViewportPoint, candidateViewportPoint.score)) {
 						continue;
 					}
+
 					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(candidateViewportPoint.getSimpleVector3(), candidateViewportPoint.getSimpleQuaternion());
 					candidateViewportPoint.score->costs = mRobotModelPtr->getMovementCosts(targetRobotState);
 
@@ -246,15 +248,13 @@ namespace next_best_view {
 				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.object_type_name);
 
 				// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
+				int normalVectorCount = 0;
 				BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
 					SimpleVector3 normal(point.x, point.y, point.z);
 					normal = rotationMatrix * normal;
 					pointCloudPoint.normal_vectors->push_back(normal);
+					pointCloudPoint.active_normal_vectors->push_back(normalVectorCount++);
 				}
-
-				pointCloudPoint.active_normal_vectors->resize(responsePtr->normal_vectors.size());
-
-				boost::algorithm::iota(pointCloudPoint.active_normal_vectors->begin(), pointCloudPoint.active_normal_vectors->end(), 0);
 
 				// add point to array
 				pointCloudPtr->push_back(pointCloudPoint);

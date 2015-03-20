@@ -10,7 +10,7 @@
 namespace next_best_view {
 
 	boost::mt19937& MathHelper::getRandomnessGenerator() {
-		static boost::mt19937 gen(0);
+		static boost::mt19937 gen(5);
 		return gen;
 	}
 

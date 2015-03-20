@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <vector>
 #include <set>
-#include <boost/algorithm/cxx11/iota.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
