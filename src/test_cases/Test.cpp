@@ -351,7 +351,7 @@ public:
 
 			geometry_msgs::Pose movePose(nbv.response.resulting_pose);
 			movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
-			this->setInitialPose(movePose);
+			this->moveToPose(movePose);
 			markerArrayPublisher.publish(nbv.response.frustum_marker_array);
 			nbv.request.initial_pose = nbv.response.resulting_pose;
 
@@ -368,7 +368,7 @@ public:
 
 			ros::spinOnce();
 			waitForEnter();
-			ros::Duration(.01).sleep();
+			ros::Duration(2).sleep();
 		}
 
 

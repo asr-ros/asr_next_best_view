@@ -5,6 +5,7 @@
  *      Author: ralfschleicher
  */
 
+#include <ros/ros.h>
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 
@@ -70,7 +71,7 @@ namespace next_best_view {
 		defRatingPtr->element_density /= maxElements;
 
 		scoreContainerPtr = defRatingPtr;
-
+		//ROS_INFO("Density %f, Normality %f", defRatingPtr->element_density, defRatingPtr->normality);
 		return (defRatingPtr->element_density > 0.0 && defRatingPtr->normality > 0.0);
 	}
 	bool DefaultRatingModule::compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) {

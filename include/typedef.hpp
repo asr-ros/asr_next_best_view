@@ -10,9 +10,9 @@
 
 #include <vector>
 #include <eigen3/Eigen/Dense>
-#include <pcl/point_cloud.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/filters/frustum_culling.h>
+#include <pcl-1.7/pcl/point_cloud.h>
+#include <pcl-1.7/pcl/kdtree/kdtree_flann.h>
+#include <pcl-1.7/pcl/filters/frustum_culling.h>
 
 /*!
 * \brief this namespace contains all generally usable classes.
@@ -55,7 +55,7 @@ namespace next_best_view {
 	typedef std::vector<SimpleQuaternion, Eigen::aligned_allocator<SimpleQuaternion> > SimpleQuaternionCollection;
 	typedef boost::shared_ptr<SimpleQuaternionCollection> SimpleQuaternionCollectionPtr;
 
-	// forward declaration for real object point
+	// forward declaration for point types
 	struct RealObjectPoint;
 	struct SpaceSamplePoint;
 	struct DefaultViewportPoint;
