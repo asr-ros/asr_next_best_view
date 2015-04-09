@@ -118,6 +118,7 @@ namespace next_best_view {
 	SimpleQuaternionCollectionPtr MathHelper::getOrientationsOnUnitSphere(const int &numberOfPoints) {
 		SimpleQuaternionCollectionPtr oritentationCollectionPtr(new SimpleQuaternionCollection());
 
+		//Comment: Black magic.
 		float dlong = M_PI * (3.0 - sqrt(5.0));
 		float dz = 2.0 / numberOfPoints;
 		float longitude = 0.0;

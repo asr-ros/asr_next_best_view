@@ -21,6 +21,7 @@ namespace next_best_view {
 		double width = mMapHelperPtr->getMetricWidth();
 		double height = mMapHelperPtr->getMetricHeight();
 
+		//Comment: Black magic
 		float radius = pow(contractor,.382) * mHexagonRadius;
 		float horizontalSpacing = radius * cos(M_PI / 6.0);
 		float interPointSpacing = radius;

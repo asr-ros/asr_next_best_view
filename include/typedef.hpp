@@ -90,6 +90,7 @@ namespace next_best_view {
 	// defining squared distances type used in kdtree
 	typedef std::vector<float> SquaredDistances;
 
+  //Comment?
 	// defining indices types
 	typedef std::vector<int> Indices;
 	typedef boost::shared_ptr<Indices> IndicesPtr;

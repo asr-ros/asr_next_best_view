@@ -44,6 +44,7 @@ namespace next_best_view {
 		return (mTiltLimits.get<0>() <= sphereCoords[1] && sphereCoords[1] <= mTiltLimits.get<1>());
 	}
 
+  //Comment?
 	RobotStatePtr MILDRobotModel::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation) {
 		MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
 		MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());

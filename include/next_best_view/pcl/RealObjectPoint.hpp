@@ -39,6 +39,7 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa pcl::PointXYZ
 	 */
+  //Comment?
 	struct RealObjectPoint {
 		PCL_ADD_POINT4D;
 		PCL_ADD_RGB;

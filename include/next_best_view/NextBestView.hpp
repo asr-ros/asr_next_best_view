@@ -86,12 +86,13 @@ namespace next_best_view {
 			ros::Publisher pub = mGlobalNodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 1000);
 			ros::Publisher arrayPub = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1000);
 
+			//Comment?: Please export to ROS parameter server.
 			float fovx = 62.5;
 			float fovy = 48.9;
 			float ncp = .5;
 			float fcp = 5.0;
 
-
+			//Comment? Export data structure configuration
 			SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
 			unitSphereSamplerPtr->setSamples(128);
 
@@ -104,17 +105,20 @@ namespace next_best_view {
 			MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
 			spaceSamplerPtr->setHexagonRadius(0.75);
 
+			//Comment: Map based -> with raytracing 
 			MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
 			cameraModelFilterPtr->setHorizontalFOV(fovx);
 			cameraModelFilterPtr->setVerticalFOV(fovy);
 			cameraModelFilterPtr->setNearClippingPlane(ncp);
 			cameraModelFilterPtr->setFarClippingPlane(fcp);
 
+			//Comment?
 			MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
 			robotModelPtr->setTiltAngleLimits(-45, 45);
 			robotModelPtr->setPanAngleLimits(-60, 60);
 
 			DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule());
+			//Comment? explain deviation calculation
 			ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
 
 			PerspectiveHypothesisUpdaterPtr hypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
@@ -320,6 +324,7 @@ namespace next_best_view {
 //			}
 		}
 
+	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
 			ViewportPoint currentCameraViewport(request.initial_pose);
 

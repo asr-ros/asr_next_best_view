@@ -40,6 +40,7 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa pcl::PointXYZ
 	 */
+  //Comment?
 	struct DefaultViewportPoint {
 	public:
 		PCL_ADD_POINT4D;
@@ -115,7 +116,7 @@ namespace next_best_view {
 		}
 	} EIGEN_ALIGN16;
 }
-
+//Comment?
 POINT_CLOUD_REGISTER_POINT_STRUCT (next_best_view::ViewportPoint,
    (float, x, x)
    (float, y, y)

@@ -39,10 +39,12 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa pcl::PointXYZ
 	 */
+  //Comment?
 	struct SpaceSamplePoint {
 	public:
 		PCL_ADD_POINT4D;
 
+	  //Radius search result -> Comment?
 		ObjectPointCloudPtr child_point_cloud;
 		IndicesPtr child_indices;
 	public:
