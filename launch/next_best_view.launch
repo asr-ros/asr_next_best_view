@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find recognition_for_grasping)/recognition_manager.launch" />
+	<include file="$(find navigation_files)/launch/mild_p144_sim.launch" />
+</launch>
