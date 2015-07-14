@@ -69,6 +69,10 @@ namespace next_best_view {
 		ros::ServiceServer mGetSpaceSamplingServer;
 		ros::ServiceServer mUpdatePointCloud;
 		ros::ServiceClient mObjectTypeServiceClient;
+		ros::Publisher mPointCloudPublisher;
+		ros::Publisher mFrustumPointCloudPublisher;
+		ros::Publisher mFrustumPublisher;
+		ros::Publisher mUnitSpherePointCloudPublisher;
 		ViewportPoint mInitialCameraViewport;
 		ObjectPointCloudPtr mPointCloudPtr;
 		KdTreePtr mKdTreePtr;
@@ -82,8 +86,12 @@ namespace next_best_view {
 			mGetSpaceSamplingServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
 			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
 
-			ros::Publisher pub = mGlobalNodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 1000);
-			ros::Publisher arrayPub = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1000);
+// 			ros::Publisher pub = mGlobalNodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 1000);
+// 			ros::Publisher arrayPub = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1000);
+			mPointCloudPublisher = mGlobalNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
+			mFrustumPointCloudPublisher = mGlobalNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/frustum_point_cloud", 1000);
+			mFrustumPublisher = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1000);
+			mUnitSpherePointCloudPublisher = mGlobalNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/unit_sphere_point_cloud", 1000);
 
 			//Comment?: Please export to ROS parameter server.
 			float fovx = 62.5;
@@ -179,8 +187,7 @@ namespace next_best_view {
 			response.point_cloud.fields.push_back(rgb);
 			
 			if(request.visualize) {
-				ros::Publisher pointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
-				pointCloudPublisher.publish(response.point_cloud);
+				mPointCloudPublisher.publish(response.point_cloud);
 			}
 
 			return true;
@@ -391,21 +398,17 @@ namespace next_best_view {
 			mCalculator.updateObjectPointCloud(resultingViewport);
 			
 			//visualization
-			if(request.visualizePointcloud) {
-				ros::Publisher pointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
-				pointCloudPublisher.publish(response.point_cloud);
+			if(request.visualizePointcloud) {				
+				mPointCloudPublisher.publish(response.point_cloud);
 			}
-			if(request.visualizeFrustum) {
-				ros::Publisher FrustumPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1000);
-				FrustumPublisher.publish(response.frustum_marker_array);
+			if(request.visualizeFrustum) {				
+				mFrustumPublisher.publish(response.frustum_marker_array);
 			}  
-			if(request.visualizeFrustumPointcloud) {
-				ros::Publisher frustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/frustum_point_cloud", 1000);
-				frustumPointCloudPublisher.publish(response.frustum_point_cloud);
+			if(request.visualizeFrustumPointcloud) {				
+				mFrustumPointCloudPublisher.publish(response.frustum_point_cloud);
 			}
 			if(request.visualizeUnitSphereSampling) {
-				ros::Publisher unitSpherePointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/unit_sphere_point_cloud", 1000);
-				unitSpherePointCloudPublisher.publish(response.unit_sphere_sampling_point_cloud);
+				mUnitSpherePointCloudPublisher.publish(response.unit_sphere_sampling_point_cloud);
 			}
 
 			return true;
