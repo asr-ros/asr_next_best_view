@@ -1,4 +1,8 @@
 geometry_msgs/Pose initial_pose
+bool visualizePointcloud
+bool visualizeFrustum
+bool visualizeFrustumPointcloud
+bool visualizeUnitSphereSampling
 ---
 bool found
 geometry_msgs/Pose resulting_pose

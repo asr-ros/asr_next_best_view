@@ -323,16 +323,21 @@ public:
 //
 //		ROS_INFO("Hole PointCloud");
 		GetPointCloud2 gpc2;
+        gpc2.request.visualize = true;
 		nextBestView.processGetPointCloud2ServiceCall(gpc2.request, gpc2.response);
 //		if (!getPointCloud2Client.call(gpc2)) {
 //			ROS_ERROR("Something went wrong during the sending of get point cloud 2 service call");
 //			return;
 //		}
-		pointCloudPublisher.publish(gpc2.response.point_cloud);
-		waitForEnter();
+//		pointCloudPublisher.publish(gpc2.response.point_cloud);
+//		waitForEnter();
 
 		GetNextBestView nbv;
 		nbv.request.initial_pose = initialPose;
+        nbv.request.visualizePointcloud = true;
+        nbv.request.visualizeFrustum = true;
+        nbv.request.visualizeFrustumPointcloud = true;
+        nbv.request.visualizeUnitSphereSampling = false;
 		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
 		int x = 1;
 		while(ros::ok()) {
@@ -352,12 +357,12 @@ public:
 			geometry_msgs::Pose movePose(nbv.response.resulting_pose);
 			movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
 			this->moveToPose(movePose);
-			markerArrayPublisher.publish(nbv.response.frustum_marker_array);
+//			markerArrayPublisher.publish(nbv.response.frustum_marker_array);
 			nbv.request.initial_pose = nbv.response.resulting_pose;
 
-			unitSpherPointCloudPublisher.publish(nbv.response.unit_sphere_sampling_point_cloud);
-			frustumPointCloudPublisher.publish(nbv.response.frustum_point_cloud);
-			pointCloudPublisher.publish(nbv.response.point_cloud);
+//			unitSpherPointCloudPublisher.publish(nbv.response.unit_sphere_sampling_point_cloud);
+//			frustumPointCloudPublisher.publish(nbv.response.frustum_point_cloud);
+//			pointCloudPublisher.publish(nbv.response.point_cloud);
 
 //			UpdatePointCloud upc;
 //			upc.request.update_pose = nbv.response.resulting_pose;

@@ -177,6 +177,11 @@ namespace next_best_view {
 			rgb.datatype = sensor_msgs::PointField::UINT32;
 			rgb.offset = offsetof(ObjectPoint, rgb);
 			response.point_cloud.fields.push_back(rgb);
+			
+			if(request.visualize) {
+				ros::Publisher pointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
+				pointCloudPublisher.publish(response.point_cloud);
+			}
 
 			return true;
 		}
@@ -384,6 +389,24 @@ namespace next_best_view {
 
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
+			
+			//visualization
+			if(request.visualizePointcloud) {
+				ros::Publisher pointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
+				pointCloudPublisher.publish(response.point_cloud);
+			}
+			if(request.visualizeFrustum) {
+				ros::Publisher FrustumPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1000);
+				FrustumPublisher.publish(response.frustum_marker_array);
+			}  
+			if(request.visualizeFrustumPointcloud) {
+				ros::Publisher frustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/frustum_point_cloud", 1000);
+				frustumPointCloudPublisher.publish(response.frustum_point_cloud);
+			}
+			if(request.visualizeUnitSphereSampling) {
+				ros::Publisher unitSpherePointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/unit_sphere_point_cloud", 1000);
+				unitSpherePointCloudPublisher.publish(response.unit_sphere_sampling_point_cloud);
+			}
 
 			return true;
 		}
