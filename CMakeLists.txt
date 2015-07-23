@@ -25,6 +25,7 @@ add_message_files(
 	FILES
 	AttributedPoint.msg
 	AttributedPointCloud.msg
+	RobotStateMessage.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -38,6 +39,7 @@ add_service_files(
    SetAttributedPointCloud.srv
    GetSpaceSampling.srv
    UpdatePointCloud.srv
+   GetMovementCosts.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -114,6 +116,7 @@ target_link_libraries(
 	${PROJECT_NAME}_helper
 	${PROJECT_NAME}_packages
 	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
 )
 
 ## Declare a cpp executable
@@ -154,4 +157,21 @@ target_link_libraries(
 	glpk
 	${catkin_LIBRARIES}
 )
+
+add_executable(
+	${PROJECT_NAME}_RobotModel_Client
+	src/robot_model/RobotModel_ServiceClient.cpp
+)
+
+target_link_libraries(
+	${PROJECT_NAME}_RobotModel_Client
+	${PCL_LIBRARIES}
+	${PROJECT_NAME}_packages_impl
+	#${ROS_LIBRARIES}
+	glpk
+	${catkin_LIBRARIES}
+)
+
+
+
 
