@@ -8,30 +8,37 @@
 #ifndef NEXTBESTVIEW_HPP_
 #define NEXTBESTVIEW_HPP_
 
-#include <eigen3/Eigen/Dense>
-#include <boost/foreach.hpp>
-#include <boost/filesystem.hpp>
+// Global Includes
 #include <algorithm>
-#include <vector>
-#include <set>
-#include <pcl/point_cloud.h>
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+#include <eigen3/Eigen/Dense>
+#include <pcl-1.7/pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <set>
+#include <vector>
+
+// ROS Main Include
 #include <ros/ros.h>
-#include <visualization_msgs/MarkerArray.h>
+
+// ROS Includes
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
 #include <object_database/ObjectManager.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointField.h>
-#include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
-#include <tf/transform_listener.h>
 #include <std_srvs/Empty.h>
+#include <tf/transform_listener.h>
+#include <visualization_msgs/MarkerArray.h>
 
+// Local Includes
 #include "typedef.hpp"
-#include "next_best_view/GetPointCloud2.h"
+#include "next_best_view/SetVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
-#include "next_best_view/SetAttributedPointCloud.h"
+#include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetSpaceSampling.h"
+#include "next_best_view/SetAttributedPointCloud.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
@@ -57,23 +64,48 @@ namespace next_best_view {
 	namespace fs = boost::filesystem;
 	namespace viz = visualization_msgs;
 	namespace odb = object_database;
+
+	/*!
+	 * \brief NextBestView is a configuration class of the related node.
+	 *
+	 * NextBestView provides services and publishers for the next_best_view Node and also
+	 * saves data structures which are needed for node-wide purposes.
+	 */
 	class NextBestView {
 	private:
+		// The Calculator Instance
 		NextBestViewCalculator mCalculator;
+
+		// Node Handles
 		ros::NodeHandle mGlobalNodeHandle;
 		ros::NodeHandle mNodeHandle;
+
+		// ServiceServer and Publisher
 		ros::ServiceServer mGetPointCloud2ServiceClient;
 		ros::ServiceServer mGetPointCloudServiceClient;
 		ros::ServiceServer mSetPointCloudServiceClient;
 		ros::ServiceServer mGetNextBestViewServiceClient;
 		ros::ServiceServer mGetSpaceSamplingServer;
 		ros::ServiceServer mUpdatePointCloud;
+		ros::Publisher mSpaceSamplingPublisher;
+		ros::Publisher mPointCloudPublisher;
+		ros::Publisher mFrustumPointCloudPublisher;
+		ros::Publisher mUnitSpherPointCloudPublisher;
+		ros::Publisher mFrustumMarkerArrayPublisher;
+
+		// ServiceClients and Subscriber
 		ros::ServiceClient mObjectTypeServiceClient;
+
+		// Node-Wide Variables.
 		ViewportPoint mInitialCameraViewport;
 		ObjectPointCloudPtr mPointCloudPtr;
 		KdTreePtr mKdTreePtr;
+		SetVisualization::Request mLastVisualizationSettings;
 	public:
-		NextBestView() : mGlobalNodeHandle(), mNodeHandle("/next_best_view"), mPointCloudPtr(new ObjectPointCloud()) {
+		/*!
+		 * \brief Creates an instance of the NextBestView class.
+		 */
+		NextBestView() : mGlobalNodeHandle(), mNodeHandle(ros::this_node::getName()), mPointCloudPtr(new ObjectPointCloud()) {
 			mGetPointCloud2ServiceClient = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
 			mGetPointCloudServiceClient = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
 			mGetNextBestViewServiceClient = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
@@ -82,47 +114,110 @@ namespace next_best_view {
 			mGetSpaceSamplingServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
 			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
 
-			ros::Publisher pub = mGlobalNodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 1000);
-			ros::Publisher arrayPub = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1000);
+			mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
+			mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
+			mFrustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("frustum_point_cloud", 1000);
+			mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("frustum_marker_array", 1000);
 
-			//Comment?: Please export to ROS parameter server.
-			float fovx = 62.5;
-			float fovy = 48.9;
-			float ncp = .5;
-			float fcp = 5.0;
+			// set the visualization defaults
+			//mNodeHandle.param("visualize_space_sampling_point_cloud", mLastVisualizationSettings.visualize_space_sampling_point_cloud, false);
+			//mNodeHandle.param("visualize_point_cloud", mLastVisualizationSettings.visualize_point_cloud, false);
+			//mNodeHandle.param("visualize_frustum_point_cloud", mLastVisualizationSettings.visualize_frustum_point_cloud, false);
+			bool viz_frustum_marker_array;
+			mNodeHandle.param("visualize_frustum_marker_array", viz_frustum_marker_array, false);
 
-			//Comment? Export data structure configuration
+			mLastVisualizationSettings.visualize_frustum_marker_array = viz_frustum_marker_array;
+
+			/* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
+			* be defined in the CameraModelFilter specialization class.
+			* TODO: Export these parameters to the specialization of the CameraModelFilter class. This makes sense, because you have to
+			* keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
+			* able to adjust the parameters for each camera separateley.
+			*/
+			double fovx, fovy, ncp, fcp;
+			mNodeHandle.param("fovx", fovx, 62.5);
+			mNodeHandle.param("fovy", fovy, 48.9);
+			mNodeHandle.param("ncp", ncp, .5);
+			mNodeHandle.param("fcp", fcp, 5.0);
+
+			ROS_INFO("FOVX: %f, FOVY: %f, NCP: %f, FCP: %f", fovx, fovy, ncp, fcp);
+			//////////////////////////////////////////////////////////////////
+			// HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
+			//////////////////////////////////////////////////////////////////
+			/* The NextBestViewCalculator consists of multiple modules which interact w/ each other. By this
+			 * interaction we get a result for the next best view which suites our constraints best.
+			 *
+			 * The modules namely are:
+			 * - UnitSphereSampler (unit_sphere_sampler/UnitSphereSampler.hpp)
+			 * - SpaceSampler (space_sampler/SpaceSampler.hpp)
+			 * - CameraModelFilter (camera_model_filter/CameraModelFilter.hpp)
+			 * - RobotModel (robot_model/RobotModel.hpp)
+			 * - RatingModule (rating_module/RatingModule.hpp)
+			 * - HypothesisUpdater (hypothesis_updater/HypothesisUpdater.hpp)
+			 *
+			 * Every of these modules is an abstract class which provides an interface to interact with.
+			 * These interfaces are, right now, far from final and can therefore be change as you want to change them.
+			 * Side-effects are expected just in the next_best_view node.
+			 */
+
+			/* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
+			 * It picks a given number of samples out of the unit sphere. These samples should be uniform
+			 * distributed on the sphere's surface which is - by the way - no easy problem to solve.
+			 * Therefore we used an approximation algorithm which picks approximates the surface with a
+			 * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
+			 */
 			SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
 			unitSphereSamplerPtr->setSamples(128);
 
-//			PlaneSubSpaceSamplerPtr spaceSamplerPtr(new PlaneSubSpaceSampler());
-//			spaceSamplerPtr->setSamples(32);
-
+			/* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
+			 * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
+			 * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
+			 * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
+			 */
 			MapHelperPtr mapHelperPtr(new MapHelper());
 			mapHelperPtr->setCollisionThreshold(45);
 
+			/* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
+			 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
+			 * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
+			 * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
+			 * the map and calculate the points which are contained in the feasible map space.
+			 */
 			MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
 			spaceSamplerPtr->setHexagonRadius(0.75);
 
-			//Comment: Map based -> with raytracing 
+			/* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
+			 * The camera model filter takes account for the fact, that there are different cameras around in the real world.
+			 * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
+			 * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
+			 * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
+			 */
 			MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
 			cameraModelFilterPtr->setHorizontalFOV(fovx);
 			cameraModelFilterPtr->setVerticalFOV(fovy);
 			cameraModelFilterPtr->setNearClippingPlane(ncp);
 			cameraModelFilterPtr->setFarClippingPlane(fcp);
 
-			//Comment?
+			/* MILDRobotModel is a specialization of the abstract RobotModel class.
+			 * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
+			 * non-reachable configurations of the robot which can therefore be ignored during calculation.
+			 */
 			MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
 			robotModelPtr->setTiltAngleLimits(-45, 45);
 			robotModelPtr->setPanAngleLimits(-60, 60);
 
+			/* DefaultRatingModule is a specialization of the abstract RatingModule class.
+			 * The rating module calculates the use and the costs of an operation.
+			 */
 			DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule());
-			//Comment? explain deviation calculation
 			ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
 
+			/* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
+			 */
 			PerspectiveHypothesisUpdaterPtr hypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
 			hypothesisUpdaterPtr->setDefaultRatingModule(ratingModulePtr);
 
+			// The setting of the modules.
 			mCalculator.setHypothesisUpdater(hypothesisUpdaterPtr);
 			mCalculator.setUnitSphereSampler(unitSphereSamplerPtr);
 			mCalculator.setSpaceSampler(spaceSamplerPtr);
@@ -133,6 +228,11 @@ namespace next_best_view {
 
 		//dtor
 		virtual ~NextBestView() { }
+
+		bool processSetVisualizationServiceCall(SetVisualization::Request &request, SetVisualization::Response) {
+
+			return true;
+		}
 
 		bool processGetSpaceSamplingServiceCall(GetSpaceSampling::Request &request, GetSpaceSampling::Response &response) {
 			double contractor = request.contractor;

@@ -1,0 +1,16 @@
+<launch>
+	<include file="$(find recognition_for_grasping)/recognition_manager.launch" />
+	<include file="$(find navigation_files)/launch/mild_p144_sim.launch" />
+	<node pkg="next_best_view" type="next_best_view" name="nbv" output="screen">
+        <rosparam>
+            fovx: 62.5
+            fovy: 48.9
+            ncp: .5
+            fcp: 5.0
+            visualize_space_sampling_point_cloud: true
+            visualize_point_cloud: true
+            visualize_frustum_point_cloud: true
+            visualize_frustum_marker_array: true
+        </rosparam>
+    </node>
+</launch>
