@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(PCL REQUIRED)
-find_package(cmake_modules REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 
 add_message_files(
@@ -32,6 +31,7 @@ add_service_files(
    DIRECTORY
    srv
    FILES
+   SetupVisualization.srv
    GetNextBestView.srv
    GetPointCloud2.srv
    GetAttributedPointCloud.srv

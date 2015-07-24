@@ -236,21 +236,11 @@ public:
 	}
 
 	void iterationTest() {
-		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/next_best_view/set_point_cloud");
-		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/next_best_view/get_point_cloud2");
-		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/next_best_view/next_best_view");
-		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/next_best_view/update_point_cloud");
-
-		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/next_best_view/get_space_sampling");
-
-		ros::Publisher spaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/space_sampling_point_cloud", 100);
-		ros::Publisher pointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/point_cloud", 1000);
-		ros::Publisher frustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/frustum_point_cloud", 1000);
-		ros::Publisher unitSpherPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("/test/unit_sphere_point_cloud", 1000);
-		ros::Publisher markerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1000);
-
-
-		NextBestView nextBestView;
+		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
+		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/nbv/get_point_cloud2");
+		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
+		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
+		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/nbv/get_space_sampling");
 
 		SetAttributedPointCloud apc;
 
@@ -313,24 +303,8 @@ public:
 
 		apc.request.pose = initialPose;
 
-		nextBestView.processSetPointCloudServiceCall(apc.request, apc.response);
-
-//		ROS_INFO("Setze PointCloud");
-//		if (!setPointCloudClient.call(apc)) {
-//			ROS_ERROR("Something went wrong during the sending of the point cloud");
-//			return;
-//		}
-//
-//		ROS_INFO("Hole PointCloud");
-		GetPointCloud2 gpc2;
-        gpc2.request.visualize = true;
-		nextBestView.processGetPointCloud2ServiceCall(gpc2.request, gpc2.response);
-//		if (!getPointCloud2Client.call(gpc2)) {
-//			ROS_ERROR("Something went wrong during the sending of get point cloud 2 service call");
-//			return;
-//		}
-//		pointCloudPublisher.publish(gpc2.response.point_cloud);
-//		waitForEnter();
+		// Setze PointCloud
+		setPointCloudClient.call(apc.request, apc.response);
 
 		GetNextBestView nbv;
 		nbv.request.initial_pose = initialPose;
@@ -342,93 +316,73 @@ public:
 		int x = 1;
 		while(ros::ok()) {
 			ROS_INFO("Kalkuliere NBV (%d)", x);
-			nextBestView.processGetNextBestViewServiceCall(nbv.request, nbv.response);
-//			if (!getNextBestViewClient.call(nbv)) {
-//				ROS_ERROR("Something went wrong in next best view");
-//			}
+			if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+				ROS_ERROR("Something went wrong in next best view");
+				break;
+			}
 
 			if (!nbv.response.found) {
 				break;
 			}
-			viewportPointCloudPtr->push_back(ViewportPoint(nbv.response.resulting_pose));
-
-			double yaw = tf::getYaw(nbv.response.resulting_pose.orientation);
-
-			geometry_msgs::Pose movePose(nbv.response.resulting_pose);
-			movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
-			this->moveToPose(movePose);
-//			markerArrayPublisher.publish(nbv.response.frustum_marker_array);
-			nbv.request.initial_pose = nbv.response.resulting_pose;
-
-//			unitSpherPointCloudPublisher.publish(nbv.response.unit_sphere_sampling_point_cloud);
-//			frustumPointCloudPublisher.publish(nbv.response.frustum_point_cloud);
-//			pointCloudPublisher.publish(nbv.response.point_cloud);
-
-//			UpdatePointCloud upc;
-//			upc.request.update_pose = nbv.response.resulting_pose;
-//			if (!updatePointCloudClient.call(upc)) {
-//				ROS_ERROR("Something went wrong during update of point cloud");
-//			}
 			x++;
 
 			ros::spinOnce();
 			waitForEnter();
 			ros::Duration(2).sleep();
 		}
-
-
-		uint32_t seq = 0;
-
-		SimpleVector4 poisonGreenColorVector = SimpleVector4(191.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0, 1.0);
-		SimpleVector4 darkBlueColorVector = SimpleVector4(4.0 / 255.0, 59.0 / 255.0, 89.0 / 255.0, 1.0);
-		SimpleVector4 blueColorVector = SimpleVector4(56.0 / 255.0, 129.0 / 255.0, 168.0 / 255.0, 1.0);
-		viz::MarkerArray arrowMarkerArray;
-		double ratio = 1.0 / ((double) viewportPointCloudPtr->size());
-		SimpleVector3 displacement(0.0, 0.0, 1.0);
-		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size() - 1; idx++) {
-			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
-			ViewportPoint endViewportPoint = viewportPointCloudPtr->at(idx + 1);
-
-			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-			startPoint[2] = 0.0;
-			startPoint += idx * ratio * displacement;
-			SimpleVector3 endPoint = endViewportPoint.getSimpleVector3();
-			endPoint[2] = 0.0;
-			endPoint += (idx + 1) * ratio * displacement;
-
-			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, blueColorVector);
-			arrowMarkerArray.markers.push_back(arrowMarker);
-		}
-
-		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size(); idx++) {
-			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
-
-			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-			startPoint[2] = 1.32;
-
-			SimpleVector3 endPoint(startPoint);
-			endPoint[2] = 0.0;
-
-
-			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, darkBlueColorVector);
-			arrowMarkerArray.markers.push_back(arrowMarker);
-
-
-
-			SimpleVector3 orientationStart = startPoint;
-			SimpleVector3 orientationVector = startViewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
-			SimpleVector3 orientationEnd = orientationStart + orientationVector / 3.0;
-
-			viz::Marker orientationMarker = MarkerHelper::getArrowMarker(seq++, orientationStart, orientationEnd, poisonGreenColorVector);
-			arrowMarkerArray.markers.push_back(orientationMarker);
-		}
-
-		while(ros::ok()) {
-			markerArrayPublisher.publish(arrowMarkerArray);
-
-			ros::spinOnce();
-			ros::Duration(20.0).sleep();
-		}
+//
+//		uint32_t seq = 0;
+//
+//		SimpleVector4 poisonGreenColorVector = SimpleVector4(191.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0, 1.0);
+//		SimpleVector4 darkBlueColorVector = SimpleVector4(4.0 / 255.0, 59.0 / 255.0, 89.0 / 255.0, 1.0);
+//		SimpleVector4 blueColorVector = SimpleVector4(56.0 / 255.0, 129.0 / 255.0, 168.0 / 255.0, 1.0);
+//		viz::MarkerArray arrowMarkerArray;
+//		double ratio = 1.0 / ((double) viewportPointCloudPtr->size());
+//		SimpleVector3 displacement(0.0, 0.0, 1.0);
+//		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size() - 1; idx++) {
+//			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
+//			ViewportPoint endViewportPoint = viewportPointCloudPtr->at(idx + 1);
+//
+//			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
+//			startPoint[2] = 0.0;
+//			startPoint += idx * ratio * displacement;
+//			SimpleVector3 endPoint = endViewportPoint.getSimpleVector3();
+//			endPoint[2] = 0.0;
+//			endPoint += (idx + 1) * ratio * displacement;
+//
+//			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, blueColorVector);
+//			arrowMarkerArray.markers.push_back(arrowMarker);
+//		}
+//
+//		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size(); idx++) {
+//			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
+//
+//			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
+//			startPoint[2] = 1.32;
+//
+//			SimpleVector3 endPoint(startPoint);
+//			endPoint[2] = 0.0;
+//
+//
+//			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, darkBlueColorVector);
+//			arrowMarkerArray.markers.push_back(arrowMarker);
+//
+//
+//
+//			SimpleVector3 orientationStart = startPoint;
+//			SimpleVector3 orientationVector = startViewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
+//			SimpleVector3 orientationEnd = orientationStart + orientationVector / 3.0;
+//
+//			viz::Marker orientationMarker = MarkerHelper::getArrowMarker(seq++, orientationStart, orientationEnd, poisonGreenColorVector);
+//			arrowMarkerArray.markers.push_back(orientationMarker);
+//		}
+//
+//		while(ros::ok()) {
+//			markerArrayPublisher.publish(arrowMarkerArray);
+//
+//			ros::spinOnce();
+//			ros::Duration(20.0).sleep();
+//		}
 	}
 
 	static void waitForEnter() {
