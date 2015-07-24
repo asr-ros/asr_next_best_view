@@ -33,7 +33,7 @@
 
 // Local Includes
 #include "typedef.hpp"
-#include "next_best_view/SetVisualization.h"
+#include "next_best_view/SetupVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
 #include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/GetNextBestView.h"
@@ -59,8 +59,11 @@
 
 
 namespace next_best_view {
-	typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+	// Defining shorthandle for action client.
+	typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseActionClient;
+	typedef boost::shared_ptr<MoveBaseActionClient> MoveBaseActionClientPtr;
 
+	// Defining namespace shorthandles
 	namespace fs = boost::filesystem;
 	namespace viz = visualization_msgs;
 	namespace odb = object_database;
@@ -81,52 +84,70 @@ namespace next_best_view {
 		ros::NodeHandle mNodeHandle;
 
 		// ServiceServer and Publisher
-		ros::ServiceServer mGetPointCloud2ServiceClient;
-		ros::ServiceServer mGetPointCloudServiceClient;
-		ros::ServiceServer mSetPointCloudServiceClient;
-		ros::ServiceServer mGetNextBestViewServiceClient;
-		ros::ServiceServer mGetSpaceSamplingServer;
-		ros::ServiceServer mUpdatePointCloud;
+		ros::ServiceServer mGetPointCloud2ServiceServer;
+		ros::ServiceServer mGetPointCloudServiceServer;
+		ros::ServiceServer mSetPointCloudServiceServer;
+		ros::ServiceServer mGetNextBestViewServiceServer;
+		ros::ServiceServer mGetSpaceSamplingServiceServer;
+		ros::ServiceServer mUpdatePointCloudServiceServer;
+		ros::ServiceServer mSetupVisualizationServiceServer;
+
 		ros::Publisher mSpaceSamplingPublisher;
 		ros::Publisher mPointCloudPublisher;
 		ros::Publisher mFrustumPointCloudPublisher;
 		ros::Publisher mUnitSpherPointCloudPublisher;
 		ros::Publisher mFrustumMarkerArrayPublisher;
+		ros::Publisher mInitialPosePublisher;
 
 		// ServiceClients and Subscriber
 		ros::ServiceClient mObjectTypeServiceClient;
 
+		// Action Clients
+		MoveBaseActionClientPtr mMoveBaseActionClient;
+
 		// Node-Wide Variables.
+
 		ViewportPoint mInitialCameraViewport;
 		ObjectPointCloudPtr mPointCloudPtr;
 		KdTreePtr mKdTreePtr;
-		SetVisualization::Request mLastVisualizationSettings;
+		SetupVisualizationRequest mVisualizationSettings;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
 		 */
 		NextBestView() : mGlobalNodeHandle(), mNodeHandle(ros::this_node::getName()), mPointCloudPtr(new ObjectPointCloud()) {
-			mGetPointCloud2ServiceClient = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
-			mGetPointCloudServiceClient = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
-			mGetNextBestViewServiceClient = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
-			mSetPointCloudServiceClient = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
-			mUpdatePointCloud = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
-			mGetSpaceSamplingServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
-			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
+			mGetPointCloud2ServiceServer = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
+			mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
+			mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
+			mSetPointCloudServiceServer = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
+			mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
+			mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
+			mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
 
 			mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
 			mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
 			mFrustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("frustum_point_cloud", 1000);
 			mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("frustum_marker_array", 1000);
+			mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
 
-			// set the visualization defaults
-			//mNodeHandle.param("visualize_space_sampling_point_cloud", mLastVisualizationSettings.visualize_space_sampling_point_cloud, false);
-			//mNodeHandle.param("visualize_point_cloud", mLastVisualizationSettings.visualize_point_cloud, false);
-			//mNodeHandle.param("visualize_frustum_point_cloud", mLastVisualizationSettings.visualize_frustum_point_cloud, false);
-			bool viz_frustum_marker_array;
-			mNodeHandle.param("visualize_frustum_marker_array", viz_frustum_marker_array, false);
+			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
 
-			mLastVisualizationSettings.visualize_frustum_marker_array = viz_frustum_marker_array;
+			mMoveBaseActionClient = MoveBaseActionClientPtr(new MoveBaseActionClient("move_base", true));
+
+			// setup the visualization defaults
+			bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
+			mNodeHandle.param("show_space_sampling", show_space_sampling, false);
+			mNodeHandle.param("show_point_cloud", show_point_cloud, false);
+			mNodeHandle.param("show_frustum_point_cloud", show_frustum_point_cloud, false);
+			mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
+			mNodeHandle.param("move_robot", move_robot, false);
+
+			// assign the values to the settings struct
+			mVisualizationSettings.space_sampling = show_space_sampling;
+			mVisualizationSettings.point_cloud = show_point_cloud;
+			mVisualizationSettings.frustum_point_cloud = show_frustum_point_cloud;
+			mVisualizationSettings.frustum_marker_array = show_frustum_marker_array;
+			mVisualizationSettings.move_robot = move_robot;
 
 			/* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
 			* be defined in the CameraModelFilter specialization class.
@@ -140,7 +161,6 @@ namespace next_best_view {
 			mNodeHandle.param("ncp", ncp, .5);
 			mNodeHandle.param("fcp", fcp, 5.0);
 
-			ROS_INFO("FOVX: %f, FOVY: %f, NCP: %f, FCP: %f", fovx, fovy, ncp, fcp);
 			//////////////////////////////////////////////////////////////////
 			// HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
 			//////////////////////////////////////////////////////////////////
@@ -229,7 +249,8 @@ namespace next_best_view {
 		//dtor
 		virtual ~NextBestView() { }
 
-		bool processSetVisualizationServiceCall(SetVisualization::Request &request, SetVisualization::Response) {
+		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
+			mVisualizationSettings = SetupVisualizationRequest(request);
 
 			return true;
 		}
@@ -305,122 +326,10 @@ namespace next_best_view {
 
 			response.is_valid = true;
 
+			// publish the visualization
+			this->publishVisualization(request.pose, true);
+
 			return true;
-//			// TODO wrap into PointCloudMessage.
-//			ViewportPoint initialCameraViewport;
-//			initialCameraViewport.x = 22.15;
-//			initialCameraViewport.y = 10.55;
-//			initialCameraViewport.z = 1.32;
-//			initialCameraViewport.qw = 1.0;
-//			initialCameraViewport.qx = 0.0;
-//			initialCameraViewport.qy = 0.0;
-//			initialCameraViewport.qz = 0.0;
-//
-//
-//			ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
-//			ViewportPoint currentCameraViewport = initialCameraViewport;
-//			uint32_t ccount = 0;
-//			while(ros::ok()) {
-//				ViewportPoint viewportPoint;
-//				if (!calculator.calculateNextBestView(currentCameraViewport, viewportPoint)) {
-//					break;
-//				}
-//				ccount++;
-//				ROS_INFO("Iteration Count: %d", ccount);
-//				calculator.updateObjectPointCloud(viewportPoint);
-//				viewportPointCloudPtr->push_back(viewportPoint);
-//				currentCameraViewport = viewportPoint;
-//			}
-//
-//
-//			////
-//			// VISUALIZATION PART - DON'T CARE ABOUT THAT MESS!
-//			////
-//			uint32_t seq = 0;
-//
-////			viz::Marker pointMarker = MarkerHelper::getBasicMarker(seq++);
-////			pointMarker.type = viz::Marker::POINTS;
-////			pointMarker.lifetime = ros::Duration(30.0);
-////			pointMarker.scale.x = pointMarker.scale.y = 0.05;
-////			MarkerHelper::getRainbowColor(pointMarker, 2.0 / 6.0, 1.0);
-////			pointMarker.points.push_back(viewportPoint.getPoint());
-//
-//			SimpleVector4 poisonGreenColorVector = SimpleVector4(191.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0, 1.0);
-//			SimpleVector4 darkBlueColorVector = SimpleVector4(4.0 / 255.0, 59.0 / 255.0, 89.0 / 255.0, 1.0);
-//			SimpleVector4 blueColorVector = SimpleVector4(56.0 / 255.0, 129.0 / 255.0, 168.0 / 255.0, 1.0);
-//			viz::MarkerArray arrowMarkerArray;
-//			double ratio = 1.0 / ((double) viewportPointCloudPtr->size());
-//			SimpleVector3 displacement(0.0, 0.0, 1.0);
-//			for (std::size_t idx = 0; idx < viewportPointCloudPtr->size() - 1; idx++) {
-//				ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
-//				ViewportPoint endViewportPoint = viewportPointCloudPtr->at(idx + 1);
-//
-//				SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-//				startPoint[2] = 0.0;
-//				startPoint += idx * ratio * displacement;
-//				SimpleVector3 endPoint = endViewportPoint.getSimpleVector3();
-//				endPoint[2] = 0.0;
-//				endPoint += (idx + 1) * ratio * displacement;
-//
-//				viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, blueColorVector);
-//				arrowMarkerArray.markers.push_back(arrowMarker);
-//			}
-//
-//			for (std::size_t idx = 0; idx < viewportPointCloudPtr->size(); idx++) {
-//				ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
-//
-//				SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-//				startPoint[2] = 1.32;
-//
-//				SimpleVector3 endPoint(startPoint);
-//				endPoint[2] = 0.0;
-//
-//
-//				viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, darkBlueColorVector);
-//				arrowMarkerArray.markers.push_back(arrowMarker);
-//
-//
-//
-//				SimpleVector3 orientationStart = startPoint;
-//				SimpleVector3 orientationVector = startViewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
-//				SimpleVector3 orientationEnd = orientationStart + orientationVector / 3.0;
-//
-//				viz::Marker orientationMarker = MarkerHelper::getArrowMarker(seq++, orientationStart, orientationEnd, poisonGreenColorVector);
-//				arrowMarkerArray.markers.push_back(orientationMarker);
-//			}
-//
-//			ROS_WARN("%d points", viewportPointCloudPtr->size());
-//
-//			sensor_msgs::PointCloud2 pcROS2;
-//			pcl::PCLPointCloud2 pcPCL2;
-//			pcl::toPCLPointCloud2(*mCalculator.getPointCloudPtr(), pcPCL2);
-//			pcl_conversions::fromPCL(pcPCL2, pcROS2);
-//			pcROS2.header.frame_id = "map";
-//
-//			SamplePointCloudPtr cloudPtr = spaceSamplerPtr->getSampledSpacePointCloud(SimpleVector3(22.1536, 10.5516, 1.32));
-//			sensor_msgs::PointCloud2 cloudPtrROS2;
-//			pcl::PCLPointCloud2 cloudPtrPCL2;
-//			pcl::toPCLPointCloud2(*cloudPtr, cloudPtrPCL2);
-//			pcl_conversions::fromPCL(cloudPtrPCL2, cloudPtrROS2);
-//			cloudPtrROS2.header.frame_id = "map";
-//
-//
-//			ros::Publisher samplePub = mGlobalNodeHandle.advertise<sensor_msgs::PointCloud2>("samples", 1000);
-//			ros::Publisher pcPub = mGlobalNodeHandle.advertise<sensor_msgs::PointCloud2>("object_positions", 1000);
-//			ros::Publisher pub = mGlobalNodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 1000);
-//			ros::Publisher arrayPub = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1000);
-//			ros::Duration(5.0).sleep();
-//
-//			uint32_t sequence = seq;
-//			while(ros::ok()) {
-//				//pub.publish(pointMarker);
-//				samplePub.publish(cloudPtrROS2);
-//				pcPub.publish(pcROS2);
-//				arrayPub.publish(arrowMarkerArray);
-//
-//				ros::spinOnce();
-//				ros::Duration(20.0).sleep();
-//			}
 		}
 
 	  //COMMENT?
@@ -482,8 +391,9 @@ namespace next_best_view {
 			rgb.offset = offsetof(ObjectPoint, rgb);
 			response.point_cloud.fields.push_back(rgb);
 
-
 			mCalculator.updateObjectPointCloud(resultingViewport);
+
+			this->publishVisualization(resultingViewport.getPose());
 
 			return true;
 		}
@@ -497,6 +407,108 @@ namespace next_best_view {
 			mCalculator.updateObjectPointCloud(viewportPoint);
 
 			return true;
+		}
+
+		/*!
+		 * \brief Passes the request to the other publishVisualization with is_initial = false by default.
+		 */
+		void publishVisualization(geometry_msgs::Pose robot_pose) {
+			this->publishVisualization(robot_pose, false);
+		}
+
+		/*!
+		 * \brief Publishes the Visualization of the NextBestView
+		 * \param robot_pose, the new pose of the robot
+		 * \param is_initial, marks if the given robot pose was initial
+		 */
+		void publishVisualization(geometry_msgs::Pose robot_pose, bool is_initial) {
+			ROS_INFO("Publishing Visualization");
+
+			// If the visualization of the robot movement is wished, execute this block
+			if (mVisualizationSettings.move_robot) {
+				double yaw = tf::getYaw(robot_pose.orientation);
+
+				geometry_msgs::Pose movePose(robot_pose);
+				movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+
+				if (is_initial) {
+					ROS_INFO("Initializing the Robot Position");
+
+					this->setInitialRobotPose(movePose);
+				} else {
+					ROS_INFO("Move the Robot to new Pose");
+
+					this->moveRobotToPose(movePose);
+				}
+			}
+
+			if (mVisualizationSettings.space_sampling) {
+				ROS_INFO("Publishing Space Sampling");
+
+			}
+
+			if (mVisualizationSettings.point_cloud) {
+				ROS_INFO("Publishing Point Cloud");
+				GetPointCloud2 gpc2ServiceCall;
+				this->processGetPointCloud2ServiceCall(gpc2ServiceCall.request, gpc2ServiceCall.response);
+				mPointCloudPublisher.publish(gpc2ServiceCall.response.point_cloud);
+			}
+
+			if (mVisualizationSettings.frustum_point_cloud) {
+				ROS_INFO("Publishing Frustum Point Cloud");
+
+			}
+
+			if (mVisualizationSettings.frustum_marker_array) {
+				ROS_INFO("Publishing Frustum Marker Array");
+			}
+		}
+
+		/*!
+		 * \brief Sets the Initial Pose of the Robot to the given param value without any uncertainty.
+		 * \param initialPose the initial pose of the Robot
+		 */
+		void setInitialRobotPose(const geometry_msgs::Pose &initialPose) {
+			// waiting for buffers to fill
+			ros::Duration(5.0).sleep();
+
+			geometry_msgs::PoseWithCovarianceStamped pose;
+			pose.header.frame_id = "map";
+			boost::array<double, 36> a =  {
+					// x, y, z, roll, pitch, yaw
+					0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+					0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+					0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+					0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+					0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+					0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+			};
+			pose.pose.covariance = a;
+			pose.pose.pose = initialPose;
+
+			mInitialPosePublisher.publish(pose);
+		}
+
+		void moveRobotToPose(const geometry_msgs::Pose &pose) {
+			double interval_time = 5.0;
+			while(!mMoveBaseActionClient->waitForServer(ros::Duration(interval_time))) {
+				ROS_INFO("Waiting for the move_base action server to come up. Checking Interval: %f seconds", interval_time);
+			}
+
+			move_base_msgs::MoveBaseGoal goal;
+			goal.target_pose.header.frame_id = "map";
+			goal.target_pose.header.stamp = ros::Time::now();
+
+			goal.target_pose.pose = pose;
+
+			mMoveBaseActionClient->sendGoal(goal);
+
+			mMoveBaseActionClient->waitForResult();
+			if(mMoveBaseActionClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+				ROS_INFO("Hooray, the base moved");
+			} else {
+				ROS_ERROR("The base failed to move");
+			}
 		}
 
 		static void vector_diff(const Indices &AVect, const Indices &BVect, Indices &resultIndices) {

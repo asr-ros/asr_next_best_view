@@ -1,5 +1,0 @@
-bool visualize_space_sampling_point_cloud
-bool visualize_point_cloud
-bool visualize_frustum_point_cloud
-bool visualze_furstum_marker_array
----

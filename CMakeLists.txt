@@ -31,7 +31,7 @@ add_service_files(
    DIRECTORY
    srv
    FILES
-   SetVisualization.srv
+   SetupVisualization.srv
    GetNextBestView.srv
    GetPointCloud2.srv
    GetAttributedPointCloud.srv

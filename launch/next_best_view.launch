@@ -7,10 +7,10 @@
             fovy: 48.9
             ncp: .5
             fcp: 5.0
-            visualize_space_sampling_point_cloud: true
-            visualize_point_cloud: true
-            visualize_frustum_point_cloud: true
-            visualize_frustum_marker_array: true
+            show_space_sampling: true
+            show_point_cloud: true
+            show_frustum_point_cloud: true
+            show_frustum_marker_array: true
         </rosparam>
     </node>
 </launch>
