@@ -1,0 +1,5 @@
+RobotStateMessage sourceRobotState
+geometry_msgs/Quaternion orientation
+geometry_msgs/Vector3 position
+---
+RobotStateMessage newRobotState

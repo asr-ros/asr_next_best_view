@@ -11,11 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   actionlib
   tf
+  eigen_conversions
+  tf_conversions
   std_srvs
   visualization_msgs
 )
 
 find_package(PCL REQUIRED)
+find_package(Eigen REQUIRED)
 find_package(cmake_modules REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 
@@ -40,6 +43,7 @@ add_service_files(
    GetSpaceSampling.srv
    UpdatePointCloud.srv
    GetMovementCosts.srv
+   CalculateRobotState.srv
 )
 
 ## Generate actions in the 'action' folder
