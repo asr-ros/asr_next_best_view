@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(PCL REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system thread)
 
 add_message_files(
 	DIRECTORY

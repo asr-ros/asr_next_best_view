@@ -308,10 +308,6 @@ public:
 
 		GetNextBestView nbv;
 		nbv.request.initial_pose = initialPose;
-        nbv.request.visualizePointcloud = true;
-        nbv.request.visualizeFrustum = true;
-        nbv.request.visualizeFrustumPointcloud = true;
-        nbv.request.visualizeUnitSphereSampling = false;
 		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
 		int x = 1;
 		while(ros::ok()) {

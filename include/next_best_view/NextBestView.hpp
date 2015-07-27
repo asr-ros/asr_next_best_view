@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <boost/range/algorithm_ext/iota.hpp>
 #include <eigen3/Eigen/Dense>
 #include <pcl-1.7/pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -104,15 +105,16 @@ namespace next_best_view {
 
 		// ServiceClients and Subscriber
 		ros::ServiceClient mObjectTypeServiceClient;
-		ViewportPoint mInitialCameraViewport;
+		ViewportPoint mCurrentCameraViewport;
 		ObjectPointCloudPtr mPointCloudPtr;
 		KdTreePtr mKdTreePtr;
 		SetupVisualizationRequest mVisualizationSettings;
+		bool mCurrentlyPublishingVisualization;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
 		 */
-		NextBestView() : mGlobalNodeHandle(), mNodeHandle(ros::this_node::getName()), mPointCloudPtr(new ObjectPointCloud()) {
+		NextBestView() : mGlobalNodeHandle(), mNodeHandle(ros::this_node::getName()), mPointCloudPtr(new ObjectPointCloud()), mCurrentlyPublishingVisualization(false) {
 			mGetPointCloud2ServiceServer = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
 			mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
 			mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
@@ -128,9 +130,6 @@ namespace next_best_view {
 			mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
 
 			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
-
-			ros::Publisher pub = mGlobalNodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 1000);
-			ros::Publisher arrayPub = mGlobalNodeHandle.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1000);
 
 			// setup the visualization defaults
 			bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
@@ -181,7 +180,7 @@ namespace next_best_view {
 			/* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
 			 * It picks a given number of samples out of the unit sphere. These samples should be uniform
 			 * distributed on the sphere's surface which is - by the way - no easy problem to solve.
-			 * Therefore we used an approximation algorithm which picks approximates the surface with a
+			 * Therefore we used an approximation algorithm which approximates the surface with a
 			 * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
 			 */
 			SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
@@ -250,6 +249,8 @@ namespace next_best_view {
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
 			mVisualizationSettings = SetupVisualizationRequest(request);
 
+			this->triggerVisualization();
+
 			return true;
 		}
 
@@ -309,17 +310,16 @@ namespace next_best_view {
 		bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
 			mCalculator.setPointCloudFromMessage(request.point_cloud);
 
-			ViewportPoint initialCameraViewport(request.pose);
-			mInitialCameraViewport = initialCameraViewport;
-			mCalculator.getCameraModelFilter()->setOrientation(initialCameraViewport.getSimpleQuaternion());
-			mCalculator.getCameraModelFilter()->setPivotPointPosition(initialCameraViewport.getSimpleVector3());
+			mCurrentCameraViewport = ViewportPoint(request.pose);
+			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
+			mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getSimpleVector3());
 
 			MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
 			currentRobotStatePtr->pan = 0;
 			currentRobotStatePtr->tilt = 0;
 			currentRobotStatePtr->rotation = 0;
-			currentRobotStatePtr->x = initialCameraViewport.x;
-			currentRobotStatePtr->y = initialCameraViewport.y;
+			currentRobotStatePtr->x = mCurrentCameraViewport.x;
+			currentRobotStatePtr->y = mCurrentCameraViewport.y;
 			mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
 
 			response.is_valid = true;
@@ -343,55 +343,17 @@ namespace next_best_view {
 			response.found = true;
 			response.resulting_pose = resultingViewport.getPose();
 
+			mCurrentCameraViewport = resultingViewport;
+
 			SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
 			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-			uint32_t seq = 0;
-			response.frustum_marker_array = *mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(seq, 0.0);
-
-			pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), *resultingViewport.child_indices), response.frustum_point_cloud);
-			response.frustum_point_cloud.header.frame_id ="/map";
-
-			Indices indices;
-			for (int index = 0; index < mCalculator.getPointCloudPtr()->size(); index++) {
-				ObjectPoint &objectPoint = mCalculator.getPointCloudPtr()->at(index);
-
-				if (objectPoint.active_normal_vectors->size() == 0) {
-					continue;
-				}
-
-				indices.push_back(index);
-			}
-
-			Indices resultIndices;
-			vector_diff(indices, *resultingViewport.child_indices, resultIndices);
-
-			pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), resultIndices), response.point_cloud);
-			response.point_cloud.header.frame_id = "/map";
-
-			SimpleQuaternionCollectionPtr collectionPtr = mCalculator.getUnitSphereSampler()->getSampledUnitSphere();
-			ObjectPointCloud opc;
-			BOOST_FOREACH(SimpleQuaternion orientation, *collectionPtr) {
-				if (!mCalculator.getRobotModel()->isPoseReachable(SimpleVector3(0, 0, 0), orientation)) {
-					continue;
-				}
-				SimpleVector3 visualAxis = MathHelper::getVisualAxis(orientation);
-				ObjectPoint point(visualAxis);
-				opc.push_back(point);
-			}
-			pcl::toROSMsg(opc, response.unit_sphere_sampling_point_cloud);
-			response.unit_sphere_sampling_point_cloud.header.frame_id = "/map";
-
-			sensor_msgs::PointField rgb;
-			rgb.name = "rgb";
-			rgb.datatype = sensor_msgs::PointField::UINT32;
-			rgb.offset = offsetof(ObjectPoint, rgb);
-			response.point_cloud.fields.push_back(rgb);
+			ROS_INFO("Trigger Visualization");
+			this->triggerVisualization();
+			ROS_INFO("Visualization triggered");
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
-
-			this->publishVisualization(resultingViewport.getPose());
 
 			return true;
 		}
@@ -407,11 +369,24 @@ namespace next_best_view {
 			return true;
 		}
 
-		/*!
-		 * \brief Passes the request to the other publishVisualization with is_initial = false by default.
-		 */
-		void publishVisualization(geometry_msgs::Pose robot_pose) {
-			this->publishVisualization(robot_pose, false);
+		bool triggerVisualization() {
+			return this->triggerVisualization(mCurrentCameraViewport, false);
+		}
+
+		bool triggerVisualization(ViewportPoint viewport) {
+			return this->triggerVisualization(viewport, false);
+		}
+
+		bool triggerVisualization(ViewportPoint viewport, bool is_initial) {
+			if (mCurrentlyPublishingVisualization) {
+				ROS_INFO("Currently generating visualization data.");
+				return false;
+			}
+
+			mCurrentlyPublishingVisualization = true;
+			boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, is_initial);
+
+			return true;
 		}
 
 		/*!
@@ -419,11 +394,12 @@ namespace next_best_view {
 		 * \param robot_pose, the new pose of the robot
 		 * \param is_initial, marks if the given robot pose was initial
 		 */
-		void publishVisualization(geometry_msgs::Pose robot_pose, bool is_initial) {
+		void publishVisualization(ViewportPoint viewport, bool is_initial) {
 			ROS_INFO("Publishing Visualization");
 
 			// If the visualization of the robot movement is wished, execute this block
-			if (mVisualizationSettings.move_robot) {
+			// TODO: Programmcode is throwing "Updating ModelState: model [mild] does not exist", probably mild.dae missing - don't know
+			/*if (mVisualizationSettings.move_robot) {
 				double yaw = tf::getYaw(robot_pose.orientation);
 
 				geometry_msgs::Pose movePose(robot_pose);
@@ -438,29 +414,58 @@ namespace next_best_view {
 
 					this->moveRobotToPose(movePose);
 				}
-			}
-
-			if (mVisualizationSettings.space_sampling) {
-				ROS_INFO("Publishing Space Sampling");
-
-			}
+			}*/
 
 			if (mVisualizationSettings.point_cloud) {
 				ROS_INFO("Publishing Point Cloud");
 
-				GetPointCloud2 gpc2ServiceCall;
-				this->processGetPointCloud2ServiceCall(gpc2ServiceCall.request, gpc2ServiceCall.response);
-				mPointCloudPublisher.publish(gpc2ServiceCall.response.point_cloud);
+				Indices overall_indices = Indices(mCalculator.getPointCloudPtr()->size());
+				boost::range::iota(boost::iterator_range<Indices::iterator>(overall_indices.begin(), overall_indices.end()), 0);
+
+				Indices point_cloud_indices;
+				if (mVisualizationSettings.frustum_point_cloud) {
+					point_cloud_indices_diff(overall_indices, *viewport.child_indices, point_cloud_indices);
+				} else {
+					point_cloud_indices = overall_indices;
+				}
+				ROS_INFO("Publishing %d points", point_cloud_indices.size());
+
+				sensor_msgs::PointCloud2 point_cloud;
+				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), point_cloud_indices), point_cloud);
+
+				point_cloud.header.frame_id = "/map";
+				point_cloud.header.seq = 0;
+
+				sensor_msgs::PointField rgb;
+				rgb.name = "rgb";
+				rgb.datatype = sensor_msgs::PointField::UINT32;
+				rgb.offset = offsetof(ObjectPoint, rgb);
+				point_cloud.fields.push_back(rgb);
+
+				mPointCloudPublisher.publish(point_cloud);
 			}
 
 			if (mVisualizationSettings.frustum_point_cloud) {
 				ROS_INFO("Publishing Frustum Point Cloud");
 
+				sensor_msgs::PointCloud2 frustum_point_cloud;
+				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices), frustum_point_cloud);
+
+				frustum_point_cloud.header.frame_id = "/map";
+				frustum_point_cloud.header.seq = 0;
+
+				mFrustumPointCloudPublisher.publish(frustum_point_cloud);
 			}
 
 			if (mVisualizationSettings.frustum_marker_array) {
 				ROS_INFO("Publishing Frustum Marker Array");
+
+				uint32_t sequence = 0;
+				viz::MarkerArray::Ptr markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+				mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
 			}
+
+			mCurrentlyPublishingVisualization = false;
 		}
 
 		/*!
@@ -510,7 +515,7 @@ namespace next_best_view {
 			}
 		}
 
-		static void vector_diff(const Indices &AVect, const Indices &BVect, Indices &resultIndices) {
+		static void point_cloud_indices_diff(const Indices &AVect, const Indices &BVect, Indices &resultIndices) {
 			std::set<int> A(AVect.begin(), AVect.end());
 			std::set<int> B(BVect.begin(), BVect.end());
 
