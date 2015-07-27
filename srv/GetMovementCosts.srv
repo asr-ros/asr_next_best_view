@@ -1,0 +1,4 @@
+RobotStateMessage currentState
+RobotStateMessage targetState
+---
+float64 distance
