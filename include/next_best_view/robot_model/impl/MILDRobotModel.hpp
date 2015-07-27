@@ -11,6 +11,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
 #include "typedef.hpp"
+#include "nav_msgs/Path.h"
 #include <ros/ros.h>
 
 namespace next_best_view {
@@ -47,6 +48,11 @@ namespace next_best_view {
 		 * Client used for communication with the global_planner to calculate movement costs
 		 */
 		ros::ServiceClient navigationCostClient;
+		
+		/*!
+		 * Client used for communication with the global_planner to calculate movement costs
+		 */
+		 nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 	public:
 		/*!
 		 * \brief constructor of the PTURobotModel
@@ -80,9 +86,14 @@ namespace next_best_view {
 		void setRotationAngleLimits(float minAngleDegrees, float maxAngleDegrees);
 
 		bool isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation);
+		
+		bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
 		RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
 
+		/*!
+		 * \brief Calculates the movement costs from sourceRobotState to targetRobotState. Returns -1 if pose is not reachable
+		 */
 		float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
 	};
 

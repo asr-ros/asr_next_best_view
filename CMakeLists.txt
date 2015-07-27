@@ -45,6 +45,8 @@ add_service_files(
    UpdatePointCloud.srv
    GetMovementCosts.srv
    CalculateRobotState.srv
+   IsPositionReachable.srv
+   IsPoseReachable.srv
 )
 
 ## Generate actions in the 'action' folder

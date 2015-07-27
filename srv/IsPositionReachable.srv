@@ -1,0 +1,4 @@
+geometry_msgs/Point sourcePosition
+geometry_msgs/Point targetPosition
+---
+bool isReachable

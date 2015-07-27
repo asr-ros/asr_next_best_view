@@ -68,20 +68,6 @@ namespace next_best_view {
         return !path.poses.empty();
     }
 
-    nav_msgs::Path MILDRobotModel::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
-    {
-        nav_msgs::GetPlan srv;
-        srv.request.start.pose.position = sourcePosition;
-        srv.request.goal.pose.position = targetPosition;
-        srv.request.tolerance = 0.5f;
-        nav_msgs::Path path;
-        if (navigationCostClient.call(srv))
-        {
-            path = srv.response.plan;
-        }
-        return path;
-    }
-
   //Comment?
     RobotStatePtr MILDRobotModel::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
@@ -240,6 +226,20 @@ namespace next_best_view {
             //distance = sqrt(pow(targetMILDRobotState->x - sourceMILDRobotState->x, 2) + pow(targetMILDRobotState->y - sourceMILDRobotState->y, 2));
         }
         return costs;
+    }
+
+    nav_msgs::Path MILDRobotModel::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
+    {
+        nav_msgs::GetPlan srv;
+        srv.request.start.pose.position = sourcePosition;
+        srv.request.goal.pose.position = targetPosition;
+        srv.request.tolerance = 0.5f;
+        nav_msgs::Path path;
+        if (navigationCostClient.call(srv))
+        {
+            path = srv.response.plan;
+        }
+        return path;
     }
 }
 
