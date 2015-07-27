@@ -13,6 +13,12 @@
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 
+#include "nav_msgs/GetPlan.h"
+#include "nav_msgs/Path.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/Point.h"
+
 namespace next_best_view {
 	MILDRobotModel::MILDRobotModel() : RobotModel(), mOmegaPan(1.0), mOmegaTilt(1.0), mOmegaRot(2.0) {
 		this->setPanAngleLimits(0, 0);
@@ -152,21 +158,53 @@ namespace next_best_view {
 		return targetMILDRobotState;
 	}
 
-	float MILDRobotModel::getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) {
-		MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
-		MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
+    float MILDRobotModel::getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) {
+        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
 
-		// set costs
-		float panDiff = targetMILDRobotState->pan - sourceMILDRobotState->pan;
-		float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
-		float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
-		float distance = sqrt(pow(targetMILDRobotState->x - sourceMILDRobotState->x, 2) + pow(targetMILDRobotState->y - sourceMILDRobotState->y, 2));
+        // set costs
+        float panDiff = targetMILDRobotState->pan - sourceMILDRobotState->pan;
+        float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
+        float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
 
-		float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
-		float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
-		float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-		float costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
-		return costs;
-	}
+        float distance;
+
+        nav_msgs::GetPlan srv;
+
+        srv.request.start.pose.position.x = sourceMILDRobotState->x;
+        srv.request.start.pose.position.y = sourceMILDRobotState->y;
+        srv.request.start.pose.position.z = 0;
+
+        srv.request.goal.pose.position.x = targetMILDRobotState->x;
+        srv.request.goal.pose.position.y = targetMILDRobotState->y;
+        srv.request.goal.pose.position.z = 0;
+
+        srv.request.tolerance = 0.5f;
+        if (navigationCostClient.call(srv))
+        {
+
+            nav_msgs::Path path;
+            path = srv.response.plan;
+            unsigned int size = sizeof(path.poses)/sizeof(path.poses[0]);
+            distance = 0;
+            if (size > 1)
+            {
+                for (unsigned int i = 0; i < size -1 ; i++)
+                {
+                    distance += sqrt(pow(path.poses[i].pose.position.x - path.poses[i+1].pose.position.x, 2) + pow(path.poses[i].pose.position.y - path.poses[i+1].pose.position.y, 2));
+                }
+            }
+        }
+        else
+        {
+            ROS_ERROR("Failed to call the global planner.");
+            distance = sqrt(pow(targetMILDRobotState->x - sourceMILDRobotState->x, 2) + pow(targetMILDRobotState->y - sourceMILDRobotState->y, 2));
+        }
+        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
+        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
+        float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
+        float costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
+        return costs;
+    }
 }
 

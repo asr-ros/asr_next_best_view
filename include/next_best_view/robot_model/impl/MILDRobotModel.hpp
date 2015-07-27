@@ -11,6 +11,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
 #include "typedef.hpp"
+#include <ros/ros.h>
 
 namespace next_best_view {
 	/*!
@@ -41,6 +42,11 @@ namespace next_best_view {
 		 * contains the lower and upper limit of rotation
 		 */
 		boost::tuple<float, float> mRotationLimits;
+		
+		/*!
+		 * Client used for communication with the global_planner to calculate movement costs
+		 */
+		ros::ServiceClient navigationCostClient;
 	public:
 		/*!
 		 * \brief constructor of the PTURobotModel

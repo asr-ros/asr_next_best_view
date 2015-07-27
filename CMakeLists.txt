@@ -19,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(cmake_modules REQUIRED)
+find_package(Eigen REQUIRED)
 
 add_message_files(
 	DIRECTORY
@@ -170,7 +172,6 @@ target_link_libraries(
 	${PROJECT_NAME}_RobotModel_Client
 	${PCL_LIBRARIES}
 	${PROJECT_NAME}_packages_impl
-	#${ROS_LIBRARIES}
 	glpk
 	${catkin_LIBRARIES}
 )
