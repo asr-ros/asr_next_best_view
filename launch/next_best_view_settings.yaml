@@ -1,0 +1,12 @@
+mOmegaPan: 1.0
+mOmegaTilt: 1.0
+mOmegaRot: 2.0
+fovx: 62.5
+fovy: 48.9
+ncp: 0.2
+fcp: 10.0
+show_space_sampling: true
+show_point_cloud: true
+show_frustum_point_cloud: true
+show_frustum_marker_array: true
+move_robot: true
