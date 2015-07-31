@@ -151,13 +151,13 @@ namespace next_best_view {
 			// do the frustum culling by camera model filter
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
-
+				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
+				Indices samplePointChildIndices = samplePoint.child_indices;
+				ViewportPoint candidateViewportPoint;
 
 				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-					ViewportPoint candidateViewportPoint;
-
 					// set the input cloud
-					this->doFrustumCulling(samplePoint.getSimpleVector3(), orientation, samplePoint.child_indices, candidateViewportPoint);
+					this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, candidateViewportPoint);
 
 					if (candidateViewportPoint.child_indices->size() == 0) {
 						continue;
