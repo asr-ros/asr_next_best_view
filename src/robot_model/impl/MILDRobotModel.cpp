@@ -235,7 +235,7 @@ namespace next_best_view {
         }
         else //Use euclidean distance
         {
-            distance = sqrt(pow(sourceMILDRobotState->x -targetMILDRobotState->x, 2) + pow(powsourceMILDRobotState->x - targetMILDRobotState->x, 2));
+            distance = sqrt(pow(sourceMILDRobotState->x -targetMILDRobotState->x, 2) + pow(sourceMILDRobotState->x - targetMILDRobotState->x, 2));
         }
         float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
         float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();

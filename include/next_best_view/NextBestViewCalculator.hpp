@@ -152,7 +152,7 @@ namespace next_best_view {
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
-				Indices samplePointChildIndices = samplePoint.child_indices;
+				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 				ViewportPoint candidateViewportPoint;
 
 				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
