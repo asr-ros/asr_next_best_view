@@ -28,6 +28,8 @@ namespace next_best_view {
 		float mOmegaPan;
 		float mOmegaTilt;
 		float mOmegaRot;
+		float tolerance;
+		bool useGlobalPlanner;
 
 		/*!
 		 * contains the lower and upper limit of pan

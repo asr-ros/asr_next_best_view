@@ -21,16 +21,28 @@
 
 namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
-
         ros::NodeHandle n;
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_;
+        bool useGlobalPlanner_;
         n.param("mOmegaPan", mOmegaPan_, 1.0);
         n.param("mOmegaTilt", mOmegaTilt_, 1.0);
         n.param("mOmegaRot", mOmegaRot_, 2.0);
+        n.param("tolerance", tolerance_, 1.0);
+        n.getParam("useGlobalPlanner", useGlobalPlanner_);
+        useGlobalPlanner = useGlobalPlanner_;
+        if (useGlobalPlanner_)
+        {
+            ROS_INFO("Use of global planner ENABLED");
+        }
+        else
+        {
+            ROS_INFO("Use of global planner DISABLED. Using simplified calculation instead...");
+        }
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
+        tolerance = tolerance_;
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
 		this->setRotationAngleLimits(0, 0);
@@ -185,44 +197,50 @@ namespace next_best_view {
         float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
 
         float distance, costs ;
-        nav_msgs::Path path;
-        ROS_INFO_STREAM("Calculate path from (" << sourceMILDRobotState->x << ", " << sourceMILDRobotState->y << ") to (" << targetMILDRobotState->x << ", "<< targetMILDRobotState->y << ")");
-
-        geometry_msgs::Point sourcePoint, targetPoint;
-        sourcePoint.x = sourceMILDRobotState->x;
-        sourcePoint.y = sourceMILDRobotState->y;
-        sourcePoint.z = 0;
-        targetPoint.x = targetMILDRobotState->x;
-        targetPoint.y = targetMILDRobotState->y;
-        targetPoint.z = 0;
-        path = getNavigationPath(sourcePoint, targetPoint);
-
-        if (!path.poses.empty())
+        if (useGlobalPlanner) //Use global planner to calculate distance
         {
-            unsigned int size = path.poses.size();
-            distance = 0;
-            for (unsigned int i = 0; i < size ; i++)
-            {
-                ROS_INFO_STREAM("Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")");
-            }
-            //Calculate distance from source point to firste point in path
-            distance += sqrt(pow(sourcePoint.x - path.poses[0].pose.position.x, 2) + pow(sourcePoint.y - path.poses[0].pose.position.y, 2));
-            //Calculate path length
-            for (unsigned int i = 0; i < size - 1 ; i++)
-            {
-                distance += sqrt(pow(path.poses[i].pose.position.x - path.poses[i+1].pose.position.x, 2) + pow(path.poses[i].pose.position.y - path.poses[i+1].pose.position.y, 2));
-            }
+            nav_msgs::Path path;
+            ROS_INFO_STREAM("Calculate path from (" << sourceMILDRobotState->x << ", " << sourceMILDRobotState->y << ") to (" << targetMILDRobotState->x << ", "<< targetMILDRobotState->y << ")");
 
-            float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
-            float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
-            float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-            costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
+            geometry_msgs::Point sourcePoint, targetPoint;
+            sourcePoint.x = sourceMILDRobotState->x;
+            sourcePoint.y = sourceMILDRobotState->y;
+            sourcePoint.z = 0;
+            targetPoint.x = targetMILDRobotState->x;
+            targetPoint.y = targetMILDRobotState->y;
+            targetPoint.z = 0;
+            path = getNavigationPath(sourcePoint, targetPoint);
+
+            if (!path.poses.empty())
+            {
+                unsigned int size = path.poses.size();
+                distance = 0;
+                for (unsigned int i = 0; i < size ; i++)
+                {
+                    ROS_DEBUG_STREAM("Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")");
+                }
+                //Calculate distance from source point to first point in path
+                distance += sqrt(pow(sourcePoint.x - path.poses[0].pose.position.x, 2) + pow(sourcePoint.y - path.poses[0].pose.position.y, 2));
+                //Calculate path length
+                for (unsigned int i = 0; i < size - 1 ; i++)
+                {
+                    distance += sqrt(pow(path.poses[i].pose.position.x - path.poses[i+1].pose.position.x, 2) + pow(path.poses[i].pose.position.y - path.poses[i+1].pose.position.y, 2));
+                }
+            }
+            else
+            {
+                costs = -1;
+                ROS_ERROR("Could not get navigation path..");
+            }
         }
-        else
+        else //Use euclidean distance
         {
-            costs = -1;
-            ROS_ERROR("Could not get navigation path..");
+            distance = sqrt(pow(sourceMILDRobotState->x -targetMILDRobotState->x, 2) + pow(powsourceMILDRobotState->x - targetMILDRobotState->x, 2));
         }
+        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
+        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
+        float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
+        costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
         return costs;
     }
 
@@ -233,13 +251,13 @@ namespace next_best_view {
         srv.request.goal.header.frame_id = "map";
         srv.request.start.pose.position = sourcePosition;
         srv.request.goal.pose.position = targetPosition;
+        srv.request.tolerance = tolerance;
 
-        srv.request.tolerance = 1.0f;
         nav_msgs::Path path;
         if (navigationCostClient.call(srv))
         {
             path = srv.response.plan;
-            ROS_INFO_STREAM("Path size:" << path.poses.size());
+            ROS_DEBUG_STREAM("Path size:" << path.poses.size());
         }
         else
         {
