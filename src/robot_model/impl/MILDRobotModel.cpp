@@ -21,14 +21,14 @@
 
 namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
-        ros::NodeHandle n;
+        ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_;
         bool useGlobalPlanner_;
-        n.param("mOmegaPan", mOmegaPan_, 1.0);
-        n.param("mOmegaTilt", mOmegaTilt_, 1.0);
-        n.param("mOmegaRot", mOmegaRot_, 2.0);
-        n.param("tolerance", tolerance_, 1.0);
+        n.getParam("mOmegaPan", mOmegaPan_);
+        n.getParam("mOmegaTilt", mOmegaTilt_);
+        n.getParam("mOmegaRot", mOmegaRot_);
+        n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
@@ -39,6 +39,10 @@ namespace next_best_view {
         {
             ROS_INFO("Use of global planner DISABLED. Using simplified calculation instead...");
         }
+        ROS_INFO_STREAM("mOmegaPan: " << mOmegaPan_);
+        ROS_INFO_STREAM("mOmegaTilt: " << mOmegaTilt_);
+        ROS_INFO_STREAM("mOmegaRot: " << mOmegaRot_);
+        ROS_INFO_STREAM("tolerance: " << tolerance_);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;

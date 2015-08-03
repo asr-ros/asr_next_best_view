@@ -1,8 +1,8 @@
 mOmegaPan: 1.0
 mOmegaTilt: 1.0
 mOmegaRot: 2.0
-tolerance: 0.00000000000001
-useGlobalPlanner: true
+tolerance: 0.00001
+useGlobalPlanner: false
 fovx: 62.5
 fovy: 48.9
 ncp: 0.2
