@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <typedef.hpp>
 #include "next_best_view/GetMovementCosts.h"
+#include "next_best_view/GetDistance.h"
 #include "next_best_view/CalculateRobotState.h"
 #include "next_best_view/IsPositionReachable.h"
 #include "next_best_view/RobotStateMessage.h"
@@ -19,16 +20,22 @@ MILDRobotModelPtr robotModelPtr;
 
 bool getMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
-    float distance;
+    float costs;
     MILDRobotState * currentState = new MILDRobotState(req.currentState.pan, req.currentState.tilt,req.currentState.rotation,req.currentState.x,req.currentState.y);
     MILDRobotState * targetState = new MILDRobotState(req.targetState.pan, req.targetState.tilt,req.targetState.rotation,req.targetState.x,req.targetState.y);
     MILDRobotStatePtr currentStatePtr(currentState);
     MILDRobotStatePtr targetStatePtr(targetState);
 
     
-    distance = robotModelPtr->getMovementCosts(currentStatePtr, targetStatePtr);
-    res.distance = distance;
+    costs = robotModelPtr->getMovementCosts(currentStatePtr, targetStatePtr);
+    res.costs = costs;
     return true;
+}
+
+bool getDistance(GetDistance::Request &req, GetDistance::Response &res)
+{
+  res.distance = robotModelPtr->getDistance(req.sourcePosition, req.targetPosition);
+  return true;
 }
 
 bool calculateRobotState(CalculateRobotState::Request  &req, CalculateRobotState::Response &res)
@@ -66,11 +73,14 @@ bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable:
 }
 
 
+
+
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "getMovementCosts");
     ros::NodeHandle n;
     ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getMovementCosts);
+    ros::ServiceServer service_GetDistnace = n.advertiseService("GetDistance", getDistance);
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
     ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
 
@@ -83,4 +93,6 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+//float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 

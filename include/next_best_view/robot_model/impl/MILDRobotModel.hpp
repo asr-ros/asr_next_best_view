@@ -92,11 +92,14 @@ namespace next_best_view {
 		bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
 		RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
+		
 
 		/*!
 		 * \brief Calculates the movement costs from sourceRobotState to targetRobotState. Returns -1 if pose is not reachable
 		 */
 		float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
+		
+		float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 	};
 
 	typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;

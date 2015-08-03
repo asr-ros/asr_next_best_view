@@ -76,7 +76,19 @@ namespace next_best_view {
     bool MILDRobotModel::isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
         nav_msgs::Path path = getNavigationPath(sourcePosition, targetPosition);
-        return !path.poses.empty();
+
+        if (path.poses.empty())
+        {
+            return false;
+        }
+        else
+        {
+            int lastPose = path.poses.size()-1;
+            float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
+            ROS_INFO_STREAM("Target: " << targetPosition.x << ", " << targetPosition.y);
+            ROS_INFO_STREAM("Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y);
+            return distanceToLastPoint < 0.01f;
+        }
     }
 
   //Comment?
@@ -197,19 +209,33 @@ namespace next_best_view {
         float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
 
         float distance, costs ;
+        geometry_msgs::Point sourcePoint, targetPoint;
+        sourcePoint.x = sourceMILDRobotState->x;
+        sourcePoint.y = sourceMILDRobotState->y;
+        sourcePoint.z = 0;
+        targetPoint.x = targetMILDRobotState->x;
+        targetPoint.y = targetMILDRobotState->y;
+        targetPoint.z = 0;
+
+        distance = getDistance(sourcePoint, targetPoint);
+
+        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
+        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
+        float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
+        costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
+        ROS_INFO_STREAM("Costs: " << costs);
+        return costs;
+    }
+
+    float MILDRobotModel::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
+    {
+        float distance, costs ;
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;
-            ROS_INFO_STREAM("Calculate path from (" << sourceMILDRobotState->x << ", " << sourceMILDRobotState->y << ") to (" << targetMILDRobotState->x << ", "<< targetMILDRobotState->y << ")");
+            ROS_INFO_STREAM("Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")");
 
-            geometry_msgs::Point sourcePoint, targetPoint;
-            sourcePoint.x = sourceMILDRobotState->x;
-            sourcePoint.y = sourceMILDRobotState->y;
-            sourcePoint.z = 0;
-            targetPoint.x = targetMILDRobotState->x;
-            targetPoint.y = targetMILDRobotState->y;
-            targetPoint.z = 0;
-            path = getNavigationPath(sourcePoint, targetPoint);
+            path = getNavigationPath(sourcePosition, targetPosition);
 
             if (!path.poses.empty())
             {
@@ -220,7 +246,7 @@ namespace next_best_view {
                     ROS_DEBUG_STREAM("Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")");
                 }
                 //Calculate distance from source point to first point in path
-                distance += sqrt(pow(sourcePoint.x - path.poses[0].pose.position.x, 2) + pow(sourcePoint.y - path.poses[0].pose.position.y, 2));
+                distance += sqrt(pow(sourcePosition.x - path.poses[0].pose.position.x, 2) + pow(sourcePosition.y - path.poses[0].pose.position.y, 2));
                 //Calculate path length
                 for (unsigned int i = 0; i < size - 1 ; i++)
                 {
@@ -235,13 +261,11 @@ namespace next_best_view {
         }
         else //Use euclidean distance
         {
-            distance = sqrt(pow(sourceMILDRobotState->x -targetMILDRobotState->x, 2) + pow(sourceMILDRobotState->x - targetMILDRobotState->x, 2));
+            distance = sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2));
         }
-        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
-        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
-        float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-        costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
-        return costs;
+        ROS_INFO_STREAM("Global planner distance: " << distance);
+        ROS_INFO_STREAM("Euclidian distance: " << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)));
+        return distance;
     }
 
     nav_msgs::Path MILDRobotModel::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)

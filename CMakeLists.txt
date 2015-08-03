@@ -44,6 +44,7 @@ add_service_files(
    GetSpaceSampling.srv
    UpdatePointCloud.srv
    GetMovementCosts.srv
+   GetDistance.srv
    CalculateRobotState.srv
    IsPositionReachable.srv
    IsPoseReachable.srv
