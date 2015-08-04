@@ -6,6 +6,7 @@
 #include "next_best_view/GetMovementCosts.h"
 #include "next_best_view/GetDistance.h"
 #include "next_best_view/CalculateRobotState.h"
+#include "next_best_view/CalculateCameraPose.h"
 #include "next_best_view/IsPositionReachable.h"
 #include "next_best_view/RobotStateMessage.h"
 #include "Eigen/Dense"
@@ -26,7 +27,6 @@ bool getMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Respons
     MILDRobotStatePtr currentStatePtr(currentState);
     MILDRobotStatePtr targetStatePtr(targetState);
 
-    
     costs = robotModelPtr->getMovementCosts(currentStatePtr, targetStatePtr);
     res.costs = costs;
     return true;
@@ -66,14 +66,20 @@ bool calculateRobotState(CalculateRobotState::Request  &req, CalculateRobotState
 }
 
 
+bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose::Response &res)
+{
+    MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
+    RobotStatePtr sourceRobotStatePtr(sourceRobotState);
+    res.cameraFrame = robotModelPtr->calculateCameraPose(sourceRobotStatePtr);
+    return true;
+}
+
+
 bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
 {
   res.isReachable = robotModelPtr->isPositionReachable(req.sourcePosition, req.targetPosition);
   return true;
 }
-
-
-
 
 int main(int argc, char *argv[])
 {
@@ -82,17 +88,15 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getMovementCosts);
     ros::ServiceServer service_GetDistnace = n.advertiseService("GetDistance", getDistance);
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
+    ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
     ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
 
     robotModelPtr = MILDRobotModelPtr(new MILDRobotModel());
     robotModelPtr->setTiltAngleLimits(-45, 45);
     robotModelPtr->setPanAngleLimits(-60, 60);
 
-    ROS_INFO("RobotModel Service Client started.");
+    ROS_INFO("RobotModel Service started.");
     ros::spin();
 
     return 0;
 }
-
-//float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
-

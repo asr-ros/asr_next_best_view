@@ -46,6 +46,7 @@ add_service_files(
    GetMovementCosts.srv
    GetDistance.srv
    CalculateRobotState.srv
+   CalculateCameraPose.srv
    IsPositionReachable.srv
    IsPoseReachable.srv
 )

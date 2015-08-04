@@ -11,6 +11,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
 #include "typedef.hpp"
+#include "geometry_msgs/Pose.h"
 #include "nav_msgs/Path.h"
 #include <ros/ros.h>
 
@@ -93,6 +94,10 @@ namespace next_best_view {
 
 		RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
 		
+		/*!
+		 * \brief Uses a given RobotState to calculate the camera frame
+		 */
+		geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
 
 		/*!
 		 * \brief Calculates the movement costs from sourceRobotState to targetRobotState. Returns -1 if pose is not reachable
@@ -100,6 +105,8 @@ namespace next_best_view {
 		float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
 		
 		float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
+		
+		
 	};
 
 	typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;

@@ -16,7 +16,6 @@
 
 #include "nav_msgs/GetPlan.h"
 #include "geometry_msgs/PoseStamped.h"
-#include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
 
 namespace next_best_view {
@@ -96,6 +95,8 @@ namespace next_best_view {
     }
 
   //Comment?
+    //Solves the inverse kinematical problem for an given robot state and a pose for the camera
+
     RobotStatePtr MILDRobotModel::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
 		MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
@@ -292,6 +293,14 @@ namespace next_best_view {
             ROS_ERROR("Failed to call the global planner.");
         }
         return path;
+    }
+
+    geometry_msgs::Pose MILDRobotModel::calculateCameraPose(const RobotStatePtr &sourceRobotState)
+    {
+        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+
+
+
     }
 }
 
