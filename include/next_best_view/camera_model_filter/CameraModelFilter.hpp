@@ -8,7 +8,7 @@
 #ifndef CAMERAMODELFILTER_HPP_
 #define CAMERAMODELFILTER_HPP_
 
-#include "next_best_view/common/CommonClass.hpp"
+#include "next_best_view/common/GeneralFilter.hpp"
 #include <visualization_msgs/MarkerArray.h>
 
 namespace next_best_view {
@@ -21,7 +21,7 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class CameraModelFilter : public CommonClass {
+	class CameraModelFilter : public GeneralFilter {
 	private:
 		/*!
 		 * \brief the horizontal field of view.
@@ -72,12 +72,6 @@ namespace next_best_view {
 		 * \return the visualization for that camera filter setting
 		 */
 		virtual viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0) = 0;
-
-		/*!
-		 * \brief returns all objects which are inside of the camera frustum.
-		 * \param indicesPtr [out] a pointer to indices which gets filled with the indices of objects which are in the frustum
-		 */
-		virtual void filter(IndicesPtr &indicesPtr) = 0;
 
 		/*!
 		 * \brief sets the pose of the pivot point.

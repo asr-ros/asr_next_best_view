@@ -36,7 +36,7 @@ namespace next_best_view {
 		mRightCameraModelFilter.setIndices(this->getIndices());
 	}
 
-	void StereoCameraModelFilter::filter(IndicesPtr &indicesPtr) {
+	void StereoCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
 		this->copySettings();
 
 		// create the result.

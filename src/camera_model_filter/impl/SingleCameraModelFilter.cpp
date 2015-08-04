@@ -16,7 +16,7 @@ namespace next_best_view {
 
 	SingleCameraModelFilter::~SingleCameraModelFilter() { }
 
-	void SingleCameraModelFilter::filter(IndicesPtr &indicesPtr) {
+	void SingleCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
 		indicesPtr = IndicesPtr(new Indices());
 
 		// get the settings of the pivot point

@@ -13,7 +13,7 @@ namespace next_best_view {
 		StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset), mMapHelperPtr(mapUtilPtr) {
 	}
 
-	void MapBasedStereoCameraModelFilter::filter(IndicesPtr &indicesPtr) {
+	void MapBasedStereoCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
 		this->copySettings();
 
 		// create the result.

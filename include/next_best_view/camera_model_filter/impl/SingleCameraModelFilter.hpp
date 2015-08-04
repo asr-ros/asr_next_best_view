@@ -43,7 +43,7 @@ namespace next_best_view {
 		 */
 		virtual ~SingleCameraModelFilter();
 
-		void filter(IndicesPtr &indicesPtr);
+		void do_filtering(IndicesPtr &indicesPtr);
 
 		/*!
 		 * \brief sets the offset between the pivot point and the actual camera position.

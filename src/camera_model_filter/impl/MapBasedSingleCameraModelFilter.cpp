@@ -13,7 +13,7 @@ namespace next_best_view {
 		SingleCameraModelFilter(pivotPointOffset), mMapHelperPtr(mapUtilPtr) {
 	}
 
-	void MapBasedSingleCameraModelFilter::filter(IndicesPtr &indicesPtr) {
+	void MapBasedSingleCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
 		// create the result.
 		IndicesPtr intermediateIndicesPtr = IndicesPtr(new Indices());
 		SingleCameraModelFilter::filter(intermediateIndicesPtr);
