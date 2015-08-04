@@ -5,6 +5,7 @@
  *      Author: ralfschleicher
  */
 
+#include <boost/foreach.hpp>
 #include <ros/ros.h>
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
@@ -12,19 +13,21 @@
 namespace next_best_view {
 	float DefaultRatingModule::getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint) {
 		float maxRating = 0.0;
+		SimpleVector3 viewportPosition = viewportPoint.getSimpleVector3();
 		SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
-		SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportOrientation);
 
 		BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
+			SimpleVector3 objectPosition = objectPoint.getSimpleVector3();
+			SimpleVector3 objectViewportVector = (viewportPosition - objectPosition).normalized();
 			SimpleVector3 objectSurfaceNormalVector = objectPoint.normal_vectors->at(index);
-			maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
+			maxRating = std::max(this->getSingleNormalityRating(objectViewportVector, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
 		}
 
 		return maxRating;
 	}
 
 	float DefaultRatingModule::getSingleNormalityRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector, float angleThreshold) {
-		float cosinus = MathHelper::getCosinus(-viewportNormalVector, objectSurfaceNormalVector);
+		float cosinus = MathHelper::getCosinus(viewportNormalVector, objectSurfaceNormalVector);
 		float angle = acos(cosinus);
 		if (angle < angleThreshold) {
 			return .5 + .5 * cos(angle * M_PI / angleThreshold);
