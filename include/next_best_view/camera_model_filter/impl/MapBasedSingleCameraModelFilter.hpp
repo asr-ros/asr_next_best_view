@@ -5,8 +5,8 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MAPBASEDSTEREOCAMERAMODELFILTER_HPP_
-#define MAPBASEDSTEREOCAMERAMODELFILTER_HPP_
+#ifndef MAPBASEDSINGLECAMERAMODELFILTER_HPP_
+#define MAPBASEDSINGLECAMERAMODELFILTER_HPP_
 
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
@@ -46,4 +46,4 @@ namespace next_best_view {
 }
 
 
-#endif /* MAPBASEDSTEREOCAMERAMODELFILTER_HPP_ */
+#endif /* MAPBASEDSINGLECAMERAMODELFILTER_HPP_ */
