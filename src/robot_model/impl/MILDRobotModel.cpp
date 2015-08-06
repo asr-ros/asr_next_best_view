@@ -18,15 +18,25 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Point.h"
 
+#include "urdf/model.h"
+#include "urdf_model/joint.h"
+#include "tf/tf.h"
+//#include <robot_state_publisher/robot_state_publisher.h>
+#include <kdl_parser/kdl_parser.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/chainfksolver.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+
 namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaBase_, tolerance_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
         n.getParam("mOmegaRot", mOmegaRot_);
+        n.getParam("mOmegaBase", mOmegaBase_);
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         useGlobalPlanner = useGlobalPlanner_;
@@ -38,17 +48,19 @@ namespace next_best_view {
         {
             ROS_INFO("Use of global planner DISABLED. Using simplified calculation instead...");
         }
-        ROS_INFO_STREAM("mOmegaPan: " << mOmegaPan_);
-        ROS_INFO_STREAM("mOmegaTilt: " << mOmegaTilt_);
-        ROS_INFO_STREAM("mOmegaRot: " << mOmegaRot_);
-        ROS_INFO_STREAM("tolerance: " << tolerance_);
+        ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan_);
+        ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
+        ROS_DEBUG_STREAM("mOmegaRot: " << mOmegaRot_);
+        ROS_DEBUG_STREAM("mOmegaBase: " << mOmegaBase_);
+        ROS_DEBUG_STREAM("tolerance: " << tolerance_);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
+        mOmegaBase = mOmegaBase_;
         tolerance = tolerance_;
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
-		this->setRotationAngleLimits(0, 0);
+        this->setRotationAngleLimits(0, 0);
 	}
 
 	MILDRobotModel::~MILDRobotModel() {}
@@ -111,6 +123,9 @@ namespace next_best_view {
 		double phiMax = mPanLimits.get<1>();
 		double currentPhi = sourceMILDRobotState->pan;
 		double currentRho = sourceMILDRobotState->rotation;
+
+        ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
+        ROS_DEBUG_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
 
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
@@ -200,7 +215,7 @@ namespace next_best_view {
 		// set x, y
 		targetMILDRobotState->x = position[0];
 		targetMILDRobotState->y = position[1];
-
+        ROS_DEBUG_STREAM("Targetstate: (Pan: " << targetMILDRobotState->pan << ", Tilt: " << targetMILDRobotState->tilt << ", Rotation " << targetMILDRobotState->rotation << ", X:" << targetMILDRobotState->x << ", Y:" << targetMILDRobotState->y << ")");
 		return targetMILDRobotState;
 	}
 
@@ -227,7 +242,7 @@ namespace next_best_view {
         float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
         float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
         float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-        costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance);
+        costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance)*mOmegaBase;
         ROS_INFO_STREAM("Costs: " << costs);
         return costs;
     }
@@ -295,12 +310,68 @@ namespace next_best_view {
         return path;
     }
 
+    // Not fully implemented
+    // Guideline: http://www.orocos.org/kdl/examples
     geometry_msgs::Pose MILDRobotModel::calculateCameraPose(const RobotStatePtr &sourceRobotState)
     {
-        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+        /*MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+
+        urdf::Model * myModel;
+        geometry_msgs::Pose cameraPose;
+
+        tf::Transform pan(tf::Quaternion(tf::Vector3(0,0,1), sourceMILDRobotState->pan));
+        tf::Transform tilt(tf::Quaternion(tf::Vector3(0,-1,0), sourceMILDRobotState->tilt));
+
+        urdf::Model myModel;
+        ros::Rate loop_rate(30);
+        //geometry_msgs::Pose cameraPose;
+
+        if(!myModel.initParam("/robot_description"))
+        {
+            ROS_ERROR("Could not get robot description.");
+        }
+        else
+        {
+            KDL::Tree my_tree;
+            if (!kdl_parser::treeFromUrdfModel(myModel, my_tree))
+            {
+                   ROS_ERROR("Failed to construct kdl tree");
+            }
+            else
+            {
+                 KDL::Chain chain;
+                 my_tree.getChain(myModel.getRoot()->name, "mount_to_camera_left", chain);
+                 ChainFkSolverPos_recursive fksolver = ChainFkSolverPos_recursive(chain);
 
 
+                 //robot_state_publisher::RobotStatePublisher* publisher = new robot_state_publisher::RobotStatePublisher(my_tree);
+                 //my_tree.getSegment()
 
+                 typedef std::map<std::string, boost::shared_ptr<urdf::Joint> > joint_map;
+
+                 std::map<std::string, double> positions;
+                 joint_map joints = myModel.joints_;
+
+                 for(joint_map::const_iterator it =  joints.begin(); it !=  joints.end(); ++it)
+                 {
+                    std::string name = it->first;
+                    urdf::Joint* joint = it->second.get();
+                    //joint->dynamics.
+                    ROS_INFO_STREAM(name);
+                    if(joint->type==urdf::Joint::REVOLUTE || joint->type==urdf::Joint::CONTINUOUS || joint->type==urdf::Joint::PRISMATIC) positions[name] = 0;
+                 }
+                 while (ros::ok())
+                 {
+                     //publisher->publishTransforms(positions, ros::Time::now());
+
+                     // Process a round of subscription messages
+                     ros::spinOnce();
+
+                     // This will adjust as needed per iteration
+                     loop_rate.sleep();
+                 }
+             }
+        } */
     }
 }
 

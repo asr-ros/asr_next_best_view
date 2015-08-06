@@ -157,6 +157,10 @@ namespace next_best_view {
 			mNodeHandle.param("fovy", fovy, 48.9);
 			mNodeHandle.param("ncp", ncp, .5);
 			mNodeHandle.param("fcp", fcp, 5.0);
+			ROS_DEBUG_STREAM("fovx: " << fovx);
+			ROS_DEBUG_STREAM("fovy: " << fovy);
+			ROS_DEBUG_STREAM("ncp: " << ncp);
+			ROS_DEBUG_STREAM("fcp: " << fcp);
 
 			//////////////////////////////////////////////////////////////////
 			// HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
@@ -215,13 +219,24 @@ namespace next_best_view {
 			cameraModelFilterPtr->setNearClippingPlane(ncp);
 			cameraModelFilterPtr->setFarClippingPlane(fcp);
 
+			
+			double panMin, panMax, tiltMin, tiltMax;
+			mNodeHandle.param("panMin", panMin, -60.);
+			mNodeHandle.param("panMax", panMax, 60.);
+			mNodeHandle.param("tiltMin", tiltMin, -45.);
+			mNodeHandle.param("tiltMax", tiltMax, 45.);
+			ROS_DEBUG_STREAM("panMin: " << panMin);
+			ROS_DEBUG_STREAM("panMax: " << panMax);
+			ROS_DEBUG_STREAM("tiltMin: " << tiltMin);
+			ROS_DEBUG_STREAM("tiltMax: " << tiltMax);
+			
 			/* MILDRobotModel is a specialization of the abstract RobotModel class.
 			 * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
 			 * non-reachable configurations of the robot which can therefore be ignored during calculation.
 			 */
 			MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
-			robotModelPtr->setTiltAngleLimits(-45, 45);
-			robotModelPtr->setPanAngleLimits(-60, 60);
+			robotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
+			robotModelPtr->setPanAngleLimits(panMin, panMax);
 
 			/* DefaultRatingModule is a specialization of the abstract RatingModule class.
 			 * The rating module calculates the use and the costs of an operation.
