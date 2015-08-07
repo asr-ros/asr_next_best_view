@@ -13,6 +13,10 @@ namespace next_best_view {
 
 	CameraModelFilter::~CameraModelFilter() { }
 
+	float CameraModelFilter::getRecognizerCosts(std::string objectName) {
+		return 0.0f;
+	}
+
 	void CameraModelFilter::setPivotPointPose(const SimpleVector3 &position, const SimpleQuaternion &orientation) {
 		this->setPivotPointPosition(position);
 		this->setOrientation(orientation);

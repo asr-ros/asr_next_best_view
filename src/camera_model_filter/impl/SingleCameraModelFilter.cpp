@@ -16,6 +16,10 @@ namespace next_best_view {
 
 	SingleCameraModelFilter::~SingleCameraModelFilter() { }
 
+	float SingleCameraModelFilter::getRecognizerCosts(std::string objectName) {
+		return 0.0;
+	}
+
 	void SingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		indicesPtr = IndicesPtr(new Indices());
 
