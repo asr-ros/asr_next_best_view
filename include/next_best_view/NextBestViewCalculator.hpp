@@ -35,6 +35,9 @@ namespace next_best_view {
 		RatingModulePtr mRatingModulePtr;
 		HypothesisUpdaterPtr mHypothesisUpdaterPtr;
 		float mEpsilon;
+		ObjectNameSetPtr mObjectNameSetPtr;
+		boost::shared_ptr<std::set<ObjectNameSetPtr> > mSingleObjectNameSubPowerSetPtr;
+		boost::shared_ptr<std::set<ObjectNameSetPtr> > mRemainderObjectNameSubPowerSetPtr;
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
 				const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
@@ -53,13 +56,13 @@ namespace next_best_view {
 		 * Calculates the next best view.
 		 */
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
-			ROS_INFO("Starting calculation of next best view");
+			ROS_DEBUG("Starting calculation of next best view");
 
 			RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getSimpleVector3(), currentCameraViewport.getSimpleQuaternion());
 			mRobotModelPtr->setCurrentRobotState(currentState);
 
 			// Get the orientations.
-			ROS_INFO("Create and filter unit sphere");
+			ROS_DEBUG("Create and filter unit sphere");
 			SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
 			SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
 			BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
@@ -111,13 +114,13 @@ namespace next_best_view {
 			ViewportPoint currentBestViewport = currentCameraViewport;
 			while (ros::ok()) {
 				ViewportPoint intermediateResultViewport;
-				ROS_INFO("Prepare iteration step");
+				ROS_DEBUG("Prepare iteration step");
 				if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor, intermediateResultViewport)) {
 					return false;
 				}
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
-				ROS_INFO("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->element_density, drPtr->normality, contractor);
+				ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), contractor);
 
 				if (currentCameraViewport.getSimpleVector3() == intermediateResultViewport.getSimpleVector3() || (intermediateResultViewport.getSimpleVector3() - currentBestViewport.getSimpleVector3()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
@@ -148,31 +151,81 @@ namespace next_best_view {
 			}
 
 			ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
+			std::map<std::string, ViewportPoint> objectNameViewportMapping;
+
 			// do the frustum culling by camera model filter
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
 				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
-				ViewportPoint candidateViewportPoint;
 
 				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+					objectNameViewportMapping.clear();
+
+					ViewportPoint fullViewportPoint;
 					// set the input cloud
-					this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, candidateViewportPoint);
-
-					if (candidateViewportPoint.child_indices->size() == 0) {
+					if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
 						continue;
 					}
 
-					// if the rating is not feasible - skip adding to point cloud
-					if (!mRatingModulePtr->getScoreContainer(currentCameraViewport, candidateViewportPoint, candidateViewportPoint.score)) {
-						continue;
+					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
+					float movementCosts = mRobotModelPtr->getMovementCosts(targetRobotState);
+
+					// do the filtering for the the single object types
+					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mSingleObjectNameSubPowerSetPtr->begin(); subSetIter != mSingleObjectNameSubPowerSetPtr->end(); ++subSetIter) {
+						ViewportPoint candidateViewportPoint;
+						if (!this->doObjectNameFiltering(*subSetIter, fullViewportPoint, candidateViewportPoint)) {
+							continue;
+						}
+
+						// if the rating is not feasible - skip adding to point cloud
+						if (!mRatingModulePtr->getScoreContainer(currentCameraViewport, candidateViewportPoint, candidateViewportPoint.score)) {
+							continue;
+						}
+
+						// assign movement costs for the given viewport.
+						candidateViewportPoint.score->setCosts(movementCosts);
+
+						std::string objectName = *((*subSetIter)->begin());
+						objectNameViewportMapping [objectName] = candidateViewportPoint;
+						nextBestViewports->push_back(candidateViewportPoint);
 					}
 
-					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(candidateViewportPoint.getSimpleVector3(), candidateViewportPoint.getSimpleQuaternion());
-					candidateViewportPoint.score->costs = mRobotModelPtr->getMovementCosts(targetRobotState);
+					// now aggregating all possible combinations.
+					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mRemainderObjectNameSubPowerSetPtr->begin(); subSetIter != mRemainderObjectNameSubPowerSetPtr->end(); ++subSetIter) {
+						ObjectNameSetPtr subSet = *subSetIter;
 
-					// add the candidate viewport to the next best view point cloud.
-					nextBestViewports->push_back(candidateViewportPoint);
+						bool valid = true;
+						Precision utility = 0;
+						IndicesPtr aggregatedIndicesPtr(new Indices());
+						for (ObjectNameSet::iterator itemIter = subSet->begin(); itemIter != subSet->end(); ++itemIter) {
+							std::string objectName = *itemIter;
+							if (objectNameViewportMapping.find(objectName) == objectNameViewportMapping.end()) {
+								valid = false;
+								break;
+							}
+
+							ViewportPoint singleObjectViewportPoint = objectNameViewportMapping [objectName];
+							utility += singleObjectViewportPoint.score->getUtility();
+							std::size_t oldSize = aggregatedIndicesPtr->size();
+							aggregatedIndicesPtr->resize(oldSize + singleObjectViewportPoint.child_indices->size(), 0);
+							std::copy(singleObjectViewportPoint.child_indices->begin(), singleObjectViewportPoint.child_indices->end(), aggregatedIndicesPtr->begin() + oldSize);
+						}
+
+						if (!valid) {
+							continue;
+						}
+
+						ViewportPoint aggregatedViewportPoint = ViewportPoint(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
+						aggregatedViewportPoint.child_point_cloud = fullViewportPoint.child_point_cloud;
+						aggregatedViewportPoint.child_indices = aggregatedIndicesPtr;
+						aggregatedViewportPoint.object_name_set = subSet;
+						aggregatedViewportPoint.score = mRatingModulePtr->getScoreContainerInstance();
+						aggregatedViewportPoint.score->setUtility(utility);
+						aggregatedViewportPoint.score->setCosts(movementCosts);
+
+						nextBestViewports->push_back(aggregatedViewportPoint);
+					}
 				}
 			}
 
@@ -182,6 +235,11 @@ namespace next_best_view {
 			}
 
 			ViewportPointCloud::iterator maxElement = std::max_element(nextBestViewports->begin(), nextBestViewports->end(), boost::bind(&NextBestViewCalculator::compareViewports, *this, _1, _2));
+
+			if (maxElement == nextBestViewports->end()) {
+				return false;
+			}
+
 			resultViewport = *maxElement;
 
 			return true;
@@ -192,12 +250,41 @@ namespace next_best_view {
 			mCameraModelFilterPtr->setPivotPointPose(point, orientation);
 
 			// do the frustum culling
-			IndicesPtr frustumIndicesPtr(new Indices());
+			IndicesPtr frustumIndicesPtr;
 			mCameraModelFilterPtr->filter(frustumIndicesPtr);
+
+			if (frustumIndicesPtr->size() == 0) {
+				return false;
+			}
 
 			viewportPoint = ViewportPoint(point, orientation);
 			viewportPoint.child_indices = frustumIndicesPtr;
 			viewportPoint.child_point_cloud = mCameraModelFilterPtr->getInputCloud();
+			viewportPoint.object_name_set = mObjectNameSetPtr;
+
+			return true;
+		}
+
+		bool doObjectNameFiltering(const ObjectNameSetPtr &objectNameSetPtr, const ViewportPoint &fullViewportPoint, ViewportPoint &viewportPoint) {
+			IndicesPtr objectNameIndicesPtr(new Indices());
+			BOOST_FOREACH(std::size_t index, *fullViewportPoint.child_indices) {
+				ObjectPoint &point = mPointCloudPtr->at(index);
+
+				// check if object type is in ObjectNameSet
+				ObjectNameSet::iterator iter = std::find(objectNameSetPtr->begin(), objectNameSetPtr->end(), point.object_type_name);
+				if (iter != objectNameSetPtr->end()) {
+					objectNameIndicesPtr->push_back(index);
+				}
+			}
+
+			if (objectNameIndicesPtr->size() == 0) {
+				return false;
+			}
+
+			viewportPoint = ViewportPoint(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
+			viewportPoint.child_indices = objectNameIndicesPtr;
+			viewportPoint.child_point_cloud = fullViewportPoint.child_point_cloud;
+			viewportPoint.object_name_set = objectNameSetPtr;
 
 			return true;
 		}
@@ -232,6 +319,9 @@ namespace next_best_view {
 			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 			object_database::ObjectManager manager;
 
+			// empty object name set
+			mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
+
 			// put each element into the point cloud
 			BOOST_FOREACH(AttributedPoint element, msg.elements) {
 				// Create a new point with pose and set object type
@@ -240,6 +330,7 @@ namespace next_best_view {
 				pointCloudPoint.g = 255;
 				pointCloudPoint.b = 0;
 				pointCloudPoint.object_type_name = element.object_type;
+				mObjectNameSetPtr->insert(element.object_type);
 
 				// Get the rotation matrix to translate the normal vectors of the object.
 				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
@@ -260,6 +351,14 @@ namespace next_best_view {
 				pointCloudPtr->push_back(pointCloudPoint);
 			}
 
+			// get the power set of the object name set.
+			ObjectNamePowerSetPtr powerSetPtr = MathHelper::powerSet<ObjectNameSet> (mObjectNameSetPtr);
+			mSingleObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 1, 1);
+			mRemainderObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 2, powerSetPtr->size());
+			MathHelper::printPowerSet(mSingleObjectNameSubPowerSetPtr);
+			MathHelper::printPowerSet(mRemainderObjectNameSubPowerSetPtr);
+
+			// set the point cloud
 			this->setPointCloudPtr(pointCloudPtr);
 		}
 

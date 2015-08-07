@@ -13,12 +13,12 @@ namespace next_best_view {
 		StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset), mMapHelperPtr(mapUtilPtr) {
 	}
 
-	void MapBasedStereoCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
+	void MapBasedStereoCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		this->copySettings();
 
 		// create the result.
 		IndicesPtr intermediateIndicesPtr = IndicesPtr(new Indices());
-		StereoCameraModelFilter::filter(intermediateIndicesPtr);
+		StereoCameraModelFilter::doFiltering(intermediateIndicesPtr);
 
 		SimpleVector3 leftCameraPosition = this->getPivotPointPosition() + this->getLeftCameraPivotPointOffset();
 		SimpleVector3 rightCameraPosition = this->getPivotPointPosition() + this->getRightCameraPivotPointOffset();

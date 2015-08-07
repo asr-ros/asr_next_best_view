@@ -9,11 +9,14 @@
 #define MATHHELPER_HPP_
 
 #include "typedef.hpp"
+#include <boost/math/special_functions/binomial.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/uniform_real.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <ros/ros.h>
+#include <set>
 #include <vector>
 #include <geometry_msgs/Quaternion.h>
 
@@ -149,6 +152,67 @@ namespace next_best_view {
 		 * \return input in radians
 		 */
 		static double degToRad(double input);
+
+		template<typename Set> static void printSet(boost::shared_ptr<Set> &setPtr) {
+			std::cout << "\t{ ";
+			BOOST_FOREACH(typename Set::value_type value, *setPtr) {
+				std::cout << value << ", ";
+			}
+			std::cout << "}" << std::endl;
+		}
+
+		template<typename Set> static void printPowerSet(boost::shared_ptr<std::set<boost::shared_ptr<Set> > > &powerSetPtr) {
+			std::cout << "{ " << std::endl;
+			BOOST_FOREACH(boost::shared_ptr<Set> subSetPtr, *powerSetPtr) {
+				printSet(subSetPtr);
+			}
+			std::cout << "} " << std::endl;
+			std::cout << powerSetPtr->size() << " Items" << std::endl;
+		}
+
+		template<typename Set> static boost::shared_ptr<std::set<boost::shared_ptr<Set> > > powerSet(const boost::shared_ptr<Set> &setPtr) {
+			boost::shared_ptr<std::set<boost::shared_ptr<Set> > > powerSetPtr(new std::set<boost::shared_ptr<Set> >);
+
+			std::size_t value = 0;
+			assert(setPtr->size() <= 31);
+
+
+			std::size_t limit = (1 << setPtr->size());
+			for (std::size_t counter = 0; counter < limit; ++counter) {
+				boost::shared_ptr<Set> subSetPtr(new Set);
+				std::size_t idx = 0;
+				for (typename Set::iterator setIter = setPtr->begin(); setIter != setPtr->end();  ++setIter, ++idx) {
+					if ( (value & (1 << idx)) != 0 ) {
+						subSetPtr->insert(*setIter);
+					}
+				}
+				powerSetPtr->insert(subSetPtr);
+
+				// the value
+				++value;
+			}
+
+			return powerSetPtr;
+		}
+
+
+		template<typename PowerSet> static boost::shared_ptr<PowerSet> filterCardinalityPowerSet(const boost::shared_ptr<PowerSet> &powerSetPtr, const std::size_t min, const std::size_t max) {
+			boost::shared_ptr<PowerSet> resultPowerSetPtr(new PowerSet);
+
+			for (typename PowerSet::iterator powerSetIter = powerSetPtr->begin(); powerSetIter != powerSetPtr->end(); ++powerSetIter) {
+				if ((*powerSetIter)->size() < min || (*powerSetIter)->size() > max) {
+					continue;
+				}
+
+				resultPowerSetPtr->insert(*powerSetIter);
+			}
+
+			return resultPowerSetPtr;
+		}
+
+		template<typename PowerSet> static boost::shared_ptr<PowerSet> filterCardinalityPowerSet(const boost::shared_ptr<PowerSet> &setPtr, const std::size_t min) {
+			return filterCardinalityPowerSet<PowerSet>(setPtr, min, setPtr->size());
+		}
 	};
 }
 

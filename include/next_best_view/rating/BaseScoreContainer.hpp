@@ -20,8 +20,25 @@ namespace next_best_view {
 	 * \sa DefaultRating
 	 */
 	struct BaseScoreContainer {
+	private:
+		float mUtility;
+		float mCosts;
 	public:
-		float costs;
+		void setUtility(float value) {
+			mUtility = value;
+		}
+
+		float getUtility() {
+			return mUtility;
+		}
+
+		void setCosts(float value) {
+			mCosts = value;
+		}
+
+		float getCosts() {
+			return mCosts;
+		}
 	public:
 		BaseScoreContainer();
 

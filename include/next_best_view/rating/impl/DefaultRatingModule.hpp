@@ -8,6 +8,7 @@
 #ifndef DEFAULTRATINGMODULE_HPP_
 #define DEFAULTRATINGMODULE_HPP_
 
+#include <ros/ros.h>
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 

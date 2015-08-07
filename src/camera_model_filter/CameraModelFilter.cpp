@@ -8,7 +8,7 @@
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 
 namespace next_best_view {
-	CameraModelFilter::CameraModelFilter() : GeneralFilter(), mFOVX(0.0), mFOVY(0.0), mNcp(0.0), mFcp(0.0) {
+	CameraModelFilter::CameraModelFilter() : GeneralFilter(), mParametersChanged(true), mFOVX(0.0), mFOVY(0.0), mNcp(0.0), mFcp(0.0) {
 	}
 
 	CameraModelFilter::~CameraModelFilter() { }
@@ -20,6 +20,7 @@ namespace next_best_view {
 
 	void CameraModelFilter::setPivotPointPosition(const SimpleVector3 &position) {
 		mPivotPointPosition = position;
+		this->setParametersChanged(true);
 	}
 
 	SimpleVector3 CameraModelFilter::getPivotPointPosition() {
@@ -28,6 +29,7 @@ namespace next_best_view {
 
 	void CameraModelFilter::setOrientation(const SimpleQuaternion &orientation) {
 		mPivotPointOrientation = orientation;
+		this->setParametersChanged(true);
 	}
 
 	SimpleQuaternion CameraModelFilter::getOrientation() {
@@ -43,6 +45,7 @@ namespace next_best_view {
 
 	void CameraModelFilter::setHorizontalFOV(double fovDegrees) {
 		mFOVX = fovDegrees;
+		this->setParametersChanged(true);
 	}
 
 	double CameraModelFilter::getHorizontalFOV() {
@@ -51,6 +54,7 @@ namespace next_best_view {
 
 	void CameraModelFilter::setVerticalFOV(double fovDegrees) {
 		mFOVY = fovDegrees;
+		this->setParametersChanged(true);
 	}
 
 	double CameraModelFilter::getVerticalFOV() {
@@ -59,6 +63,7 @@ namespace next_best_view {
 
 	void CameraModelFilter::setNearClippingPlane(double ncp) {
 		mNcp = ncp;
+		this->setParametersChanged(true);
 	}
 
 	double CameraModelFilter::getNearClippingPlane() {
@@ -67,6 +72,7 @@ namespace next_best_view {
 
 	void CameraModelFilter::setFarClippingPlane(double fcp) {
 		mFcp = fcp;
+		this->setParametersChanged(true);
 	}
 
 	double CameraModelFilter::getFarClippingPlane() {

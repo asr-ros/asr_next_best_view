@@ -56,6 +56,7 @@ namespace next_best_view {
 
 		ObjectPointCloudPtr child_point_cloud;
 		IndicesPtr child_indices;
+		ObjectNameSetPtr object_name_set;
 		BaseScoreContainerPtr score;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW

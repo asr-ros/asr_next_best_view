@@ -34,7 +34,7 @@ namespace next_best_view {
 		 */
 		MapBasedStereoCameraModelFilter(const MapHelperPtr &mapHelperPtr, const SimpleVector3 &leftCameraPivotPointOffset = SimpleVector3(), const SimpleVector3 &rightCameraPivotPointOffset = SimpleVector3());
 	public:
-		void do_filtering(IndicesPtr &indicesPtr);
+		void doFiltering(IndicesPtr &indicesPtr);
 
 		viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0);
 	};

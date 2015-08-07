@@ -16,8 +16,7 @@ namespace next_best_view {
 	PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
 	void PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
-		SimpleVector3 viewportNormalVector;
-		MathHelper::getVisualAxis(viewportPoint.getSimpleQuaternion(), viewportNormalVector);
+		SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportPoint.getSimpleQuaternion());
 
 		BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);

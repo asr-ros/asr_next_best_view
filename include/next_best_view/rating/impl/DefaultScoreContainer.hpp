@@ -19,16 +19,32 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 */
 	struct DefaultScoreContainer : public BaseScoreContainer {
-	public:
+	private:
 		/*!
 		 * \brief the density of elements.
 		 */
-		float element_density;
+		float mElementDensity;
 
 		/*!
 		 * \brief the normality rating.
 		 */
-		float normality;
+		float mNormality;
+	public:
+		void setElementDensity(float value) {
+			mElementDensity = value;
+		}
+
+		float getElementDensity() {
+			return mElementDensity;
+		}
+
+		void setNormality(float value) {
+			mNormality = value;
+		}
+
+		float getNormality() {
+			return mNormality;
+		}
 	public:
 		/*!
 		 * \brief constructor of the DefaultRating object.

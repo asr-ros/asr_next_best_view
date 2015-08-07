@@ -24,6 +24,11 @@ namespace next_best_view {
 	class CameraModelFilter : public GeneralFilter {
 	private:
 		/*!
+		 * \brief marks if the parameters changed.
+		 */
+		bool mParametersChanged;
+
+		/*!
 		 * \brief the horizontal field of view.
 		 */
 		double mFOVX;
@@ -72,6 +77,20 @@ namespace next_best_view {
 		 * \return the visualization for that camera filter setting
 		 */
 		virtual viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0) = 0;
+
+		/*!
+		 * \return if the parameters changed
+		 */
+		inline bool haveParametersChanged() {
+			return mParametersChanged;
+		}
+
+		/*!
+		 * \param value set to changed or not.
+		 */
+		inline void setParametersChanged(bool value) {
+			mParametersChanged = value;
+		}
 
 		/*!
 		 * \brief sets the pose of the pivot point.

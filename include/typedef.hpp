@@ -8,11 +8,12 @@
 #ifndef TYPEDEF_HPP_
 #define TYPEDEF_HPP_
 
-#include <vector>
 #include <eigen3/Eigen/Dense>
 #include <pcl-1.7/pcl/point_cloud.h>
 #include <pcl-1.7/pcl/kdtree/kdtree_flann.h>
 #include <pcl-1.7/pcl/filters/frustum_culling.h>
+#include <set>
+#include <vector>
 
 /*!
 * \brief this namespace contains all generally usable classes.
@@ -90,11 +91,18 @@ namespace next_best_view {
 	// defining squared distances type used in kdtree
 	typedef std::vector<float> SquaredDistances;
 
-  //Comment?
 	// defining indices types
 	typedef std::vector<int> Indices;
 	typedef boost::shared_ptr<Indices> IndicesPtr;
 	typedef boost::shared_ptr<const IndicesPtr> IndicesConstPtr;
+
+	// the list of object names
+	typedef std::vector<std::string> ObjectNameList;
+	typedef boost::shared_ptr<ObjectNameList> ObjectNameListPtr;
+	typedef std::set<std::string> ObjectNameSet;
+	typedef boost::shared_ptr<ObjectNameSet> ObjectNameSetPtr;
+	typedef std::set<ObjectNameSetPtr> ObjectNamePowerSet;
+	typedef boost::shared_ptr<ObjectNamePowerSet> ObjectNamePowerSetPtr;
 }
 
 #include "next_best_view/pcl/RealObjectPoint.hpp"

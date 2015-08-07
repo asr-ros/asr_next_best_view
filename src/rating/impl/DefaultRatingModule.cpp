@@ -7,8 +7,10 @@
 
 #include <boost/foreach.hpp>
 #include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/helper/MarkerHelper.hpp"
 
 namespace next_best_view {
 	float DefaultRatingModule::getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint) {
@@ -16,11 +18,11 @@ namespace next_best_view {
 		SimpleVector3 viewportPosition = viewportPoint.getSimpleVector3();
 		SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
 
+		SimpleVector3 visualAxis = MathHelper::getVisualAxis(viewportOrientation);
+
 		BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
-			SimpleVector3 objectPosition = objectPoint.getSimpleVector3();
-			SimpleVector3 objectViewportVector = (viewportPosition - objectPosition).normalized();
 			SimpleVector3 objectSurfaceNormalVector = objectPoint.normal_vectors->at(index);
-			maxRating = std::max(this->getSingleNormalityRating(objectViewportVector, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
+			maxRating = std::max(this->getSingleNormalityRating(-visualAxis, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
 		}
 
 		return maxRating;
@@ -36,11 +38,10 @@ namespace next_best_view {
 	}
 
 	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
-		return (a->element_density * a->normality) / (1 + a->costs);
+		return (a->getUtility()) / (1 + a->getCosts());
 	}
 
-	DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalityRatingAngle(M_PI * .5) {
-	}
+	DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalityRatingAngle(M_PI * .5) { }
 
 	DefaultRatingModule::~DefaultRatingModule() { }
 
@@ -62,26 +63,32 @@ namespace next_best_view {
 			}
 
 			float currentNormalityRating = this->getNormalityRating(candidateViewportPoint, objectPoint);
-			defRatingPtr->element_density += 1.0;
+			defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() + 1.0);
 
 			if (currentNormalityRating == 0.0) {
 				continue;
 			}
-			defRatingPtr->normality += currentNormalityRating;
+			defRatingPtr->setNormality(defRatingPtr->getNormality() + currentNormalityRating);
 		}
 
-		defRatingPtr->normality /= maxElements;
-		defRatingPtr->element_density /= maxElements;
+		defRatingPtr->setNormality(defRatingPtr->getNormality() / maxElements);
+		defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() / maxElements);
+
+		// set the utility
+		defRatingPtr->setUtility(defRatingPtr->getElementDensity() * defRatingPtr->getNormality());
 
 		scoreContainerPtr = defRatingPtr;
 		//ROS_INFO("Density %f, Normality %f", defRatingPtr->element_density, defRatingPtr->normality);
-		return (defRatingPtr->element_density > 0.0 && defRatingPtr->normality > 0.0);
+		return (defRatingPtr->getUtility() > 0);
 	}
 	bool DefaultRatingModule::compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) {
 		DefaultScoreContainerPtr defA = boost::static_pointer_cast<DefaultScoreContainer>(a);
 		DefaultScoreContainerPtr defB = boost::static_pointer_cast<DefaultScoreContainer>(b);
 
-		return this->getRating(defA) < this->getRating(defB);
+		Precision ratingA = this->getRating(defA);
+		Precision ratingB = this->getRating(defB);
+
+		return ratingA < ratingB;
 	}
 
 	void DefaultRatingModule::updateObjectPoints(const ViewportPoint &viewportPoint) {

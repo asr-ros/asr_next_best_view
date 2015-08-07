@@ -15,6 +15,10 @@ namespace next_best_view {
 	}
 
 	void StereoCameraModelFilter::copySettings() {
+		if (!this->haveParametersChanged()) {
+			return;
+		}
+
 		// set up left camera
 		mLeftCameraModelFilter.setHorizontalFOV(this->getHorizontalFOV());
 		mLeftCameraModelFilter.setVerticalFOV(this->getVerticalFOV());
@@ -34,9 +38,11 @@ namespace next_best_view {
 		mRightCameraModelFilter.setOrientation(this->getOrientation());
 		mRightCameraModelFilter.setInputCloud(this->getInputCloud());
 		mRightCameraModelFilter.setIndices(this->getIndices());
+
+		this->setParametersChanged(false);
 	}
 
-	void StereoCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
+	void StereoCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		this->copySettings();
 
 		// create the result.

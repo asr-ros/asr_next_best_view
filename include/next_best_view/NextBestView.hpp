@@ -28,9 +28,12 @@
 #include <object_database/ObjectManager.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointField.h>
+#include <set>
 #include <std_srvs/Empty.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <world_model/GetViewportList.h>
+#include <world_model/PushViewport.h>
 
 // Local Includes
 #include "typedef.hpp"
@@ -60,14 +63,14 @@
 
 
 namespace next_best_view {
-	// Defining shorthandle for action client.
-	typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseActionClient;
-	typedef boost::shared_ptr<MoveBaseActionClient> MoveBaseActionClientPtr;
-
 	// Defining namespace shorthandles
 	namespace fs = boost::filesystem;
 	namespace viz = visualization_msgs;
 	namespace odb = object_database;
+
+	// Defining shorthandle for action client.
+	typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseActionClient;
+	typedef boost::shared_ptr<MoveBaseActionClient> MoveBaseActionClientPtr;
 
 	/*!
 	 * \brief NextBestView is a configuration class of the related node.
@@ -105,6 +108,10 @@ namespace next_best_view {
 
 		// ServiceClients and Subscriber
 		ros::ServiceClient mObjectTypeServiceClient;
+		ros::ServiceClient mPushViewportServiceClient;
+		ros::ServiceClient mGetViewportListServiceClient;
+
+		// Etcetera
 		ViewportPoint mCurrentCameraViewport;
 		ObjectPointCloudPtr mPointCloudPtr;
 		KdTreePtr mKdTreePtr;
@@ -130,6 +137,8 @@ namespace next_best_view {
 			mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
 
 			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
+			mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
+			mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
 
 			// setup the visualization defaults
 			bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
@@ -336,7 +345,7 @@ namespace next_best_view {
 
 			ViewportPoint resultingViewport;
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
-				ROS_INFO("No more found");
+				ROS_DEBUG("No more found");
 				response.found = false;
 				return true;
 			}
@@ -349,11 +358,20 @@ namespace next_best_view {
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
 			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-			ROS_INFO("Trigger Visualization");
+			ROS_DEBUG("Trigger Visualization");
 			this->triggerVisualization();
-			ROS_INFO("Visualization triggered");
+			ROS_DEBUG("Visualization triggered");
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
+
+
+			// push to the viewport list.
+			world_model::PushViewport pushViewportServiceCall;
+			pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
+			BOOST_FOREACH(std::string objectName, *resultingViewport.object_name_set) {
+				pushViewportServiceCall.request.viewport.object_type = objectName;
+				mPushViewportServiceClient.call(pushViewportServiceCall);
+			}
 
 			return true;
 		}
@@ -379,7 +397,7 @@ namespace next_best_view {
 
 		bool triggerVisualization(ViewportPoint viewport, bool is_initial) {
 			if (mCurrentlyPublishingVisualization) {
-				ROS_INFO("Currently generating visualization data.");
+				ROS_DEBUG("Currently generating visualization data.");
 				return false;
 			}
 
@@ -395,7 +413,7 @@ namespace next_best_view {
 		 * \param is_initial, marks if the given robot pose was initial
 		 */
 		void publishVisualization(ViewportPoint viewport, bool is_initial) {
-			ROS_INFO("Publishing Visualization");
+			ROS_DEBUG("Publishing Visualization");
 
 			// If the visualization of the robot movement is wished, execute this block
 			// TODO: Programmcode is throwing "Updating ModelState: model [mild] does not exist", probably mild.dae missing - don't know
@@ -406,18 +424,18 @@ namespace next_best_view {
 				movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
 
 				if (is_initial) {
-					ROS_INFO("Initializing the Robot Position");
+					ROS_DEBUG("Initializing the Robot Position");
 
 					this->setInitialRobotPose(movePose);
 				} else {
-					ROS_INFO("Move the Robot to new Pose");
+					ROS_DEBUG("Move the Robot to new Pose");
 
 					this->moveRobotToPose(movePose);
 				}
 			}*/
 
 			if (mVisualizationSettings.point_cloud) {
-				ROS_INFO("Publishing Point Cloud");
+				ROS_DEBUG("Publishing Point Cloud");
 
 				Indices overall_indices = Indices(mCalculator.getPointCloudPtr()->size());
 				boost::range::iota(boost::iterator_range<Indices::iterator>(overall_indices.begin(), overall_indices.end()), 0);
@@ -428,7 +446,7 @@ namespace next_best_view {
 				} else {
 					point_cloud_indices = overall_indices;
 				}
-				ROS_INFO("Publishing %d points", point_cloud_indices.size());
+				ROS_DEBUG("Publishing %d points", point_cloud_indices.size());
 
 				sensor_msgs::PointCloud2 point_cloud;
 				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), point_cloud_indices), point_cloud);
@@ -446,7 +464,7 @@ namespace next_best_view {
 			}
 
 			if (mVisualizationSettings.frustum_point_cloud) {
-				ROS_INFO("Publishing Frustum Point Cloud");
+				ROS_DEBUG("Publishing Frustum Point Cloud");
 
 				sensor_msgs::PointCloud2 frustum_point_cloud;
 				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices), frustum_point_cloud);
@@ -458,7 +476,7 @@ namespace next_best_view {
 			}
 
 			if (mVisualizationSettings.frustum_marker_array) {
-				ROS_INFO("Publishing Frustum Marker Array");
+				ROS_DEBUG("Publishing Frustum Marker Array");
 
 				uint32_t sequence = 0;
 				viz::MarkerArray::Ptr markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
@@ -496,7 +514,7 @@ namespace next_best_view {
 		void moveRobotToPose(const geometry_msgs::Pose &pose) {
 			double interval_time = 5.0;
 			while(!mMoveBaseActionClient->waitForServer(ros::Duration(interval_time))) {
-				ROS_INFO("Waiting for the move_base action server to come up. Checking Interval: %f seconds", interval_time);
+				ROS_DEBUG("Waiting for the move_base action server to come up. Checking Interval: %f seconds", interval_time);
 			}
 
 			move_base_msgs::MoveBaseGoal goal;
@@ -509,7 +527,7 @@ namespace next_best_view {
 
 			mMoveBaseActionClient->waitForResult();
 			if(mMoveBaseActionClient->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-				ROS_INFO("Hooray, the base moved");
+				ROS_DEBUG("Hooray, the base moved");
 			} else {
 				ROS_ERROR("The base failed to move");
 			}

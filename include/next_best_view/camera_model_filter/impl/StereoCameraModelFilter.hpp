@@ -60,7 +60,7 @@ namespace next_best_view {
 		 */
 		void copySettings();
 	public:
-		void do_filtering(IndicesPtr &indicesPtr);
+		void doFiltering(IndicesPtr &indicesPtr);
 
 		/*!
 		 * \brief sets the filtering type.

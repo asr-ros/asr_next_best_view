@@ -13,10 +13,10 @@ namespace next_best_view {
 		SingleCameraModelFilter(pivotPointOffset), mMapHelperPtr(mapUtilPtr) {
 	}
 
-	void MapBasedSingleCameraModelFilter::do_filtering(IndicesPtr &indicesPtr) {
+	void MapBasedSingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		// create the result.
 		IndicesPtr intermediateIndicesPtr = IndicesPtr(new Indices());
-		SingleCameraModelFilter::filter(intermediateIndicesPtr);
+		SingleCameraModelFilter::doFiltering(intermediateIndicesPtr);
 
 		SimpleVector3 cameraPosition = this->getPivotPointPosition() + this->getPivotPointOffset();
 

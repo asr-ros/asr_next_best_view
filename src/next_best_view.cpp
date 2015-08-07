@@ -5,12 +5,17 @@
  *      Author: ralfschleicher
  */
 
+#include <assert.h>
+#include <iostream>
+
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
+#include <set>
+
 #include "typedef.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/NextBestView.hpp"
