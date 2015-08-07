@@ -79,6 +79,11 @@ namespace next_best_view {
 		virtual viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0) = 0;
 
 		/*!
+		 *
+		 */
+		virtual float getRecognizerCosts(std::string objectName) = 0;
+
+		/*!
 		 * \return if the parameters changed
 		 */
 		inline bool haveParametersChanged() {

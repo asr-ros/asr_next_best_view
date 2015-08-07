@@ -65,7 +65,6 @@ bool calculateRobotState(CalculateRobotState::Request  &req, CalculateRobotState
   return true;
 }
 
-
 bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose::Response &res)
 {
     MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
@@ -73,7 +72,6 @@ bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose:
     res.cameraFrame = robotModelPtr->calculateCameraPose(sourceRobotStatePtr);
     return true;
 }
-
 
 bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
 {
@@ -86,7 +84,7 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "getMovementCosts");
     ros::NodeHandle n;
     ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getMovementCosts);
-    ros::ServiceServer service_GetDistnace = n.advertiseService("GetDistance", getDistance);
+    ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
     ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
     ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);

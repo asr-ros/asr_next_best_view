@@ -29,6 +29,7 @@ namespace next_best_view {
 		float mOmegaPan;
 		float mOmegaTilt;
 		float mOmegaRot;
+		float mOmegaBase;
 		float tolerance;
 		bool useGlobalPlanner;
 

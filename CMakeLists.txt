@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   std_srvs
   visualization_msgs
+  urdf
+  kdl_parser
 )
 
 find_package(PCL REQUIRED)
