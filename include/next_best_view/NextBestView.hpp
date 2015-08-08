@@ -346,6 +346,20 @@ namespace next_best_view {
 			currentRobotStatePtr->y = mCurrentCameraViewport.y;
 			mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
 
+			// let's get the viewports and update the point cloud.
+			world_model::GetViewportList getViewportListServiceCall;
+			mGetViewportListServiceClient.call(getViewportListServiceCall);
+
+			// convert to viewportPointCloud
+			std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
+			BOOST_FOREACH(AttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements) {
+				ViewportPoint viewportConversionPoint(point.pose);
+				viewportConversionPoint.object_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
+				viewportConversionPoint.object_name_set->insert(point.object_type);
+				viewportPointList.push_back(viewportConversionPoint);
+			}
+			mCalculator.updateFromExternalObjectPointList(viewportPointList);
+
 			response.is_valid = true;
 
 			// publish the visualization
@@ -366,6 +380,25 @@ namespace next_best_view {
 			}
 			response.found = true;
 			response.resulting_pose = resultingViewport.getPose();
+
+			// copying the object to be searched for into a list
+			response.object_name_list = ObjectNameList(resultingViewport.object_name_set->size());
+			std::copy(resultingViewport.object_name_set->begin(), resultingViewport.object_name_set->end(), response.object_name_list.begin());
+
+			// robot state.
+			// TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
+			RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getSimpleVector3(), resultingViewport.getSimpleQuaternion());
+			MILDRobotStatePtr mildState = boost::static_pointer_cast<MILDRobotState>(state);
+
+			RobotStateMessage robotStateMsg;
+			robotStateMsg.pan = mildState->pan;
+			robotStateMsg.tilt = mildState->tilt;
+			robotStateMsg.rotation = mildState->rotation;
+			robotStateMsg.x = mildState->x;
+			robotStateMsg.y = mildState->y;
+
+			// set it to the response
+			response.robot_state = robotStateMsg;
 
 			mCurrentCameraViewport = resultingViewport;
 

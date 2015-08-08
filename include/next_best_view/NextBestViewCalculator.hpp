@@ -289,6 +289,10 @@ namespace next_best_view {
 			return true;
 		}
 
+		void updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewport_point_list) {
+
+		}
+
 		void updateObjectPointCloud(const ViewportPoint &viewportPoint) {
 			mHypothesisUpdaterPtr->update(viewportPoint);
 		}
@@ -354,9 +358,7 @@ namespace next_best_view {
 			// get the power set of the object name set.
 			ObjectNamePowerSetPtr powerSetPtr = MathHelper::powerSet<ObjectNameSet> (mObjectNameSetPtr);
 			mSingleObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 1, 1);
-			mRemainderObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 2, powerSetPtr->size());
-			MathHelper::printPowerSet(mSingleObjectNameSubPowerSetPtr);
-			MathHelper::printPowerSet(mRemainderObjectNameSubPowerSetPtr);
+			mRemainderObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 2);
 
 			// set the point cloud
 			this->setPointCloudPtr(pointCloudPtr);

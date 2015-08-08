@@ -1,4 +1,6 @@
 geometry_msgs/Pose initial_pose
 ---
 bool found
+string[] object_name_list
 geometry_msgs/Pose resulting_pose
+next_best_view/RobotStateMessage robot_state
