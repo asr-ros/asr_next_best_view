@@ -6,8 +6,8 @@ tolerance: 0.00003
 useGlobalPlanner: false
 fovx: 42.09
 fovy: 31.87
-ncp: 0.2 #Entfernung der NearClippingPlane in meter
-fcp: 10.0 ##Entfernung der FarClippingPlane in meter
+ncp: 0.74 #Entfernung der NearClippingPlane in meter
+fcp: 1.1 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
