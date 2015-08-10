@@ -30,10 +30,15 @@ namespace next_best_view {
 		int spanY = ceil(contractor * .25 * height / radius);
 		int span = max(spanX, spanY);
 
+        xtop = 0;
+        ytop = 0;
+        xbot = width;
+        ybot = height;
+
 		for (int x = -span; x < span; x++) {
 			for (int y = -span; y <= span; y++) {
 				double offsetting = abs(y) % 2 == 0 ? horizontalSpacing : 0.0;
-				SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * radius, 0);
+                SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * radius, 0);
 				upperPoint += currentSpacePosition;
 				SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * radius, 0);
 				lowerPoint += currentSpacePosition;
@@ -41,12 +46,30 @@ namespace next_best_view {
 				int8_t upperOccupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(upperPoint);
 				int8_t lowerOccupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(lowerPoint);
 
+                if(lowerPoint[0] < xbot) xbot = lowerPoint[0];
+                if(lowerPoint[1] < ybot) ybot = lowerPoint[1];
+                if(upperPoint[0] > xtop) xtop = upperPoint[0];
+                if(upperPoint[1] > ytop) ytop = upperPoint[1];
+    /*
 
-				if (mMapHelperPtr->isOccupancyValueAcceptable(upperOccupancyValue)) {
+                if (x == -span && y == -span)
+                {
+                    xbot = lowerPoint[0];
+                    ybot = lowerPoint[1];
+                }
+
+                if (x == span-1 && y == span)
+                {
+                    xtop = upperPoint[0];
+                    ytop = upperPoint[1];
+                }*/
+
+
+                if (mMapHelperPtr->isOccupancyValueAcceptable(upperOccupancyValue)) {
 					pointCloud->push_back(upperPoint);
 				}
 
-				if (mMapHelperPtr->isOccupancyValueAcceptable(lowerOccupancyValue)) {
+                if (mMapHelperPtr->isOccupancyValueAcceptable(lowerOccupancyValue)) {
 					pointCloud->push_back(lowerPoint);
 				}
 			}

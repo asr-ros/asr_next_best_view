@@ -24,6 +24,11 @@ namespace next_best_view {
 		 * \brief sample count
 		 */
 		uint32_t mSamples;
+		
+	protected:
+	  
+        double xtop,xbot,ytop,ybot;
+
 	public:
 		/*!
 		 * \brief constructor for SpaceSampler object
@@ -49,6 +54,11 @@ namespace next_best_view {
 		 * \return count of samples to be created.
 		 */
 		uint32_t getSamples();
+
+        double getXtop() const{return this->xtop;}
+        double getYtop() const{return this->ytop;}
+        double getXbot() const{return this->xbot;}
+        double getYbot() const{return this->ybot;}
 	};
 
 	/*!

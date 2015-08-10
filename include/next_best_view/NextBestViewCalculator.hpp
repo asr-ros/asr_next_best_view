@@ -13,6 +13,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -23,15 +24,18 @@
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "next_best_view/AttributedPointCloud.h"
 #include "next_best_view/AttributedPoint.h"
+#include "next_best_view/helper/MapHelper.hpp"
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 namespace next_best_view {
-	class NextBestViewCalculator {
+    class NextBestViewCalculator {
 	private:
 		ObjectPointCloudPtr mPointCloudPtr;
 		IndicesPtr mActiveIndicesPtr;
 		KdTreePtr mKdTreePtr;
 		UnitSphereSamplerPtr mUnitSphereSamplerPtr;
-		SpaceSamplerPtr mSpaceSamplerPtr;
+        SpaceSamplerPtr mSpaceSamplerPtr;
 		RobotModelPtr mRobotModelPtr;
 		CameraModelFilterPtr mCameraModelFilterPtr;
 		RatingModulePtr mRatingModulePtr;
@@ -40,6 +44,8 @@ namespace next_best_view {
 		ObjectNameSetPtr mObjectNameSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mSingleObjectNameSubPowerSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mRemainderObjectNameSubPowerSetPtr;
+        ros::Publisher vis_pub;
+        ros::NodeHandle node_handle;
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
 				const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
@@ -51,9 +57,8 @@ namespace next_best_view {
 			  mRobotModelPtr(robotModelPtr),
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
 			  mRatingModulePtr(),
-			  mEpsilon(10E-3) {	}
+              mEpsilon(10E-3), node_handle(){vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "visualization_markerarray", 100 );}
 	public:
-
 		/**
 		 * Calculates the next best view.
 		 */
@@ -86,8 +91,8 @@ namespace next_best_view {
 				SamplePoint &spaceSamplePoint = sampledSpacePointCloudPtr->at(index);
 				ObjectPoint comparablePoint(spaceSamplePoint.getSimpleVector3());
 
-				// the resulting child indices will be written in here
-				IndicesPtr childIndicesPtr(new Indices());
+                #include <visualization_msgs/Marker.h>// the resulting child indices will be written in here
+                IndicesPtr childIndicesPtr(new Indices());
 				// we don't need distances, but distances are written in here
 				SquaredDistances dismissDistances;
 
@@ -120,6 +125,7 @@ namespace next_best_view {
 				if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor, intermediateResultViewport)) {
 					return false;
 				}
+                processGetSpaceSampling(contractor,intermediateResultViewport.getSimpleVector3());
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
 				ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), contractor);
@@ -132,11 +138,86 @@ namespace next_best_view {
 				currentBestViewport = intermediateResultViewport;
 
 				// smaller contractor.
-				contractor /= 2.0;
+                contractor /= 2.0;
 			}
 
 			return false;
 		}
+
+        bool processGetSpaceSampling(float contractor, SimpleVector3 position)
+        {
+            SamplePointCloudPtr pointcloud = this->getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
+            IndicesPtr feasibleIndices(new Indices());
+            this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
+
+            SamplePointCloud pcl = SamplePointCloud(*pointcloud, *feasibleIndices);
+
+            visualization_msgs::MarkerArray markerArray = visualization_msgs::MarkerArray();
+
+            ROS_INFO_STREAM("Lets a do it");
+            int i =0;
+            float j = (1/contractor)*0.1;
+            std::string s = boost::lexical_cast<std::string>(contractor);
+            for(SamplePointCloud::iterator it = pcl.points.begin(); it < pcl.points.end(); it++)
+            {
+                gm::Point point = it->getPoint();
+                visualization_msgs::Marker marker = visualization_msgs::Marker();
+                marker.header.stamp = ros::Time();
+                marker.header.frame_id = "/map";
+                marker.type = marker.SPHERE;
+                marker.action = marker.ADD;
+                marker.id = ++i;
+                marker.lifetime = ros::Duration();
+                marker.ns = "SamplePoints_NS"+s;
+                marker.scale.x = 0.2;
+                marker.scale.y = 0.2;
+                marker.scale.z = 0.2;
+                marker.color.a = 1.0;
+                marker.color.r = 1-j;
+                marker.color.g = j;
+                marker.pose.position.x = point.x;
+                marker.pose.position.y = point.y;
+                marker.pose.position.z = point.z;
+                marker.pose.orientation.w = 1;
+                ROS_INFO_STREAM("Marker: " << point.x << ", " << point.y << ", " << point.z) ;
+                markerArray.markers.push_back(marker);
+
+            }
+            ROS_INFO_STREAM("Size: " << pcl.points.size());
+
+            ROS_INFO_STREAM("Top: " << this->getSpaceSampler()->getXtop() << ", " << this->getSpaceSampler()->getYtop() );
+            ROS_INFO_STREAM("Bottom: " << this->getSpaceSampler()->getXbot() << ", " << this->getSpaceSampler()->getYbot());
+            double xwidth = abs(this->getSpaceSampler()->getXtop() - this->getSpaceSampler()->getXbot());
+            double ywidth = abs(this->getSpaceSampler()->getYtop() - this->getSpaceSampler()->getYbot());
+            double xmid = (this->getSpaceSampler()->getXtop() + this->getSpaceSampler()->getXbot())/2.0;
+            double ymid =  (this->getSpaceSampler()->getYtop() + this->getSpaceSampler()->getYbot())/2.0;
+            visualization_msgs::Marker marker = visualization_msgs::Marker();
+            marker.header.stamp = ros::Time();
+            marker.header.frame_id = "/map";
+            marker.type = marker.CUBE;
+            marker.action = marker.ADD;
+            marker.id = ++i;
+            marker.lifetime = ros::Duration();
+            marker.ns = "Radius" + s;
+            marker.scale.x = xwidth;
+            marker.scale.y = ywidth;
+            marker.scale.z = 2;
+            marker.color.a = 0.1;
+            marker.color.r = 0;
+            marker.color.g = 0;
+            marker.color.b = 1.00;
+            marker.pose.position.x = xmid;
+            marker.pose.position.y = ymid;
+            marker.pose.position.z = position[2];
+            marker.pose.orientation.x = 0;
+            marker.pose.orientation.y = 0;
+            marker.pose.orientation.z = 0;
+            marker.pose.orientation.w = 1;
+
+            markerArray.markers.push_back(marker);
+            vis_pub.publish(markerArray);
+            return true;
+        }
 
 		bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor, ViewportPoint &resultViewport) {
 			// current camera position
@@ -173,7 +254,7 @@ namespace next_best_view {
 					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
 					float movementCosts = mRobotModelPtr->getMovementCosts(targetRobotState);
 
-					// do the filtering for the the single object types
+					// do the filtering for the single object types
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mSingleObjectNameSubPowerSetPtr->begin(); subSetIter != mSingleObjectNameSubPowerSetPtr->end(); ++subSetIter) {
 						ViewportPoint candidateViewportPoint;
 						if (!this->doObjectNameFiltering(*subSetIter, fullViewportPoint, candidateViewportPoint)) {
@@ -452,7 +533,7 @@ namespace next_best_view {
 		/**
 		 * @return the pointer to the space sampler.
 		 */
-		SpaceSamplerPtr getSpaceSampler() {
+        SpaceSamplerPtr getSpaceSampler() {
 			return mSpaceSamplerPtr;
 		}
 

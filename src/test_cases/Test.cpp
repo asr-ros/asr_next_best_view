@@ -319,6 +319,7 @@ public:
 			}
 
 			if (!nbv.response.found) {
+                ROS_ERROR("No NBV found");
 				break;
 			}
 			x++;
