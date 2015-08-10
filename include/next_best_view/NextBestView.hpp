@@ -117,6 +117,7 @@ namespace next_best_view {
 		KdTreePtr mKdTreePtr;
 		SetupVisualizationRequest mVisualizationSettings;
 		bool mCurrentlyPublishingVisualization;
+        viz::MarkerArray::Ptr mMarkerArrayPtr;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -370,7 +371,7 @@ namespace next_best_view {
 
 	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-			ViewportPoint currentCameraViewport(request.current_pose);
+			ViewportPoint currentCameraViewport(request.initial_pose);
 
 			ViewportPoint resultingViewport;
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
@@ -402,11 +403,16 @@ namespace next_best_view {
 
 			mCurrentCameraViewport = resultingViewport;
 
+			SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);
+			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
+			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
+
 			ROS_DEBUG("Trigger Visualization");
 			this->triggerVisualization(resultingViewport);
 			ROS_DEBUG("Visualization triggered");
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
+
 
 			// push to the viewport list.
 			world_model::PushViewport pushViewportServiceCall;
@@ -428,6 +434,10 @@ namespace next_best_view {
 			mCalculator.updateObjectPointCloud(viewportPoint);
 
 			return true;
+		}
+
+		bool triggerVisualization() {
+			return this->triggerVisualization(mCurrentCameraViewport, false);
 		}
 
 		bool triggerVisualization(ViewportPoint viewport) {
