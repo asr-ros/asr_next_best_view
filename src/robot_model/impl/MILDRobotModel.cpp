@@ -42,11 +42,11 @@ namespace next_best_view {
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
-            ROS_INFO("Use of global planner ENABLED");
+            ROS_DEBUG("Use of global planner ENABLED");
         }
         else
         {
-            ROS_INFO("Use of global planner DISABLED. Using simplified calculation instead...");
+            ROS_DEBUG("Use of global planner DISABLED. Using simplified calculation instead...");
         }
         ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan_);
         ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
@@ -100,8 +100,8 @@ namespace next_best_view {
         {
             int lastPose = path.poses.size()-1;
             float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
-            ROS_INFO_STREAM("Target: " << targetPosition.x << ", " << targetPosition.y);
-            ROS_INFO_STREAM("Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y);
+            ROS_DEBUG_STREAM("Target: " << targetPosition.x << ", " << targetPosition.y);
+            ROS_DEBUG_STREAM("Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y);
             return distanceToLastPoint < 0.01f;
         }
     }
@@ -243,7 +243,7 @@ namespace next_best_view {
         float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
         float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
         costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance)*mOmegaBase;
-        ROS_INFO_STREAM("Costs: " << costs);
+        ROS_DEBUG_STREAM("Costs: " << costs);
         return costs;
     }
 
@@ -253,7 +253,7 @@ namespace next_best_view {
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;
-            ROS_INFO_STREAM("Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")");
+            ROS_DEBUG_STREAM("Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")");
 
             path = getNavigationPath(sourcePosition, targetPosition);
 
@@ -283,8 +283,8 @@ namespace next_best_view {
         {
             distance = sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2));
         }
-        ROS_INFO_STREAM("Global planner distance: " << distance);
-        ROS_INFO_STREAM("Euclidian distance: " << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)));
+        ROS_DEBUG_STREAM("Global planner distance: " << distance);
+        ROS_DEBUG_STREAM("Euclidian distance: " << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)));
         return distance;
     }
 
@@ -357,7 +357,7 @@ namespace next_best_view {
                     std::string name = it->first;
                     urdf::Joint* joint = it->second.get();
                     //joint->dynamics.
-                    ROS_INFO_STREAM(name);
+                    ROS_DEBUG_STREAM(name);
                     if(joint->type==urdf::Joint::REVOLUTE || joint->type==urdf::Joint::CONTINUOUS || joint->type==urdf::Joint::PRISMATIC) positions[name] = 0;
                  }
                  while (ros::ok())
