@@ -273,7 +273,7 @@ namespace next_best_view {
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
 			mVisualizationSettings = SetupVisualizationRequest(request);
 
-			this->triggerVisualization();
+			this->triggerVisualization(mCurrentCameraViewport);
 
 			return true;
 		}
@@ -370,7 +370,7 @@ namespace next_best_view {
 
 	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-			ViewportPoint currentCameraViewport(request.initial_pose);
+			ViewportPoint currentCameraViewport(request.current_pose);
 
 			ViewportPoint resultingViewport;
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
@@ -402,16 +402,11 @@ namespace next_best_view {
 
 			mCurrentCameraViewport = resultingViewport;
 
-			SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);
-			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
-			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
-
 			ROS_DEBUG("Trigger Visualization");
-			this->triggerVisualization();
+			this->triggerVisualization(resultingViewport);
 			ROS_DEBUG("Visualization triggered");
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
-
 
 			// push to the viewport list.
 			world_model::PushViewport pushViewportServiceCall;
@@ -428,15 +423,11 @@ namespace next_best_view {
 			SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
 			ViewportPoint viewportPoint;
-			mCalculator.doFrustumCulling(point, orientation, IndicesPtr(), viewportPoint);
+			mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
 
 			mCalculator.updateObjectPointCloud(viewportPoint);
 
 			return true;
-		}
-
-		bool triggerVisualization() {
-			return this->triggerVisualization(mCurrentCameraViewport, false);
 		}
 
 		bool triggerVisualization(ViewportPoint viewport) {
@@ -524,6 +515,7 @@ namespace next_best_view {
 				ROS_DEBUG("Publishing Frustum Marker Array");
 
 				uint32_t sequence = 0;
+				this->mCalculator.getCameraModelFilter()->setPivotPointPose(viewport.getSimpleVector3(), viewport.getSimpleQuaternion());
 				viz::MarkerArray::Ptr markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
 				mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
 			}

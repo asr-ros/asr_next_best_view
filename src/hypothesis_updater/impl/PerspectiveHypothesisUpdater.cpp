@@ -5,6 +5,7 @@
  *      Author: ralfschleicher
  */
 
+#include <boost/foreach.hpp>
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
 
 #include "next_best_view/helper/MathHelper.hpp"
@@ -37,7 +38,9 @@ namespace next_best_view {
 				iter++;
 			}
 
-			objectPoint.active_normal_vectors->resize(std::distance(begin, end));
+			std::size_t iteratorDistance = std::distance(begin, end);
+			//ROS_INFO("Resizing active normal vectors from %d to %d at index %d", objectPoint.active_normal_vectors->size(), iteratorDistance, index);
+			objectPoint.active_normal_vectors->resize(iteratorDistance);
 
 			// RGB
 			double ratio = double(objectPoint.active_normal_vectors->size()) / double(objectPoint.normal_vectors->size());
