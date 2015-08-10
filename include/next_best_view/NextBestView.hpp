@@ -528,14 +528,27 @@ namespace next_best_view {
 				uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
+                    std_msgs::ColorRGBA oldColor;
+                    oldColor.r = 0.5;
+                    oldColor.b = 0.5;
+                    oldColor.a = 1;
                     for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                     {
                         mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
                         mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
+                        mMarkerArrayPtr->markers.at(i).color = oldColor;
                     }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+                std_msgs::ColorRGBA newColor;
+                newColor.g = 0.5;
+                newColor.b = 0.5;
+                newColor.a = 1;
+                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                {
+                    mMarkerArrayPtr->markers.at(i).color = newColor;
+                }
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
 			}
 
