@@ -485,16 +485,16 @@ namespace next_best_view {
 			if (mVisualizationSettings.point_cloud) {
 				ROS_DEBUG("Publishing Point Cloud");
 
-				IndicesPtr pointCloudIndicesPtr;
+				Indices pointCloudIndices;
 				if (mVisualizationSettings.frustum_point_cloud) {
-					point_cloud_indices_diff(mCalculator.getActiveIndices(), viewport.child_indices, pointCloudIndicesPtr);
+					point_cloud_indices_diff(mCalculator.getActiveIndices(), viewport.child_indices, pointCloudIndices);
 				} else {
-					pointCloudIndicesPtr = mCalculator.getActiveIndices();
+					pointCloudIndices = *mCalculator.getActiveIndices();
 				}
-				ROS_DEBUG("Publishing %d points", pointCloudIndicesPtr->size());
+				ROS_DEBUG("Publishing %d points", pointCloudIndices.size());
 
 				sensor_msgs::PointCloud2 point_cloud;
-				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), *pointCloudIndicesPtr), point_cloud);
+				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices), point_cloud);
 
 				point_cloud.header.frame_id = "/map";
 				point_cloud.header.seq = 0;
@@ -578,12 +578,12 @@ namespace next_best_view {
 			}
 		}
 
-		static void point_cloud_indices_diff(const IndicesPtr &AVect, const IndicesPtr &BVect, IndicesPtr &resultIndices) {
+		static void point_cloud_indices_diff(const IndicesPtr &AVect, const IndicesPtr &BVect, Indices &resultIndices) {
 			std::set<int> A(AVect->begin(), AVect->end());
 			std::set<int> B(BVect->begin(), BVect->end());
 
 			std::set_difference( A.begin(), A.end(), B.begin(), B.end(),
-					std::back_inserter( *resultIndices ) );
+					std::back_inserter( resultIndices ) );
 		}
 	};
 }
