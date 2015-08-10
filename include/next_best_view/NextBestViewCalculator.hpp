@@ -110,6 +110,7 @@ namespace next_best_view {
 
 	private:
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
+
 			// reset the contractor
 			float contractor = 1.0;
 
@@ -195,12 +196,13 @@ namespace next_best_view {
 
 					// now aggregating all possible combinations.
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mRemainderObjectNameSubPowerSetPtr->begin(); subSetIter != mRemainderObjectNameSubPowerSetPtr->end(); ++subSetIter) {
-						ObjectNameSetPtr subSet = *subSetIter;
+						ObjectNameSetPtr subSetPtr = *subSetIter;
 
 						bool valid = true;
 						Precision utility = 0;
+						Precision recognitionCosts = 0;
 						IndicesPtr aggregatedIndicesPtr(new Indices());
-						for (ObjectNameSet::iterator itemIter = subSet->begin(); itemIter != subSet->end(); ++itemIter) {
+						for (ObjectNameSet::iterator itemIter = subSetPtr->begin(); itemIter != subSetPtr->end(); ++itemIter) {
 							std::string objectName = *itemIter;
 							if (objectNameViewportMapping.find(objectName) == objectNameViewportMapping.end()) {
 								valid = false;
@@ -209,6 +211,7 @@ namespace next_best_view {
 
 							ViewportPoint singleObjectViewportPoint = objectNameViewportMapping [objectName];
 							utility += singleObjectViewportPoint.score->getUtility();
+							recognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectName);
 							std::size_t oldSize = aggregatedIndicesPtr->size();
 							aggregatedIndicesPtr->resize(oldSize + singleObjectViewportPoint.child_indices->size(), 0);
 							std::copy(singleObjectViewportPoint.child_indices->begin(), singleObjectViewportPoint.child_indices->end(), aggregatedIndicesPtr->begin() + oldSize);
@@ -221,10 +224,10 @@ namespace next_best_view {
 						ViewportPoint aggregatedViewportPoint = ViewportPoint(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
 						aggregatedViewportPoint.child_point_cloud = fullViewportPoint.child_point_cloud;
 						aggregatedViewportPoint.child_indices = aggregatedIndicesPtr;
-						aggregatedViewportPoint.object_name_set = subSet;
+						aggregatedViewportPoint.object_name_set = subSetPtr;
 						aggregatedViewportPoint.score = mRatingModulePtr->getScoreContainerInstance();
 						aggregatedViewportPoint.score->setUtility(utility);
-						aggregatedViewportPoint.score->setCosts(movementCosts);
+						aggregatedViewportPoint.score->setCosts(movementCosts + recognitionCosts);
 
 						nextBestViewports->push_back(aggregatedViewportPoint);
 					}
