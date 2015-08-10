@@ -117,6 +117,7 @@ namespace next_best_view {
 		KdTreePtr mKdTreePtr;
 		SetupVisualizationRequest mVisualizationSettings;
 		bool mCurrentlyPublishingVisualization;
+        viz::MarkerArray::Ptr mMarkerArrayPtr;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -524,8 +525,16 @@ namespace next_best_view {
 				ROS_DEBUG("Publishing Frustum Marker Array");
 
 				uint32_t sequence = 0;
-				viz::MarkerArray::Ptr markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
-				mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
+                if (mMarkerArrayPtr != NULL)
+                {
+                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                    {
+                        mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(2.0);
+                    }
+                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                }
+                mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+                mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
 			}
 
 			mCurrentlyPublishingVisualization = false;
