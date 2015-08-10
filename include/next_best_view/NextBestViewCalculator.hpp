@@ -27,6 +27,7 @@
 #include "next_best_view/helper/MapHelper.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <geometry_msgs/Point.h>
 
 namespace next_best_view {
     class NextBestViewCalculator {
@@ -126,7 +127,8 @@ namespace next_best_view {
 				}
 
                 SimpleVector3 intermediateResultPosition =intermediateResultViewport.getSimpleVector3();
-                processGetSpaceSampling(iterationStep, intermediateResultPosition, sampledOrientationsPtr);
+                //currentCameraViewport.getSimpleQuaternion()
+                processGetSpaceSampling(iterationStep, intermediateResultPosition, sampledOrientationsPtr, currentBestViewport);
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
                 ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
@@ -144,7 +146,7 @@ namespace next_best_view {
 			return false;
 		}
 
-        bool processGetSpaceSampling(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr)
+        bool processGetSpaceSampling(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint currentBestViewport)
         {
             SamplePointCloudPtr pointcloud = this->getSpaceSampler()->getSampledSpacePointCloud(position, 1.0/pow(2.0,iterationStep));
             IndicesPtr feasibleIndices(new Indices());
@@ -259,7 +261,54 @@ namespace next_best_view {
             marker.pose.position.z = position[2]+iterationStep*.35;
             markerArray.markers.push_back(marker);
 
+            marker = visualization_msgs::Marker();
+
+            marker.header.stamp = ros::Time();
+            marker.header.frame_id = "/map";
+            marker.type = marker.LINE_LIST;
+            marker.action = marker.ADD;
+            marker.id = ++i;
+            marker.lifetime = ros::Duration();
+            marker.ns = "LineVizu" +s ;
+            marker.scale.x = 0.05;
+            marker.color.a = 1;
+            marker.color.r = 1-j;
+            marker.color.g = j;
+            geometry_msgs::Point point1 = geometry_msgs::Point();
+            point1.x = position[0];
+            point1.y = position[1];
+            point1.z = 0;
+            geometry_msgs::Point point2 = geometry_msgs::Point();
+            point2.x = position[0];
+            point2.y = position[1];
+            point2.z = position[2]+iterationStep*.35;
+            marker.points.push_back(point1);
+            marker.points.push_back(point2);
+            markerArray.markers.push_back(marker);
+
+            marker = visualization_msgs::Marker();
+
+            marker.header.stamp = ros::Time();
+            marker.header.frame_id = "/map";
+            marker.type = marker.ARROW;
+            marker.action = marker.ADD;
+            marker.id = ++i;
+            marker.lifetime = ros::Duration();
+            marker.ns = "ArrowVizu" +s ;
+            marker.scale.x = 1;
+            marker.scale.y = 0.05;
+            marker.scale.z = 0.05;
+            marker.color.a = 1;
+            marker.color.r = 1-j;
+            marker.color.g = j;
+            marker.pose.position.x = position[0];
+            marker.pose.position.y = position[1];
+            marker.pose.position.z = position[2];
+            marker.pose.orientation = currentBestViewport.getQuaternion();
+            markerArray.markers.push_back(marker);
+
             vis_pub.publish(markerArray);
+
 
             return true;
         }
