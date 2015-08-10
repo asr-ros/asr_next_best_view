@@ -72,12 +72,12 @@ namespace next_best_view {
 			ROS_DEBUG("Create and filter unit sphere");
 			SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
 			SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
+
 			BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
 				if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
 					feasibleOrientationsCollectionPtr->push_back(q);
 				}
 			}
-
 			// create the next best view point cloud
 			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 		}
@@ -115,20 +115,21 @@ namespace next_best_view {
 
 	private:
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-			// reset the contractor
-			float contractor = 1.0;
+            int iterationStep = 0;
 
 			ViewportPoint currentBestViewport = currentCameraViewport;
 			while (ros::ok()) {
 				ViewportPoint intermediateResultViewport;
 				ROS_DEBUG("Prepare iteration step");
-				if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor, intermediateResultViewport)) {
+                if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep), intermediateResultViewport)) {
 					return false;
 				}
-                processGetSpaceSampling(contractor,intermediateResultViewport.getSimpleVector3());
+
+                SimpleVector3 intermediateResultPosition =intermediateResultViewport.getSimpleVector3();
+                processGetSpaceSampling(iterationStep, intermediateResultPosition, sampledOrientationsPtr);
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
-				ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), contractor);
+                ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
 
 				if (currentCameraViewport.getSimpleVector3() == intermediateResultViewport.getSimpleVector3() || (intermediateResultViewport.getSimpleVector3() - currentBestViewport.getSimpleVector3()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
@@ -137,16 +138,15 @@ namespace next_best_view {
 
 				currentBestViewport = intermediateResultViewport;
 
-				// smaller contractor.
-                contractor /= 2.0;
+                iterationStep ++;
 			}
 
 			return false;
 		}
 
-        bool processGetSpaceSampling(float contractor, SimpleVector3 position)
+        bool processGetSpaceSampling(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr)
         {
-            SamplePointCloudPtr pointcloud = this->getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
+            SamplePointCloudPtr pointcloud = this->getSpaceSampler()->getSampledSpacePointCloud(position, 1.0/pow(2.0,iterationStep));
             IndicesPtr feasibleIndices(new Indices());
             this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
@@ -156,32 +156,31 @@ namespace next_best_view {
 
             ROS_INFO_STREAM("Lets a do it");
             int i =0;
-            float j = (1/contractor)*0.1;
-            std::string s = boost::lexical_cast<std::string>(contractor);
+            float j = iterationStep*0.15;
+            std::string s = boost::lexical_cast<std::string>(iterationStep);
             for(SamplePointCloud::iterator it = pcl.points.begin(); it < pcl.points.end(); it++)
             {
                 gm::Point point = it->getPoint();
                 visualization_msgs::Marker marker = visualization_msgs::Marker();
                 marker.header.stamp = ros::Time();
                 marker.header.frame_id = "/map";
-                marker.type = marker.SPHERE;
+                marker.type = marker.CUBE;
                 marker.action = marker.ADD;
                 marker.id = ++i;
                 marker.lifetime = ros::Duration();
                 marker.ns = "SamplePoints_NS"+s;
-                marker.scale.x = 0.2;
-                marker.scale.y = 0.2;
-                marker.scale.z = 0.2;
+                marker.scale.x = 0.05;
+                marker.scale.y = 0.05;
+                marker.scale.z = 0.05;
                 marker.color.a = 1.0;
                 marker.color.r = 1-j;
                 marker.color.g = j;
                 marker.pose.position.x = point.x;
                 marker.pose.position.y = point.y;
-                marker.pose.position.z = point.z;
+                marker.pose.position.z = 0.1;
                 marker.pose.orientation.w = 1;
                 ROS_INFO_STREAM("Marker: " << point.x << ", " << point.y << ", " << point.z) ;
                 markerArray.markers.push_back(marker);
-
             }
             ROS_INFO_STREAM("Size: " << pcl.points.size());
 
@@ -201,21 +200,67 @@ namespace next_best_view {
             marker.ns = "Radius" + s;
             marker.scale.x = xwidth;
             marker.scale.y = ywidth;
-            marker.scale.z = 2;
+            marker.scale.z = 0.1;
             marker.color.a = 0.1;
             marker.color.r = 0;
             marker.color.g = 0;
             marker.color.b = 1.00;
             marker.pose.position.x = xmid;
             marker.pose.position.y = ymid;
-            marker.pose.position.z = position[2];
+            marker.pose.position.z = 0;
             marker.pose.orientation.x = 0;
             marker.pose.orientation.y = 0;
             marker.pose.orientation.z = 0;
             marker.pose.orientation.w = 1;
 
             markerArray.markers.push_back(marker);
+
+            BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr)
+            {
+                SimpleVector3 visualAxis = MathHelper::getVisualAxis(q);
+                visualization_msgs::Marker marker = visualization_msgs::Marker();
+                marker.header.stamp = ros::Time();
+                marker.header.frame_id = "/map";
+                marker.type = marker.SPHERE;
+                marker.action = marker.ADD;
+                marker.id = ++i;
+                marker.lifetime = ros::Duration();
+                marker.ns = "visualAxis" +s ;
+                marker.scale.x = .05;
+                marker.scale.y = .05;
+                marker.scale.z = .05;
+                marker.color.a = 1;
+                marker.color.r = 1-j;
+                marker.color.g = j;
+                marker.pose.position.x = visualAxis[0]/3.0 +position[0];
+                marker.pose.position.y = visualAxis[1]/3.0 +position[1];
+                marker.pose.position.z = visualAxis[2]/3.0 +position[2]+iterationStep*.35;
+                marker.pose.orientation.w = 1;
+                //ROS_INFO_STREAM("Marker: " << point.x << ", " << point.y << ", " << point.z) ;
+                markerArray.markers.push_back(marker);
+            }
+            marker = visualization_msgs::Marker();
+
+            marker.header.stamp = ros::Time();
+            marker.header.frame_id = "/map";
+            marker.type = marker.SPHERE;
+            marker.action = marker.ADD;
+            marker.id = ++i;
+            marker.lifetime = ros::Duration();
+            marker.ns = "visualAxisSphere" +s ;
+            marker.scale.x = 2.0/3.0;
+            marker.scale.y = 2.0/3.0;
+            marker.scale.z = 2.0/3.0;
+            marker.color.a = 0.5;
+            marker.color.r = 1-j;
+            marker.color.g = j;
+            marker.pose.position.x = position[0];
+            marker.pose.position.y = position[1];
+            marker.pose.position.z = position[2]+iterationStep*.35;
+            markerArray.markers.push_back(marker);
+
             vis_pub.publish(markerArray);
+
             return true;
         }
 
@@ -242,7 +287,7 @@ namespace next_best_view {
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
 				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
-				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+                BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
 					objectNameViewportMapping.clear();
 
 					ViewportPoint fullViewportPoint;
