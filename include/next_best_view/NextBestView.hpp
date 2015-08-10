@@ -149,6 +149,7 @@ namespace next_best_view {
 			mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
 			mNodeHandle.param("move_robot", move_robot, false);
 
+
 			// assign the values to the settings struct
 			mVisualizationSettings.space_sampling = show_space_sampling;
 			mVisualizationSettings.point_cloud = show_point_cloud;
@@ -529,7 +530,8 @@ namespace next_best_view {
                 {
                     for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                     {
-                        mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(2.0);
+                        mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
+                        mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
                     }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
