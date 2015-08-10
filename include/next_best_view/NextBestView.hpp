@@ -485,19 +485,16 @@ namespace next_best_view {
 			if (mVisualizationSettings.point_cloud) {
 				ROS_DEBUG("Publishing Point Cloud");
 
-				Indices overall_indices = Indices(mCalculator.getPointCloudPtr()->size());
-				boost::range::iota(boost::iterator_range<Indices::iterator>(overall_indices.begin(), overall_indices.end()), 0);
-
-				Indices point_cloud_indices;
+				IndicesPtr pointCloudIndicesPtr;
 				if (mVisualizationSettings.frustum_point_cloud) {
-					point_cloud_indices_diff(overall_indices, *viewport.child_indices, point_cloud_indices);
+					point_cloud_indices_diff(mCalculator.getActiveIndices(), viewport.child_indices, pointCloudIndicesPtr);
 				} else {
-					point_cloud_indices = overall_indices;
+					pointCloudIndicesPtr = mCalculator.getActiveIndices();
 				}
-				ROS_DEBUG("Publishing %d points", point_cloud_indices.size());
+				ROS_DEBUG("Publishing %d points", pointCloudIndicesPtr->size());
 
 				sensor_msgs::PointCloud2 point_cloud;
-				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), point_cloud_indices), point_cloud);
+				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), *pointCloudIndicesPtr), point_cloud);
 
 				point_cloud.header.frame_id = "/map";
 				point_cloud.header.seq = 0;
@@ -581,12 +578,12 @@ namespace next_best_view {
 			}
 		}
 
-		static void point_cloud_indices_diff(const Indices &AVect, const Indices &BVect, Indices &resultIndices) {
-			std::set<int> A(AVect.begin(), AVect.end());
-			std::set<int> B(BVect.begin(), BVect.end());
+		static void point_cloud_indices_diff(const IndicesPtr &AVect, const IndicesPtr &BVect, IndicesPtr &resultIndices) {
+			std::set<int> A(AVect->begin(), AVect->end());
+			std::set<int> B(BVect->begin(), BVect->end());
 
 			std::set_difference( A.begin(), A.end(), B.begin(), B.end(),
-					std::back_inserter( resultIndices ) );
+					std::back_inserter( *resultIndices ) );
 		}
 	};
 }

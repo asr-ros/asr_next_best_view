@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <boost/foreach.hpp>
+#include <boost/range/algorithm_ext/iota.hpp>
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -27,6 +28,7 @@ namespace next_best_view {
 	class NextBestViewCalculator {
 	private:
 		ObjectPointCloudPtr mPointCloudPtr;
+		IndicesPtr mActiveIndicesPtr;
 		KdTreePtr mKdTreePtr;
 		UnitSphereSamplerPtr mUnitSphereSamplerPtr;
 		SpaceSamplerPtr mSpaceSamplerPtr;
@@ -289,8 +291,20 @@ namespace next_best_view {
 			return true;
 		}
 
-		void updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewport_point_list) {
+		void updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewportPointList) {
+			BOOST_FOREACH(ViewportPoint viewportPoint, viewportPointList) {
+				ViewportPoint culledViewportPoint;
+				if (!this->doFrustumCulling(viewportPoint.getSimpleVector3(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
+					continue;
+				}
 
+				ViewportPoint resultingViewportPoint;
+				if (!this->doObjectNameFiltering(viewportPoint.object_name_set, culledViewportPoint, resultingViewportPoint)) {
+					continue;
+				}
+
+				this->updateObjectPointCloud(resultingViewportPoint);
+			}
 		}
 
 		void updateObjectPointCloud(const ViewportPoint &viewportPoint) {
@@ -321,6 +335,7 @@ namespace next_best_view {
 		void setPointCloudFromMessage(const AttributedPointCloud &msg) {
 			// create a new point cloud
 			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+
 			object_database::ObjectManager manager;
 
 			// empty object name set
@@ -360,7 +375,13 @@ namespace next_best_view {
 			mSingleObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 1, 1);
 			mRemainderObjectNameSubPowerSetPtr = MathHelper::filterCardinalityPowerSet<ObjectNamePowerSet> (powerSetPtr, 2);
 
+			// the active indices.
+			IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(msg.elements.size()));
+			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
+
+
 			// set the point cloud
+			this->setActiveIndices(activeIndicesPtr);
 			this->setPointCloudPtr(pointCloudPtr);
 		}
 
@@ -382,6 +403,20 @@ namespace next_best_view {
 		 */
 		ObjectPointCloudPtr getPointCloudPtr() {
 			return mPointCloudPtr;
+		}
+
+		/*!
+		 * \brief sets the active indices.
+		 */
+		void setActiveIndices(const IndicesPtr &activeIndicesPtr) {
+			mActiveIndicesPtr = activeIndicesPtr;
+		}
+
+		/*!
+		 * \return the active Indices.
+		 */
+		IndicesPtr getActiveIndices() {
+			return mActiveIndicesPtr;
 		}
 
 		/**
