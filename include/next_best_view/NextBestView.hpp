@@ -525,7 +525,7 @@ namespace next_best_view {
 				ROS_DEBUG("Publishing Frustum Marker Array");
 
 				uint32_t sequence = 0;
-                if (mMarkerArrayPtr != NULL)
+                if (mMarkerArrayPtr)
                 {
                     for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                     {
