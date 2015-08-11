@@ -25,9 +25,8 @@
 #include "next_best_view/AttributedPointCloud.h"
 #include "next_best_view/AttributedPoint.h"
 #include "next_best_view/helper/MapHelper.hpp"
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <geometry_msgs/Point.h>
+#include "helper/VisualizationsHelper.hpp"
+
 
 namespace next_best_view {
     class NextBestViewCalculator {
@@ -45,8 +44,8 @@ namespace next_best_view {
 		ObjectNameSetPtr mObjectNameSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mSingleObjectNameSubPowerSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mRemainderObjectNameSubPowerSetPtr;
-        ros::Publisher vis_pub;
-        ros::NodeHandle node_handle;
+        VisualizationHelper mVisHelper;
+
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
 				const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
@@ -58,7 +57,8 @@ namespace next_best_view {
 			  mRobotModelPtr(robotModelPtr),
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
 			  mRatingModulePtr(),
-              mEpsilon(10E-3), node_handle(){vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "visualization_markerarray", 100 );}
+              mEpsilon(10E-3),
+              mVisHelper(){}
 	public:
 		/**
 		 * Calculates the next best view.
@@ -122,13 +122,23 @@ namespace next_best_view {
 			while (ros::ok()) {
 				ViewportPoint intermediateResultViewport;
 				ROS_DEBUG("Prepare iteration step");
-                if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep), intermediateResultViewport)) {
+                if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
+                                           sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
+                                           intermediateResultViewport)) {
 					return false;
 				}
 
                 SimpleVector3 intermediateResultPosition =intermediateResultViewport.getSimpleVector3();
                 //currentCameraViewport.getSimpleQuaternion()
-                processGetSpaceSampling(iterationStep, intermediateResultPosition, sampledOrientationsPtr, currentBestViewport);
+
+                SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
+                SamplePointCloudPtr pointcloud =
+                        spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,iterationStep));
+                IndicesPtr feasibleIndices(new Indices());
+                this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
+
+                mVisHelper.triggerVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
+                                      currentBestViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
                 ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
@@ -146,172 +156,6 @@ namespace next_best_view {
 			return false;
 		}
 
-        bool processGetSpaceSampling(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint currentBestViewport)
-        {
-            SamplePointCloudPtr pointcloud = this->getSpaceSampler()->getSampledSpacePointCloud(position, 1.0/pow(2.0,iterationStep));
-            IndicesPtr feasibleIndices(new Indices());
-            this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
-
-            SamplePointCloud pcl = SamplePointCloud(*pointcloud, *feasibleIndices);
-
-            visualization_msgs::MarkerArray markerArray = visualization_msgs::MarkerArray();
-
-            ROS_INFO_STREAM("Lets a do it");
-            int i =0;
-            float j = iterationStep*0.15;
-            std::string s = boost::lexical_cast<std::string>(iterationStep);
-            for(SamplePointCloud::iterator it = pcl.points.begin(); it < pcl.points.end(); it++)
-            {
-                gm::Point point = it->getPoint();
-                visualization_msgs::Marker marker = visualization_msgs::Marker();
-                marker.header.stamp = ros::Time();
-                marker.header.frame_id = "/map";
-                marker.type = marker.CUBE;
-                marker.action = marker.ADD;
-                marker.id = ++i;
-                marker.lifetime = ros::Duration();
-                marker.ns = "SamplePoints_NS"+s;
-                marker.scale.x = 0.05;
-                marker.scale.y = 0.05;
-                marker.scale.z = 0.05;
-                marker.color.a = 1.0;
-                marker.color.r = 1-j;
-                marker.color.g = j;
-                marker.pose.position.x = point.x;
-                marker.pose.position.y = point.y;
-                marker.pose.position.z = 0.1;
-                marker.pose.orientation.w = 1;
-                ROS_INFO_STREAM("Marker: " << point.x << ", " << point.y << ", " << point.z) ;
-                markerArray.markers.push_back(marker);
-            }
-            ROS_INFO_STREAM("Size: " << pcl.points.size());
-
-            ROS_INFO_STREAM("Top: " << this->getSpaceSampler()->getXtop() << ", " << this->getSpaceSampler()->getYtop() );
-            ROS_INFO_STREAM("Bottom: " << this->getSpaceSampler()->getXbot() << ", " << this->getSpaceSampler()->getYbot());
-            double xwidth = abs(this->getSpaceSampler()->getXtop() - this->getSpaceSampler()->getXbot());
-            double ywidth = abs(this->getSpaceSampler()->getYtop() - this->getSpaceSampler()->getYbot());
-            double xmid = (this->getSpaceSampler()->getXtop() + this->getSpaceSampler()->getXbot())/2.0;
-            double ymid =  (this->getSpaceSampler()->getYtop() + this->getSpaceSampler()->getYbot())/2.0;
-            visualization_msgs::Marker marker = visualization_msgs::Marker();
-            marker.header.stamp = ros::Time();
-            marker.header.frame_id = "/map";
-            marker.type = marker.CUBE;
-            marker.action = marker.ADD;
-            marker.id = ++i;
-            marker.lifetime = ros::Duration();
-            marker.ns = "Radius" + s;
-            marker.scale.x = xwidth;
-            marker.scale.y = ywidth;
-            marker.scale.z = 0.1;
-            marker.color.a = 0.1;
-            marker.color.r = 0;
-            marker.color.g = 0;
-            marker.color.b = 1.00;
-            marker.pose.position.x = xmid;
-            marker.pose.position.y = ymid;
-            marker.pose.position.z = 0;
-            marker.pose.orientation.x = 0;
-            marker.pose.orientation.y = 0;
-            marker.pose.orientation.z = 0;
-            marker.pose.orientation.w = 1;
-
-            markerArray.markers.push_back(marker);
-
-            BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr)
-            {
-                SimpleVector3 visualAxis = MathHelper::getVisualAxis(q);
-                visualization_msgs::Marker marker = visualization_msgs::Marker();
-                marker.header.stamp = ros::Time();
-                marker.header.frame_id = "/map";
-                marker.type = marker.SPHERE;
-                marker.action = marker.ADD;
-                marker.id = ++i;
-                marker.lifetime = ros::Duration();
-                marker.ns = "visualAxis" +s ;
-                marker.scale.x = .05;
-                marker.scale.y = .05;
-                marker.scale.z = .05;
-                marker.color.a = 1;
-                marker.color.r = 1-j;
-                marker.color.g = j;
-                marker.pose.position.x = visualAxis[0]/3.0 +position[0];
-                marker.pose.position.y = visualAxis[1]/3.0 +position[1];
-                marker.pose.position.z = visualAxis[2]/3.0 +position[2]+iterationStep*.35;
-                marker.pose.orientation.w = 1;
-                //ROS_INFO_STREAM("Marker: " << point.x << ", " << point.y << ", " << point.z) ;
-                markerArray.markers.push_back(marker);
-            }
-            marker = visualization_msgs::Marker();
-
-            marker.header.stamp = ros::Time();
-            marker.header.frame_id = "/map";
-            marker.type = marker.SPHERE;
-            marker.action = marker.ADD;
-            marker.id = ++i;
-            marker.lifetime = ros::Duration();
-            marker.ns = "visualAxisSphere" +s ;
-            marker.scale.x = 2.0/3.0;
-            marker.scale.y = 2.0/3.0;
-            marker.scale.z = 2.0/3.0;
-            marker.color.a = 0.5;
-            marker.color.r = 1-j;
-            marker.color.g = j;
-            marker.pose.position.x = position[0];
-            marker.pose.position.y = position[1];
-            marker.pose.position.z = position[2]+iterationStep*.35;
-            markerArray.markers.push_back(marker);
-
-            marker = visualization_msgs::Marker();
-
-            marker.header.stamp = ros::Time();
-            marker.header.frame_id = "/map";
-            marker.type = marker.LINE_LIST;
-            marker.action = marker.ADD;
-            marker.id = ++i;
-            marker.lifetime = ros::Duration();
-            marker.ns = "LineVizu" +s ;
-            marker.scale.x = 0.05;
-            marker.color.a = 1;
-            marker.color.r = 1-j;
-            marker.color.g = j;
-            geometry_msgs::Point point1 = geometry_msgs::Point();
-            point1.x = position[0];
-            point1.y = position[1];
-            point1.z = 0;
-            geometry_msgs::Point point2 = geometry_msgs::Point();
-            point2.x = position[0];
-            point2.y = position[1];
-            point2.z = position[2]+iterationStep*.35;
-            marker.points.push_back(point1);
-            marker.points.push_back(point2);
-            markerArray.markers.push_back(marker);
-
-            marker = visualization_msgs::Marker();
-
-            marker.header.stamp = ros::Time();
-            marker.header.frame_id = "/map";
-            marker.type = marker.ARROW;
-            marker.action = marker.ADD;
-            marker.id = ++i;
-            marker.lifetime = ros::Duration();
-            marker.ns = "ArrowVizu" +s ;
-            marker.scale.x = 1;
-            marker.scale.y = 0.05;
-            marker.scale.z = 0.05;
-            marker.color.a = 1;
-            marker.color.r = 1-j;
-            marker.color.g = j;
-            marker.pose.position.x = position[0];
-            marker.pose.position.y = position[1];
-            marker.pose.position.z = position[2];
-            marker.pose.orientation = currentBestViewport.getQuaternion();
-            markerArray.markers.push_back(marker);
-
-            vis_pub.publish(markerArray);
-
-
-            return true;
-        }
 
 		bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor, ViewportPoint &resultViewport) {
 			// current camera position
