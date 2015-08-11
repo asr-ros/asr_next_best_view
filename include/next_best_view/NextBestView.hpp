@@ -117,6 +117,7 @@ namespace next_best_view {
 		KdTreePtr mKdTreePtr;
 		SetupVisualizationRequest mVisualizationSettings;
 		bool mCurrentlyPublishingVisualization;
+        viz::MarkerArray::Ptr mMarkerArrayPtr;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -273,7 +274,7 @@ namespace next_best_view {
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
 			mVisualizationSettings = SetupVisualizationRequest(request);
 
-			this->triggerVisualization();
+			this->triggerVisualization(mCurrentCameraViewport);
 
 			return true;
 		}
@@ -332,7 +333,9 @@ namespace next_best_view {
 		}
 
 		bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
-			mCalculator.setPointCloudFromMessage(request.point_cloud);
+			if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
+				return false;
+			}
 
 			mCurrentCameraViewport = ViewportPoint(request.pose);
 			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
@@ -370,7 +373,7 @@ namespace next_best_view {
 
 	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-			ViewportPoint currentCameraViewport(request.initial_pose);
+			ViewportPoint currentCameraViewport(request.current_pose);
 
 			ViewportPoint resultingViewport;
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
@@ -407,7 +410,7 @@ namespace next_best_view {
 			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
 			ROS_DEBUG("Trigger Visualization");
-			this->triggerVisualization();
+			this->triggerVisualization(resultingViewport);
 			ROS_DEBUG("Visualization triggered");
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
@@ -428,7 +431,7 @@ namespace next_best_view {
 			SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
 			ViewportPoint viewportPoint;
-			mCalculator.doFrustumCulling(point, orientation, IndicesPtr(), viewportPoint);
+			mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
 
 			mCalculator.updateObjectPointCloud(viewportPoint);
 
@@ -524,6 +527,7 @@ namespace next_best_view {
 				ROS_DEBUG("Publishing Frustum Marker Array");
 
 				uint32_t sequence = 0;
+				this->mCalculator.getCameraModelFilter()->setPivotPointPose(viewport.getSimpleVector3(), viewport.getSimpleQuaternion());
 				viz::MarkerArray::Ptr markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
 				mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
 			}

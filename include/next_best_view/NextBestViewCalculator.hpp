@@ -60,6 +60,7 @@ namespace next_best_view {
               mEpsilon(10E-3),
               mVisHelper(){}
 	public:
+
 		/**
 		 * Calculates the next best view.
 		 */
@@ -79,6 +80,7 @@ namespace next_best_view {
 					feasibleOrientationsCollectionPtr->push_back(q);
 				}
 			}
+
 			// create the next best view point cloud
 			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 		}
@@ -92,8 +94,8 @@ namespace next_best_view {
 				SamplePoint &spaceSamplePoint = sampledSpacePointCloudPtr->at(index);
 				ObjectPoint comparablePoint(spaceSamplePoint.getSimpleVector3());
 
-                #include <visualization_msgs/Marker.h>// the resulting child indices will be written in here
-                IndicesPtr childIndicesPtr(new Indices());
+				// the resulting child indices will be written in here
+				IndicesPtr childIndicesPtr(new Indices());
 				// we don't need distances, but distances are written in here
 				SquaredDistances dismissDistances;
 
@@ -214,12 +216,13 @@ namespace next_best_view {
 
 					// now aggregating all possible combinations.
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mRemainderObjectNameSubPowerSetPtr->begin(); subSetIter != mRemainderObjectNameSubPowerSetPtr->end(); ++subSetIter) {
-						ObjectNameSetPtr subSet = *subSetIter;
+						ObjectNameSetPtr subSetPtr = *subSetIter;
 
 						bool valid = true;
 						Precision utility = 0;
+						Precision recognitionCosts = 0;
 						IndicesPtr aggregatedIndicesPtr(new Indices());
-						for (ObjectNameSet::iterator itemIter = subSet->begin(); itemIter != subSet->end(); ++itemIter) {
+						for (ObjectNameSet::iterator itemIter = subSetPtr->begin(); itemIter != subSetPtr->end(); ++itemIter) {
 							std::string objectName = *itemIter;
 							if (objectNameViewportMapping.find(objectName) == objectNameViewportMapping.end()) {
 								valid = false;
@@ -228,6 +231,7 @@ namespace next_best_view {
 
 							ViewportPoint singleObjectViewportPoint = objectNameViewportMapping [objectName];
 							utility += singleObjectViewportPoint.score->getUtility();
+							recognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectName);
 							std::size_t oldSize = aggregatedIndicesPtr->size();
 							aggregatedIndicesPtr->resize(oldSize + singleObjectViewportPoint.child_indices->size(), 0);
 							std::copy(singleObjectViewportPoint.child_indices->begin(), singleObjectViewportPoint.child_indices->end(), aggregatedIndicesPtr->begin() + oldSize);
@@ -240,10 +244,10 @@ namespace next_best_view {
 						ViewportPoint aggregatedViewportPoint = ViewportPoint(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
 						aggregatedViewportPoint.child_point_cloud = fullViewportPoint.child_point_cloud;
 						aggregatedViewportPoint.child_indices = aggregatedIndicesPtr;
-						aggregatedViewportPoint.object_name_set = subSet;
+						aggregatedViewportPoint.object_name_set = subSetPtr;
 						aggregatedViewportPoint.score = mRatingModulePtr->getScoreContainerInstance();
 						aggregatedViewportPoint.score->setUtility(utility);
-						aggregatedViewportPoint.score->setCosts(movementCosts);
+						aggregatedViewportPoint.score->setCosts(movementCosts + recognitionCosts);
 
 						nextBestViewports->push_back(aggregatedViewportPoint);
 					}
@@ -351,7 +355,7 @@ namespace next_best_view {
 		 * Sets the point cloud points from point cloud message
 		 * @param message - message containing the point cloud
 		 */
-		void setPointCloudFromMessage(const AttributedPointCloud &msg) {
+		bool setPointCloudFromMessage(const AttributedPointCloud &msg) {
 			// create a new point cloud
 			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
@@ -376,13 +380,19 @@ namespace next_best_view {
 				// get object type information
 				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.object_type_name);
 
-				// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
-				int normalVectorCount = 0;
-				BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
-					SimpleVector3 normal(point.x, point.y, point.z);
-					normal = rotationMatrix * normal;
-					pointCloudPoint.normal_vectors->push_back(normal);
-					pointCloudPoint.active_normal_vectors->push_back(normalVectorCount++);
+				if (responsePtr) {
+					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
+					int normalVectorCount = 0;
+					BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
+						SimpleVector3 normal(point.x, point.y, point.z);
+						normal = rotationMatrix * normal;
+						pointCloudPoint.normal_vectors->push_back(normal);
+						pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+						++normalVectorCount;
+					}
+				} else {
+					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.object_type_name.c_str());
+					return false;
 				}
 
 				// add point to array
@@ -402,6 +412,7 @@ namespace next_best_view {
 			// set the point cloud
 			this->setActiveIndices(activeIndicesPtr);
 			this->setPointCloudPtr(pointCloudPtr);
+			return true;
 		}
 
 		/**
@@ -471,7 +482,7 @@ namespace next_best_view {
 		/**
 		 * @return the pointer to the space sampler.
 		 */
-        SpaceSamplerPtr getSpaceSampler() {
+		SpaceSamplerPtr getSpaceSampler() {
 			return mSpaceSamplerPtr;
 		}
 
