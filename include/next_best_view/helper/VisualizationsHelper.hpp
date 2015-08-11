@@ -43,7 +43,6 @@ private:
         node_handle.getParam("/nbv/ViewPortMarker_RGBA", ViewPortMarkerRGBA);
 
 
-
         BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr)
         {
             SimpleVector3 visualAxis = MathHelper::getVisualAxis(q);
@@ -67,6 +66,9 @@ private:
             ViewPortMarker.pose.position.z = visualAxis[2]/ViewPortMarkerShrinkFactor +position[2]+iterationStep * ViewPortMarkerHeightFactor;
             ViewPortMarker.pose.orientation.w = 1;
 
+            visualization_msgs::Marker ViewPortMarkerDeleteAction = ViewPortMarker;
+            ViewPortMarkerDeleteAction.action = ViewPortMarkerDeleteAction.DELETE;
+            markerArrayDeleteList.markers.push_back(ViewPortMarkerDeleteAction);
             markerArray.markers.push_back(ViewPortMarker);
         }
 
@@ -90,12 +92,17 @@ private:
         ViewPortSphereMarker.pose.position.y = position[1];
         ViewPortSphereMarker.pose.position.z = position[2]+iterationStep * ViewPortMarkerHeightFactor;
 
+        visualization_msgs::Marker  ViewPortSphereDeleteAction = ViewPortSphereMarker;
+        ViewPortSphereDeleteAction.action = ViewPortSphereDeleteAction.DELETE;
+        markerArrayDeleteList.markers.push_back(ViewPortSphereDeleteAction);
         markerArray.markers.push_back(ViewPortSphereMarker);
 
 
         double ColumnPositionMarkerWidth;
+	std::vector<double> ColumnPositionMarkerRGBA;
         node_handle.getParam("/nbv/ColumnPositionMarker_Width", ColumnPositionMarkerWidth);
-
+	node_handle.getParam("/nbv/ColumnPositionMarker_RGBA", ColumnPositionMarkerRGBA);
+	
         visualization_msgs::Marker ColumnPositionMarker = visualization_msgs::Marker();
 
         ColumnPositionMarker.header.stamp = ros::Time();
@@ -106,10 +113,10 @@ private:
         ColumnPositionMarker.lifetime = ros::Duration();
         ColumnPositionMarker.ns = "LineVizu" +s ;
         ColumnPositionMarker.scale.x = ColumnPositionMarkerWidth;
-        ColumnPositionMarker.color.a = ViewPortMarkerRGBA[3];
-        ColumnPositionMarker.color.r = ViewPortMarkerRGBA[0]-j;
-        ColumnPositionMarker.color.g = ViewPortMarkerRGBA[1]+j;
-        ColumnPositionMarker.color.b = ViewPortMarkerRGBA[2];
+        ColumnPositionMarker.color.a = ColumnPositionMarkerRGBA[3];
+        ColumnPositionMarker.color.r = ColumnPositionMarkerRGBA[0];
+        ColumnPositionMarker.color.g = ColumnPositionMarkerRGBA[1];
+        ColumnPositionMarker.color.b = ColumnPositionMarkerRGBA[2];
         geometry_msgs::Point point1 = geometry_msgs::Point();
         point1.x = position[0];
         point1.y = position[1];
@@ -121,6 +128,9 @@ private:
         ColumnPositionMarker.points.push_back(point1);
         ColumnPositionMarker.points.push_back(point2);
 
+        visualization_msgs::Marker ColumnPositionDeleteAction = ColumnPositionMarker;
+        ColumnPositionDeleteAction.action = ColumnPositionDeleteAction.DELETE;
+        markerArrayDeleteList.markers.push_back(ColumnPositionDeleteAction);
         markerArray.markers.push_back(ColumnPositionMarker);
 
         visualization_msgs::Marker NextBestViewCameraDirectionMarker = visualization_msgs::Marker();
@@ -144,6 +154,9 @@ private:
         NextBestViewCameraDirectionMarker.pose.position.z = position[2];
         NextBestViewCameraDirectionMarker.pose.orientation = currentBestViewport.getQuaternion();
 
+        visualization_msgs::Marker NextBestViewCameraDirectionDeleteAction = NextBestViewCameraDirectionMarker;
+        NextBestViewCameraDirectionDeleteAction.action = NextBestViewCameraDirectionDeleteAction.DELETE;
+        markerArrayDeleteList.markers.push_back(NextBestViewCameraDirectionDeleteAction);
         markerArray.markers.push_back(NextBestViewCameraDirectionMarker);
     }
 
@@ -179,6 +192,10 @@ private:
             SpaceSamplingMarker.pose.position.y = point.y;
             SpaceSamplingMarker.pose.position.z = 0.1;
             SpaceSamplingMarker.pose.orientation.w = 1;
+
+            visualization_msgs::Marker SpaceSamplingMarkerDeleteAction = SpaceSamplingMarker;
+            SpaceSamplingMarkerDeleteAction.action = SpaceSamplingMarkerDeleteAction.DELETE;
+            markerArrayDeleteList.markers.push_back(SpaceSamplingMarkerDeleteAction);
 
             markerArray.markers.push_back(SpaceSamplingMarker);
         }
@@ -217,20 +234,35 @@ private:
         GridMarker.pose.position.z = 0;
         GridMarker.pose.orientation.w = 1;
 
+        visualization_msgs::Marker GridMarkerDeleteAction = GridMarker;
+        GridMarkerDeleteAction.action = GridMarkerDeleteAction.DELETE;
+        markerArrayDeleteList.markers.push_back(GridMarkerDeleteAction);
+
         markerArray.markers.push_back(GridMarker);
+    }
+    
+    void clearVisualzation(){
+        markerArray.markers.clear();
+        vis_pub.publish(markerArrayDeleteList);
+        markerArrayDeleteList.markers.clear();
+        i=0;
     }
 
     ros::Publisher vis_pub;
     ros::NodeHandle node_handle;
     visualization_msgs::MarkerArray markerArray;
+    visualization_msgs::MarkerArray markerArrayDeleteList;
     int i;
     float j;
     int iterationStep;
+    bool boolClearBetweenIterations;
 public:
 
     VisualizationHelper():i(0),j(0),iterationStep(0){
         node_handle;
         vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "visualization_markerarray", 100 );
+        node_handle.getParam("/nbv/boolClearBetweenIterations", boolClearBetweenIterations);
+        ROS_INFO_STREAM("boolClearBetweenIterations: " << boolClearBetweenIterations);
         markerArray = visualization_msgs::MarkerArray();
     }
 
@@ -238,7 +270,8 @@ public:
                                &sampledOrientationsPtr, ViewportPoint currentBestViewport,
                                IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
                                SpaceSamplerPtr spaceSamplerPtr){
-
+      
+    if(iterationStep==0 && boolClearBetweenIterations == true)  clearVisualzation();
         std::string s = boost::lexical_cast<std::string>(iterationStep);
         this->iterationStep=iterationStep;
         j = iterationStep*0.15;
@@ -248,7 +281,7 @@ public:
         triggerCameraVis(s, position, sampledOrientationsPtr, currentBestViewport);
 
         vis_pub.publish(markerArray);
-
+    
     }
 
 };
