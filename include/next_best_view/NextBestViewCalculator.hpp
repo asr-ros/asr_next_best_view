@@ -335,7 +335,7 @@ namespace next_best_view {
 		 * Sets the point cloud points from point cloud message
 		 * @param message - message containing the point cloud
 		 */
-		void setPointCloudFromMessage(const AttributedPointCloud &msg) {
+		bool setPointCloudFromMessage(const AttributedPointCloud &msg) {
 			// create a new point cloud
 			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
@@ -360,13 +360,19 @@ namespace next_best_view {
 				// get object type information
 				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.object_type_name);
 
-				// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
-				int normalVectorCount = 0;
-				BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
-					SimpleVector3 normal(point.x, point.y, point.z);
-					normal = rotationMatrix * normal;
-					pointCloudPoint.normal_vectors->push_back(normal);
-					pointCloudPoint.active_normal_vectors->push_back(normalVectorCount++);
+				if (responsePtr) {
+					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
+					int normalVectorCount = 0;
+					BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
+						SimpleVector3 normal(point.x, point.y, point.z);
+						normal = rotationMatrix * normal;
+						pointCloudPoint.normal_vectors->push_back(normal);
+						pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+						++normalVectorCount;
+					}
+				} else {
+					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.object_type_name.c_str());
+					return false;
 				}
 
 				// add point to array
@@ -382,10 +388,10 @@ namespace next_best_view {
 			IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(msg.elements.size()));
 			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
 
-
 			// set the point cloud
 			this->setActiveIndices(activeIndicesPtr);
 			this->setPointCloudPtr(pointCloudPtr);
+			return true;
 		}
 
 		/**

@@ -333,7 +333,9 @@ namespace next_best_view {
 		}
 
 		bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
-			mCalculator.setPointCloudFromMessage(request.point_cloud);
+			if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
+				return false;
+			}
 
 			mCurrentCameraViewport = ViewportPoint(request.pose);
 			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
