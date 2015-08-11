@@ -13,6 +13,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -23,15 +24,18 @@
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "next_best_view/AttributedPointCloud.h"
 #include "next_best_view/AttributedPoint.h"
+#include "next_best_view/helper/MapHelper.hpp"
+#include "helper/VisualizationsHelper.hpp"
+
 
 namespace next_best_view {
-	class NextBestViewCalculator {
+    class NextBestViewCalculator {
 	private:
 		ObjectPointCloudPtr mPointCloudPtr;
 		IndicesPtr mActiveIndicesPtr;
 		KdTreePtr mKdTreePtr;
 		UnitSphereSamplerPtr mUnitSphereSamplerPtr;
-		SpaceSamplerPtr mSpaceSamplerPtr;
+        SpaceSamplerPtr mSpaceSamplerPtr;
 		RobotModelPtr mRobotModelPtr;
 		CameraModelFilterPtr mCameraModelFilterPtr;
 		RatingModulePtr mRatingModulePtr;
@@ -40,6 +44,8 @@ namespace next_best_view {
 		ObjectNameSetPtr mObjectNameSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mSingleObjectNameSubPowerSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mRemainderObjectNameSubPowerSetPtr;
+        VisualizationHelper mVisHelper;
+
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
 				const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
@@ -51,7 +57,8 @@ namespace next_best_view {
 			  mRobotModelPtr(robotModelPtr),
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
 			  mRatingModulePtr(),
-			  mEpsilon(10E-3) {	}
+              mEpsilon(10E-3),
+              mVisHelper(){}
 	public:
 
 		/**
@@ -67,6 +74,7 @@ namespace next_best_view {
 			ROS_DEBUG("Create and filter unit sphere");
 			SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
 			SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
+
 			BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
 				if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
 					feasibleOrientationsCollectionPtr->push_back(q);
@@ -110,20 +118,32 @@ namespace next_best_view {
 
 	private:
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-
-			// reset the contractor
-			float contractor = 1.0;
+            int iterationStep = 0;
 
 			ViewportPoint currentBestViewport = currentCameraViewport;
 			while (ros::ok()) {
 				ViewportPoint intermediateResultViewport;
 				ROS_DEBUG("Prepare iteration step");
-				if (!this->doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor, intermediateResultViewport)) {
+                if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
+                                           sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
+                                           intermediateResultViewport)) {
 					return false;
 				}
 
+                SimpleVector3 intermediateResultPosition =intermediateResultViewport.getSimpleVector3();
+                //currentCameraViewport.getSimpleQuaternion()
+
+                SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
+                SamplePointCloudPtr pointcloud =
+                        spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,iterationStep));
+                IndicesPtr feasibleIndices(new Indices());
+                this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
+
+                mVisHelper.triggerVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
+                                      currentBestViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
+
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
-				ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, Contractor: %f", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), contractor);
+                ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
 
 				if (currentCameraViewport.getSimpleVector3() == intermediateResultViewport.getSimpleVector3() || (intermediateResultViewport.getSimpleVector3() - currentBestViewport.getSimpleVector3()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
@@ -132,12 +152,12 @@ namespace next_best_view {
 
 				currentBestViewport = intermediateResultViewport;
 
-				// smaller contractor.
-				contractor /= 2.0;
+                iterationStep ++;
 			}
 
 			return false;
 		}
+
 
 		bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor, ViewportPoint &resultViewport) {
 			// current camera position
@@ -162,7 +182,7 @@ namespace next_best_view {
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
 				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
-				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+                BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
 					objectNameViewportMapping.clear();
 
 					ViewportPoint fullViewportPoint;
@@ -174,7 +194,7 @@ namespace next_best_view {
 					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
 					float movementCosts = mRobotModelPtr->getMovementCosts(targetRobotState);
 
-					// do the filtering for the the single object types
+					// do the filtering for the single object types
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mSingleObjectNameSubPowerSetPtr->begin(); subSetIter != mSingleObjectNameSubPowerSetPtr->end(); ++subSetIter) {
 						ViewportPoint candidateViewportPoint;
 						if (!this->doObjectNameFiltering(*subSetIter, fullViewportPoint, candidateViewportPoint)) {
@@ -387,6 +407,7 @@ namespace next_best_view {
 			// the active indices.
 			IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(msg.elements.size()));
 			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
+
 
 			// set the point cloud
 			this->setActiveIndices(activeIndicesPtr);

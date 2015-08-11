@@ -1,9 +1,13 @@
-mOmegaPan: 3.0  #Pangeschwindigkeit in Sec/Rad
-mOmegaTilt: 3.0 #Tiltgeschwindigkeit in Sec/Rad
-mOmegaRot: 3.0 #Rotationsgeschwindigkeit in Sec/Rad
-mOmegaBase: 1.0 #Geschwindigkeit der Basis in Sec/Meter
-tolerance: 0.00003
-useGlobalPlanner: false
+mOmegaPan: 1.0  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
+mOmegaTilt: 1.0 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
+mOmegaRot: 1.0 #Gewichtungsfaktor für die Rotation der Basis
+mOmegaBase: 1.0 #Gewichtungsfaktor für die Bewegung der Basis
+speedFactorPTU: 0.1 #Zeitkosten für Drehung der PTU in Sec/Rad
+speedFactorBaseRot: 0.1 #Zeitkosten für Drehung der Basis in Sec/Rad
+speedFactorBaseMove: 5.0 #Zeitkosten für Bewegung der Basis in Sec/Meter
+speedFactorRecognizer: 5.0 #Zeitkosten für Objekterkennung in Sec/Objekt
+tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
+useGlobalPlanner: true
 fovx: 42.09
 fovy: 31.87
 ncp: 0.74 #Entfernung der NearClippingPlane in meter
