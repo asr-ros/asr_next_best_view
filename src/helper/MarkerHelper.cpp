@@ -21,9 +21,20 @@ namespace next_best_view {
 		marker.ns = "my_namespace";
 		marker.id = id;
 		marker.action = visualization_msgs::Marker::ADD;
-
 		return marker;
 	}
+    visualization_msgs::Marker MarkerHelper::getTextMarker(int id, string text)
+    {
+        visualization_msgs::Marker textMarker = getBasicMarker(id);
+        textMarker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        textMarker.color.a = 1;
+        textMarker.color.r = 1;
+        textMarker.color.g = 1;
+        textMarker.color.b = 1;
+        textMarker.text = text;
+        textMarker.scale.z = 0.25;
+        return textMarker;
+    }
 
 	visualization_msgs::Marker MarkerHelper::getDeleteMarker(int id) {
 		visualization_msgs::Marker marker = getBasicMarker(id);

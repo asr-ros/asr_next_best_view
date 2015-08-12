@@ -51,6 +51,7 @@ add_service_files(
    CalculateCameraPose.srv
    IsPositionReachable.srv
    IsPoseReachable.srv
+   TriggerFrustumVisualization.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -129,10 +130,11 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 )
-
+FILE(GLOB_RECURSE HEADERS "include/*.hpp")
 ## Declare a cpp executable
 add_executable(
 	${PROJECT_NAME}
+        ${HEADERS}
 	src/next_best_view.cpp
 )
 

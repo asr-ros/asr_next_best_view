@@ -126,7 +126,7 @@ namespace next_best_view {
 		viz::Marker lineListMarker = MarkerHelper::getBasicMarker(sequence++);
 		lineListMarker.type = viz::Marker::LINE_LIST;
 		lineListMarker.lifetime = lifetimeDur;
-		lineListMarker.scale.x = 0.05;
+        lineListMarker.scale.x = 0.01;
 		lineListMarker.pose.position = TypeHelper::getPointMSG(cameraPosition);
 		MarkerHelper::getRainbowColor(lineListMarker, 1.0 / 6.0, 0.2);
 

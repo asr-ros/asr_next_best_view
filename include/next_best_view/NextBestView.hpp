@@ -11,6 +11,7 @@
 // Global Includes
 #include <algorithm>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <eigen3/Eigen/Dense>
@@ -38,6 +39,7 @@
 // Local Includes
 #include "typedef.hpp"
 #include "next_best_view/SetupVisualization.h"
+#include "next_best_view/TriggerFrustumVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
 #include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/GetNextBestView.h"
@@ -95,6 +97,7 @@ namespace next_best_view {
 		ros::ServiceServer mGetSpaceSamplingServiceServer;
 		ros::ServiceServer mUpdatePointCloudServiceServer;
 		ros::ServiceServer mSetupVisualizationServiceServer;
+        ros::ServiceServer mTriggerFrustumVisualizationServer;
 
 		ros::Publisher mSpaceSamplingPublisher;
 		ros::Publisher mPointCloudPublisher;
@@ -118,6 +121,7 @@ namespace next_best_view {
 		SetupVisualizationRequest mVisualizationSettings;
 		bool mCurrentlyPublishingVisualization;
         viz::MarkerArray::Ptr mMarkerArrayPtr;
+        unsigned int numberSearchedObjects;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -130,6 +134,7 @@ namespace next_best_view {
 			mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
 			mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
 			mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
+            mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
 
 			mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
 			mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
@@ -162,6 +167,7 @@ namespace next_best_view {
 			* keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
 			* able to adjust the parameters for each camera separateley.
 			*/
+            numberSearchedObjects = 0;
 			double fovx, fovy, ncp, fcp, speedFactorRecognizer;
 			mNodeHandle.param("fovx", fovx, 62.5);
 			mNodeHandle.param("fovy", fovy, 48.9);
@@ -441,6 +447,33 @@ namespace next_best_view {
 
 			return true;
 		}
+        bool processTriggerFrustumVisualization(TriggerFrustumVisualization::Request &request,
+                                                TriggerFrustumVisualization::Response &response)
+        {
+            ROS_DEBUG("trigger frustum visualization");
+            geometry_msgs::Pose pose = request.current_pose;
+            SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
+            SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
+            mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
+            uint32_t sequence = 0;
+            mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+            if (mVisualizationSettings.frustum_marker_array)
+            {
+                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                {
+                    mMarkerArrayPtr->markers.at(i).color.r = 0;
+                    mMarkerArrayPtr->markers.at(i).color.g = 1;
+                    mMarkerArrayPtr->markers.at(i).color.b = 1;
+                }
+                std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
+                viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
+                textMarker.pose = pose;
+                mMarkerArrayPtr->markers.push_back(textMarker);
+
+                mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+            }
+            return true;
+        }
 
 		bool triggerVisualization() {
 			return this->triggerVisualization(mCurrentCameraViewport, false);
@@ -488,8 +521,7 @@ namespace next_best_view {
 					this->moveRobotToPose(movePose);
 				}
 			}*/
-
-			if (mVisualizationSettings.point_cloud) {
+            if (mVisualizationSettings.point_cloud) {
 				ROS_DEBUG("Publishing Point Cloud");
 
 				Indices pointCloudIndices;
@@ -526,23 +558,23 @@ namespace next_best_view {
 
 				mFrustumPointCloudPublisher.publish(frustum_point_cloud);
 			}
+            if (mVisualizationSettings.frustum_marker_array) {
+                ROS_DEBUG("Publishing Frustum Marker Array");
 
-			if (mVisualizationSettings.frustum_marker_array) {
-				ROS_DEBUG("Publishing Frustum Marker Array");
-
-				uint32_t sequence = 0;
+                uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
-                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
-                    {
-                        mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
-                        mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
-                        mMarkerArrayPtr->markers.at(i).color.r = 1;
-                        mMarkerArrayPtr->markers.at(i).color.g = 0;
-                        mMarkerArrayPtr->markers.at(i).color.b = 1;
-                    }
+                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                {
+                    mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
+                    mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
+                    mMarkerArrayPtr->markers.at(i).color.r = 1;
+                    mMarkerArrayPtr->markers.at(i).color.g = 0;
+                    mMarkerArrayPtr->markers.at(i).color.b = 1;
+                }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
+
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
@@ -550,8 +582,19 @@ namespace next_best_view {
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
                 }
+                if (!is_initial)
+                {
+                    numberSearchedObjects = viewport.object_name_set->size();
+                    ROS_INFO("numberSearchedObjects: %d", numberSearchedObjects);
+                    std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
+                    viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
+                    textMarker.pose = viewport.getPose();
+                    mMarkerArrayPtr->markers.push_back(textMarker);
+                }
+
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
-			}
+            }
+
 
 			mCurrentlyPublishingVisualization = false;
 		}
