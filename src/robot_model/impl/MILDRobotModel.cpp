@@ -31,12 +31,16 @@ namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaBase_, tolerance_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaBase_,mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
         n.getParam("mOmegaRot", mOmegaRot_);
         n.getParam("mOmegaBase", mOmegaBase_);
+        n.getParam("mOmegaUseBase", mOmegaUseBase_);
+        n.getParam("speedFactorPTU", speedFactorPTU_);
+        n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
+        n.getParam("speedFactorBaseRot", speedFactorBaseRot_);
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         useGlobalPlanner = useGlobalPlanner_;
@@ -52,11 +56,19 @@ namespace next_best_view {
         ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
         ROS_DEBUG_STREAM("mOmegaRot: " << mOmegaRot_);
         ROS_DEBUG_STREAM("mOmegaBase: " << mOmegaBase_);
+        ROS_DEBUG_STREAM("mOmegaUseBase: " << mOmegaUseBase_);
+        ROS_DEBUG_STREAM("speedFactorPTU: " << speedFactorPTU_);
+        ROS_DEBUG_STREAM("speedFactorBaseMove: " << speedFactorBaseMove_);
+        ROS_DEBUG_STREAM("speedFactorBaseRot: " << speedFactorBaseRot_);
         ROS_DEBUG_STREAM("tolerance: " << tolerance_);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
         mOmegaBase = mOmegaBase_;
+        mOmegaUseBase = mOmegaUseBase_;
+        speedFactorPTU = speedFactorPTU_;
+        speedFactorBaseMove = speedFactorBaseMove_;
+        speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
@@ -228,7 +240,7 @@ namespace next_best_view {
         float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
         float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
 
-        float distance, costs ;
+        float distance ;
         geometry_msgs::Point sourcePoint, targetPoint;
         sourcePoint.x = sourceMILDRobotState->x;
         sourcePoint.y = sourceMILDRobotState->y;
@@ -241,8 +253,16 @@ namespace next_best_view {
 
         float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
         float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
-        float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-        costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance)*mOmegaBase;
+        //**************************Old cost formula*********************************
+        //float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
+        //costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance)*mOmegaBase;
+        //***************************************************************************
+
+        float rotationCostsPTU = std::max(abs(panDiff)*mOmegaPan, abs(tiltDiff)*mOmegaTilt)*speedFactorPTU;
+        float movementCosts = mOmegaRot * speedFactorBaseRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)));
+        movementCosts += (distance < 1E-7 ? 0.0 : 10.0 * distance) * mOmegaBase * speedFactorBaseMove;
+        float costs = max(movementCosts, rotationCostsPTU);
+        costs += (distance < 1E-7 ? 0.0 : mOmegaUseBase);
         ROS_DEBUG_STREAM("Costs: " << costs);
         return costs;
     }

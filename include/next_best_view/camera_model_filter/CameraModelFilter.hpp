@@ -57,6 +57,10 @@ namespace next_best_view {
 		 * \brief the orientation of the pivot point.
 		 */
 		SimpleQuaternion mPivotPointOrientation;
+		/**
+		 * \brief The time it takes to recognize an object (in seconds)
+		 */
+		float recognizerCosts;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	public:
@@ -79,10 +83,16 @@ namespace next_best_view {
 		virtual viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0) = 0;
 
 		/*!
+		 * \param recognizerCosts the costs of the recognition of the object
+		 * \param objectName the object to recognize.
+		 */
+		virtual void setRecognizerCosts(float recognizerCosts, std::string objectName);
+		
+		/*!
 		 * \param objectName the object to recognize.
 		 * \returns the costs of the recognition of the object
 		 */
-		virtual float getRecognizerCosts(std::string objectName) = 0;
+		virtual float getRecognizerCosts(std::string objectName);
 
 		/*!
 		 * \return if the parameters changed

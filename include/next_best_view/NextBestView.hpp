@@ -162,15 +162,17 @@ namespace next_best_view {
 			* keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
 			* able to adjust the parameters for each camera separateley.
 			*/
-			double fovx, fovy, ncp, fcp;
+			double fovx, fovy, ncp, fcp, speedFactorRecognizer;
 			mNodeHandle.param("fovx", fovx, 62.5);
 			mNodeHandle.param("fovy", fovy, 48.9);
 			mNodeHandle.param("ncp", ncp, .5);
 			mNodeHandle.param("fcp", fcp, 5.0);
+			mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
 			ROS_DEBUG_STREAM("fovx: " << fovx);
 			ROS_DEBUG_STREAM("fovy: " << fovy);
 			ROS_DEBUG_STREAM("ncp: " << ncp);
 			ROS_DEBUG_STREAM("fcp: " << fcp);
+			ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
 
 			//////////////////////////////////////////////////////////////////
 			// HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
@@ -228,6 +230,7 @@ namespace next_best_view {
 			cameraModelFilterPtr->setVerticalFOV(fovy);
 			cameraModelFilterPtr->setNearClippingPlane(ncp);
 			cameraModelFilterPtr->setFarClippingPlane(fcp);
+			cameraModelFilterPtr->setRecognizerCosts((float)speedFactorRecognizer, "");
 
 			
 			double panMin, panMax, tiltMin, tiltMax;
