@@ -322,6 +322,15 @@ public:
                 ROS_ERROR("No NBV found");
 				break;
 			}
+
+            UpdatePointCloud upc_req;
+            upc_req.request.update_pose = nbv.response.resulting_pose;
+
+            if(!updatePointCloudClient.call(upc_req)) {
+                ROS_ERROR("Update Point Cloud failed!");
+                break;
+            }
+
 			x++;
 
 			nbv.request.current_pose = nbv.response.resulting_pose;
