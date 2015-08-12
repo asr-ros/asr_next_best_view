@@ -308,7 +308,7 @@ public:
 		setPointCloudClient.call(apc.request, apc.response);
 
 		GetNextBestView nbv;
-		nbv.request.initial_pose = initialPose;
+		nbv.request.current_pose = initialPose;
 		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
 		int x = 1;
 		while(ros::ok()) {
@@ -319,9 +319,12 @@ public:
 			}
 
 			if (!nbv.response.found) {
+                ROS_ERROR("No NBV found");
 				break;
 			}
 			x++;
+
+			nbv.request.current_pose = nbv.response.resulting_pose;
 
 			ros::spinOnce();
 			waitForEnter();

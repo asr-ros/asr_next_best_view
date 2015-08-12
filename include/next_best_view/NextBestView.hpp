@@ -149,7 +149,6 @@ namespace next_best_view {
 			mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
 			mNodeHandle.param("move_robot", move_robot, false);
 
-
 			// assign the values to the settings struct
 			mVisualizationSettings.space_sampling = show_space_sampling;
 			mVisualizationSettings.point_cloud = show_point_cloud;
@@ -275,7 +274,7 @@ namespace next_best_view {
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
 			mVisualizationSettings = SetupVisualizationRequest(request);
 
-			this->triggerVisualization();
+			this->triggerVisualization(mCurrentCameraViewport);
 
 			return true;
 		}
@@ -334,7 +333,9 @@ namespace next_best_view {
 		}
 
 		bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
-			mCalculator.setPointCloudFromMessage(request.point_cloud);
+			if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
+				return false;
+			}
 
 			mCurrentCameraViewport = ViewportPoint(request.pose);
 			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
@@ -372,7 +373,7 @@ namespace next_best_view {
 
 	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-			ViewportPoint currentCameraViewport(request.initial_pose);
+			ViewportPoint currentCameraViewport(request.current_pose);
 
 			ViewportPoint resultingViewport;
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
@@ -409,7 +410,7 @@ namespace next_best_view {
 			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
 			ROS_DEBUG("Trigger Visualization");
-			this->triggerVisualization();
+			this->triggerVisualization(resultingViewport);
 			ROS_DEBUG("Visualization triggered");
 
 			mCalculator.updateObjectPointCloud(resultingViewport);
@@ -430,7 +431,7 @@ namespace next_best_view {
 			SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
 			ViewportPoint viewportPoint;
-			mCalculator.doFrustumCulling(point, orientation, IndicesPtr(), viewportPoint);
+			mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
 
 			mCalculator.updateObjectPointCloud(viewportPoint);
 
@@ -532,16 +533,18 @@ namespace next_best_view {
                     {
                         mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
                         mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
-                        mMarkerArrayPtr->markers.at(i).color.r = 0.5;
-                        mMarkerArrayPtr->markers.at(i).color.b = 0.5;
+                        mMarkerArrayPtr->markers.at(i).color.r = 1;
+                        mMarkerArrayPtr->markers.at(i).color.g = 0;
+                        mMarkerArrayPtr->markers.at(i).color.b = 1;
                     }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
-                    mMarkerArrayPtr->markers.at(i).color.g = 0.5;
-                    mMarkerArrayPtr->markers.at(i).color.b = 0.5;
+                    mMarkerArrayPtr->markers.at(i).color.r = 0;
+                    mMarkerArrayPtr->markers.at(i).color.g = 1;
+                    mMarkerArrayPtr->markers.at(i).color.b = 1;
                 }
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
 			}

@@ -1,0 +1,11 @@
+SpaceSamplingMarker_Scale: 0.05
+SpaceSamplingMarker_RGBA: [1, 0, 0, 0.5]
+GridMarker_ScaleZ: 0.1
+GridMarker_RGBA: [0, 0, 1, 0.1]
+ViewPortMarker_Scale: 0.05
+ViewPortMarker_HeightFactor: 0.35
+ViewPortMarker_ShrinkFactor: 3.0
+ViewPortMarker_RGBA: [1, 0, 0, 1]
+ColumnPositionMarker_RGBA: [0,0,1,1]
+ColumnPositionMarker_Width: 0.02
+boolClearBetweenIterations: true

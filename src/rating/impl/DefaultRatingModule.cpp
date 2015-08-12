@@ -15,21 +15,21 @@
 namespace next_best_view {
 	float DefaultRatingModule::getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint) {
 		float maxRating = 0.0;
-		SimpleVector3 viewportPosition = viewportPoint.getSimpleVector3();
 		SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
+        SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportOrientation);
 
 		SimpleVector3 visualAxis = MathHelper::getVisualAxis(viewportOrientation);
 
 		BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
 			SimpleVector3 objectSurfaceNormalVector = objectPoint.normal_vectors->at(index);
-			maxRating = std::max(this->getSingleNormalityRating(-visualAxis, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
+			maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
 		}
 
 		return maxRating;
 	}
 
 	float DefaultRatingModule::getSingleNormalityRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector, float angleThreshold) {
-		float cosinus = MathHelper::getCosinus(viewportNormalVector, objectSurfaceNormalVector);
+		float cosinus = MathHelper::getCosinus(-viewportNormalVector, objectSurfaceNormalVector);
 		float angle = acos(cosinus);
 		if (angle < angleThreshold) {
 			return .5 + .5 * cos(angle * M_PI / angleThreshold);
