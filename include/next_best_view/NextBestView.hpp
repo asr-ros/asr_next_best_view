@@ -413,7 +413,8 @@ namespace next_best_view {
 			this->triggerVisualization(resultingViewport);
 			ROS_DEBUG("Visualization triggered");
 
-			mCalculator.updateObjectPointCloud(resultingViewport);
+            // the point cloud should be updated via a service call
+            //mCalculator.updateObjectPointCloud(resultingViewport);
 
 
 			// push to the viewport list.
