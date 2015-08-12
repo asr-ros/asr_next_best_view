@@ -1,10 +1,4 @@
 <launch>
-	<node pkg="next_best_view" type="next_best_view" name="nbv" output="screen">
-        <rosparam>
-            fovx: 62.5
-            fovy: 48.9
-            ncp: .2
-            fcp: 10.0
-        </rosparam>
-	</node>
+	<include file="$(find next_best_view)/launch/next_best_view.launch" />
+	<node pkg="next_best_view" type="next_best_view_test" name="test" output="screen"/>
 </launch>

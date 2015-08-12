@@ -30,6 +30,10 @@ namespace next_best_view {
 		float mOmegaTilt;
 		float mOmegaRot;
 		float mOmegaBase;
+		float mOmegaUseBase;
+		float speedFactorPTU;
+		float speedFactorBaseMove;
+		float speedFactorBaseRot;
 		float tolerance;
 		bool useGlobalPlanner;
 
