@@ -11,6 +11,7 @@
 // Global Includes
 #include <algorithm>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <eigen3/Eigen/Dense>
@@ -484,8 +485,7 @@ namespace next_best_view {
 					this->moveRobotToPose(movePose);
 				}
 			}*/
-
-			if (mVisualizationSettings.point_cloud) {
+            if (mVisualizationSettings.point_cloud) {
 				ROS_DEBUG("Publishing Point Cloud");
 
 				Indices pointCloudIndices;
@@ -523,7 +523,7 @@ namespace next_best_view {
 				mFrustumPointCloudPublisher.publish(frustum_point_cloud);
 			}
 
-			if (mVisualizationSettings.frustum_marker_array) {
+            if (mVisualizationSettings.frustum_marker_array) {
 				ROS_DEBUG("Publishing Frustum Marker Array");
 
 				uint32_t sequence = 0;
@@ -539,6 +539,7 @@ namespace next_best_view {
                     }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
+
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
@@ -546,6 +547,18 @@ namespace next_best_view {
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
                 }
+                if (!is_initial)
+                {
+                    unsigned int object_number = viewport.object_name_set->size();
+                    ROS_INFO("object_number: %d", object_number);
+                    std::string prefix = "searched objects: ";
+                    std::string result;
+                    result = prefix + boost::lexical_cast<std::string>(object_number);
+                    viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
+                    textMarker.pose = viewport.getPose();
+                    mMarkerArrayPtr->markers.push_back(textMarker);
+                }
+
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
 			}
 

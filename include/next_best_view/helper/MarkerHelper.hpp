@@ -26,10 +26,18 @@ namespace next_best_view {
 		~MarkerHelper();
 	public:
 		/*!
-		 * \param id the id of the marker
+         * \param id the id of the marker
 		 * \return a marker with all basic settings
 		 */
 		static visualization_msgs::Marker getBasicMarker(int id);
+
+        /*!
+         * \brief getTextMarker
+         * \param id the id of the marker
+         * \param text the text of the marker
+         * \return a marker with all basic settings
+         */
+        static visualization_msgs::Marker getTextMarker(int id, std::string text);
 
 		/*!
 		 * \param id the id of the marker
