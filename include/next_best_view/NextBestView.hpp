@@ -121,6 +121,7 @@ namespace next_best_view {
 		SetupVisualizationRequest mVisualizationSettings;
 		bool mCurrentlyPublishingVisualization;
         viz::MarkerArray::Ptr mMarkerArrayPtr;
+        unsigned int numberSearchedObjects;
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -166,6 +167,7 @@ namespace next_best_view {
 			* keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
 			* able to adjust the parameters for each camera separateley.
 			*/
+            numberSearchedObjects = 0;
 			double fovx, fovy, ncp, fcp, speedFactorRecognizer;
 			mNodeHandle.param("fovx", fovx, 62.5);
 			mNodeHandle.param("fovy", fovy, 48.9);
@@ -463,6 +465,11 @@ namespace next_best_view {
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
                 }
+                std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
+                viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
+                textMarker.pose = pose;
+                mMarkerArrayPtr->markers.push_back(textMarker);
+
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
             }
             return true;
@@ -551,6 +558,42 @@ namespace next_best_view {
 
 				mFrustumPointCloudPublisher.publish(frustum_point_cloud);
 			}
+            if (mVisualizationSettings.frustum_marker_array) {
+                ROS_DEBUG("Publishing Frustum Marker Array");
+
+                uint32_t sequence = 0;
+                if (mMarkerArrayPtr)
+                {
+                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                {
+                    mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
+                    mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
+                    mMarkerArrayPtr->markers.at(i).color.r = 1;
+                    mMarkerArrayPtr->markers.at(i).color.g = 0;
+                    mMarkerArrayPtr->markers.at(i).color.b = 1;
+                }
+                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                }
+
+                mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                {
+                    mMarkerArrayPtr->markers.at(i).color.r = 0;
+                    mMarkerArrayPtr->markers.at(i).color.g = 1;
+                    mMarkerArrayPtr->markers.at(i).color.b = 1;
+                }
+                if (!is_initial)
+                {
+                    numberSearchedObjects = viewport.object_name_set->size();
+                    ROS_INFO("numberSearchedObjects: %d", numberSearchedObjects);
+                    std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
+                    viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
+                    textMarker.pose = viewport.getPose();
+                    mMarkerArrayPtr->markers.push_back(textMarker);
+                }
+
+                mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+            }
 
 
 			mCurrentlyPublishingVisualization = false;
