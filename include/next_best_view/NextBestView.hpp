@@ -387,6 +387,16 @@ namespace next_best_view {
 			ViewportPoint resultingViewport;
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
 				ROS_DEBUG("No more found");
+                if (mVisualizationSettings.frustum_marker_array)
+                {
+                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                    {
+                        mMarkerArrayPtr->markers.at(i).color.r = 1;
+                        mMarkerArrayPtr->markers.at(i).color.g = 1;
+                        mMarkerArrayPtr->markers.at(i).color.b = 0;
+                    }
+                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                }
 				response.found = false;
 				return true;
 			}
