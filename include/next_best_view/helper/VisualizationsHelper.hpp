@@ -260,7 +260,7 @@ public:
 
     VisualizationHelper():i(0),j(0),iterationStep(0){
         node_handle;
-        vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "visualization_markerarray", 100 );
+        vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "/nbv/iteration_visualization", 1000);
         node_handle.getParam("/nbv/boolClearBetweenIterations", boolClearBetweenIterations);
         ROS_INFO_STREAM("boolClearBetweenIterations: " << boolClearBetweenIterations);
         markerArray = visualization_msgs::MarkerArray();
