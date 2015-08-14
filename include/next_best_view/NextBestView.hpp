@@ -394,6 +394,7 @@ namespace next_best_view {
                         mMarkerArrayPtr->markers.at(i).color.r = 1;
                         mMarkerArrayPtr->markers.at(i).color.g = 1;
                         mMarkerArrayPtr->markers.at(i).color.b = 0;
+                        mMarkerArrayPtr->markers.at(i).ns = "last_nbv_frustum";
                     }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
@@ -474,6 +475,7 @@ namespace next_best_view {
                     mMarkerArrayPtr->markers.at(i).color.r = 0;
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
+                    mMarkerArrayPtr->markers.at(i).ns = "actual_nbv_frustum";
                 }
                 std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
                 viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
@@ -574,14 +576,15 @@ namespace next_best_view {
                 uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
-                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
-                {
-                    mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
-                    mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
-                    mMarkerArrayPtr->markers.at(i).color.r = 1;
-                    mMarkerArrayPtr->markers.at(i).color.g = 0;
-                    mMarkerArrayPtr->markers.at(i).color.b = 1;
-                }
+                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                    {
+                        mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
+                        mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
+                        mMarkerArrayPtr->markers.at(i).color.r = 1;
+                        mMarkerArrayPtr->markers.at(i).color.g = 0;
+                        mMarkerArrayPtr->markers.at(i).color.b = 1;
+                        mMarkerArrayPtr->markers.at(i).ns = "old_nbv_frustum";
+                    }
                     mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
 
@@ -591,6 +594,7 @@ namespace next_best_view {
                     mMarkerArrayPtr->markers.at(i).color.r = 0;
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
+                    mMarkerArrayPtr->markers.at(i).ns = "new_nbv_frustum";
                 }
                 if (!is_initial)
                 {
@@ -599,6 +603,7 @@ namespace next_best_view {
                     std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
                     viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
                     textMarker.pose = viewport.getPose();
+                    textMarker.ns = "new_nbv_frustum";
                     mMarkerArrayPtr->markers.push_back(textMarker);
                 }
 
