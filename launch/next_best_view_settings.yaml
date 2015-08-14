@@ -19,7 +19,7 @@ show_frustum_point_cloud: true
 show_frustum_marker_array: true
 move_robot: true
 recognition_time: 6
-panMin: -60
-panMax: 60
-tiltMin: -45
-tiltMax: 45
+panMin: -158
+panMax: 158
+tiltMin: -60
+tiltMax: 60
