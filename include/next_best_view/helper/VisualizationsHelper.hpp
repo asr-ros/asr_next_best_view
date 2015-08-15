@@ -274,7 +274,8 @@ public:
     if(iterationStep==0 && boolClearBetweenIterations == true)  clearVisualzation();
         std::string s = boost::lexical_cast<std::string>(iterationStep);
         this->iterationStep=iterationStep;
-        j = iterationStep*0.15;
+        j = iterationStep*0.25;
+	j = std::min(1.0f, j); //Prevent overflow
 
         triggerSpaceSampling(feasibleIndices, pointcloud,s);
         triggerGrid(spaceSamplerPtr, s);
