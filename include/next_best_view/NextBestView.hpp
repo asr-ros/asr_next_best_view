@@ -392,14 +392,16 @@ namespace next_best_view {
 				ROS_DEBUG("No more found");
                 if (mVisualizationSettings.frustum_marker_array)
                 {
-                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                    if (mMarkerArrayPtr)
                     {
-                        mMarkerArrayPtr->markers.at(i).color.r = 1;
-                        mMarkerArrayPtr->markers.at(i).color.g = 1;
-                        mMarkerArrayPtr->markers.at(i).color.b = 0;
-                        mMarkerArrayPtr->markers.at(i).ns = "last_nbv_frustum";
+                        ROS_DEBUG("Delete the deprecated frustum");
+                        for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                        {
+                            mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
+                        }
+                        mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                        mMarkerArrayPtr = NULL;
                     }
-                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                 }
 				response.found = false;
 				return true;
