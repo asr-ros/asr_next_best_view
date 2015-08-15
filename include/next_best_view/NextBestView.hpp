@@ -54,6 +54,8 @@
 #include "next_best_view/AttributedPoint.h"
 #include "next_best_view/camera_model_filter/impl/MapBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/MapBasedStereoCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
@@ -231,7 +233,8 @@ namespace next_best_view {
 			 * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
 			 * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
 			 */
-			MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
+			//MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
+			MapBasedStereoCameraModelFilterPtr cameraModelFilterPtr(new MapBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
 			cameraModelFilterPtr->setHorizontalFOV(fovx);
 			cameraModelFilterPtr->setVerticalFOV(fovy);
 			cameraModelFilterPtr->setNearClippingPlane(ncp);
