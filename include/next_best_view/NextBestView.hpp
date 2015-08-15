@@ -400,7 +400,7 @@ namespace next_best_view {
                             mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
                         }
                         mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
-                        mMarkerArrayPtr = NULL;
+                        mMarkerArrayPtr.reset();
                     }
                 }
 				response.found = false;
