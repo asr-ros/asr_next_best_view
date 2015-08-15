@@ -394,12 +394,7 @@ namespace next_best_view {
                 {
                     if (mMarkerArrayPtr)
                     {
-                        ROS_DEBUG("Delete the deprecated frustum");
-                        for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
-                        {
-                            mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
-                        }
-                        mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                        deleteFrustumInRviz();
                         mMarkerArrayPtr.reset();
                     }
                 }
@@ -473,14 +468,7 @@ namespace next_best_view {
             mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
             uint32_t sequence = 0;
             if (mMarkerArrayPtr)
-            {
-                ROS_DEBUG("Deleted new frustum");
-                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
-                {
-                    mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
-                }
-                mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
-            }
+                deleteFrustumInRviz();
             mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
             if (mVisualizationSettings.frustum_marker_array)
             {
@@ -521,6 +509,15 @@ namespace next_best_view {
 
 			return true;
 		}
+        void deleteFrustumInRviz()
+        {
+            ROS_DEBUG("Deleted last frustum in rviz");
+            for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+            {
+                mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
+            }
+            mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+        }
 
 		/*!
 		 * \brief Publishes the Visualization of the NextBestView
@@ -591,12 +588,7 @@ namespace next_best_view {
                 uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
-                    ROS_DEBUG("Deleted new frustum");
-                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
-                    {
-                        mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
-                    }
-                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                    deleteFrustumInRviz();
                     ROS_DEBUG("Publishing old frustum");
                     for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                     {
