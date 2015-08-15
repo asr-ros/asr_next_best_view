@@ -469,6 +469,7 @@ namespace next_best_view {
             uint32_t sequence = 0;
             if (mMarkerArrayPtr)
             {
+                ROS_DEBUG("Deleted new frustum");
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
                     mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
@@ -478,6 +479,7 @@ namespace next_best_view {
             mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
             if (mVisualizationSettings.frustum_marker_array)
             {
+                ROS_DEBUG("Publish actual frustum");
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
                     mMarkerArrayPtr->markers.at(i).color.r = 0;
@@ -579,11 +581,12 @@ namespace next_best_view {
 				mFrustumPointCloudPublisher.publish(frustum_point_cloud);
 			}
             if (mVisualizationSettings.frustum_marker_array) {
-                ROS_DEBUG("Publishing Frustum Marker Array");
+
 
                 uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
+                    ROS_DEBUG("Publishing old frustum");
                     for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                     {
                         mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
@@ -599,6 +602,7 @@ namespace next_best_view {
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
+                    ROS_DEBUG("Publishing new frustum");
                     mMarkerArrayPtr->markers.at(i).color.r = 0;
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
@@ -606,6 +610,7 @@ namespace next_best_view {
                 }
                 if (!is_initial)
                 {
+                    ROS_DEBUG("Adding text");
                     numberSearchedObjects = viewport.object_name_set->size();
                     ROS_INFO("numberSearchedObjects: %d", numberSearchedObjects);
                     std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
