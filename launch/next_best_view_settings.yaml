@@ -1,5 +1,5 @@
 mOmegaPan: 1.0  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
-mOmegaTilt: 1.0 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
+mOmegaTilt: 10.0 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 1.0 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 3.0 #Gewichtungsfaktor für die Bewegung der Basis
 mOmegaUseBase: 8.0 #Zusätzlicher Kostenfaktor der addiert wird, wenn die Basis bewegt wird
@@ -19,7 +19,7 @@ show_frustum_point_cloud: true
 show_frustum_marker_array: true
 move_robot: true
 recognition_time: 6
-panMin: -158
-panMax: 158
-tiltMin: -60
-tiltMax: 60
+panMin: -45
+panMax: 45
+tiltMin: -50
+tiltMax: 20
