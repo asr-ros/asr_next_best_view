@@ -467,6 +467,14 @@ namespace next_best_view {
             SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
             mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
             uint32_t sequence = 0;
+            if (mMarkerArrayPtr)
+            {
+                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                {
+                    mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
+                }
+                mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+            }
             mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
             if (mVisualizationSettings.frustum_marker_array)
             {
