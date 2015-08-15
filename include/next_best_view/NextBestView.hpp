@@ -591,10 +591,17 @@ namespace next_best_view {
                 uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
+                    ROS_DEBUG("Deleted new frustum");
+                    for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
+                    {
+                        mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
+                    }
+                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
                     ROS_DEBUG("Publishing old frustum");
                     for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                     {
                         mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
+                        mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::ADD;
                         mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
                         mMarkerArrayPtr->markers.at(i).color.r = 1;
                         mMarkerArrayPtr->markers.at(i).color.g = 0;
@@ -605,9 +612,9 @@ namespace next_best_view {
                 }
 
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+                ROS_DEBUG("Publishing new frustum");
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
                 {
-                    ROS_DEBUG("Publishing new frustum");
                     mMarkerArrayPtr->markers.at(i).color.r = 0;
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
