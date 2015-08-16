@@ -8,10 +8,10 @@ speedFactorBaseRot: 0.1 #Zeitkosten für Drehung der Basis in Sec/Rad
 speedFactorBaseMove: 5.0 #Zeitkosten für Bewegung der Basis in Sec/Meter
 speedFactorRecognizer: 5.0 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
-useGlobalPlanner: false
-fovx: 42.09
-fovy: 31.87
-ncp: 0.74 #Entfernung der NearClippingPlane in meter
+useGlobalPlanner: true
+fovx: 31
+fovy: 24
+ncp: 0.7 #Entfernung der NearClippingPlane in meter
 fcp: 1.1 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
@@ -23,3 +23,6 @@ panMin: -22
 panMax: 19
 tiltMin: -50
 tiltMax: 20
+radius: 0.2
+samples: 128
+colThresh: 45

@@ -161,6 +161,12 @@ add_executable(
 	src/test_cases/Test.cpp
 )
 
+add_executable(
+	${PROJECT_NAME}_test_labor
+       	src/test_cases/Test_Labor.cpp
+
+)
+
 target_link_libraries(
 	${PROJECT_NAME}_test
 	${PROJECT_NAME}_helper

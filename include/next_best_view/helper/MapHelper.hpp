@@ -59,7 +59,7 @@ namespace next_best_view {
 			ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapHelper::mapReceived, this);
 			ros::Subscriber costmapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(costmapTopicName, 1, &MapHelper::costmapReceived, this);
 			while(ros::ok() && !this->hasReceivedMaps()) {
-				ROS_DEBUG("Waiting for maps to arrive on topics '%s' and '%s'", mapSubscriber.getTopic().c_str(), costmapSubscriber.getTopic().c_str());
+                ROS_DEBUG("Waiting for maps to arrive on topics '%s' and '%s'", mapSubscriber.getTopic().c_str(), costmapSubscriber.getTopic().c_str());
 
 				ros::spinOnce();
 				ros::Duration(0.5).sleep();

@@ -171,10 +171,14 @@ namespace next_best_view {
 			*/
             numberSearchedObjects = 0;
 			double fovx, fovy, ncp, fcp, speedFactorRecognizer;
+            double radius,samples,colThresh;
 			mNodeHandle.param("fovx", fovx, 62.5);
 			mNodeHandle.param("fovy", fovy, 48.9);
 			mNodeHandle.param("ncp", ncp, .5);
 			mNodeHandle.param("fcp", fcp, 5.0);
+            mNodeHandle.param("radius", radius, 0.75);
+            mNodeHandle.param("colThresh", colThresh, 45.0);
+            mNodeHandle.param("samples", samples, 128.0);
 			mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
 			ROS_DEBUG_STREAM("fovx: " << fovx);
 			ROS_DEBUG_STREAM("fovy: " << fovy);
@@ -208,7 +212,7 @@ namespace next_best_view {
 			 * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
 			 */
 			SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
-			unitSphereSamplerPtr->setSamples(128);
+            unitSphereSamplerPtr->setSamples(samples);
 
 			/* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
 			 * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
@@ -216,7 +220,7 @@ namespace next_best_view {
 			 * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
 			 */
 			MapHelperPtr mapHelperPtr(new MapHelper());
-			mapHelperPtr->setCollisionThreshold(45);
+            mapHelperPtr->setCollisionThreshold(colThresh);
 
 			/* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
 			 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
@@ -225,7 +229,7 @@ namespace next_best_view {
 			 * the map and calculate the points which are contained in the feasible map space.
 			 */
 			MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
-			spaceSamplerPtr->setHexagonRadius(0.75);
+            spaceSamplerPtr->setHexagonRadius(radius);
 
 			/* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
 			 * The camera model filter takes account for the fact, that there are different cameras around in the real world.
