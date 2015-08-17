@@ -385,7 +385,7 @@ namespace next_best_view {
 					int normalVectorCount = 0;
 					BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
 						SimpleVector3 normal(point.x, point.y, point.z);
-						normal = rotationMatrix * normal;
+                        normal = rotationMatrix * normal;
 						pointCloudPoint.normal_vectors->push_back(normal);
 						pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
 						++normalVectorCount;

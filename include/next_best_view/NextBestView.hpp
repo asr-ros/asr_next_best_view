@@ -32,6 +32,7 @@
 #include <set>
 #include <std_srvs/Empty.h>
 #include <tf/transform_listener.h>
+#include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <world_model/GetViewportList.h>
 #include <world_model/PushViewport.h>
@@ -107,6 +108,7 @@ namespace next_best_view {
 		ros::Publisher mUnitSpherPointCloudPublisher;
 		ros::Publisher mFrustumMarkerArrayPublisher;
 		ros::Publisher mInitialPosePublisher;
+        ros::Publisher mPointObjectNormalPublisher;
 
 		// Action Clients
 		MoveBaseActionClientPtr mMoveBaseActionClient;
@@ -138,11 +140,12 @@ namespace next_best_view {
 			mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
             mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
 
-			mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
+            mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
 			mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
 			mFrustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("frustum_point_cloud", 1000);
 			mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("frustum_marker_array", 1000);
 			mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
+            mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_normals", 100, false);
 
 			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
 			mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
@@ -318,7 +321,6 @@ namespace next_best_view {
 			return true;
 		}
 
-
 		static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, AttributedPointCloud &pointCloudMessage) {
 			pointCloudMessage.elements.clear();
 
@@ -332,7 +334,7 @@ namespace next_best_view {
 			}
 		}
 
-		bool processGetPointCloud2ServiceCall(GetPointCloud2::Request &request, GetPointCloud2::Response &response) {
+        bool processGetPointCloud2ServiceCall(GetPointCloud2::Request &request, GetPointCloud2::Response &response) {
 			pcl::toROSMsg(*mCalculator.getPointCloudPtr(), response.point_cloud);
 			response.point_cloud.header.frame_id = "/map";
 
@@ -522,6 +524,7 @@ namespace next_best_view {
             for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
             {
                 mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::DELETE;
+                ROS_DEBUG_STREAM("Deleted marker with id " << mMarkerArrayPtr->markers.at(i).id);
             }
             mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
         }
@@ -564,7 +567,8 @@ namespace next_best_view {
 				ROS_DEBUG("Publishing %d points", pointCloudIndices.size());
 
 				sensor_msgs::PointCloud2 point_cloud;
-				pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices), point_cloud);
+                ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices);
+                pcl::toROSMsg(objectPointCloud, point_cloud);
 
 				point_cloud.header.frame_id = "/map";
 				point_cloud.header.seq = 0;
@@ -577,7 +581,43 @@ namespace next_best_view {
 
 				mPointCloudPublisher.publish(point_cloud);
 
-                //for (unsigned int i = 0; i < point_cloud.data)
+                visualization_msgs::MarkerArray objectNormalsMarkerArray;
+                unsigned int index = 0;
+                for(unsigned int i = 0; i < objectPointCloud.points.size(); i++)
+                {
+                    ObjectPoint point = objectPointCloud.points[i];
+                    ROS_INFO_STREAM("Publishing normals for " << point.object_type_name << ": " << point.normal_vectors->size() << " normals found.");
+                    for(unsigned int j = 0; j < point.normal_vectors->size(); j++)
+                    {
+                        geometry_msgs::Point start = point.getPoint();
+                        geometry_msgs::Point end = TypeHelper::getPointMSG(0.07*point.normal_vectors->at(j));
+                        end.x += start.x;
+                        end.y += start.y;
+                        end.z += start.z;
+                        visualization_msgs::Marker objectNormalMarker;
+
+                        objectNormalMarker.header.stamp = ros::Time();
+                        objectNormalMarker.header.frame_id = "/map";
+                        objectNormalMarker.type = objectNormalMarker.ARROW;
+                        objectNormalMarker.action = objectNormalMarker.ADD;
+                        objectNormalMarker.id = index++;
+                        objectNormalMarker.lifetime = ros::Duration();
+                        objectNormalMarker.ns = "ObjectNormals";
+                        objectNormalMarker.scale.x = 0.005;
+                        objectNormalMarker.scale.y = 0.01;
+                        objectNormalMarker.scale.z = 0.005;
+                        objectNormalMarker.color.a = 1;
+                        objectNormalMarker.color.r = 1;
+                        objectNormalMarker.color.g = 1;
+                        objectNormalMarker.color.b = 0;
+                        objectNormalMarker.points.push_back(start);
+                        objectNormalMarker.points.push_back(end);
+                        objectNormalMarker.pose.orientation.w=1;
+
+                        objectNormalsMarkerArray.markers.push_back(objectNormalMarker);
+                    }
+                }
+                mPointObjectNormalPublisher.publish(objectNormalsMarkerArray);
 			}
 
 			if (mVisualizationSettings.frustum_point_cloud) {
@@ -604,6 +644,7 @@ namespace next_best_view {
                         mMarkerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
                         mMarkerArrayPtr->markers.at(i).action = visualization_msgs::Marker::ADD;
                         mMarkerArrayPtr->markers.at(i).id +=  mMarkerArrayPtr->markers.size();
+                        ROS_DEBUG_STREAM("Added marker with id " << mMarkerArrayPtr->markers.at(i).id);
                         mMarkerArrayPtr->markers.at(i).color.r = 1;
                         mMarkerArrayPtr->markers.at(i).color.g = 0;
                         mMarkerArrayPtr->markers.at(i).color.b = 1;
@@ -620,7 +661,9 @@ namespace next_best_view {
                     mMarkerArrayPtr->markers.at(i).color.g = 1;
                     mMarkerArrayPtr->markers.at(i).color.b = 1;
                     mMarkerArrayPtr->markers.at(i).ns = "new_nbv_frustum";
+                    ROS_DEBUG_STREAM("Added new frustum marker with id " << mMarkerArrayPtr->markers.at(i).id);
                 }
+                ROS_DEBUG_STREAM("Marker 0 " << mMarkerArrayPtr->markers.at(0));
                 if (!is_initial)
                 {
                     ROS_DEBUG("Adding text");
@@ -632,11 +675,8 @@ namespace next_best_view {
                     textMarker.ns = "new_nbv_frustum";
                     mMarkerArrayPtr->markers.push_back(textMarker);
                 }
-
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
             }
-
-
 			mCurrentlyPublishingVisualization = false;
 		}
 

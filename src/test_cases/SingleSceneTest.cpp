@@ -40,10 +40,10 @@ public:
         hp[3] = SimpleVector3(-1.35400700569, 0.420550823212, 0.8);
 
         SimpleQuaternion* orientation = new SimpleQuaternion[hpSize];
-        orientation[0] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[1] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[2] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[3] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
+        orientation[0] = SimpleQuaternion(0.5, 0.5, 0.5, -0.5);
+        orientation[1] = SimpleQuaternion(0.5, 0.5, 0.5, -0.5);
+        orientation[2] = SimpleQuaternion(0.5, -0.5, -0.5, 0.5);
+        orientation[3] = SimpleQuaternion(0.5, -0.5, 0.5, 0.5);
         /*orientation[0] = SimpleQuaternion(0.658806053033,0.0, 0.0, 0.752312823556);
         orientation[1] = SimpleQuaternion(0.658806053033, 0.0, 0.0, 0.752312823556);
         orientation[2] = SimpleQuaternion(0.999847878074, 0.0, 0.0, -0.0174419239707);
@@ -54,7 +54,7 @@ public:
         types[2] = "Coffeebox";
         types[3] = "Smacks";
 
-       int sampleSize = 10;
+       int sampleSize = 2;
        std::map<std::string, std::vector<AttributedPoint>* > objectPointCloudsMap;
 
 		for (std::size_t idx = 0; idx < hpSize; idx++) {
@@ -107,8 +107,6 @@ public:
 		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
 		int x = 1;
 		while(ros::ok()) {
-            std::string yolo;
-            std::cin >> yolo;
             if(apc.request.point_cloud.elements.size() == 0)
             {
               break;

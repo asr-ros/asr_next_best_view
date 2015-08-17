@@ -8,7 +8,6 @@
 #define BOOST_TEST_STATIC_LINK
 
 #include <boost/test/included/unit_test.hpp>
-
 #include "next_best_view/test_cases/BaseTest.h"
 
 using namespace next_best_view;
@@ -32,85 +31,93 @@ public:
 
 		ROS_INFO("Generiere Häufungspunkte");
 		// Häufungspunkte
-        int hpSize = 9;
-        SimpleVector3* hp = new SimpleVector3[hpSize];
-        hp[0] = SimpleVector3(0.725892364979, 1.57344818115, 0.8);
-        hp[1] = SimpleVector3(1.0500099659, 1.63358879089,  0.8);
-        hp[2] = SimpleVector3(1.74442279339,-0.276624619961,  0.8);
-        hp[3] = SimpleVector3(1.64329886436, -0.350318551064,  0.8);
-        hp[4] = SimpleVector3(-0.998491704464, 0.463356167078,  0.8);
-        hp[5] = SimpleVector3(-0.972244024277,  0.759688913822,  0.8);
-        hp[6] = SimpleVector3(-0.516409695148,-0.863412082195, 1.3);
-        hp[7] = SimpleVector3(-0.516409695148,-0.863412082195, 1.3);
-        hp[8] = SimpleVector3(-0.516409695148,-0.863412082195, 1.7);
-	
+        int hpSize_scene1 = 6;
+        int hpSize_scene2 = 3;
+        SimpleVector3* hp_scene1 = new SimpleVector3[hpSize_scene1];
+        SimpleVector3* hp_scene2 = new SimpleVector3[hpSize_scene2];
+        /*hp[0] = SimpleVector3(0.742521169572478, -0.166090965925641, 0.748947613126895);
+        hp[1] = SimpleVector3(0.560789788292307, -0.607342310315772,  0.696360580898942);
+        hp[2] = SimpleVector3(0.686522427859229,0.333189151865266,  0.73872200371407);*/
+        hp_scene1[0] = SimpleVector3(0.725892364979, 1.57344818115, 0.8);
+        hp_scene1[1] = SimpleVector3(1.0500099659, 1.63358879089,  0.8);
+        hp_scene1[2] = SimpleVector3(1.66446590424, -0.549417376518,  0.8);
+        hp_scene1[3] = SimpleVector3(1.92009782791,-0.298665702343,  0.8);
+        hp_scene1[4] = SimpleVector3(-0.978491704464, 0.583356167078,  0.8);
+        hp_scene1[5] = SimpleVector3(-0.972244024277,  0.759688913822,  0.8);
+        hp_scene2[0] = SimpleVector3(-0.404876768589,-0.50940537452, 1.3);
+        hp_scene2[1] = SimpleVector3(-0.404876768589,-0.50940537452, 1.3);
+        hp_scene2[2] = SimpleVector3(-0.404876768589,-0.50940537452, 1.7);
 
-        SimpleQuaternion* orientation = new SimpleQuaternion[hpSize];
-        orientation[0] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[1] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[2] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[3] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[4] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[5] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[6] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        orientation[7] = SimpleQuaternion(0.70711,0.0, 0.0, -0.70711);
-        orientation[8] = SimpleQuaternion(0.0, 0.0, 0.0, 1.0);
-        /*orientation[0] = SimpleQuaternion(0.658806053033,0.0, 0.0, 0.752312823556);
-        orientation[1] = SimpleQuaternion(0.658806053033, 0.0, 0.0, 0.752312823556);
-        orientation[2] = SimpleQuaternion(0.999847878074, 0.0, 0.0, -0.0174419239707);
-        orientation[3] = SimpleQuaternion(0.695335180664, 0.0, 0.0,-0.718685596441);*/
-        std::string* types = new std::string[hpSize];
-        types[0] = "Cup";
-        types[1] = "PlateDeep";
-        types[2] = "Coffeebox";
-        types[3] = "CoffeeFilters2";
-        types[4] = "Smacks";
-        types[5] = "VitalisSchoko";
-        types[6] = "CeylonTea";
-        types[7] = "CeylonTea";
-        types[8] = "CeylonTea";
+        SimpleQuaternion* orientation_scene1 = new SimpleQuaternion[hpSize_scene1];
+        SimpleQuaternion* orientation_scene2 = new SimpleQuaternion[hpSize_scene2];
+        /*orientation[0] = SimpleQuaternion(0.503381987286147, -0.502745525579344, 0.491047199174946, -0.50271876786951);
+        orientation[1] = SimpleQuaternion(0.232199142247702, -0.221322745964355, 0.671437245515221, -0.668035796790234);
+        orientation[2] = SimpleQuaternion(0.637716711363953, -0.657873031610953, 0.289707317087814, -0.27674923803317);*/
+        orientation_scene1[0] = euler2Quaternion(-90, 0.0, 0.0);
+        orientation_scene1[1] = euler2Quaternion(-90, 0.0, 0.0);
+        orientation_scene1[2] = euler2Quaternion(-90, 100.0, 0.0);
+        orientation_scene1[3] = euler2Quaternion(-90, 150.0, 0.0);
+        orientation_scene1[4] = euler2Quaternion(-90, -90.0, 0.0);
+        orientation_scene1[5] = euler2Quaternion(-90, -90.0, 0.0);
+        orientation_scene2[0] = euler2Quaternion(-90, 180.0, 0.0);
+        orientation_scene2[1] = euler2Quaternion(-90, -90.0, 0.0);
+        orientation_scene2[2] = euler2Quaternion(-90, 180, 0.0);
+
+        std::string* types_scene1 = new std::string[hpSize_scene1];
+        std::string* types_scene2 = new std::string[hpSize_scene2];
+        /*types[0] = "Smacks";
+        types[1] = "Knaeckebrot";
+        types[2] = "VitalisSchoko";*/
+        types_scene1[0] = "Cup";
+        types_scene1[1] = "PlateDeep";
+        types_scene1[2] = "Coffeebox";
+        types_scene1[3] = "CoffeeFilters2";
+        types_scene1[4] = "Smacks";
+        types_scene1[5] = "VitalisSchoko";
+        types_scene2[0] = "CeylonTea";
+        types_scene2[1] = "CeylonTea";
+        types_scene2[2] = "CeylonTea";
 
        int sampleSize = 10;
        std::map<std::string, std::vector<AttributedPoint>* > objectPointCloudsMap;
 
-		for (std::size_t idx = 0; idx < hpSize; idx++) {
+       for (std::size_t idx = 0; idx < hpSize_scene1; idx++) {
 
-            if(objectPointCloudsMap.find(types[idx]) == objectPointCloudsMap.end())
+            if(objectPointCloudsMap.find(types_scene1[idx]) == objectPointCloudsMap.end())
             {
-                objectPointCloudsMap[types[idx]]= new std::vector<AttributedPoint>();
+                objectPointCloudsMap[types_scene1[idx]]= new std::vector<AttributedPoint>();
             }
 			for (std::size_t cnt = 0; cnt < sampleSize; cnt++) {
 				SimpleVector3 randomVector;
-                randomVector = MathHelper::getRandomVector(hp[idx], SimpleVector3(.05, .05, 0.01));
+                randomVector = MathHelper::getRandomVector(hp_scene1[idx], SimpleVector3(.05, .05, 0.01));
 
                 AttributedPoint element;
-
 				geometry_msgs::Pose pose;
-                pose.orientation.w = orientation[idx].w();
-                pose.orientation.x = orientation[idx].x();
-                pose.orientation.y = orientation[idx].y();
-                pose.orientation.z = orientation[idx].z();
+                pose.orientation.w = orientation_scene1[idx].w();
+                pose.orientation.x = orientation_scene1[idx].x();
+                pose.orientation.y = orientation_scene1[idx].y();
+                pose.orientation.z = orientation_scene1[idx].z();
 				pose.position.x = randomVector[0];
 				pose.position.y = randomVector[1];
 				pose.position.z = randomVector[2];
 
-                element.object_type = types[idx];
+                element.object_type = types_scene1[idx];
                 element.pose = pose;
-                objectPointCloudsMap[types[idx]]->push_back(element);
+                objectPointCloudsMap[types_scene1[idx]]->push_back(element);
 				apc.request.point_cloud.elements.push_back(element);
 			}
 		}
 
 		ROS_INFO("Setze initiale Pose");
 		geometry_msgs::Pose initialPose;
-        initialPose.position.x = -0.974955737591;
-        initialPose.position.y = -0.157173499465;
+        initialPose.position.x = 1.04865884781;
+        initialPose.position.y = 0.846048951149;
 		initialPose.position.z = 1.32;
 
-        initialPose.orientation.w = 0.718685498907;
+        initialPose.orientation.w = 0.668036938496;
 		initialPose.orientation.x = 0.0;
         initialPose.orientation.y = 0.0;
-        initialPose.orientation.z = 0.695335281472;
+        initialPose.orientation.z = 0.744128113166;
 		this->setInitialPose(initialPose);
 
 		apc.request.pose = initialPose;
@@ -120,11 +127,9 @@ public:
         ros::Rate r(2);
 		GetNextBestView nbv;
 		nbv.request.current_pose = initialPose;
-		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
 		int x = 1;
+        bool scene2_isInitialized = false;
 		while(ros::ok()) {
-            std::string yolo;
-            std::cin >> yolo;
             if(apc.request.point_cloud.elements.size() == 0)
             {
               break;
@@ -141,6 +146,36 @@ public:
                 for(int i=0;i<nbv.response.object_name_list.size();i++)
                 {
                     if (nbv.response.object_name_list[i] != "CeylonTea") objectPointCloudsMap.erase(nbv.response.object_name_list[i]);
+                    if (nbv.response.object_name_list[i] == "Smacks" && !scene2_isInitialized)
+                    {
+                        for (std::size_t idx = 0; idx < hpSize_scene2; idx++) {
+
+                             if(objectPointCloudsMap.find(types_scene2[idx]) == objectPointCloudsMap.end())
+                             {
+                                 objectPointCloudsMap[types_scene2[idx]]= new std::vector<AttributedPoint>();
+                             }
+                             for (std::size_t cnt = 0; cnt < sampleSize; cnt++) {
+                                 SimpleVector3 randomVector;
+                                 randomVector = MathHelper::getRandomVector(hp_scene2[idx], SimpleVector3(.05, .05, 0.01));
+
+                                 AttributedPoint element;
+
+                                 geometry_msgs::Pose pose;
+                                 pose.orientation.w = orientation_scene2[idx].w();
+                                 pose.orientation.x = orientation_scene2[idx].x();
+                                 pose.orientation.y = orientation_scene2[idx].y();
+                                 pose.orientation.z = orientation_scene2[idx].z();
+                                 pose.position.x = randomVector[0];
+                                 pose.position.y = randomVector[1];
+                                 pose.position.z = randomVector[2];
+
+                                 element.object_type = types_scene2[idx];
+                                 element.pose = pose;
+                                 objectPointCloudsMap[types_scene2[idx]]->push_back(element);
+                             }
+                         }
+                        scene2_isInitialized = true;
+                    }
                 }
                 for (std::map<std::string, std::vector<AttributedPoint>* >::iterator it = objectPointCloudsMap.begin() ; it != objectPointCloudsMap.end(); ++it)
                 {
@@ -164,7 +199,6 @@ public:
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }
-
 			x++;
 
 			nbv.request.current_pose = nbv.response.resulting_pose;
@@ -186,6 +220,7 @@ test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 
     boost::shared_ptr<MultiSceneTest> testPtr(new MultiSceneTest());
 
+    //evaluation->add(BOOST_CLASS_TEST_CASE(&MultiSceneTest::visualizeSingleObjectWithNormals, testPtr));
     evaluation->add(BOOST_CLASS_TEST_CASE(&MultiSceneTest::iterationTest, testPtr));
 
     framework::master_test_suite().add(evaluation);

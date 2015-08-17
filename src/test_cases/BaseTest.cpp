@@ -204,4 +204,17 @@ using namespace next_best_view;
         std::cout << std::endl;
     }
 
+   SimpleQuaternion  BaseTest::euler2Quaternion( const Precision roll,
+                  const Precision pitch,
+                  const Precision yaw)
+    {
+
+        Eigen::AngleAxis<Precision> rollAngle(M_PI*roll/180.0,SimpleVector3::UnitX());
+        Eigen::AngleAxis<Precision> pitchAngle(M_PI*pitch/180.0,SimpleVector3::UnitY());
+        Eigen::AngleAxis<Precision> yawAngle(M_PI*yaw/180.0,SimpleVector3::UnitZ());
+
+        SimpleQuaternion q = rollAngle*pitchAngle*yawAngle;
+        return q;
+    }
+
 

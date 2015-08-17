@@ -37,6 +37,9 @@
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include <tf/tf.h>
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+
 #include "next_best_view/GetSpaceSampling.h"
 
 using namespace next_best_view;
@@ -66,5 +69,7 @@ public:
     void visualizeSpaceSampling();
 
     void waitForEnter();
+
+    SimpleQuaternion euler2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
 };
 
