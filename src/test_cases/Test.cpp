@@ -46,7 +46,7 @@ typedef boost::shared_ptr<MoveBaseClient> MoveBaseClientPtr;
 class Test {
 private:
 	ros::NodeHandle mNodeHandle;
-	MoveBaseClientPtr mMoveBaseClient;
+    MoveBaseClientPtr mMoveBaseClient;
 	ros::Publisher mInitPosePub;
 public:
 	Test() {
