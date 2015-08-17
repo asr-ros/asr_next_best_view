@@ -184,6 +184,9 @@ namespace next_best_view {
 			ROS_DEBUG_STREAM("fovy: " << fovy);
 			ROS_DEBUG_STREAM("ncp: " << ncp);
 			ROS_DEBUG_STREAM("fcp: " << fcp);
+            ROS_DEBUG_STREAM("radius: " << radius);
+            ROS_DEBUG_STREAM("colThresh: " << colThresh);
+            ROS_DEBUG_STREAM("samples: " << samples);
 			ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
 
 			//////////////////////////////////////////////////////////////////
@@ -573,6 +576,8 @@ namespace next_best_view {
 				point_cloud.fields.push_back(rgb);
 
 				mPointCloudPublisher.publish(point_cloud);
+
+                //for (unsigned int i = 0; i < point_cloud.data)
 			}
 
 			if (mVisualizationSettings.frustum_point_cloud) {

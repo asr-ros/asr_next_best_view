@@ -130,7 +130,7 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 )
-FILE(GLOB_RECURSE HEADERS "include/*.hpp")
+FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
 ## Declare a cpp executable
 add_executable(
 	${PROJECT_NAME}
@@ -154,22 +154,23 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
-
-
 add_executable(
 	${PROJECT_NAME}_test
 	src/test_cases/Test.cpp
+        src/test_cases/BaseTest.cpp
 )
 
 add_executable(
-	${PROJECT_NAME}_test_labor
-       	src/test_cases/Test_Labor.cpp
+        ${PROJECT_NAME}_single_scene_test
+        src/test_cases/SingleSceneTest.cpp
+        src/test_cases/BaseTest.cpp
 )
 
 
 add_executable(
-        ${PROJECT_NAME}_test_labor2
-        src/test_cases/Test_Labor2.cpp
+        ${PROJECT_NAME}_multi_scene_test
+        src/test_cases/MultiSceneTest.cpp
+        src/test_cases/BaseTest.cpp
 )
 
 target_link_libraries(
@@ -183,7 +184,7 @@ target_link_libraries(
 )
 
 target_link_libraries(
-        ${PROJECT_NAME}_test_labor
+        ${PROJECT_NAME}_single_scene_test
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
@@ -193,7 +194,7 @@ target_link_libraries(
 )
 
 target_link_libraries(
-        ${PROJECT_NAME}_test_labor2
+        ${PROJECT_NAME}_multi_scene_test
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
