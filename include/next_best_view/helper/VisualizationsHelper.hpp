@@ -20,6 +20,8 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Quaternion.h>
+#include "tf/transform_datatypes.h"
 
 namespace next_best_view
 {
@@ -33,38 +35,78 @@ private:
                           const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                           ViewportPoint currentBestViewport){
 
-        double ViewPortMarkerScale;
+        std::vector<double> ViewPortMarkerScales;
         std::vector<double> ViewPortMarkerRGBA;
+        std::vector<double> ViewPortDirectionsRGBA;
+        std::vector<double> ViewPortDirectionsScales;
         double ViewPortMarkerHeightFactor;
         double ViewPortMarkerShrinkFactor;
-        node_handle.getParam("/nbv/ViewPortMarker_Scale", ViewPortMarkerScale);
+        node_handle.getParam("/nbv/ViewPortMarker_Scales", ViewPortMarkerScales);
         node_handle.getParam("/nbv/ViewPortMarker_HeightFactor", ViewPortMarkerHeightFactor);
         node_handle.getParam("/nbv/ViewPortMarker_ShrinkFactor", ViewPortMarkerShrinkFactor);
         node_handle.getParam("/nbv/ViewPortMarker_RGBA", ViewPortMarkerRGBA);
+        node_handle.getParam("/nbv/ViewPortDirections_RGBA", ViewPortDirectionsRGBA);
+        node_handle.getParam("/nbv/ViewPortDirections_Scales", ViewPortDirectionsScales);
 
 
         BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr)
         {
+
             SimpleVector3 visualAxis = MathHelper::getVisualAxis(q);
+            geometry_msgs::Point extPoint;
+            extPoint.x = visualAxis[0]/ViewPortMarkerShrinkFactor + position[0];
+            extPoint.y = visualAxis[1]/ViewPortMarkerShrinkFactor + position[1];
+            extPoint.z = visualAxis[2]/ViewPortMarkerShrinkFactor + position[2]
+                    + iterationStep * ViewPortMarkerHeightFactor;
+            //tf::createQuaternionMsgFromRollPitchYaw(roll,pitch,yaw);
+            geometry_msgs::Quaternion orientation;
+            orientation.w = q.w();
+            orientation.x = q.x();
+            orientation.y = q.y();
+            orientation.z = q.z();
+
+            visualization_msgs::Marker ViewPortDirectionsMarker = visualization_msgs::Marker();
+
+            ViewPortDirectionsMarker.header.stamp = ros::Time();
+            ViewPortDirectionsMarker.header.frame_id = "/map";
+            ViewPortDirectionsMarker.type = ViewPortDirectionsMarker.ARROW;
+            ViewPortDirectionsMarker.action = ViewPortDirectionsMarker.ADD;
+            ViewPortDirectionsMarker.id = ++i;
+            ViewPortDirectionsMarker.lifetime = ros::Duration();
+            ViewPortDirectionsMarker.ns = "ViewPortDirections" +s ;
+            ViewPortDirectionsMarker.scale.x = ViewPortDirectionsScales[0];
+            ViewPortDirectionsMarker.scale.y = ViewPortDirectionsScales[1];
+            ViewPortDirectionsMarker.scale.z = ViewPortDirectionsScales[2];
+            ViewPortDirectionsMarker.color.a = ViewPortDirectionsRGBA[3];
+            ViewPortDirectionsMarker.color.r = ViewPortDirectionsRGBA[0]-j;
+            ViewPortDirectionsMarker.color.g = ViewPortDirectionsRGBA[1]+j;
+            ViewPortDirectionsMarker.color.b = ViewPortDirectionsRGBA[2];
+            ViewPortDirectionsMarker.pose.position = extPoint;
+            ViewPortDirectionsMarker.pose.orientation = orientation;
+
+            visualization_msgs::Marker ViewPortDirectionsDeleteAction = ViewPortDirectionsMarker;
+            ViewPortDirectionsDeleteAction.action = ViewPortDirectionsDeleteAction.DELETE;
+            markerArrayDeleteList.markers.push_back(ViewPortDirectionsDeleteAction);
+            markerArray.markers.push_back(ViewPortDirectionsMarker);
+
+
             visualization_msgs::Marker ViewPortMarker = visualization_msgs::Marker();
             ViewPortMarker.header.stamp = ros::Time();
             ViewPortMarker.header.frame_id = "/map";
-            ViewPortMarker.type = ViewPortMarker.SPHERE;
+            ViewPortMarker.type = ViewPortMarker.CUBE                                                    ;
             ViewPortMarker.action = ViewPortMarker.ADD;
             ViewPortMarker.id = ++i;
             ViewPortMarker.lifetime = ros::Duration();
             ViewPortMarker.ns = "visualAxis" +s ;
-            ViewPortMarker.scale.x = ViewPortMarkerScale;
-            ViewPortMarker.scale.y = ViewPortMarkerScale;
-            ViewPortMarker.scale.z = ViewPortMarkerScale;
+            ViewPortMarker.scale.x = ViewPortMarkerScales[0];
+            ViewPortMarker.scale.y = ViewPortMarkerScales[1];
+            ViewPortMarker.scale.z = ViewPortMarkerScales[2];
             ViewPortMarker.color.a = ViewPortMarkerRGBA[3];
             ViewPortMarker.color.r = ViewPortMarkerRGBA[0]-j;
             ViewPortMarker.color.g = ViewPortMarkerRGBA[1]+j;
             ViewPortMarker.color.b = ViewPortMarkerRGBA[2];
-            ViewPortMarker.pose.position.x = visualAxis[0]/ViewPortMarkerShrinkFactor +position[0];
-            ViewPortMarker.pose.position.y = visualAxis[1]/ViewPortMarkerShrinkFactor +position[1];
-            ViewPortMarker.pose.position.z = visualAxis[2]/ViewPortMarkerShrinkFactor +position[2]+iterationStep * ViewPortMarkerHeightFactor;
-            ViewPortMarker.pose.orientation.w = 1;
+            ViewPortMarker.pose.position = extPoint;
+            ViewPortMarker.pose.orientation = orientation;
 
             visualization_msgs::Marker ViewPortMarkerDeleteAction = ViewPortMarker;
             ViewPortMarkerDeleteAction.action = ViewPortMarkerDeleteAction.DELETE;
@@ -99,9 +141,9 @@ private:
 
 
         double ColumnPositionMarkerWidth;
-	std::vector<double> ColumnPositionMarkerRGBA;
+        std::vector<double> ColumnPositionMarkerRGBA;
         node_handle.getParam("/nbv/ColumnPositionMarker_Width", ColumnPositionMarkerWidth);
-	node_handle.getParam("/nbv/ColumnPositionMarker_RGBA", ColumnPositionMarkerRGBA);
+        node_handle.getParam("/nbv/ColumnPositionMarker_RGBA", ColumnPositionMarkerRGBA);
 	
         visualization_msgs::Marker ColumnPositionMarker = visualization_msgs::Marker();
 
@@ -176,7 +218,7 @@ private:
             visualization_msgs::Marker SpaceSamplingMarker = visualization_msgs::Marker();
             SpaceSamplingMarker.header.stamp = ros::Time();
             SpaceSamplingMarker.header.frame_id = "/map";
-            SpaceSamplingMarker.type = SpaceSamplingMarker.CUBE;
+            SpaceSamplingMarker.type = SpaceSamplingMarker.CYLINDER;
             SpaceSamplingMarker.action = SpaceSamplingMarker.ADD;
             SpaceSamplingMarker.id = ++i;
             SpaceSamplingMarker.lifetime = ros::Duration();
