@@ -12,7 +12,7 @@ useGlobalPlanner: true
 fovx: 31
 fovy: 24
 ncp: 0.7 #Entfernung der NearClippingPlane in meter
-fcp: 1.1 ##Entfernung der FarClippingPlane in meter
+fcp: 1.35 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
