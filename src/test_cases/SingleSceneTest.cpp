@@ -23,11 +23,13 @@ public:
 
 	void iterationTest() {
 		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
+        ros::ServiceClient getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
 		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/nbv/get_point_cloud2");
 		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
 		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
 		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/nbv/get_space_sampling");
 
+        GetAttributedPointCloud gpc;
 		SetAttributedPointCloud apc;
 
 		ROS_INFO("Generiere Häufungspunkte");
@@ -105,13 +107,24 @@ public:
 		GetNextBestView nbv;
 		nbv.request.current_pose = initialPose;
 		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
+        bool setPointCloud = false;
 		int x = 1;
 		while(ros::ok()) {
             if(apc.request.point_cloud.elements.size() == 0)
             {
               break;
             }
-			ROS_INFO("Kalkuliere NBV (%d)", x);
+            else if(setPointCloud)
+            {
+                setPointCloud = false;
+                if (!setPointCloudClient.call(apc.request, apc.response))
+                {
+                    ROS_ERROR("Could not set point cloud");
+                    break;
+                }
+            }
+
+            ROS_INFO("Kalkuliere NBV (%d)", x);
 			if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
 				ROS_ERROR("Something went wrong in next best view");
 				break;
@@ -119,28 +132,29 @@ public:
 
             if (nbv.response.object_name_list.size() > 0)
             {
+                getPointCloudClient.call(gpc);
                 apc.request.point_cloud.elements.clear();
+                apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
+
                 for(int i=0;i<nbv.response.object_name_list.size();i++)
                 {
-                    objectPointCloudsMap.erase(nbv.response.object_name_list[i]);
-                }
-                for (std::map<std::string, std::vector<AttributedPoint>* >::iterator it = objectPointCloudsMap.begin() ; it != objectPointCloudsMap.end(); ++it)
-                {
-                    apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(),(it->second)->begin(),(it->second)->end());
-                }
-                if (!setPointCloudClient.call(apc.request, apc.response))
-                {
-                    ROS_ERROR("Could not set point cloud");
-                    break;
+                    std::vector<AttributedPoint> temp;
+                    for (std::vector<AttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
+                    {
+                        if ((nbv.response.object_name_list[i].compare(it->object_type)) != 0)
+                        {
+                            temp.push_back(*it);
+                        }
+                    }
+                    apc.request.point_cloud.elements.clear();
+                    apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), temp.begin(), temp.end());
+                    setPointCloud = true;
                 }
             }
             else
             {
                 break;
             }
-            ROS_INFO_STREAM("nbv.response.resulting_pose:" << nbv.response.resulting_pose);
-            //ROS_INFO_STREAM("nbv.response.robot_state:" << nbv.response.robot_state);
-            ROS_INFO_STREAM("nbv.response.found:" << nbv.response.found);
 
 			if (!nbv.response.found) {
                 ROS_ERROR("No NBV found");

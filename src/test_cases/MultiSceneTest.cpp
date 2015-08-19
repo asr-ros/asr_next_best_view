@@ -155,18 +155,13 @@ public:
             {
                 getPointCloudClient.call(gpc);
                 apc.request.point_cloud.elements.clear();
-                for (std::vector<AttributedPoint>::iterator it = gpc.response.point_cloud.elements.begin(); it != gpc.response.point_cloud.elements.end(); ++it)
-                {
-                    AttributedPoint point = *it;
-                    apc.request.point_cloud.elements.push_back(point);
-                }
+                apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
 
                 for(int i=0;i<nbv.response.object_name_list.size();i++)
                 {
                     if (nbv.response.object_name_list[i] != "CeylonTea")
                     {
                         std::vector<AttributedPoint> temp;
-
                         for (std::vector<AttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                         {
                             if ((nbv.response.object_name_list[i].compare(it->object_type)) != 0)
@@ -175,11 +170,7 @@ public:
                             }
                         }
                         apc.request.point_cloud.elements.clear();
-                        for (std::vector<AttributedPoint>::iterator it = temp.begin(); it != temp.end(); ++it)
-                        {
-                            AttributedPoint point = *it;
-                            apc.request.point_cloud.elements.push_back(point);
-                        }
+                        apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), temp.begin(), temp.end());
                         setPointCloud = true;
                     }
                     if (nbv.response.object_name_list[i] == "Smacks" && !scene2_isInitialized)

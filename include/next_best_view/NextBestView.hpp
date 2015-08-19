@@ -405,7 +405,7 @@ namespace next_best_view {
 			response.is_valid = true;
             ROS_DEBUG_STREAM("processSetPointCloudServiceCall3: " << mCalculator.getCameraModelFilter()->getPivotPointPosition());
 			// publish the visualization
-            this->publishVisualization(request.pose, true);
+            this->publishVisualization(request.pose, true, false);
 			return true;
 		}
 
@@ -534,7 +534,7 @@ namespace next_best_view {
 
 			mCurrentlyPublishingVisualization = true;
 
-            boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, is_initial);
+            boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, is_initial, true);
             //publishVisualization(viewport,is_initial);
 			return true;
 		}
@@ -602,12 +602,13 @@ namespace next_best_view {
             return marker;
         }
 
+
 		/*!
 		 * \brief Publishes the Visualization of the NextBestView
 		 * \param robot_pose, the new pose of the robot
 		 * \param is_initial, marks if the given robot pose was initial
 		 */
-        void publishVisualization(ViewportPoint viewport, bool is_initial) {
+        void publishVisualization(ViewportPoint viewport, bool is_initial, bool publishFrustum) {
 			ROS_DEBUG("Publishing Visualization");
             ROS_DEBUG_STREAM("Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0] <<
                              " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
@@ -615,12 +616,16 @@ namespace next_best_view {
 
 			// If the visualization of the robot movement is wished, execute this block
 			// TODO: Programmcode is throwing "Updating ModelState: model [mild] does not exist", probably mild.dae missing - don't know
-			/*if (mVisualizationSettings.move_robot) {
-				double yaw = tf::getYaw(robot_pose.orientation);
+            /*if (mVisualizationSettings.move_robot) {
 
-				geometry_msgs::Pose movePose(robot_pose);
-				movePose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+                MILDRobotStatePtr robot_pose = boost::static_pointer_cast<MILDRobotState>(mCalculator.getRobotModel()->getCurrentRobotState());
 
+                geometry_msgs::Pose movePose;
+                movePose.orientation = tf::createQuaternionMsgFromYaw(robot_pose->rotation);
+                movePose.position.x = robot_pose->x;
+                movePose.position.y = robot_pose->y;
+
+                ROS_DEBUG_STREAM("We wqnt to go to pose :" << movePose);
 				if (is_initial) {
 					ROS_DEBUG("Initializing the Robot Position");
 
@@ -630,7 +635,7 @@ namespace next_best_view {
 
 					this->moveRobotToPose(movePose);
 				}
-			}*/
+            }*/
             if (mVisualizationSettings.point_cloud)
             {
 				ROS_DEBUG("Publishing Point Cloud");
@@ -741,8 +746,9 @@ namespace next_best_view {
 
                 mFrustumPointCloudPublisher.publish(frustum_point_cloud);*/
 			}
-            if (mVisualizationSettings.frustum_marker_array)
+            if (mVisualizationSettings.frustum_marker_array && publishFrustum)
             {
+                viz::MarkerArray::Ptr TempMarkerArray(new viz::MarkerArray);
                 uint32_t sequence = 0;
                 if (mMarkerArrayPtr)
                 {
@@ -757,12 +763,15 @@ namespace next_best_view {
                         mMarkerArrayPtr->markers.at(i).color.g = 0;
                         mMarkerArrayPtr->markers.at(i).color.b = 1;
                         mMarkerArrayPtr->markers.at(i).ns = "old_nbv_frustum";
+                        TempMarkerArray->markers.push_back(mMarkerArrayPtr->markers.at(i));
                     }
-                    mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+                    //mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
+
                 }
                 ROS_DEBUG_STREAM("Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0] <<
                                  " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
                                  << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2]);
+
                 mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
                 ROS_DEBUG("Publishing new frustum");
                 for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
@@ -780,9 +789,10 @@ namespace next_best_view {
                     std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
                     viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
                     textMarker.pose = viewport.getPose();
-                    textMarker.ns = "new_nbv_frustum";
+                    textMarker.ns = "new_nbv_frustum_text";
                     mMarkerArrayPtr->markers.push_back(textMarker);
                 }
+                if (TempMarkerArray) mFrustumMarkerArrayPublisher.publish(*TempMarkerArray);
                 mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
             }
 			mCurrentlyPublishingVisualization = false;
