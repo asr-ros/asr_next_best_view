@@ -10,6 +10,7 @@
 
 #include "typedef.hpp"
 #include <vector>
+#include <map>
 
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
@@ -34,6 +35,7 @@ namespace next_best_view {
 		ObjectPointCloudPtr mPointCloudPtr;
 		IndicesPtr mActiveIndicesPtr;
 		KdTreePtr mKdTreePtr;
+        std::map<std::string, std::string> objectsResources;
 		UnitSphereSamplerPtr mUnitSphereSamplerPtr;
         SpaceSamplerPtr mSpaceSamplerPtr;
 		RobotModelPtr mRobotModelPtr;
@@ -58,7 +60,8 @@ namespace next_best_view {
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
 			  mRatingModulePtr(),
               mEpsilon(10E-3),
-              mVisHelper(){}
+              mVisHelper(),
+              objectsResources(){}
 	public:
 
 		/**
@@ -140,7 +143,7 @@ namespace next_best_view {
                 this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
                 mVisHelper.triggerVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
-                                      currentBestViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
+                                      intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
                 ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
@@ -318,15 +321,23 @@ namespace next_best_view {
 			BOOST_FOREACH(ViewportPoint viewportPoint, viewportPointList) {
 				ViewportPoint culledViewportPoint;
 				if (!this->doFrustumCulling(viewportPoint.getSimpleVector3(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
+                    ROS_DEBUG_STREAM("Viewpoint SKIPPED by Culling: " << viewportPoint.getSimpleVector3());
 					continue;
 				}
 
 				ViewportPoint resultingViewportPoint;
-				if (!this->doObjectNameFiltering(viewportPoint.object_name_set, culledViewportPoint, resultingViewportPoint)) {
+                if (!this->doObjectNameFiltering(viewportPoint.object_name_set, culledViewportPoint, resultingViewportPoint)) {
+                    ROS_DEBUG_STREAM("Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getSimpleVector3());
 					continue;
 				}
 
+                ROS_DEBUG_STREAM("Viewpoint TAKEN: " << resultingViewportPoint.getSimpleVector3());
+                for (std::set<std::string>::iterator it=resultingViewportPoint.object_name_set->begin(); it!=resultingViewportPoint.object_name_set->end(); ++it)
+                {
+                    ROS_DEBUG_STREAM("Object: " << *it);
+                }
 				this->updateObjectPointCloud(resultingViewportPoint);
+                break;
 			}
 		}
 
@@ -380,6 +391,10 @@ namespace next_best_view {
 				// get object type information
 				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.object_type_name);
 
+
+                //Insert the meshpath
+                objectsResources[pointCloudPoint.object_type_name] = responsePtr->object_mesh_resource;
+
 				if (responsePtr) {
 					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
 					int normalVectorCount = 0;
@@ -414,6 +429,22 @@ namespace next_best_view {
 			this->setPointCloudPtr(pointCloudPtr);
 			return true;
 		}
+
+        /**
+         * Returns the path to a meshs resource file
+         */
+        std::string getMeshPathByName(std::string objectName)
+        {
+            if(this->objectsResources.find(objectName) != this->objectsResources.end())
+            {
+                return this->objectsResources[objectName];
+            }
+            else
+            {
+                return "-2";
+            }
+        }
+
 
 		/**
 		 * Sets the point cloud ptr.

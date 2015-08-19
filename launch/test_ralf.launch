@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find next_best_view)/launch/next_best_view.launch" />
+	<node pkg="next_best_view" type="next_best_view_test" name="test" output="screen"/>
+</launch>

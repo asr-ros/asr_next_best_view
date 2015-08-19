@@ -40,10 +40,10 @@ public:
         hp[3] = SimpleVector3(-1.35400700569, 0.420550823212, 0.8);
 
         SimpleQuaternion* orientation = new SimpleQuaternion[hpSize];
-        orientation[0] = SimpleQuaternion(0.5, 0.5, 0.5, -0.5);
-        orientation[1] = SimpleQuaternion(0.5, 0.5, 0.5, -0.5);
-        orientation[2] = SimpleQuaternion(0.5, -0.5, -0.5, 0.5);
-        orientation[3] = SimpleQuaternion(0.5, -0.5, 0.5, 0.5);
+        orientation[0] = euler2Quaternion(-90, 180.0, 0.0);
+        orientation[1] = euler2Quaternion(-90, 180.0, 0.0);
+        orientation[2] = euler2Quaternion(-90, -90.0, 0.0);
+        orientation[3] = euler2Quaternion(-90, 0.0, 0.0);
         /*orientation[0] = SimpleQuaternion(0.658806053033,0.0, 0.0, 0.752312823556);
         orientation[1] = SimpleQuaternion(0.658806053033, 0.0, 0.0, 0.752312823556);
         orientation[2] = SimpleQuaternion(0.999847878074, 0.0, 0.0, -0.0174419239707);
@@ -128,7 +128,15 @@ public:
                 {
                     apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(),(it->second)->begin(),(it->second)->end());
                 }
-                setPointCloudClient.call(apc.request, apc.response);
+                if (!setPointCloudClient.call(apc.request, apc.response))
+                {
+                    ROS_ERROR("Could not set point cloud");
+                    break;
+                }
+            }
+            else
+            {
+                break;
             }
             ROS_INFO_STREAM("nbv.response.resulting_pose:" << nbv.response.resulting_pose);
             //ROS_INFO_STREAM("nbv.response.robot_state:" << nbv.response.robot_state);
