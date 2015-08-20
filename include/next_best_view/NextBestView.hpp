@@ -304,6 +304,15 @@ namespace next_best_view {
 			mCalculator.setCameraModelFilter(cameraModelFilterPtr);
 			mCalculator.setRobotModel(robotModelPtr);
 			mCalculator.setRatingModule(ratingModulePtr);
+
+            double mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
+            mNodeHandle.param("mOmegaTilt", mOmegaTilt, 1.0);
+            mNodeHandle.param("mOmegaPan", mOmegaPan, 1.0);
+            mNodeHandle.param("mOmegaRot", mOmegaRot, 1.0);
+            mNodeHandle.param("mOmegaBase", mOmegaBase, 1.0);
+            mNodeHandle.param("mOmegaRecognizer", mOmegaRecognizer, 1.0);
+
+            mCalculator.setOmegaParameters(mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
 		}
 
 		//dtor

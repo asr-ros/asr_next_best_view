@@ -112,7 +112,8 @@ public:
 		while(ros::ok()) {
             if(apc.request.point_cloud.elements.size() == 0)
             {
-              break;
+                ROS_ERROR("No elements were found");
+                break;
             }
             else if(setPointCloud)
             {

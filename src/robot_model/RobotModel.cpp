@@ -19,6 +19,18 @@ namespace next_best_view {
 		return this->getMovementCosts(mCurrentRobotState, targetRobotState);
 	}
 
+    float RobotModel::getPTU_PanMovementCosts(const RobotStatePtr &targetRobotState) {
+        return this->getPTU_PanMovementCosts(mCurrentRobotState, targetRobotState);
+    }
+
+    float RobotModel::getPTU_TiltMovementCosts(const RobotStatePtr &targetRobotState) {
+        return this->getPTU_TiltMovementCosts(mCurrentRobotState, targetRobotState);
+    }
+
+    float RobotModel::getRotationCosts(const RobotStatePtr &targetRobotState) {
+        return this->getRotationCosts(mCurrentRobotState, targetRobotState);
+    }
+
 	void RobotModel::setCurrentRobotState(const RobotStatePtr &currentRobotState) {
 		mCurrentRobotState = currentRobotState;
 	}

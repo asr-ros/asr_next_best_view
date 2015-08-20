@@ -59,7 +59,7 @@ public:
         orientation_scene1[0] = euler2Quaternion(-90, 0.0, 0.0);
         orientation_scene1[1] = euler2Quaternion(-90, 0.0, 0.0);
         orientation_scene1[2] = euler2Quaternion(-90, 100.0, 0.0);
-        orientation_scene1[3] = euler2Quaternion(-90, 150.0, 0.0);
+        orientation_scene1[3] = euler2Quaternion(-90, 170.0, 0.0);
         orientation_scene1[4] = euler2Quaternion(-90, -90.0, 0.0);
         orientation_scene1[5] = euler2Quaternion(-90, -90.0, 0.0);
         orientation_scene2[0] = euler2Quaternion(-90, 180.0, 0.0);

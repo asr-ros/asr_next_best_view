@@ -47,6 +47,11 @@ namespace next_best_view {
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mSingleObjectNameSubPowerSetPtr;
 		boost::shared_ptr<std::set<ObjectNameSetPtr> > mRemainderObjectNameSubPowerSetPtr;
         VisualizationHelper mVisHelper;
+        double mOmegaPan;
+        double mOmegaTilt;
+        double mOmegaRot;
+        double mOmegaBase;
+        double mOmegaRecognition;
 
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -178,6 +183,11 @@ namespace next_best_view {
 
 			ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 			std::map<std::string, ViewportPoint> objectNameViewportMapping;
+            double recognizerCosts_Max;
+            for (Indices::iterator it = mActiveIndicesPtr->begin(); it != mActiveIndicesPtr->end(); it++)
+            {
+                recognizerCosts_Max += mCameraModelFilterPtr->getRecognizerCosts(mPointCloudPtr->at(*it).object_type_name);
+            }
 
 			// do the frustum culling by camera model filter
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
@@ -195,7 +205,25 @@ namespace next_best_view {
 					}
 
 					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
-					float movementCosts = mRobotModelPtr->getMovementCosts(targetRobotState);
+                    Precision movementCosts = mRobotModelPtr->getMovementCosts(targetRobotState);
+                    Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(targetRobotState);
+                    Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(targetRobotState);
+                    Precision movementCostsPTU;
+                    Precision mOmegaPTU;
+                    if (movementCostsPTU_Tilt*mOmegaTilt > movementCostsPTU_Pan*mOmegaPan)
+                    {
+                        movementCostsPTU = movementCostsPTU_Pan;
+                        ROS_DEBUG_STREAM("PTU Costs Pan: " << movementCostsPTU);
+                        mOmegaPTU = mOmegaPan;
+                    }
+                    else
+                    {
+                        movementCostsPTU = movementCostsPTU_Tilt;
+                        ROS_DEBUG_STREAM("PTU Costs Tilt: " << movementCostsPTU);
+                        mOmegaPTU = mOmegaTilt;
+                    }
+
+                    Precision rotationCosts = mRobotModelPtr->getRotationCosts(targetRobotState);
 
 					// do the filtering for the single object types
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mSingleObjectNameSubPowerSetPtr->begin(); subSetIter != mSingleObjectNameSubPowerSetPtr->end(); ++subSetIter) {
@@ -210,7 +238,9 @@ namespace next_best_view {
 						}
 
 						// assign movement costs for the given viewport.
-						candidateViewportPoint.score->setCosts(movementCosts);
+                        double movementCosts_ViewPort = (movementCosts*mOmegaBase + movementCostsPTU*mOmegaPTU + rotationCosts*mOmegaRot)/(mOmegaBase+mOmegaPTU+mOmegaRot);
+                        ROS_DEBUG_STREAM("Movement; " << movementCosts << ", rotation " << rotationCosts << ", movement PTU: " << movementCostsPTU);
+                        candidateViewportPoint.score->setCosts(movementCosts_ViewPort);
 
 						std::string objectName = *((*subSetIter)->begin());
 						objectNameViewportMapping [objectName] = candidateViewportPoint;
@@ -222,8 +252,8 @@ namespace next_best_view {
 						ObjectNameSetPtr subSetPtr = *subSetIter;
 
 						bool valid = true;
-						Precision utility = 0;
-						Precision recognitionCosts = 0;
+                        Precision utility = 0;
+                        Precision recognitionCosts = 0;
 						IndicesPtr aggregatedIndicesPtr(new Indices());
 						for (ObjectNameSet::iterator itemIter = subSetPtr->begin(); itemIter != subSetPtr->end(); ++itemIter) {
 							std::string objectName = *itemIter;
@@ -250,10 +280,14 @@ namespace next_best_view {
 						aggregatedViewportPoint.object_name_set = subSetPtr;
 						aggregatedViewportPoint.score = mRatingModulePtr->getScoreContainerInstance();
 						aggregatedViewportPoint.score->setUtility(utility);
-						aggregatedViewportPoint.score->setCosts(movementCosts + recognitionCosts);
+
+                        ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts<< " max " << recognizerCosts_Max);
+                        double normalizedRecognitionCosts = 1.0 - recognitionCosts/recognizerCosts_Max;
+                        ROS_DEBUG_STREAM("Movement; " << movementCosts << ", rotation " << rotationCosts << ", movement PTU: " << movementCostsPTU << ", recognition: " << normalizedRecognitionCosts);
+                        aggregatedViewportPoint.score->setCosts((movementCosts*mOmegaBase + movementCostsPTU*mOmegaPTU + rotationCosts*mOmegaRot + normalizedRecognitionCosts*mOmegaRecognition)/(mOmegaBase+mOmegaPTU+mOmegaRot+mOmegaRecognition));
 
 						nextBestViewports->push_back(aggregatedViewportPoint);
-					}
+                    }
 				}
 			}
 
@@ -429,6 +463,15 @@ namespace next_best_view {
 			this->setPointCloudPtr(pointCloudPtr);
 			return true;
 		}
+
+        void setOmegaParameters(double mOmegaPan, double mOmegaTilt, double mOmegaRot, double mOmegaBase, double mOmegaRecognition)
+        {
+            this->mOmegaPan = mOmegaPan;
+            this->mOmegaTilt = mOmegaTilt;
+            this->mOmegaRot = mOmegaRot;
+            this->mOmegaBase = mOmegaBase;
+            this->mOmegaRecognition = mOmegaRecognition;
+        }
 
         /**
          * Returns the path to a meshs resource file

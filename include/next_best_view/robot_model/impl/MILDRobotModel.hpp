@@ -31,6 +31,7 @@ namespace next_best_view {
 		float mOmegaRot;
 		float mOmegaBase;
 		float mOmegaUseBase;
+        float mOmegaGlobal;
 		float speedFactorPTU;
 		float speedFactorBaseMove;
 		float speedFactorBaseRot;
@@ -107,11 +108,16 @@ namespace next_best_view {
 		/*!
 		 * \brief Calculates the movement costs from sourceRobotState to targetRobotState. Returns -1 if pose is not reachable
 		 */
-		float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
+        float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
+
+        float getPTU_TiltMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
+
+        float getPTU_PanMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
+
+        float getRotationCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
 		
 		float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
-		
-		
+
 	};
 
 	typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;

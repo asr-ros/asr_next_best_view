@@ -31,13 +31,12 @@ namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaBase_,mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaBase_,mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mOmegaGlobal_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
-        n.getParam("mOmegaRot", mOmegaRot_);
-        n.getParam("mOmegaBase", mOmegaBase_);
         n.getParam("mOmegaUseBase", mOmegaUseBase_);
+        n.getParam("mOmegaGlobal", mOmegaGlobal_);
         n.getParam("speedFactorPTU", speedFactorPTU_);
         n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
         n.getParam("speedFactorBaseRot", speedFactorBaseRot_);
@@ -52,23 +51,22 @@ namespace next_best_view {
         {
             ROS_DEBUG("Use of global planner DISABLED. Using simplified calculation instead...");
         }
-        ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan_);
-        ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
-        ROS_DEBUG_STREAM("mOmegaRot: " << mOmegaRot_);
-        ROS_DEBUG_STREAM("mOmegaBase: " << mOmegaBase_);
+
         ROS_DEBUG_STREAM("mOmegaUseBase: " << mOmegaUseBase_);
         ROS_DEBUG_STREAM("speedFactorPTU: " << speedFactorPTU_);
         ROS_DEBUG_STREAM("speedFactorBaseMove: " << speedFactorBaseMove_);
         ROS_DEBUG_STREAM("speedFactorBaseRot: " << speedFactorBaseRot_);
         ROS_DEBUG_STREAM("tolerance: " << tolerance_);
+        ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan_);
+        ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
+        ROS_DEBUG_STREAM("mOmegaGlobal: " << mOmegaGlobal_);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
-        mOmegaRot = mOmegaRot_;
-        mOmegaBase = mOmegaBase_;
         mOmegaUseBase = mOmegaUseBase_;
         speedFactorPTU = speedFactorPTU_;
         speedFactorBaseMove = speedFactorBaseMove_;
         speedFactorBaseRot = speedFactorBaseRot_;
+        mOmegaGlobal = mOmegaGlobal_;
         tolerance = tolerance_;
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
@@ -236,10 +234,6 @@ namespace next_best_view {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
 
-        float panDiff = targetMILDRobotState->pan - sourceMILDRobotState->pan;
-        float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
-        float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
-
         float distance ;
         geometry_msgs::Point sourcePoint, targetPoint;
         sourcePoint.x = sourceMILDRobotState->x;
@@ -251,20 +245,57 @@ namespace next_best_view {
 
         distance = getDistance(sourcePoint, targetPoint);
 
-        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
-        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
-        //**************************Old cost formula*********************************
-        //float rotationCosts = (mOmegaTilt * abs(panDiff) + mOmegaPan * abs(tiltDiff) + mOmegaRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)))) / (mOmegaTilt * tiltSpan + mOmegaPan * panSpan + mOmegaRot * M_PI);
-        //costs = rotationCosts + (distance < 1E-7 ? 0.0 : 10.0 * distance)*mOmegaBase;
-        //***************************************************************************
+        float mu = 0.0;
+        float sigma = 0.5;
+        float movementCosts = std::exp(-pow((distance-mu), 2.0)/(2.0*pow(sigma, 2.0))); // [0, 1]
+        return movementCosts;
+    }
 
-        float rotationCostsPTU = std::max(abs(panDiff)*mOmegaPan, abs(tiltDiff)*mOmegaTilt)*speedFactorPTU;
-        float movementCosts = mOmegaRot * speedFactorBaseRot * fminf(abs(rotDiff), (2 * M_PI - abs(rotDiff)));
-        movementCosts += (distance < 1E-7 ? 0.0 : 10.0 * distance) * mOmegaBase * speedFactorBaseMove;
-        float costs = max(movementCosts, rotationCostsPTU);
-        costs += (distance < 1E-7 ? 0.0 : mOmegaUseBase);
-        ROS_DEBUG_STREAM("Costs: " << costs);
-        return costs;
+    float MILDRobotModel::getPTU_PanMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    {
+        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
+
+        float panDiff = targetMILDRobotState->pan - sourceMILDRobotState->pan;
+
+        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
+
+        float ptuPanCosts = fabs(panDiff)/ panSpan;
+
+        return 1.0 - ptuPanCosts;
+    }
+
+    float MILDRobotModel::getPTU_TiltMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    {
+        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
+        float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
+
+        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
+
+        float ptuTiltCosts = fabs(tiltDiff)/ tiltSpan;
+
+        return 1.0 - ptuTiltCosts;
+    }
+
+    float MILDRobotModel::getRotationCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    {
+        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
+        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
+
+        float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
+
+        geometry_msgs::Point sourcePoint, targetPoint;
+        sourcePoint.x = sourceMILDRobotState->x;
+        sourcePoint.y = sourceMILDRobotState->y;
+        sourcePoint.z = 0;
+        targetPoint.x = targetMILDRobotState->x;
+        targetPoint.y = targetMILDRobotState->y;
+        targetPoint.z = 0;
+
+
+        float rotationCosts = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/M_PI;
+        return 1.0 - rotationCosts;
     }
 
     float MILDRobotModel::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)

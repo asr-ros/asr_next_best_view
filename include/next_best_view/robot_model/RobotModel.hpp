@@ -70,9 +70,21 @@ namespace next_best_view {
 		 */
 		virtual float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
 
-		/*!
-		 * \param currentRobotState sets the current robot state ptr
-		 */
+        float getPTU_TiltMovementCosts(const RobotStatePtr &targetRobotState);
+
+        virtual float getPTU_TiltMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
+
+        float getPTU_PanMovementCosts(const RobotStatePtr &targetRobotState);
+
+        virtual float getPTU_PanMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
+
+        float getRotationCosts(const RobotStatePtr &targetRobotState);
+
+        virtual float getRotationCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
+
+        /*!
+         * \param currentRobotState sets the current robot state ptr
+         */
 		void setCurrentRobotState(const RobotStatePtr &currentRobotState);
 
 		/*!

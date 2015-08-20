@@ -38,7 +38,7 @@ namespace next_best_view {
 	}
 
 	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
-		return (a->getUtility()) / (1 + a->getCosts());
+        return (a->getUtility() * a->getCosts());
 	}
 
 	DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalityRatingAngle(M_PI * .5) { }
