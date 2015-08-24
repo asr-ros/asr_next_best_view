@@ -37,6 +37,23 @@ namespace next_best_view {
 		return 0.0;
 	}
 
+    float DefaultRatingModule::getCurrentFrustumPositionRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint)
+    {
+        float maxRating = 0.0;
+        SimpleVector3 viewportPosition = viewportPoint.getSimpleVector3();
+        SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
+        SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportOrientation);
+
+        float angleMin = (float)(std::min(fovV*M_PI/180,fovH*M_PI/180));
+        SimpleVector3 objectPosition = objectPoint.getSimpleVector3();
+        SimpleVector3 objectViewportVector = (viewportPosition - objectPosition).normalized();
+
+        maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector,
+                                                            objectViewportVector, angleMin), maxRating);
+
+        return maxRating;
+    }
+
 	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
         return (a->getUtility() * a->getCosts());
 	}
@@ -63,7 +80,8 @@ namespace next_best_view {
 			}
 
 			float currentNormalityRating = this->getNormalityRating(candidateViewportPoint, objectPoint);
-			defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() + 1.0);
+            float currentFrustumPositionRating = this->getCurrentFrustumPositionRating(candidateViewportPoint, objectPoint);
+            defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() + currentFrustumPositionRating);
 
 			if (currentNormalityRating == 0.0) {
 				continue;

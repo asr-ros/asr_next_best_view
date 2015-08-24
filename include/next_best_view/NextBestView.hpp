@@ -222,7 +222,7 @@ namespace next_best_view {
              * - RatingModule (rating_module/RatingModule.hpp)viz::MarkerArray
 			 * - HypothesisUpdater (hypothesis_updater/HypothesisUpdater.hpp)
 			 *
-			 * Every of these modules is an abstract class which provides an interface to interact with.
+             * Every of these modules is an abstract class which providDefaultRatingModulees an interface to interact with.
 			 * These interfaces are, right now, far from final and can therefore be change as you want to change them.
 			 * Side-effects are expected just in the next_best_view node.
 			 */
@@ -289,7 +289,7 @@ namespace next_best_view {
 			/* DefaultRatingModule is a specialization of the abstract RatingModule class.
 			 * The rating module calculates the use and the costs of an operation.
 			 */
-			DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule());
+            DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy));
 			ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
 
 			/* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.

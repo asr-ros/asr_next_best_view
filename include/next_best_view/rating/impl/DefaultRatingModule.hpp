@@ -26,8 +26,12 @@ namespace next_best_view {
 		 * \brief the normality rating angle
 		 */
 		double mNormalityRatingAngle;
+        double fovV,fovH;
+
 	public:
 		DefaultRatingModule();
+
+        DefaultRatingModule(double fovV, double fovH):fovV(fovV),fovH(fovH){}
 
 		virtual ~DefaultRatingModule();
 
@@ -47,13 +51,21 @@ namespace next_best_view {
 		 */
 		float getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint);
 
+        /*!
+         * \brief returns the proximity rating between the vieportPoint and an object point.
+         * \param viewportPoint [in] the viewport point
+         * \param objectPoint [in] the object point.
+         * \return the proximity rating
+         */
+        float getCurrentFrustumPositionRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint);
+
 		/*!
 		 * \brief returns the single normality rating of two vectors.
 		 * \param viewportNormalVector [in] the normal vector of the viewport which is perpendicular to the NCP/FCP
 		 * \param objectSurfaceNormalVector [in] the vector which is perpendicular to the object surface
 		 * \param angleThreshold the threshold on which the rating is zero
 		 * \return the normality rating
-		 */
+		 */ 
 		float getSingleNormalityRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector, float angleThreshold = M_PI);
 
 		/*!
