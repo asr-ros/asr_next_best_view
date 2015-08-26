@@ -11,8 +11,8 @@ speedFactorBaseMove: 5.0 #Zeitkosten für Bewegung der Basis in Sec/Meter
 speedFactorRecognizer: 3.0 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
-fovx: 31
-fovy: 24
+fovx: 30
+fovy: 20
 ncp: 0.7 #Entfernung der NearClippingPlane in meter
 fcp: 1.4 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
