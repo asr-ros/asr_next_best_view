@@ -102,6 +102,7 @@ namespace next_best_view {
 		ros::ServiceServer mUpdatePointCloudServiceServer;
 		ros::ServiceServer mSetupVisualizationServiceServer;
         ros::ServiceServer mTriggerFrustumVisualizationServer;
+        ros::ServiceServer mTriggerOldFrustumVisualizationServer;
 
 		ros::Publisher mSpaceSamplingPublisher;
 		ros::Publisher mPointCloudPublisher;
@@ -145,6 +146,7 @@ namespace next_best_view {
 			mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
 			mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
             mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
+            mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
 
             mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
 			mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
@@ -504,26 +506,54 @@ namespace next_best_view {
             SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
             mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
             uint32_t sequence = 0;
-            if (mMarkerArrayPtr)
-                deleteFrustumInRviz();
-            mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
-            if (mVisualizationSettings.frustum_marker_array)
+            viz::MarkerArray::Ptr markerArrayPtr;
+            markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+            
+	    ROS_DEBUG("Publish actual frustum");
+            for (unsigned int i = 0; i < markerArrayPtr->markers.size(); i++)
             {
-                ROS_DEBUG("Publish actual frustum");
-                for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
-                {
-                    mMarkerArrayPtr->markers.at(i).color.r = 0;
-                    mMarkerArrayPtr->markers.at(i).color.g = 1;
-                    mMarkerArrayPtr->markers.at(i).color.b = 1;
-                    mMarkerArrayPtr->markers.at(i).ns = "actual_nbv_frustum";
-                }
-                std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
-                viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
-                textMarker.pose = pose;
-                mMarkerArrayPtr->markers.push_back(textMarker);
+                    markerArrayPtr->markers.at(i).color.r = 0;
+                    markerArrayPtr->markers.at(i).color.g = 1;
+                    markerArrayPtr->markers.at(i).color.b = 1;
+		    markerArrayPtr->markers.at(i).lifetime = ros::Duration(10.0);
+                    markerArrayPtr->markers.at(i).ns = "actual_nbv_frustum";
+             }
+             std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
+             viz::Marker textMarker = MarkerHelper::getTextMarker(markerArrayPtr->markers.size(), result);
+             textMarker.ns = "searched_obj";
+             textMarker.pose = pose;
+             markerArrayPtr->markers.push_back(textMarker);
 
-                mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
-            }
+             mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
+            return true;
+        }
+
+        bool processTriggerOldFrustumVisualization(TriggerFrustumVisualization::Request &request,
+                                                TriggerFrustumVisualization::Response &response)
+        {
+            ROS_DEBUG("trigger frustum visualization");
+            geometry_msgs::Pose pose = request.current_pose;
+            SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
+            SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
+            mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
+            uint32_t sequence = 0;
+            viz::MarkerArray::Ptr markerArrayPtr;
+            markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+                ROS_DEBUG("Publish previous frustum");
+                for (unsigned int i = 0; i < markerArrayPtr->markers.size(); i++)
+                {
+                    markerArrayPtr->markers.at(i).color.r = 1;
+                    markerArrayPtr->markers.at(i).color.g = 0;
+                    markerArrayPtr->markers.at(i).color.b = 1;
+                    markerArrayPtr->markers.at(i).lifetime = ros::Duration(4.0);
+                    markerArrayPtr->markers.at(i).ns = "previous_nbv_frustum";
+                }
+                //std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
+                //viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
+                //textMarker.pose = pose;
+                //mMarkerArrayPtr->markers.push_back(textMarker);
+
+                mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
             return true;
         }
 
