@@ -506,25 +506,25 @@ namespace next_best_view {
             SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
             mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
             uint32_t sequence = 0;
-            viz::MarkerArray::Ptr markerArrayPtr;
-            markerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
+	    if (mMarkerArrayPtr)
+	      deleteFrustumInRviz();
+	    mMarkerArrayPtr = this->mCalculator.getCameraModelFilter()->getVisualizationMarkerArray(sequence, 0.0);
             
 	    ROS_DEBUG("Publish actual frustum");
-            for (unsigned int i = 0; i < markerArrayPtr->markers.size(); i++)
+            for (unsigned int i = 0; i < mMarkerArrayPtr->markers.size(); i++)
             {
-                    markerArrayPtr->markers.at(i).color.r = 0;
-                    markerArrayPtr->markers.at(i).color.g = 1;
-                    markerArrayPtr->markers.at(i).color.b = 1;
-		    markerArrayPtr->markers.at(i).lifetime = ros::Duration(10.0);
-                    markerArrayPtr->markers.at(i).ns = "actual_nbv_frustum";
+                    mMarkerArrayPtr->markers.at(i).color.r = 0;
+                    mMarkerArrayPtr->markers.at(i).color.g = 1;
+                    mMarkerArrayPtr->markers.at(i).color.b = 1;
+                    mMarkerArrayPtr->markers.at(i).ns = "actual_nbv_frustum";
              }
              std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
-             viz::Marker textMarker = MarkerHelper::getTextMarker(markerArrayPtr->markers.size(), result);
+             viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
              textMarker.ns = "searched_obj";
              textMarker.pose = pose;
-             markerArrayPtr->markers.push_back(textMarker);
+             mMarkerArrayPtr->markers.push_back(textMarker);
 
-             mFrustumMarkerArrayPublisher.publish(*markerArrayPtr);
+             mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
             return true;
         }
 
