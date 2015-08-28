@@ -292,6 +292,7 @@ namespace next_best_view {
 			}
 
 			// if there aren't any viewports, the search failed.
+			ROS_INFO_STREAM("Viewport Point size : " << nextBestViewports->size());
 			if (nextBestViewports->size() == 0) {
 				return false;
 			}

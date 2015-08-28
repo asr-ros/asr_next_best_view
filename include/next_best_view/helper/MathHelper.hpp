@@ -153,6 +153,8 @@ namespace next_best_view {
 		 */
 		static double degToRad(double input);
 
+		static double getDotProduct(SimpleVector3 v1, SimpleVector3 v2);
+
 		template<typename Set> static void printSet(boost::shared_ptr<Set> &setPtr) {
 			std::cout << "\t{ ";
 			BOOST_FOREACH(typename Set::value_type value, *setPtr) {

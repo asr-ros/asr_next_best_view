@@ -154,4 +154,9 @@ namespace next_best_view {
 	double MathHelper::degToRad(double input) {
 		return fmod(input / 180.0 * M_PI, 2 * M_PI);
 	}
+
+       double MathHelper::getDotProduct(SimpleVector3 v1, SimpleVector3 v2)
+	{
+		return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]; 
+	}
 }
