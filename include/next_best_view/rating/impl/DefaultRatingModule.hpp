@@ -27,11 +27,12 @@ namespace next_best_view {
 		 */
 		double mNormalityRatingAngle;
         double fovV,fovH;
+        double fcp,ncp;
 
 	public:
 		DefaultRatingModule();
 
-        DefaultRatingModule(double fovV, double fovH):fovV(fovV),fovH(fovH){}
+        DefaultRatingModule(double fovV, double fovH, double fcp, double ncp):fovV(fovV),fovH(fovH),fcp(fcp),ncp(ncp){}
 
 		virtual ~DefaultRatingModule();
 
@@ -76,6 +77,9 @@ namespace next_best_view {
 		 * \return the normality rating
 		 */
 		float getSingleNormalityRatingByQuaternion(const SimpleQuaternion &quaternionA, const SimpleQuaternion &quaternionB, float angleThreshold = M_PI);
+
+        //TODO
+        float getSingleDistanceRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector);
 
 		/*!
 		 * \brief the weighted rating of a rating object.

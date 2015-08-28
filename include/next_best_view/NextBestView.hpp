@@ -291,7 +291,7 @@ namespace next_best_view {
 			/* DefaultRatingModule is a specialization of the abstract RatingModule class.
 			 * The rating module calculates the use and the costs of an operation.
 			 */
-            DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy));
+            DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp));
 			ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
 
 			/* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.

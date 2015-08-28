@@ -37,6 +37,20 @@ namespace next_best_view {
 		return 0.0;
 	}
 
+    float DefaultRatingModule::getSingleDistanceRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector) {
+
+        float dotProduct = viewportNormalVector[0]*objectSurfaceNormalVector[0]
+                        + viewportNormalVector[1]*objectSurfaceNormalVector[1]
+                        + viewportNormalVector[2]*objectSurfaceNormalVector[2];
+        float distanceToMid = abs(dotProduct-(fcp+ncp)/2);
+        float distanceThreshold = (fcp-ncp)/2;
+
+        if (distanceToMid < distanceThreshold) {
+            return .5 + .5 * cos(distanceToMid * M_PI / distanceThreshold);
+        }
+        return 0.0;
+    }
+
     float DefaultRatingModule::getCurrentFrustumPositionRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint)
     {
         float maxRating = 0.0;
@@ -46,11 +60,13 @@ namespace next_best_view {
 
         float angleMin = (float)(std::min(fovV*M_PI/180,fovH*M_PI/180));
         SimpleVector3 objectPosition = objectPoint.getSimpleVector3();
-        SimpleVector3 objectViewportVector = (viewportPosition - objectPosition).normalized();
+        SimpleVector3 objectViewportVectorNormalized = (viewportPosition - objectPosition).normalized();
+        SimpleVector3 objectViewportVector = viewportPosition - objectPosition;
 
         maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector,
-                                                            objectViewportVector, angleMin), maxRating);
-
+                                                            objectViewportVectorNormalized, angleMin)
+                                                            *this->getSingleDistanceRating(viewportNormalVector,objectViewportVector),
+                                                            maxRating);
         return maxRating;
     }
 
