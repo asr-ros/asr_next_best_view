@@ -171,9 +171,10 @@ namespace next_best_view {
 			// current camera position
 			SimpleVector3 currentBestPosition = currentBestViewport.getSimpleVector3();
 
-			// do a prefiltering for interesting space sample points
+			//Calculate hex grid for resolution given in this iteration step.
 			SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
 
+			// do a prefiltering for interesting space sample points
 			IndicesPtr feasibleIndicesPtr;
 			this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
 
@@ -181,23 +182,28 @@ namespace next_best_view {
 				return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport);
 			}
 
+			//Create list of all view ports that are checked during this iteration step.
 			ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 			std::map<std::string, ViewportPoint> objectNameViewportMapping;
+			//TODO: Extract from here since totally ineffective to calc it in every iteration step.
             double recognizerCosts_Max;
             for (Indices::iterator it = mActiveIndicesPtr->begin(); it != mActiveIndicesPtr->end(); it++)
             {
                 recognizerCosts_Max += mCameraModelFilterPtr->getRecognizerCosts(mPointCloudPtr->at(*it).object_type_name);
             }
 
-			// do the frustum culling by camera model filter
+	    //Go through all interesting space sample points for one iteration step to create candidate viewports.
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
 				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
+				//For each space sample point: Go through all interesting orientations.
                 BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+		  //Now a concrete viewport is given.
 					objectNameViewportMapping.clear();
 
+					// do the frustum culling by camera model filter
 					ViewportPoint fullViewportPoint;
 					// set the input cloud
 					if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
