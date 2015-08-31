@@ -686,7 +686,7 @@ namespace next_best_view {
 				} else {
 					pointCloudIndices = *mCalculator.getActiveIndices();
 				}
-				ROS_DEBUG("Publishing %d points", pointCloudIndices.size());
+                ROS_DEBUG_STREAM("Publishing "<< pointCloudIndices.size() <<" points");
 
 
                 ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices);
@@ -824,7 +824,7 @@ namespace next_best_view {
                 {
                     ROS_DEBUG("Adding text");
                     numberSearchedObjects = viewport.object_name_set->size();
-                    ROS_INFO("numberSearchedObjects: %d", numberSearchedObjects);
+                    ROS_INFO_STREAM("numberSearchedObjects: " <<  numberSearchedObjects);
                     std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
                     viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
                     textMarker.pose = viewport.getPose();
@@ -865,7 +865,7 @@ namespace next_best_view {
 		void moveRobotToPose(const geometry_msgs::Pose &pose) {
 			double interval_time = 5.0;
 			while(!mMoveBaseActionClient->waitForServer(ros::Duration(interval_time))) {
-				ROS_DEBUG("Waiting for the move_base action server to come up. Checking Interval: %f seconds", interval_time);
+                ROS_DEBUG_STREAM("Waiting for the move_base action server to come up. Checking Interval:" << interval_time <<" seconds" );
 			}
 
 			move_base_msgs::MoveBaseGoal goal;

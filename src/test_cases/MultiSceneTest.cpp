@@ -146,7 +146,7 @@ public:
                 setPointCloudClient.call(apc.request, apc.response);
             }
 
-			ROS_INFO("Kalkuliere NBV (%d)", x);
+            ROS_INFO_STREAM("Kalkuliere NBV " << x);
 			if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
 				ROS_ERROR("Something went wrong in next best view");
 				break;
