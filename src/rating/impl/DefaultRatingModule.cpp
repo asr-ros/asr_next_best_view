@@ -40,10 +40,10 @@ namespace next_best_view {
     float DefaultRatingModule::getSingleDistanceRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector) {
 
         float dotProduct = MathHelper::getDotProduct(-viewportNormalVector, objectSurfaceNormalVector);
-	ROS_INFO_STREAM("DotProduct value" << dotProduct << " fcp " << fcp << " ncp " << ncp);
+	//ROS_INFO_STREAM("DotProduct value" << dotProduct << " fcp " << fcp << " ncp " << ncp);
         float distanceToMid = abs(dotProduct-(fcp+ncp)/2.0);
         float distanceThreshold = (fcp-ncp)/2.0;
-	ROS_INFO_STREAM("distance to mid " << distanceToMid << " threh "  << distanceThreshold );
+	//ROS_INFO_STREAM("distance to mid " << distanceToMid << " threh "  << distanceThreshold );
         if (distanceToMid < distanceThreshold) {
             return .5 + .5 * cos(distanceToMid * M_PI / distanceThreshold);
         }
@@ -66,8 +66,8 @@ namespace next_best_view {
                                                             objectViewportVectorNormalized, angleMin)
                                                             *this->getSingleDistanceRating(viewportNormalVector,objectViewportVector),
                                                             maxRating);
-	ROS_INFO_STREAM("Frustum angle diff "<< this->getSingleNormalityRating(viewportNormalVector,objectViewportVectorNormalized, angleMin));
-        ROS_INFO_STREAM("Mitte im Frustum rating  " << this->getSingleDistanceRating(viewportNormalVector,objectViewportVector));
+	//ROS_INFO_STREAM("Frustum angle diff "<< this->getSingleNormalityRating(viewportNormalVector,objectViewportVectorNormalized, angleMin));
+        //ROS_INFO_STREAM("Mitte im Frustum rating  " << this->getSingleDistanceRating(viewportNormalVector,objectViewportVector));
         return maxRating;
     }
 
@@ -113,7 +113,7 @@ namespace next_best_view {
 		defRatingPtr->setUtility(defRatingPtr->getElementDensity() * defRatingPtr->getNormality());
 
 		scoreContainerPtr = defRatingPtr;
-		ROS_INFO("Normality %f, Density %f", defRatingPtr->getNormality(), defRatingPtr->getElementDensity());
+		//ROS_INFO("Normality %f, Density %f", defRatingPtr->getNormality(), defRatingPtr->getElementDensity());
 		return (defRatingPtr->getUtility() > 0);
 	}
 	bool DefaultRatingModule::compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) {
