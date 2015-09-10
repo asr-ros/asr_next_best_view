@@ -75,6 +75,13 @@ namespace next_best_view {
 
 	MILDRobotModel::~MILDRobotModel() {}
 
+    geometry_msgs::Pose MILDRobotModel::getRobotPose()
+    {
+        geometry_msgs::Pose robotPose;
+
+        return robotPose;
+    }
+
 	void MILDRobotModel::setPanAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
 		mPanLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
 		mPanLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);

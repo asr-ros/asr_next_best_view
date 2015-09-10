@@ -182,7 +182,8 @@ public:
 
 };
 
-test_suite* init_unit_test_suite( int argc, char* argv[] ) {
+test_suite* init_unit_test_suite( int argc, char* argv[] )
+{
 	ros::init(argc, argv, "nbv_test");
 	ros::start();
 

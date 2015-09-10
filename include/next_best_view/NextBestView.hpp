@@ -47,6 +47,7 @@
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetSpaceSampling.h"
 #include "next_best_view/SetAttributedPointCloud.h"
+#include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
@@ -103,6 +104,7 @@ namespace next_best_view {
 		ros::ServiceServer mSetupVisualizationServiceServer;
         ros::ServiceServer mTriggerFrustumVisualizationServer;
         ros::ServiceServer mTriggerOldFrustumVisualizationServer;
+        ros::ServiceServer mResetCalculatorServer;
 
 		ros::Publisher mSpaceSamplingPublisher;
 		ros::Publisher mPointCloudPublisher;
@@ -137,43 +139,58 @@ namespace next_best_view {
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
 		 */
-		NextBestView() : mGlobalNodeHandle(), mNodeHandle(ros::this_node::getName()), mPointCloudPtr(new ObjectPointCloud()), mCurrentlyPublishingVisualization(false) {
-			mGetPointCloud2ServiceServer = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
-			mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
-			mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
-			mSetPointCloudServiceServer = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
-			mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
-			mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
-			mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
+        NextBestView()
+        {
+            mGlobalNodeHandle = ros::NodeHandle();
+            mNodeHandle = ros::NodeHandle(ros::this_node::getName());
+            mGetPointCloud2ServiceServer = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
+            mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
+            mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
+            mSetPointCloudServiceServer = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
+            mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
+            mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
+            mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
             mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
             mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
+            mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
 
             mSpaceSamplingPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("space_sampling_point_cloud", 100);
-			mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
-			mFrustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("frustum_point_cloud", 1000);
-			mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("frustum_marker_array", 1000);
-			mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
+            mPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("point_cloud", 1000);
+            mFrustumPointCloudPublisher = mNodeHandle.advertise<sensor_msgs::PointCloud2>("frustum_point_cloud", 1000);
+            mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("frustum_marker_array", 1000);
+            mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
             mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_normals", 100, false);
             mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_meshes", 100, false);
             mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_object_meshes", 100, false);
 
-			mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
-			mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
-			mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
+            mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
+            mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
+            mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
 
-			// setup the visualization defaults
-			bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
-			mNodeHandle.param("show_space_sampling", show_space_sampling, false);
-			mNodeHandle.param("show_point_cloud", show_point_cloud, false);
-			mNodeHandle.param("show_frustum_point_cloud", show_frustum_point_cloud, false);
-			mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
-			mNodeHandle.param("move_robot", move_robot, false);
+            initialize();
+		}
 
-			// assign the values to the settings struct
-			mVisualizationSettings.space_sampling = show_space_sampling;
-			mVisualizationSettings.point_cloud = show_point_cloud;
-			mVisualizationSettings.frustum_point_cloud = show_frustum_point_cloud;
-			mVisualizationSettings.frustum_marker_array = show_frustum_marker_array;
+		//dtor
+		virtual ~NextBestView() { }
+
+        void initialize()
+        {
+            mPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+            mCurrentlyPublishingVisualization = false;
+
+            // setup the visualization defaults
+            bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
+            mNodeHandle.param("show_space_sampling", show_space_sampling, false);
+            mNodeHandle.param("show_point_cloud", show_point_cloud, false);
+            mNodeHandle.param("show_frustum_point_cloud", show_frustum_point_cloud, false);
+            mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
+            mNodeHandle.param("move_robot", move_robot, false);
+
+            // assign the values to the settings struct
+            mVisualizationSettings.space_sampling = show_space_sampling;
+            mVisualizationSettings.point_cloud = show_point_cloud;
+            mVisualizationSettings.frustum_point_cloud = show_frustum_point_cloud;
+            mVisualizationSettings.frustum_marker_array = show_frustum_marker_array;
             mVisualizationSettings.move_robot = move_robot;
 
             //Initialize marker arrays
@@ -184,128 +201,128 @@ namespace next_best_view {
             mFrustumMeshMarkerArrayPtr = boost::make_shared<viz::MarkerArray>(*mFrustumMeshMarkerArray);
             mObjectNormalsMarkerArrayPtr = boost::make_shared<viz::MarkerArray>(*mObjectNormalsMarkerArray);
 
-			/* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
-			* be defined in the CameraModelFilter specialization class.
-			* TODO: Export these parameters to the specialization of the CameraModelFilter class. This makes sense, because you have to
-			* keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
-			* able to adjust the parameters for each camera separateley.
-			*/
+            /* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
+            * be defined in the CameraModelFilter specialization class.
+            * TODO: Export these parameters to the specialization of the CameraModelFilter class. This makes sense, because you have to
+            * keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
+            * able to adjust the parameters for each camera separateley.
+            */
             numberSearchedObjects = 0;
-			double fovx, fovy, ncp, fcp, speedFactorRecognizer;
+            double fovx, fovy, ncp, fcp, speedFactorRecognizer;
             double radius,samples,colThresh;
-			mNodeHandle.param("fovx", fovx, 62.5);
+            mNodeHandle.param("fovx", fovx, 62.5);
             mNodeHandle.param("fovy", fovy, 48.9);
-			mNodeHandle.param("ncp", ncp, .5);
-			mNodeHandle.param("fcp", fcp, 5.0);
+            mNodeHandle.param("ncp", ncp, .5);
+            mNodeHandle.param("fcp", fcp, 5.0);
             mNodeHandle.param("radius", radius, 0.75);
             mNodeHandle.param("colThresh", colThresh, 45.0);
             mNodeHandle.param("samples", samples, 128.0);
-			mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
-			ROS_DEBUG_STREAM("fovx: " << fovx);
-			ROS_DEBUG_STREAM("fovy: " << fovy);
-			ROS_DEBUG_STREAM("ncp: " << ncp);
-			ROS_DEBUG_STREAM("fcp: " << fcp);
+            mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
+            ROS_DEBUG_STREAM("fovx: " << fovx);
+            ROS_DEBUG_STREAM("fovy: " << fovy);
+            ROS_DEBUG_STREAM("ncp: " << ncp);
+            ROS_DEBUG_STREAM("fcp: " << fcp);
             ROS_DEBUG_STREAM("radius: " << radius);
             ROS_DEBUG_STREAM("colThresh: " << colThresh);
             ROS_DEBUG_STREAM("samples: " << samples);
-			ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
+            ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
 
-			//////////////////////////////////////////////////////////////////
-			// HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
-			//////////////////////////////////////////////////////////////////
-			/* The NextBestViewCalculator consists of multiple modules which interact w/ each other. By this
-			 * interaction we get a result for the next best view which suites our constraints best.
-			 *
-			 * The modules namely are:
-			 * - UnitSphereSampler (unit_sphere_sampler/UnitSphereSampler.hpp)
-			 * - SpaceSampler (space_sampler/SpaceSampler.hpp)
-			 * - CameraModelFilter (camera_model_filter/CameraModelFilter.hpp)
-			 * - RobotModel (robot_model/RobotModel.hpp)
+            //////////////////////////////////////////////////////////////////
+            // HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
+            //////////////////////////////////////////////////////////////////
+            /* The NextBestViewCalculator consists of multiple modules which interact w/ each other. By this
+             * interaction we get a result for the next best view which suites our constraints best.
+             *
+             * The modules namely are:
+             * - UnitSphereSampler (unit_sphere_sampler/UnitSphereSampler.hpp)
+             * - SpaceSampler (space_sampler/SpaceSampler.hpp)
+             * - CameraModelFilter (camera_model_filter/CameraModelFilter.hpp)
+             * - RobotModel (robot_model/RobotModel.hpp)
              * - RatingModule (rating_module/RatingModule.hpp)viz::MarkerArray
-			 * - HypothesisUpdater (hypothesis_updater/HypothesisUpdater.hpp)
-			 *
+             * - HypothesisUpdater (hypothesis_updater/HypothesisUpdater.hpp)
+             *
              * Every of these modules is an abstract class which providDefaultRatingModulees an interface to interact with.
-			 * These interfaces are, right now, far from final and can therefore be change as you want to change them.
-			 * Side-effects are expected just in the next_best_view node.
-			 */
+             * These interfaces are, right now, far from final and can therefore be change as you want to change them.
+             * Side-effects are expected just in the next_best_view node.
+             */
 
-			/* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
-			 * It picks a given number of samples out of the unit sphere. These samples should be uniform
-			 * distributed on the sphere's surface which is - by the way - no easy problem to solve.
-			 * Therefore we used an approximation algorithm which approximates the surface with a
-			 * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
-			 */
-			SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
+            /* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
+             * It picks a given number of samples out of the unit sphere. These samples should be uniform
+             * distributed on the sphere's surface which is - by the way - no easy problem to solve.
+             * Therefore we used an approximation algorithm which approximates the surface with a
+             * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
+             */
+            SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
             unitSphereSamplerPtr->setSamples(samples);
 
-			/* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
-			 * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
-			 * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
-			 * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
-			 */
-			MapHelperPtr mapHelperPtr(new MapHelper());
+            /* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
+             * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
+             * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
+             * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
+             */
+            MapHelperPtr mapHelperPtr(new MapHelper());
             mapHelperPtr->setCollisionThreshold(colThresh);
 
-			/* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
-			 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
-			 * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
-			 * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
-			 * the map and calculate the points which are contained in the feasible map space.
-			 */
-			MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
+            /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
+             * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
+             * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
+             * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
+             * the map and calculate the points which are contained in the feasible map space.
+             */
+            MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
             spaceSamplerPtr->setHexagonRadius(radius);
 
-			/* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
-			 * The camera model filter takes account for the fact, that there are different cameras around in the real world.
-			 * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
-			 * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
-			 * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
-			 */
-			//MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
-			MapBasedStereoCameraModelFilterPtr cameraModelFilterPtr(new MapBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
-			cameraModelFilterPtr->setHorizontalFOV(fovx);
-			cameraModelFilterPtr->setVerticalFOV(fovy);
-			cameraModelFilterPtr->setNearClippingPlane(ncp);
-			cameraModelFilterPtr->setFarClippingPlane(fcp);
-			cameraModelFilterPtr->setRecognizerCosts((float)speedFactorRecognizer, "");
+            /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
+             * The camera model filter takes account for the fact, that there are different cameras around in the real world.
+             * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
+             * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
+             * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
+             */
+            //MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
+            MapBasedStereoCameraModelFilterPtr cameraModelFilterPtr(new MapBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
+            cameraModelFilterPtr->setHorizontalFOV(fovx);
+            cameraModelFilterPtr->setVerticalFOV(fovy);
+            cameraModelFilterPtr->setNearClippingPlane(ncp);
+            cameraModelFilterPtr->setFarClippingPlane(fcp);
+            cameraModelFilterPtr->setRecognizerCosts((float)speedFactorRecognizer, "");
 
-			
-			double panMin, panMax, tiltMin, tiltMax;
-			mNodeHandle.param("panMin", panMin, -60.);
-			mNodeHandle.param("panMax", panMax, 60.);
-			mNodeHandle.param("tiltMin", tiltMin, -45.);
-			mNodeHandle.param("tiltMax", tiltMax, 45.);
-			ROS_DEBUG_STREAM("panMin: " << panMin);
-			ROS_DEBUG_STREAM("panMax: " << panMax);
-			ROS_DEBUG_STREAM("tiltMin: " << tiltMin);
-			ROS_DEBUG_STREAM("tiltMax: " << tiltMax);
-			
-			/* MILDRobotModel is a specialization of the abstract RobotModel class.
-			 * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
+
+            double panMin, panMax, tiltMin, tiltMax;
+            mNodeHandle.param("panMin", panMin, -60.);
+            mNodeHandle.param("panMax", panMax, 60.);
+            mNodeHandle.param("tiltMin", tiltMin, -45.);
+            mNodeHandle.param("tiltMax", tiltMax, 45.);
+            ROS_DEBUG_STREAM("panMin: " << panMin);
+            ROS_DEBUG_STREAM("panMax: " << panMax);
+            ROS_DEBUG_STREAM("tiltMin: " << tiltMin);
+            ROS_DEBUG_STREAM("tiltMax: " << tiltMax);
+
+            /* MILDRobotModel is a specialization of the abstract RobotModel class.
+             * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
              * non-reachable conros::Publishefigurations of the robot which can therefore be ignored during calculation.
-			 */
-			MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
+             */
+            MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
             robotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
-			robotModelPtr->setPanAngleLimits(panMin, panMax);
+            robotModelPtr->setPanAngleLimits(panMin, panMax);
 
-			/* DefaultRatingModule is a specialization of the abstract RatingModule class.
-			 * The rating module calculates the use and the costs of an operation.
-			 */
+            /* DefaultRatingModule is a specialization of the abstract RatingModule class.
+             * The rating module calculates the use and the costs of an operation.
+             */
             DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp));
-			ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
+            ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
 
-			/* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
-			 */
-			PerspectiveHypothesisUpdaterPtr hypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
-			hypothesisUpdaterPtr->setDefaultRatingModule(ratingModulePtr);
+            /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
+             */
+            PerspectiveHypothesisUpdaterPtr hypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
+            hypothesisUpdaterPtr->setDefaultRatingModule(ratingModulePtr);
 
-			// The setting of the modules.
-			mCalculator.setHypothesisUpdater(hypothesisUpdaterPtr);
-			mCalculator.setUnitSphereSampler(unitSphereSamplerPtr);
-			mCalculator.setSpaceSampler(spaceSamplerPtr);
-			mCalculator.setCameraModelFilter(cameraModelFilterPtr);
-			mCalculator.setRobotModel(robotModelPtr);
-			mCalculator.setRatingModule(ratingModulePtr);
+            // The setting of the modules.
+            mCalculator.setHypothesisUpdater(hypothesisUpdaterPtr);
+            mCalculator.setUnitSphereSampler(unitSphereSamplerPtr);
+            mCalculator.setSpaceSampler(spaceSamplerPtr);
+            mCalculator.setCameraModelFilter(cameraModelFilterPtr);
+            mCalculator.setRobotModel(robotModelPtr);
+            mCalculator.setRatingModule(ratingModulePtr);
 
             double mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
             mNodeHandle.param("mOmegaTilt", mOmegaTilt, 1.0);
@@ -315,10 +332,7 @@ namespace next_best_view {
             mNodeHandle.param("mOmegaRecognizer", mOmegaRecognizer, 1.0);
 
             mCalculator.setOmegaParameters(mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
-		}
-
-		//dtor
-		virtual ~NextBestView() { }
+        }
 
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
 			mVisualizationSettings = SetupVisualizationRequest(request);
@@ -327,6 +341,12 @@ namespace next_best_view {
 
 			return true;
 		}
+
+        bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
+            initialize();
+
+            return true;
+        }
 
 		bool processGetSpaceSamplingServiceCall(GetSpaceSampling::Request &request, GetSpaceSampling::Response &response) {
 			double contractor = request.contractor;
@@ -404,7 +424,8 @@ namespace next_best_view {
 
 			// convert to viewportPointCloud
 			std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
-			BOOST_FOREACH(AttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements) {
+            BOOST_FOREACH(AttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
+            {
 				ViewportPoint viewportConversionPoint(point.pose);
 				viewportConversionPoint.object_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
 				viewportConversionPoint.object_name_set->insert(point.object_type);

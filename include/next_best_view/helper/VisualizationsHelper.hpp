@@ -207,7 +207,6 @@ private:
         double SpaceSamplingMarkerScale;
         std::vector<double> SpaceSamplingMarkerRGBA;
         node_handle.getParam("/nbv/SpaceSamplingMarker_Scale", SpaceSamplingMarkerScale);
-        ROS_INFO("/nbv/SpaceSamplingMarkerScale %0.2f", SpaceSamplingMarkerScale);
         node_handle.getParam("/nbv/SpaceSamplingMarker_RGBA", SpaceSamplingMarkerRGBA);
 
         SamplePointCloud pcl = SamplePointCloud(*pointcloud, *feasibleIndices);

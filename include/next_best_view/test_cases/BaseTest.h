@@ -27,6 +27,7 @@
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/SetAttributedPointCloud.h"
+#include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/AttributedPoint.h"
 #include "next_best_view/helper/MathHelper.hpp"

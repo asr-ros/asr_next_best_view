@@ -28,7 +28,6 @@
 #include "next_best_view/helper/MapHelper.hpp"
 #include "helper/VisualizationsHelper.hpp"
 
-
 namespace next_best_view {
     class NextBestViewCalculator {
 	private:
@@ -132,6 +131,7 @@ namespace next_best_view {
 			while (ros::ok()) {
 				ViewportPoint intermediateResultViewport;
 				ROS_DEBUG("Prepare iteration step");
+
                 if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
                                            sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
                                            intermediateResultViewport)) {
@@ -155,6 +155,7 @@ namespace next_best_view {
 
 				if (currentCameraViewport.getSimpleVector3() == intermediateResultViewport.getSimpleVector3() || (intermediateResultViewport.getSimpleVector3() - currentBestViewport.getSimpleVector3()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
+                    ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
 					return true;
 				}
 

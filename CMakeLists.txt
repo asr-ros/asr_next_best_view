@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(next_best_view)
 
+add_definitions(-std=gnu++0x)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
@@ -52,6 +54,7 @@ add_service_files(
    IsPositionReachable.srv
    IsPoseReachable.srv
    TriggerFrustumVisualization.srv
+   ResetCalculator.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -161,6 +164,12 @@ add_executable(
 )
 
 add_executable(
+        ${PROJECT_NAME}_performance_test
+        src/test_cases/PerformanceTest.cpp
+        src/test_cases/BaseTest.cpp
+)
+
+add_executable(
         ${PROJECT_NAME}_single_scene_test
         src/test_cases/SingleSceneTest.cpp
         src/test_cases/BaseTest.cpp
@@ -185,6 +194,16 @@ target_link_libraries(
 
 target_link_libraries(
         ${PROJECT_NAME}_single_scene_test
+        ${PROJECT_NAME}_helper
+        ${PROJECT_NAME}_packages
+        ${PROJECT_NAME}_packages_impl
+        ${PCL_LIBRARIES}
+        glpk
+        ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+        ${PROJECT_NAME}_performance_test
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl

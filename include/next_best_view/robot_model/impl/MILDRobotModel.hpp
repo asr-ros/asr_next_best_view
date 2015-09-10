@@ -118,6 +118,8 @@ namespace next_best_view {
 		
 		float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
+        geometry_msgs::Pose getRobotPose();
+
 	};
 
 	typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;
