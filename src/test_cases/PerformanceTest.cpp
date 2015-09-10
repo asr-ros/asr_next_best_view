@@ -28,6 +28,13 @@ public:
 		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
 		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
         ros::ServiceClient resetCalculatorClient = mNodeHandle.serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
+        ros::NodeHandle nh;
+        std::string testResultPath;
+        nh.getParam("/test/testResultFilePath", testResultPath);
+
+        std::ofstream file(testResultPath.c_str(), std::ios::out | std::ios::trunc);
+        file << "HP,SampleSize,TotalNBV,AvgNBV,TotalUpd,AvgUpd" << std::endl;
+        ROS_INFO_STREAM("Writing to " << testResultPath);
 
         ResetCalculator reca;
         std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -52,11 +59,10 @@ public:
 
         ROS_INFO("Generiere Häufungspunkte");
 		// Häufungspunkte
-        for(unsigned int hpSize = 1; hpSize <= 15; hpSize++)
+        for(unsigned int sampleSize = 50; sampleSize<=400; sampleSize+=50)
         {
-            std::string filename = "/home/SMBAD/aumann/Tests/test" + to_string(hpSize) + ".txt";
-            std::ofstream file(filename.c_str(), std::ios::out | std::ios::trunc);
-            for(unsigned int sampleSize = 50; sampleSize<=400; sampleSize+=50)
+
+            for(unsigned int hpSize = 1; hpSize <= 15; hpSize++)
             {
                 totalTimeNBV = 0;
                 totalTimeUpdate = 0;
@@ -130,7 +136,6 @@ public:
                 int x = 1;
                 int countNBV = 0;
                 int countUpdate = 0;
-                file << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
                 cout << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
                 while(ros::ok()) {
                     if(apc.request.point_cloud.elements.size() == 0)
@@ -158,7 +163,6 @@ public:
                     countNBV ++;
                     std::chrono::duration<double> elapsed_seconds = end-start;
                     totalTimeNBV += elapsed_seconds.count();
-                    file << "Calc nextBestView : " << elapsed_seconds.count() << " " << ros::Time::now().toNSec() << std::endl;
 		    
                     if (!nbv.response.found) {
                         ROS_ERROR("No NBV found");
@@ -177,7 +181,6 @@ public:
                     countUpdate++;
                     elapsed_seconds = end-start;
                     totalTimeUpdate += elapsed_seconds.count();
-                    file << "Calc update : " << elapsed_seconds.count() << " " << ros::Time::now().toNSec() << std::endl;
                     x++;
                     if (x > 10)
                     {
@@ -188,25 +191,33 @@ public:
                     ros::spinOnce();
                     ros::Duration(0.5).sleep();
                 }
+                file << hpSize << "," << sampleSize << ",";
                 if (countNBV > 0)
                 {
-                    file << "Total time NBV : " << totalTimeNBV << std::endl;
-                    file << "Average time NBV : " << totalTimeNBV /(double)countNBV << std::endl;
+                    file << totalTimeNBV << "," << totalTimeNBV /(double)countNBV << ",";
                     cout << "Total time NBV : " << totalTimeNBV << std::endl;
                     cout << "Average time NBV : " << totalTimeNBV /(double)countNBV << std::endl;
                 }
+                else
+                {
+                    file << "0,0,";
+                }
                 if (countUpdate > 0)
                 {
-                    file << "Total time update : " << totalTimeUpdate << std::endl;
-                    file << "Average time update : " << totalTimeUpdate / (double)countUpdate << std::endl;
+                    file << totalTimeUpdate << "," << totalTimeUpdate / (double)countUpdate << std::endl;
                     cout << "Total time update : " << totalTimeUpdate << std::endl;
                     cout << "Average time update : " << totalTimeUpdate / (double)countUpdate << std::endl;
                 }
-                file << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
+                else
+                {
+                    file << "0,0" << std::endl;
+                }
                 cout << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
             }
-            file.close();
+
+
         }
+      file.close();
     }
 };
 
