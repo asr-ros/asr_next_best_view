@@ -38,6 +38,7 @@ public:
 
         ResetCalculator reca;
         std::chrono::time_point<std::chrono::system_clock> start, end;
+        unsigned int numberOfTestRuns = 10;
 	
         double totalTimeNBV, totalTimeUpdate;
         SimpleVector3* hp = new SimpleVector3[15];
@@ -64,132 +65,136 @@ public:
 
             for(unsigned int hpSize = 1; hpSize <= 15; hpSize++)
             {
-                totalTimeNBV = 0;
-                totalTimeUpdate = 0;
-                SetAttributedPointCloud apc;
-
-                SimpleQuaternion* orientation = new SimpleQuaternion[hpSize];
-                for(unsigned int i=0; i<hpSize; i++){ orientation[i] = euler2Quaternion(-90, 100.0, 0.0);}
-
-                std::string* types = new std::string[hpSize];
-                for(unsigned int i=0; i<hpSize; i++){types[i] = "Smacks";}
-
-
-               std::map<std::string, std::vector<AttributedPoint>* > objectPointCloudsMap;
-
-                for (std::size_t idx = 0; idx < hpSize; idx++) {
-
-                    if(objectPointCloudsMap.find(types[idx]) == objectPointCloudsMap.end())
-                    {
-                        objectPointCloudsMap[types[idx]]= new std::vector<AttributedPoint>();
-                    }
-                    for (std::size_t cnt = 0; cnt < sampleSize; cnt++)
-                    {
-                        SimpleVector3 randomVector;
-                        randomVector = MathHelper::getRandomVector(hp[idx], SimpleVector3(.1, .1, 0.01));
-
-                        AttributedPoint element;
-
-                        geometry_msgs::Pose pose;
-                        pose.orientation.w = orientation[idx].w();
-                        pose.orientation.x = orientation[idx].x();
-                        pose.orientation.y = orientation[idx].y();
-                        pose.orientation.z = orientation[idx].z();
-                        pose.position.x = randomVector[0];
-                        pose.position.y = randomVector[1];
-                        pose.position.z = randomVector[2];
-
-                        element.object_type = types[idx];
-                        element.pose = pose;
-                        objectPointCloudsMap[types[idx]]->push_back(element);
-                        apc.request.point_cloud.elements.push_back(element);
-                    }
-                }
-                std::cout << "point cloud size " << apc.request.point_cloud.elements.size() << std::endl;
-
-                ROS_INFO("Setze initiale Pose");
-                geometry_msgs::Pose initialPose;
-                initialPose.position.x = 1.64;
-                initialPose.position.y = 22.73;
-                initialPose.position.z = 1.32;
-
-                initialPose.orientation.w = 0.964072111801;
-                initialPose.orientation.x = 0.0;
-                initialPose.orientation.y = 0.0;
-                initialPose.orientation.z = -0.265640665651;
-                this->setInitialPose(initialPose);
-
-                apc.request.pose = initialPose;
-
-                //Resete den calculator vor jedem test
-                resetCalculatorClient.call(reca.request, reca.response);
-                // Setze PointCloud
-                if (!setPointCloudClient.call(apc.request, apc.response))
-                {
-                    ROS_ERROR("Could not set initial point cloud");
-                }
-                ros::Rate r(2);
-                GetNextBestView nbv;
-                nbv.request.current_pose = initialPose;
-                //ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
-                bool setPointCloud = false;
-                int x = 1;
                 int countNBV = 0;
                 int countUpdate = 0;
-                cout << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
-                while(ros::ok()) {
-                    if(apc.request.point_cloud.elements.size() == 0)
-                    {
-                        ROS_ERROR("No elements were found");
-                        break;
-                    }
-                    else if(setPointCloud)
-                    {
-                        setPointCloud = false;
-                        if (!setPointCloudClient.call(apc.request, apc.response))
+                totalTimeNBV = 0;
+                totalTimeUpdate = 0;
+                for (unsigned int testRun = 0; testRun < numberOfTestRuns; testRun++)
+                {
+                    std::cout << "Starting iteration " << testRun + 1 << std::endl;
+                    SetAttributedPointCloud apc;
+
+                    SimpleQuaternion* orientation = new SimpleQuaternion[hpSize];
+                    for(unsigned int i=0; i<hpSize; i++){ orientation[i] = euler2Quaternion(-90, 100.0, 0.0);}
+
+                    std::string* types = new std::string[hpSize];
+                    for(unsigned int i=0; i<hpSize; i++){types[i] = "Smacks";}
+
+
+                    std::map<std::string, std::vector<AttributedPoint>* > objectPointCloudsMap;
+
+                    for (std::size_t idx = 0; idx < hpSize; idx++) {
+
+                        if(objectPointCloudsMap.find(types[idx]) == objectPointCloudsMap.end())
                         {
-                            ROS_ERROR("Could not set point cloud");
-                            break;
+                            objectPointCloudsMap[types[idx]]= new std::vector<AttributedPoint>();
+                        }
+                        for (std::size_t cnt = 0; cnt < sampleSize; cnt++)
+                        {
+                            SimpleVector3 randomVector;
+                            randomVector = MathHelper::getRandomVector(hp[idx], SimpleVector3(.1, .1, 0.01));
+
+                            AttributedPoint element;
+
+                            geometry_msgs::Pose pose;
+                            pose.orientation.w = orientation[idx].w();
+                            pose.orientation.x = orientation[idx].x();
+                            pose.orientation.y = orientation[idx].y();
+                            pose.orientation.z = orientation[idx].z();
+                            pose.position.x = randomVector[0];
+                            pose.position.y = randomVector[1];
+                            pose.position.z = randomVector[2];
+
+                            element.object_type = types[idx];
+                            element.pose = pose;
+                            objectPointCloudsMap[types[idx]]->push_back(element);
+                            apc.request.point_cloud.elements.push_back(element);
                         }
                     }
+                    std::cout << "point cloud size " << apc.request.point_cloud.elements.size() << std::endl;
 
-                    ROS_INFO_STREAM("Kalkuliere NBV "<< x);
-                    start = std::chrono::system_clock::now();
-                    if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
-                        ROS_ERROR("Something went wrong in next best view");
-                        break;
-                    }
-                    end = std::chrono::system_clock::now();
-                    countNBV ++;
-                    std::chrono::duration<double> elapsed_seconds = end-start;
-                    totalTimeNBV += elapsed_seconds.count();
-		    
-                    if (!nbv.response.found) {
-                        ROS_ERROR("No NBV found");
-                        break;
-                    }
+                    ROS_INFO("Setze initiale Pose");
+                    geometry_msgs::Pose initialPose;
+                    initialPose.position.x = 1.64;
+                    initialPose.position.y = 22.73;
+                    initialPose.position.z = 1.32;
 
-                    UpdatePointCloud upc_req;
-                    upc_req.request.update_pose = nbv.response.resulting_pose;
+                    initialPose.orientation.w = 0.964072111801;
+                    initialPose.orientation.x = 0.0;
+                    initialPose.orientation.y = 0.0;
+                    initialPose.orientation.z = -0.265640665651;
+                    this->setInitialPose(initialPose);
 
-                    start = std::chrono::system_clock::now();
-                    if(!updatePointCloudClient.call(upc_req)) {
-                        ROS_ERROR("Update Point Cloud failed!");
-                        break;
-                    }
-                    end = std::chrono::system_clock::now();
-                    countUpdate++;
-                    elapsed_seconds = end-start;
-                    totalTimeUpdate += elapsed_seconds.count();
-                    x++;
-                    if (x > 10)
+                    apc.request.pose = initialPose;
+
+                    //Resete den calculator vor jedem test
+                    resetCalculatorClient.call(reca.request, reca.response);
+                    // Setze PointCloud
+                    if (!setPointCloudClient.call(apc.request, apc.response))
                     {
-                        break;
+                        ROS_ERROR("Could not set initial point cloud");
                     }
+                    ros::Rate r(2);
+                    GetNextBestView nbv;
+                    nbv.request.current_pose = initialPose;
+                    //ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
+                    bool setPointCloud = false;
+                    int x = 1;
+                    cout << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
+                    while(ros::ok()) {
+                        if(apc.request.point_cloud.elements.size() == 0)
+                        {
+                            ROS_ERROR("No elements were found");
+                            break;
+                        }
+                        else if(setPointCloud)
+                        {
+                            setPointCloud = false;
+                            if (!setPointCloudClient.call(apc.request, apc.response))
+                            {
+                                ROS_ERROR("Could not set point cloud");
+                                break;
+                            }
+                        }
 
-                    nbv.request.current_pose = nbv.response.resulting_pose;
-                    ros::spinOnce();
-                    ros::Duration(0.5).sleep();
+                        ROS_INFO_STREAM("Kalkuliere NBV "<< x);
+                        start = std::chrono::system_clock::now();
+                        if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+                            ROS_ERROR("Something went wrong in next best view");
+                            break;
+                        }
+                        end = std::chrono::system_clock::now();
+                        countNBV ++;
+                        std::chrono::duration<double> elapsed_seconds = end-start;
+                        totalTimeNBV += elapsed_seconds.count();
+
+                        if (!nbv.response.found) {
+                            ROS_ERROR("No NBV found");
+                            break;
+                        }
+
+                        UpdatePointCloud upc_req;
+                        upc_req.request.update_pose = nbv.response.resulting_pose;
+
+                        start = std::chrono::system_clock::now();
+                        if(!updatePointCloudClient.call(upc_req)) {
+                            ROS_ERROR("Update Point Cloud failed!");
+                            break;
+                        }
+                        end = std::chrono::system_clock::now();
+                        countUpdate++;
+                        elapsed_seconds = end-start;
+                        totalTimeUpdate += elapsed_seconds.count();
+                        x++;
+                        if (x > 10)
+                        {
+                            break;
+                        }
+
+                        nbv.request.current_pose = nbv.response.resulting_pose;
+                        ros::spinOnce();
+                        ros::Duration(0.5).sleep();
+                    }
                 }
                 file << hpSize << "," << sampleSize << ",";
                 if (countNBV > 0)
@@ -214,8 +219,6 @@ public:
                 }
                 cout << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
             }
-
-
         }
       file.close();
     }
