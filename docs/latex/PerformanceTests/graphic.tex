@@ -1,0 +1,114 @@
+\documentclass[paper=a4,12pt,version=last]{scrartcl}
+
+\usepackage{siunitx}
+\usepackage{tikz} % To generate the plot from csv
+\usepackage{pgfplots}
+\usepackage{sansmath}
+
+\pgfplotsset{compat=newest} % Allows to place the legend below plot
+\usepgfplotslibrary{units} % Allows to enter the units nicely
+
+
+
+\sisetup{
+  round-mode=places,
+  round-precision=2,
+}
+
+\pgfplotsset{
+    discard if not/.style 2 args={
+        x filter/.code={
+            \edef\tempa{\thisrow{#1}}
+            \edef\tempb{#2}
+            \ifx\tempa\tempb
+            \else
+                \def\pgfmathresult{inf}
+            \fi
+        }
+    }
+}
+
+\pgfplotsset{%
+  /tikz/font=\sansmath\sffamily\boldmath\bfseries
+}
+
+\begin{document}
+
+\begin{figure}[h!]
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[
+	  ytick style={draw=none},
+	  outer axis line style={draw=none},
+	  inner axis line style={draw=none},
+	  xticklabel style={yshift=10},
+	  x tick style={yshift=10},
+	  xtick align=center,
+	  xtick pos=left,
+	  height=250,
+          width=\linewidth, % Scale the plot to \linewidth
+	  ymajorgrids=true,
+          xlabel=Objects, % Set the labels
+          ylabel=runtime,
+          y unit=\si{\second},
+          xmin=0.9, xmax=15.1,
+          legend columns=4,
+          %legend pos=outer north east,
+          legend style={at={(0.5,-0.2)}, anchor=north}, % Put the legend below the plot
+        ]
+        \addplot[discard if not={SampleSize}{50}, line width=4pt, red, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{100}, line width=4pt, pink, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{150}, line width=4pt, green, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{200}, line width=4pt, gray, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{250}, line width=4pt, orange, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{300}, line width=4pt, purple, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{350}, line width=4pt, black, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{400}, line width=4pt, blue, domain=1:15] table[x=HP,y=TotalNBV,col sep=comma]{testResults.csv}; 
+        \legend{Samples=$50$,Samples=$100$,Samples=$150$,Samples=$200$,Samples=$250$,Samples=$300$,Samples=$350$,Samples=$400$}
+      \end{axis}
+    \end{tikzpicture}
+    %\caption{\textbf{Next best view runtime total depeding on sampleSize}}
+  \end{center}
+\end{figure}
+
+
+\begin{figure}[h!]
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[
+	  ytick style={draw=none},
+	  outer axis line style={draw=none},
+	  inner axis line style={draw=none},
+	  xticklabel style={yshift=10},
+	  x tick style={yshift=10},
+	  xtick align=center,
+	  xtick pos=left,
+	  height=250,
+          width=\linewidth, % Scale the plot to \linewidth
+	  ymajorgrids=true,
+          xlabel=Objects, % Set the labels
+          ylabel=runtime,
+          y unit=\si{\second},
+          xmin=0.9, xmax=15.1,
+          legend columns=4,
+          %legend pos=outer north east,
+          legend style={at={(0.5,-0.2)}, anchor=north}, % Put the legend below the plot
+        ]
+        \addplot[discard if not={SampleSize}{50}, line width=4pt, red, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{100}, line width=4pt, pink, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{150}, line width=4pt, green, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{200}, line width=4pt, gray, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{250}, line width=4pt, orange, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{300}, line width=4pt, purple, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{350}, line width=4pt, black, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \addplot[discard if not={SampleSize}{400}, line width=4pt, blue, domain=1:15] table[x=HP,y=AvgNBV,col sep=comma]{testResults.csv}; 
+        \legend{Samples=$50$,Samples=$100$,Samples=$150$,Samples=$200$,Samples=$250$,Samples=$300$,Samples=$350$,Samples=$400$}
+      \end{axis}
+    \end{tikzpicture}
+    %\caption{\textbf{Next best view runtime total depeding on sampleSize}}
+  \end{center}
+\end{figure}
+
+
+
+\end{document}
