@@ -9,6 +9,7 @@
 #include "next_best_view/CalculateCameraPose.h"
 #include "next_best_view/IsPositionReachable.h"
 #include "next_best_view/RobotStateMessage.h"
+#include "next_best_view/GetRobotPose.h"
 #include "Eigen/Dense"
 #include <pcl/point_cloud.h>
 #include <tf/transform_datatypes.h>
@@ -79,6 +80,12 @@ bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable:
   return true;
 }
 
+bool getRobotPose(GetRobotPose::Request &req, GetRobotPose::Response &res)
+{
+  res.robotPose = robotModelPtr->getRobotPose();
+  return true;
+}
+
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "getMovementCosts");
@@ -88,6 +95,7 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
     ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
     ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
+    ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
 
     robotModelPtr = MILDRobotModelPtr(new MILDRobotModel());
     robotModelPtr->setTiltAngleLimits(-45, 45);

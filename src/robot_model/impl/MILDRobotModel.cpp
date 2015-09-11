@@ -21,6 +21,7 @@
 #include "urdf/model.h"
 #include "urdf_model/joint.h"
 #include "tf/tf.h"
+#include "tf/transform_datatypes.h"
 //#include <robot_state_publisher/robot_state_publisher.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chain.hpp>
@@ -31,7 +32,7 @@ namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaBase_,mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mOmegaGlobal_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mOmegaGlobal_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
@@ -78,7 +79,12 @@ namespace next_best_view {
     geometry_msgs::Pose MILDRobotModel::getRobotPose()
     {
         geometry_msgs::Pose robotPose;
-
+        tf::StampedTransform transform;
+        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+        robotPose.position.x = transform.getOrigin()[0];
+        robotPose.position.y = transform.getOrigin()[1];
+        robotPose.position.z = transform.getOrigin()[2];
+        tf::quaternionTFToMsg(transform.getRotation(), robotPose.orientation);
         return robotPose;
     }
 

@@ -14,6 +14,7 @@
 #include "geometry_msgs/Pose.h"
 #include "nav_msgs/Path.h"
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 namespace next_best_view {
 	/*!
@@ -37,6 +38,7 @@ namespace next_best_view {
 		float speedFactorBaseRot;
 		float tolerance;
 		bool useGlobalPlanner;
+        tf::TransformListener listener;
 
 		/*!
 		 * contains the lower and upper limit of pan
@@ -118,6 +120,7 @@ namespace next_best_view {
 		
 		float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
+        //Returns the current pose of the robots base from tf
         geometry_msgs::Pose getRobotPose();
 
 	};
