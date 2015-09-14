@@ -88,6 +88,18 @@ namespace next_best_view {
         return robotPose;
     }
 
+    geometry_msgs::Pose MILDRobotModel::getCameraPose()
+    {
+        geometry_msgs::Pose cameraPose;
+        tf::StampedTransform transform;
+        listener.lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
+        cameraPose.position.x = transform.getOrigin()[0];
+        cameraPose.position.y = transform.getOrigin()[1];
+        cameraPose.position.z = transform.getOrigin()[2];
+        tf::quaternionTFToMsg(transform.getRotation(), cameraPose.orientation);
+        return cameraPose;
+    }
+
 	void MILDRobotModel::setPanAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
 		mPanLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
 		mPanLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);

@@ -55,7 +55,7 @@ add_service_files(
    IsPoseReachable.srv
    TriggerFrustumVisualization.srv
    ResetCalculator.srv
-   GetRobotPose.srv
+   GetPose.srv
 )
 
 ## Generate actions in the 'action' folder

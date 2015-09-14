@@ -122,6 +122,8 @@ namespace next_best_view {
 
         //Returns the current pose of the robots base from tf
         geometry_msgs::Pose getRobotPose();
+        //Returns the current pose of the robots camera from tf
+        geometry_msgs::Pose getCameraPose();
 
 	};
 
