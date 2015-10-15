@@ -19,7 +19,11 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
-  
+  <build_depend>pbd_msgs</build_depend>
+  <build_depend>world_model</build_depend>
+
+  <run_depend>world_model</run_depend>
+  <run_depend>pbd_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>roscpp</run_depend>

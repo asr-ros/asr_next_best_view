@@ -14,8 +14,8 @@
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
-#include "next_best_view/AttributedPointCloud.h"
-#include "next_best_view/AttributedPoint.h"
+#include "pbd_msgs/PbdAttributedPointCloud.h"
+#include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>

@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
   nav_msgs
+  pbd_msgs
+  world_model
   actionlib
   tf
   eigen_conversions
@@ -30,8 +32,6 @@ add_message_files(
 	DIRECTORY
 	msg
 	FILES
-	AttributedPoint.msg
-	AttributedPointCloud.msg
 	RobotStateMessage.msg
 )
 
@@ -71,6 +71,7 @@ generate_messages(
 	std_msgs  # Or other packages containing msgs
 	geometry_msgs
 	sensor_msgs
+	pbd_msgs
 	visualization_msgs
 )
 

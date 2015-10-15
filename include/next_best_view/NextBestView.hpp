@@ -53,8 +53,8 @@
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
-#include "next_best_view/AttributedPointCloud.h"
-#include "next_best_view/AttributedPoint.h"
+#include "pbd_msgs/PbdAttributedPointCloud.h"
+#include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/camera_model_filter/impl/MapBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/MapBasedStereoCameraModelFilter.hpp"
@@ -368,11 +368,11 @@ namespace next_best_view {
 			return true;
 		}
 
-		static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, AttributedPointCloud &pointCloudMessage) {
+	  static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage) {
 			pointCloudMessage.elements.clear();
 
 			BOOST_FOREACH(ObjectPoint point, pointCloud) {
-				AttributedPoint aPoint;
+				pbd_msgs::PbdAttributedPoint aPoint;
 
 				aPoint.pose = point.getPose();
 				aPoint.object_type = point.object_type_name;
@@ -424,7 +424,7 @@ namespace next_best_view {
 
 			// convert to viewportPointCloud
 			std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
-            BOOST_FOREACH(AttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
+			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
             {
 				ViewportPoint viewportConversionPoint(point.pose);
 				viewportConversionPoint.object_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());

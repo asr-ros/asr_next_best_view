@@ -57,7 +57,7 @@ public:
 
 				SimpleQuaternion randomQuat = next_best_view::MathHelper::getRandomQuaternion();
 
-				AttributedPoint element;
+				pbd_msgs::PbdAttributedPoint element;
 
 				geometry_msgs::Pose pose;
 				pose.orientation.w = randomQuat.w();

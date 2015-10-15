@@ -81,20 +81,20 @@ public:
                     for(unsigned int i=0; i<hpSize; i++){types[i] = "Smacks";}
 
 
-                    std::map<std::string, std::vector<AttributedPoint>* > objectPointCloudsMap;
+                    std::map<std::string, std::vector<pbd_msgs::PbdAttributedPoint>* > objectPointCloudsMap;
 
                     for (std::size_t idx = 0; idx < hpSize; idx++) {
 
                         if(objectPointCloudsMap.find(types[idx]) == objectPointCloudsMap.end())
                         {
-                            objectPointCloudsMap[types[idx]]= new std::vector<AttributedPoint>();
+                            objectPointCloudsMap[types[idx]]= new std::vector<pbd_msgs::PbdAttributedPoint>();
                         }
                         for (std::size_t cnt = 0; cnt < sampleSize; cnt++)
                         {
                             SimpleVector3 randomVector;
                             randomVector = MathHelper::getRandomVector(hp[idx], SimpleVector3(.1, .1, 0.01));
 
-                            AttributedPoint element;
+                            pbd_msgs::PbdAttributedPoint element;
 
                             geometry_msgs::Pose pose;
                             pose.orientation.w = orientation[idx].w();

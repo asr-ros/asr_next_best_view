@@ -1,4 +1,4 @@
-AttributedPointCloud point_cloud
+pbd_msgs/PbdAttributedPointCloud point_cloud
 geometry_msgs/Pose pose
 ---
 bool is_valid

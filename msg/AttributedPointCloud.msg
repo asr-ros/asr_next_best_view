@@ -1,2 +1,0 @@
-# PointCloud Elements
-AttributedPoint[] elements

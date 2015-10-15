@@ -23,8 +23,8 @@
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
-#include "next_best_view/AttributedPointCloud.h"
-#include "next_best_view/AttributedPoint.h"
+#include "pbd_msgs/PbdAttributedPointCloud.h"
+#include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "helper/VisualizationsHelper.hpp"
 
@@ -408,7 +408,7 @@ namespace next_best_view {
 		 * Sets the point cloud points from point cloud message
 		 * @param message - message containing the point cloud
 		 */
-		bool setPointCloudFromMessage(const AttributedPointCloud &msg) {
+      bool setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg) {
 			// create a new point cloud
 			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
@@ -418,7 +418,7 @@ namespace next_best_view {
 			mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
 
 			// put each element into the point cloud
-			BOOST_FOREACH(AttributedPoint element, msg.elements) {
+			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
 				// Create a new point with pose and set object type
 				ObjectPoint pointCloudPoint(element.pose);
 				pointCloudPoint.r = 0;

@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 //
 //	float roomHeight = 2.2;
 //
-//	next_best_view::AttributedPointCloud msg;
+//	pbd_msgs::PbdAttributedPointCloud msg;
 //	next_best_view::SimpleVector3 mue(mapHelper.getMetricWidth() / 2.0, mapHelper.getMetricHeight() / 2.0, roomHeight / 2.0);
 //	next_best_view::SimpleVector3 deviation(mapHelper.getMetricWidth() / 4.0, mapHelper.getMetricHeight() / 4.0, roomHeight / 8.0);
 //	next_best_view::SimpleVector3 mean = mue;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 //
 //		next_best_view::SimpleQuaternion randomQuat = next_best_view::MathHelper::getRandomQuaternion();
 //
-//		next_best_view::AttributedPoint element;
+//		pbd_msgs::PbdAttributedPoint element;
 //
 //		geometry_msgs::Pose pose;
 //		pose.orientation.w = randomQuat.w();

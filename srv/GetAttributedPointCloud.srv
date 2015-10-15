@@ -1,2 +1,2 @@
 ---
-AttributedPointCloud point_cloud
+pbd_msgs/PbdAttributedPointCloud point_cloud
