@@ -22,7 +22,7 @@
 #include <sensor_msgs/PointCloud2.h>
 
 #include "object_database/ObjectType.h"
-#include "object_database/ObjectManager.hpp"
+#include "object_database/ObjectManager.h"
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetPointCloud2.h"

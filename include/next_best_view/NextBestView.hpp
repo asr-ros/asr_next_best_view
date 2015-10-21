@@ -26,7 +26,7 @@
 // ROS Includes
 #include <actionlib/client/simple_action_client.h>
 #include <move_base_msgs/MoveBaseAction.h>
-#include <object_database/ObjectManager.hpp>
+#include <object_database/ObjectManager.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointField.h>
 #include <set>
