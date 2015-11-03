@@ -32,7 +32,6 @@ namespace next_best_view {
 		float mOmegaRot;
 		float mOmegaBase;
 		float mOmegaUseBase;
-        float mOmegaGlobal;
 		float speedFactorPTU;
 		float speedFactorBaseMove;
 		float speedFactorBaseRot;

@@ -3,7 +3,6 @@ mOmegaTilt: 0.5 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 1.0 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 5. #Gewichtungsfaktor für die Bewegung der Basis
 mOmegaRecognizer: 0.2 
-mOmegaGlobal: 1.0 #Globaler Gewichtungsfaktor der Kosten
 mOmegaUseBase: 15.0 #Zusätzlicher Kostenfaktor der addiert wird, wenn die Basis bewegt wird
 speedFactorPTU: 0.05 #Zeitkosten für Drehung der PTU in Sec/Rad
 speedFactorBaseRot: 0.1 #Zeitkosten für Drehung der Basis in Sec/Rad

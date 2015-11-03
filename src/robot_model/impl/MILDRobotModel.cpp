@@ -32,12 +32,11 @@ namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mOmegaGlobal_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
         n.getParam("mOmegaUseBase", mOmegaUseBase_);
-        n.getParam("mOmegaGlobal", mOmegaGlobal_);
         n.getParam("speedFactorPTU", speedFactorPTU_);
         n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
         n.getParam("speedFactorBaseRot", speedFactorBaseRot_);
@@ -60,14 +59,12 @@ namespace next_best_view {
         ROS_DEBUG_STREAM("tolerance: " << tolerance_);
         ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan_);
         ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
-        ROS_DEBUG_STREAM("mOmegaGlobal: " << mOmegaGlobal_);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaUseBase = mOmegaUseBase_;
         speedFactorPTU = speedFactorPTU_;
         speedFactorBaseMove = speedFactorBaseMove_;
         speedFactorBaseRot = speedFactorBaseRot_;
-        mOmegaGlobal = mOmegaGlobal_;
         tolerance = tolerance_;
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
