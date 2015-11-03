@@ -779,7 +779,6 @@ namespace next_best_view {
             if (mVisualizationSettings.frustum_point_cloud)
             {
                 ROS_DEBUG("Publishing Frustum Marker Array");
-
                 //sensor_msgs::PointCloud2 frustum_point_cloud;
                 //pcl::toROSMsg(ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices), frustum_point_cloud);
                 std_msgs::ColorRGBA colorFrustumMeshMarker;
@@ -790,7 +789,7 @@ namespace next_best_view {
                 ROS_DEBUG("Creating frustumObjectPointCloud");
                 ROS_DEBUG_STREAM("viewport.child_indices Size bis: " << viewport.child_indices->size());
                 ObjectPointCloud frustumObjectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices);
-                ROS_DEBUG_STREAM("viewport.child_indices Size bis bis : " << viewport.child_indices->size());
+                ROS_DEBUG_STREAM("viewport.child_indices Size bis : " << viewport.child_indices->size());
                 ROS_DEBUG("Deleting array...");
                 this->deleteMarkerArray(mFrustumMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher);
                 unsigned int index = 0;

@@ -122,6 +122,7 @@ add_library(
 	src/rating/impl/DefaultRatingModule.cpp
 	src/rating/impl/DefaultScoreContainer.cpp
 	src/robot_model/impl/MILDRobotModel.cpp
+        src/robot_model/impl/MILDRobotModel_with_IK.cpp
 	src/robot_model/impl/MILDRobotState.cpp
 	src/space_sampler/impl/PlaneSubSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedSpaceSampler.cpp
