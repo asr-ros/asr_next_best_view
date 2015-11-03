@@ -27,6 +27,7 @@
 #include <kdl/chain.hpp>
 #include <kdl/chainfksolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <tf_conversions/tf_eigen.h>
 
 namespace next_best_view {
     MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
@@ -66,6 +67,7 @@ namespace next_best_view {
         speedFactorBaseMove = speedFactorBaseMove_;
         speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
+        viewPointDistance = 1.0; //!!!!TODO: Read in distance!!!!
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
@@ -142,9 +144,8 @@ namespace next_best_view {
         }
     }
 
-  //Comment?
+    //Comment?
     //Solves the inverse kinematical problem for an given robot state and a pose for the camera
-
     RobotStatePtr MILDRobotModelWithIK::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
 		MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
@@ -166,28 +167,42 @@ namespace next_best_view {
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
 		alpha = alpha < -M_PI ? alpha + 2 * M_PI : alpha;
-
+/*
         //BEGIN: Calculate ViewCenterPoint
         //**************************************
-        Eigen::Vector3d
-
+        tf::StampedTransform cameraPoseTF;
+        listener.lookupTransform("/map", "/ptu_mount_link", ros::Time(0), cameraPoseTF);
+        Eigen::Affine3d cameraPoseEigen;
+        tf::poseTFToEigen(cameraPoseTF, cameraPoseEigen);
+        Eigen::Affine3d viewCenterEigen = new Eigen::Affine3d(new Eigen::Translation3d(new Eigen::Vector3d(0.0, viewPointDistance, 0.0)));
+        viewCenterEigen = viewCenterEigen*cameraPoseEigen;
         //**************************************
         //END: Calculate ViewCenterPoint
 
         //BEGIN:Get Parameters from TF-Publishers
         //**************************************
-        double h_tilt;  //Height of the tilt axis from ground
+        double h_tilt;              //Height of the tilt axis above ground
         Eigen::Affine3d t_tilt_cam; //Transform between tilted frame and camera frame
-
-
         //**************************************
         //END:Get Parameters from TF-Publishers
 
+        //BEGIN:Get Projection plain
+        //**************************************
+
+        //BEGIN:Calulate TILT and position of tilt joint
+        //**************************************
+        double beta;                //Angle between viewvector and projection of t_tilt_cam
+        double t_tilt_cam_proj;     //Projection of t_tilt_cam
+*/
+
+        //**************************************
+        //END:Calulate TILT and position of tilt joint
+
 		// set pan
-		targetMILDRobotState->pan = sourceMILDRobotState->pan + x_pan_plus - x_pan_minus;
+        //targetMILDRobotState->pan = sourceMILDRobotState->pan + x_pan_plus - x_pan_minus;
 
 		// set rotation
-		targetMILDRobotState->rotation = sourceMILDRobotState->rotation + x_rot_plus - x_rot_minus;
+        //targetMILDRobotState->rotation = sourceMILDRobotState->rotation + x_rot_plus - x_rot_minus;
 		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
 		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
 
