@@ -1,6 +1,8 @@
 geometry_msgs/Pose current_pose
 ---
 bool found
+#List of types of objects being searched in given nbv.
+#TODO: Rename to object_type_list and change using code (including tests) accordingly.
 string[] object_name_list
 geometry_msgs/Pose resulting_pose
 next_best_view/RobotStateMessage robot_state
