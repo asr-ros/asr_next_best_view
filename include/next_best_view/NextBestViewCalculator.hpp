@@ -212,7 +212,7 @@ namespace next_best_view {
 					}
 
 					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
-                    Precision movementCosts = mRobotModelPtr->getMovementCosts(targetRobotState);
+                    Precision movementCosts = mRobotModelPtr->getBase_TranslationalMovementCosts(targetRobotState);
                     Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(targetRobotState);
                     Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(targetRobotState);
                     Precision movementCostsPTU;
@@ -230,7 +230,7 @@ namespace next_best_view {
                         mOmegaPTU = mOmegaTilt;
                     }
 
-                    Precision rotationCosts = mRobotModelPtr->getRotationCosts(targetRobotState);
+                    Precision rotationCosts = mRobotModelPtr->getBase_RotationalMovementCosts(targetRobotState);
 
 					// do the filtering for the single object types
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mSingleObjectNameSubPowerSetPtr->begin(); subSetIter != mSingleObjectNameSubPowerSetPtr->end(); ++subSetIter) {

@@ -20,7 +20,7 @@
 using namespace next_best_view;
 MILDRobotModelPtr robotModelPtr;
 
-bool getMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
+bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
     float costs;
     MILDRobotState * currentState = new MILDRobotState(req.currentState.pan, req.currentState.tilt,req.currentState.rotation,req.currentState.x,req.currentState.y);
@@ -28,7 +28,7 @@ bool getMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Respons
     MILDRobotStatePtr currentStatePtr(currentState);
     MILDRobotStatePtr targetStatePtr(targetState);
 
-    costs = robotModelPtr->getMovementCosts(currentStatePtr, targetStatePtr);
+    costs = robotModelPtr->getBase_TranslationalMovementCosts(currentStatePtr, targetStatePtr);
     res.costs = costs;
     return true;
 }
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "getMovementCosts");
     ros::NodeHandle n;
-    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getMovementCosts);
+    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getBase_TranslationalMovementCosts);
     ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
     ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);

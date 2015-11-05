@@ -167,33 +167,64 @@ namespace next_best_view {
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
 		alpha = alpha < -M_PI ? alpha + 2 * M_PI : alpha;
-/*
-        //BEGIN: Calculate ViewCenterPoint
-        //**************************************
-        tf::StampedTransform cameraPoseTF;
-        listener.lookupTransform("/map", "/ptu_mount_link", ros::Time(0), cameraPoseTF);
-        Eigen::Affine3d cameraPoseEigen;
-        tf::poseTFToEigen(cameraPoseTF, cameraPoseEigen);
-        Eigen::Affine3d viewCenterEigen = new Eigen::Affine3d(new Eigen::Translation3d(new Eigen::Vector3d(0.0, viewPointDistance, 0.0)));
-        viewCenterEigen = viewCenterEigen*cameraPoseEigen;
-        //**************************************
-        //END: Calculate ViewCenterPoint
 
         //BEGIN:Get Parameters from TF-Publishers
         //**************************************
         double h_tilt;              //Height of the tilt axis above ground
         Eigen::Affine3d t_tilt_cam; //Transform between tilted frame and camera frame
+        tf::StampedTransform cameraPoseTF, tiltToCameraTF;
+        Eigen::Affine3d cameraPoseEigen, tiltToCameraEigen;
+        listener.lookupTransform("/map", "/ptu_tilted_link", ros::Time(0), cameraPoseTF);
+        listener.lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCameraTF);
+        tf::poseTFToEigen(cameraPoseTF, cameraPoseEigen);
+        tf::poseTFToEigen(tiltToCameraTF, tiltToCameraEigen);
+        cameraPoseEigen = cameraPoseEigen*tiltToCameraEigen;
         //**************************************
         //END:Get Parameters from TF-Publishers
 
-        //BEGIN:Get Projection plain
+        //BEGIN: Calculate ViewCenterPoint
         //**************************************
+        /*Eigen::Affine3d targetCameraPoseEigen(Eigen::Translation3d(Eigen::Vector3d(position(0,0), position(1,0), position(2,0))));
+        targetCameraPoseEigen = targetCameraPoseEigen*Eigen::Quaterniond(orientation.w(), orientation.x(), orientation.y(), orientation.z());
+        Eigen::Affine3d viewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, viewPointDistance, 0.0)));
+        viewCenterEigen = viewCenterEigen*targetCameraPoseEigen;
+        //**************************************
+        //END: Calculate ViewCenterPoint
+
+
+
+        //BEGIN:Get Projection plain and calucate projected values
+        //**************************************
+        double beta;                //Angle between viewvector and projection of t_tilt_cam
+        Eigen::Vector3d t_tilt_cam_proj;     //Projection of t_tilt_cam
+        double sideB;
+        //Eigen::Translation3d cameraPointEigen = cameraPoseEigen.matrix()(0,3);
+        //Eigen::Translation3d viewCenterPointEigen(viewCenterEigen);
+        //Eigen::Vector3d viewCenterEigen
+        Eigen::Vector3d targetCameraTranslation(targetCameraPoseEigen(0,3), targetCameraPoseEigen(1,3), targetCameraPoseEigen(2,3));
+        Eigen::Vector3d targetViewPointTranslation(targetCameraPoseEigen.matrix()(0,3)-viewCenterEigen.matrix()(0,3),targetCameraPoseEigen.matrix()(1,3)-viewCenterEigen.matrix()(1,3),targetCameraPoseEigen.matrix()(2,3)-viewCenterEigen.matrix()(2,3));
+        Eigen::Vector3d X_Axis(targetCameraPoseEigen.matrix()(0,3)-viewCenterEigen.matrix()(0,3),targetCameraPoseEigen.matrix()(1,3)-viewCenterEigen.matrix()(1,3),0.0);
+        X_Axis.normalize();
+        Eigen::Vector3d Y_Axis(0.0,0.0,1.0);
+        double ax, ay;
+        ax = X_Axis.dot(targetCameraTranslation);
+        ay = Y_Axis.dot(targetCameraTranslation);
+        t_tilt_cam_proj = ax * X_Axis + ay * Y_Axis;
+        beta = acos(targetViewPointTranslation.dot(t_tilt_cam_proj)/(t_tilt_cam_proj.norm()*targetViewPointTranslation.norm()));
+        sideB = t_tilt_cam_proj.norm();*/
+
+        //X_Axis
+        //X_Axix.
+
+
+        //**************************************
+        //END:Get Projection plain and calucate projected values
+
 
         //BEGIN:Calulate TILT and position of tilt joint
         //**************************************
-        double beta;                //Angle between viewvector and projection of t_tilt_cam
-        double t_tilt_cam_proj;     //Projection of t_tilt_cam
-*/
+
+
 
         //**************************************
         //END:Calulate TILT and position of tilt joint
@@ -216,7 +247,7 @@ namespace next_best_view {
 		return targetMILDRobotState;
 	}
 
-    float MILDRobotModelWithIK::getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    float MILDRobotModelWithIK::getBase_TranslationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
@@ -265,7 +296,7 @@ namespace next_best_view {
         return 1.0 - ptuTiltCosts;
     }
 
-    float MILDRobotModelWithIK::getRotationCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    float MILDRobotModelWithIK::getBase_RotationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);

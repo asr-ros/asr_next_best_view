@@ -15,8 +15,8 @@ namespace next_best_view {
 		return this->calculateRobotState(mCurrentRobotState, position, orientation);
 	}
 
-	float RobotModel::getMovementCosts(const RobotStatePtr &targetRobotState) {
-		return this->getMovementCosts(mCurrentRobotState, targetRobotState);
+    float RobotModel::getBase_TranslationalMovementCosts(const RobotStatePtr &targetRobotState) {
+        return this->getBase_TranslationalMovementCosts(mCurrentRobotState, targetRobotState);
 	}
 
     float RobotModel::getPTU_PanMovementCosts(const RobotStatePtr &targetRobotState) {
@@ -27,8 +27,8 @@ namespace next_best_view {
         return this->getPTU_TiltMovementCosts(mCurrentRobotState, targetRobotState);
     }
 
-    float RobotModel::getRotationCosts(const RobotStatePtr &targetRobotState) {
-        return this->getRotationCosts(mCurrentRobotState, targetRobotState);
+    float RobotModel::getBase_RotationalMovementCosts(const RobotStatePtr &targetRobotState) {
+        return this->getBase_RotationalMovementCosts(mCurrentRobotState, targetRobotState);
     }
 
 	void RobotModel::setCurrentRobotState(const RobotStatePtr &currentRobotState) {

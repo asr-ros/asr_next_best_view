@@ -61,14 +61,14 @@ namespace next_best_view {
 		 * \param targetRobotState the target state
 		 * \return the rating
 		 */
-		float getMovementCosts(const RobotStatePtr &targetRobotState);
+        float getBase_TranslationalMovementCosts(const RobotStatePtr &targetRobotState);
 
 		/*!
 		 * \param sourceRobotState the source state
 		 * \param targetRobotState the target state
 		 * \return the rating to move to the pose.
 		 */
-		virtual float getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
+        virtual float getBase_TranslationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
 
         float getPTU_TiltMovementCosts(const RobotStatePtr &targetRobotState);
 
@@ -78,9 +78,9 @@ namespace next_best_view {
 
         virtual float getPTU_PanMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
 
-        float getRotationCosts(const RobotStatePtr &targetRobotState);
+        float getBase_RotationalMovementCosts(const RobotStatePtr &targetRobotState);
 
-        virtual float getRotationCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
+        virtual float getBase_RotationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
 
         /*!
          * \param currentRobotState sets the current robot state ptr

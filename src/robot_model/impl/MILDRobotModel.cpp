@@ -251,7 +251,7 @@ namespace next_best_view {
 		return targetMILDRobotState;
 	}
 
-    float MILDRobotModel::getMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    float MILDRobotModel::getBase_TranslationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
@@ -300,7 +300,7 @@ namespace next_best_view {
         return 1.0 - ptuTiltCosts;
     }
 
-    float MILDRobotModel::getRotationCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
+    float MILDRobotModel::getBase_RotationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
