@@ -48,6 +48,7 @@ using namespace next_best_view;
                 double cerror = (ccoords - reccoords).lpNorm<2>();
 
                 // error has to be minimal.
+                if (cerror > tolerance) {ROS_INFO("Error was over tolerance.");}
                 //BOOST_REQUIRE(cerror <= tolerance);
             }
         }
@@ -63,7 +64,7 @@ using namespace next_best_view;
         model.setPanAngleLimits(-45, 45);
         model.setTiltAngleLimits(-45, 45);
         RobotStatePtr state = model.calculateRobotState(robotState, SimpleVector3(20, 50, 0), MathHelper::getQuaternionByAngles(M_PI / 64.0, 0, 0));
-        ROS_INFO_STREAM("costs: " << model.getMovementCosts(robotState, state));
+        ROS_INFO_STREAM("costs: " << model.getBase_TranslationalMovementCosts(robotState, state));
     }
 
     void BaseTest::visualizeSingleObjectWithNormals() {

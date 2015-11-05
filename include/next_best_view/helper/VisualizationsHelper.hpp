@@ -300,7 +300,7 @@ private:
 public:
 
     VisualizationHelper():i(0),j(0),iterationStep(0){
-        node_handle;
+        node_handle();
         vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "/nbv/iteration_visualization", 1000);
         node_handle.getParam("/nbv/boolClearBetweenIterations", boolClearBetweenIterations);
         ROS_DEBUG_STREAM("boolClearBetweenIterations: " << boolClearBetweenIterations);

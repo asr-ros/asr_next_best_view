@@ -90,7 +90,7 @@ public:
             {
                 objectPointCloudsMap[types_scene1[idx]]= new std::vector<pbd_msgs::PbdAttributedPoint>();
             }
-			for (std::size_t cnt = 0; cnt < sampleSize; cnt++) {
+            for (std::size_t cnt = 0; cnt < (std::size_t)sampleSize; cnt++) {
 				SimpleVector3 randomVector;
                 randomVector = MathHelper::getRandomVector(hp_scene1[idx], SimpleVector3(.05, .05, 0.01));
 
@@ -157,7 +157,7 @@ public:
                 apc.request.point_cloud.elements.clear();
                 apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
 
-                for(int i=0;i<nbv.response.object_name_list.size();i++)
+                for(unsigned int i=0;i<nbv.response.object_name_list.size();i++)
                 {
                     if (nbv.response.object_name_list[i] != "CeylonTea")
                     {
@@ -175,13 +175,13 @@ public:
                     }
                     if (nbv.response.object_name_list[i] == "Smacks" && !scene2_isInitialized)
                     {
-                        for (std::size_t idx = 0; idx < hpSize_scene2; idx++) {
+                        for (std::size_t idx = 0; idx < (std::size_t)hpSize_scene2; idx++) {
 
                              if(objectPointCloudsMap.find(types_scene2[idx]) == objectPointCloudsMap.end())
                              {
                                  objectPointCloudsMap[types_scene2[idx]]= new std::vector<pbd_msgs::PbdAttributedPoint>();
                              }
-                             for (std::size_t cnt = 0; cnt < sampleSize; cnt++) {
+                             for (std::size_t cnt = 0; cnt < (std::size_t)sampleSize; cnt++) {
                                  SimpleVector3 randomVector;
                                  randomVector = MathHelper::getRandomVector(hp_scene2[idx], SimpleVector3(.05, .05, 0.01));
                                  pbd_msgs::PbdAttributedPoint element;

@@ -59,13 +59,13 @@ public:
        int sampleSize = 2;
        std::map<std::string, std::vector<pbd_msgs::PbdAttributedPoint>* > objectPointCloudsMap;
 
-		for (std::size_t idx = 0; idx < hpSize; idx++) {
+        for (std::size_t idx = 0; idx < (std::size_t)hpSize; idx++) {
 
             if(objectPointCloudsMap.find(types[idx]) == objectPointCloudsMap.end())
             {
 	      objectPointCloudsMap[types[idx]]= new std::vector<pbd_msgs::PbdAttributedPoint>();
             }
-			for (std::size_t cnt = 0; cnt < sampleSize; cnt++) {
+            for (std::size_t cnt = 0; cnt < (std::size_t)sampleSize; cnt++) {
 				SimpleVector3 randomVector;
                 randomVector = MathHelper::getRandomVector(hp[idx], SimpleVector3(.05, .05, 0.01));
 
@@ -137,7 +137,7 @@ public:
                 apc.request.point_cloud.elements.clear();
                 apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
 
-                for(int i=0;i<nbv.response.object_name_list.size();i++)
+                for(unsigned int i=0;i<nbv.response.object_name_list.size();i++)
                 {
                     std::vector<pbd_msgs::PbdAttributedPoint> temp;
                     for (std::vector<pbd_msgs::PbdAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)

@@ -123,7 +123,7 @@ namespace next_best_view {
 			uint32_t width = map.info.width;
 			uint32_t height = map.info.height;
 
-			if (mapX < 0 || mapY < 0 || mapX >= width || mapY >= height) {
+            if (mapX < 0 || mapY < 0 || mapX >= (int32_t)width || mapY >= (int32_t)height) {
 				return -1;
 			}
 
