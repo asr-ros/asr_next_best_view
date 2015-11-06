@@ -5,8 +5,8 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MILDROBOTMODEL_HPP_
-#define MILDROBOTMODEL_HPP_
+#ifndef MILDROBOTMODELWITHIK_HPP_
+#define MILDROBOTMODELWITHIK_HPP_
 
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -137,4 +137,4 @@ namespace next_best_view {
 }
 
 
-#endif /* MILDROBOTMODEL_HPP_ */
+#endif /* MILDROBOTMODELWITHIK_HPP_ */

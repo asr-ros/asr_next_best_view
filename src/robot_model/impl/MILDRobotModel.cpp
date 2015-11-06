@@ -445,6 +445,8 @@ namespace next_best_view {
                  }
              }
         } */
+        geometry_msgs::Pose myPose;
+        return myPose;
     }
 }
 

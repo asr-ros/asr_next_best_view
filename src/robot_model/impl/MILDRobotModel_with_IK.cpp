@@ -184,7 +184,7 @@ namespace next_best_view {
 
         //BEGIN: Calculate ViewCenterPoint
         //**************************************
-        /*Eigen::Affine3d targetCameraPoseEigen(Eigen::Translation3d(Eigen::Vector3d(position(0,0), position(1,0), position(2,0))));
+        Eigen::Affine3d targetCameraPoseEigen(Eigen::Translation3d(Eigen::Vector3d(position(0,0), position(1,0), position(2,0))));
         targetCameraPoseEigen = targetCameraPoseEigen*Eigen::Quaterniond(orientation.w(), orientation.x(), orientation.y(), orientation.z());
         Eigen::Affine3d viewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, viewPointDistance, 0.0)));
         viewCenterEigen = viewCenterEigen*targetCameraPoseEigen;
@@ -211,7 +211,7 @@ namespace next_best_view {
         ay = Y_Axis.dot(targetCameraTranslation);
         t_tilt_cam_proj = ax * X_Axis + ay * Y_Axis;
         beta = acos(targetViewPointTranslation.dot(t_tilt_cam_proj)/(t_tilt_cam_proj.norm()*targetViewPointTranslation.norm()));
-        sideB = t_tilt_cam_proj.norm();*/
+        sideB = t_tilt_cam_proj.norm();
 
         //X_Axis
         //X_Axix.
@@ -318,7 +318,8 @@ namespace next_best_view {
 
     float MILDRobotModelWithIK::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
-        float distance, costs ;
+        float distance = 0;
+        float costs = 0;
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;
@@ -441,6 +442,8 @@ namespace next_best_view {
                  }
              }
         } */
+        geometry_msgs::Pose myPose;
+        return myPose;
     }
 }
 

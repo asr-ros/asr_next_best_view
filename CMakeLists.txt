@@ -185,6 +185,15 @@ add_executable(
         src/test_cases/BaseTest.cpp
 )
 
+add_executable(
+        ${PROJECT_NAME}_ik_scene_test
+        src/test_cases/IKTest.cpp
+        src/robot_model/RobotModel.cpp
+        src/robot_model/impl/MILDRobotModel_with_IK.cpp
+        src/robot_model/impl/MILDRobotState.cpp
+        src/test_cases/BaseTest.cpp
+)
+
 target_link_libraries(
 	${PROJECT_NAME}_test
 	${PROJECT_NAME}_helper
@@ -217,6 +226,16 @@ target_link_libraries(
 
 target_link_libraries(
         ${PROJECT_NAME}_multi_scene_test
+        ${PROJECT_NAME}_helper
+        ${PROJECT_NAME}_packages
+        ${PROJECT_NAME}_packages_impl
+        ${PCL_LIBRARIES}
+        glpk
+        ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+        ${PROJECT_NAME}_ik_scene_test
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
