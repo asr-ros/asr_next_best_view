@@ -38,7 +38,7 @@ namespace next_best_view {
         float viewPointDistance;
 		float tolerance;
 		bool useGlobalPlanner;
-        tf::TransformListener listener;
+        tf::TransformListener *listener;
 
 		/*!
 		 * contains the lower and upper limit of pan
@@ -131,6 +131,7 @@ namespace next_best_view {
         //Returns the current pose of the robots camera from tf
         geometry_msgs::Pose getCameraPose();
 
+        ros::Publisher vis_pub;
 	};
 
     typedef boost::shared_ptr<MILDRobotModelWithIK> MILDRobotModelWithIKPtr;

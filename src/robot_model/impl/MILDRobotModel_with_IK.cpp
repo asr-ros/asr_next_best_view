@@ -29,6 +29,8 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <tf_conversions/tf_eigen.h>
 
+#include <visualization_msgs/Marker.h>
+
 namespace next_best_view {
     MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
@@ -71,6 +73,9 @@ namespace next_best_view {
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
+        listener = new tf::TransformListener();
+        //Temporary Visualization Publisher
+        vis_pub = n.advertise<visualization_msgs::Marker>( "/nbv/IK_Visualization", 1000);
 	}
 
     MILDRobotModelWithIK::~MILDRobotModelWithIK() {}
@@ -79,7 +84,7 @@ namespace next_best_view {
     {
         geometry_msgs::Pose robotPose;
         tf::StampedTransform transform;
-        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+        listener->lookupTransform("/map", "/base_link", ros::Time(0), transform);
         robotPose.position.x = transform.getOrigin()[0];
         robotPose.position.y = transform.getOrigin()[1];
         robotPose.position.z = transform.getOrigin()[2];
@@ -91,7 +96,7 @@ namespace next_best_view {
     {
         geometry_msgs::Pose cameraPose;
         tf::StampedTransform transform;
-        listener.lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
+        listener->lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
         cameraPose.position.x = transform.getOrigin()[0];
         cameraPose.position.y = transform.getOrigin()[1];
         cameraPose.position.z = transform.getOrigin()[2];
@@ -161,8 +166,8 @@ namespace next_best_view {
 		double currentPhi = sourceMILDRobotState->pan;
 		double currentRho = sourceMILDRobotState->rotation;
 
-        ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
-        ROS_DEBUG_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
+        ROS_INFO_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
+        ROS_INFO_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
 
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
@@ -174,14 +179,25 @@ namespace next_best_view {
         Eigen::Affine3d t_tilt_cam; //Transform between tilted frame and camera frame
         tf::StampedTransform cameraPoseTF, tiltToCameraTF;
         Eigen::Affine3d cameraPoseEigen, tiltToCameraEigen;
-        listener.lookupTransform("/map", "/ptu_tilted_link", ros::Time(0), cameraPoseTF);
-        listener.lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCameraTF);
+        ROS_INFO_STREAM("Lookup transform");
+        //listener->waitForTransform("/map", ros::Time(1000));
+        try
+        {
+            listener->lookupTransform("/map", "/ptu_tilted_link", ros::Time(10000), cameraPoseTF);
+            listener->lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(10000), tiltToCameraTF);
+        }
+        catch (tf::TransformException ex){
+          ROS_ERROR("LookupError %s",ex.what());
+          ros::Duration(1.0).sleep();
+        }
+        ROS_INFO_STREAM("TFToEigen");
         tf::poseTFToEigen(cameraPoseTF, cameraPoseEigen);
         tf::poseTFToEigen(tiltToCameraTF, tiltToCameraEigen);
         cameraPoseEigen = cameraPoseEigen*tiltToCameraEigen;
         //**************************************
         //END:Get Parameters from TF-Publishers
 
+        ROS_INFO_STREAM("Calculate ViewCenterPoint");
         //BEGIN: Calculate ViewCenterPoint
         //**************************************
         Eigen::Affine3d targetCameraPoseEigen(Eigen::Translation3d(Eigen::Vector3d(position(0,0), position(1,0), position(2,0))));
@@ -191,7 +207,32 @@ namespace next_best_view {
         //**************************************
         //END: Calculate ViewCenterPoint
 
-
+        visualization_msgs::Marker targetCameraVector = visualization_msgs::Marker();
+        targetCameraVector.header.stamp = ros::Time();
+        targetCameraVector.header.frame_id = "/map";
+        targetCameraVector.type = targetCameraVector.ARROW;
+        targetCameraVector.action = targetCameraVector.ADD;
+        targetCameraVector.id = 0;
+        targetCameraVector.lifetime = ros::Duration();
+        targetCameraVector.ns = "targetCamera";
+        targetCameraVector.scale.x = 1;
+        targetCameraVector.scale.y = 0.1;
+        targetCameraVector.scale.z = 0.1;
+        targetCameraVector.color.a = 1;
+        targetCameraVector.color.r = 0;
+        targetCameraVector.color.g = 1;
+        targetCameraVector.color.b = 0;
+        geometry_msgs::Point point1;
+        geometry_msgs::Point point2;
+        point1.x = position[0];
+        point1.y = position[1];
+        point1.z = position[2];
+        point2.x = viewCenterEigen(0,3);
+        point2.y = viewCenterEigen(1,3);
+        point2.z = viewCenterEigen(2,3);
+        targetCameraVector.points.push_back(point1);
+        targetCameraVector.points.push_back(point2);
+        vis_pub.publish(targetCameraVector);
 
         //BEGIN:Get Projection plain and calucate projected values
         //**************************************
@@ -213,21 +254,42 @@ namespace next_best_view {
         beta = acos(targetViewPointTranslation.dot(t_tilt_cam_proj)/(t_tilt_cam_proj.norm()*targetViewPointTranslation.norm()));
         sideB = t_tilt_cam_proj.norm();
 
-        //X_Axis
-        //X_Axix.
-
-
         //**************************************
         //END:Get Projection plain and calucate projected values
 
 
-        //BEGIN:Calulate TILT and position of tilt joint
+        //BEGIN:Calculate TILT and position of tilt joint
         //**************************************
 
 
 
         //**************************************
-        //END:Calulate TILT and position of tilt joint
+        //END:Calculate TILT and position of tilt joint
+
+        visualization_msgs::Marker actualCameraVector = visualization_msgs::Marker();
+        actualCameraVector.header.stamp = ros::Time();
+        actualCameraVector.header.frame_id = "/map";
+        actualCameraVector.type = targetCameraVector.ARROW;
+        actualCameraVector.action = actualCameraVector.ADD;
+        actualCameraVector.id = 0;
+        actualCameraVector.lifetime = ros::Duration();
+        actualCameraVector.ns = "actualCameraVector";
+        actualCameraVector.scale.x = 1;
+        actualCameraVector.scale.y = 0.1;
+        actualCameraVector.scale.z = 0.1;
+        actualCameraVector.color.a = 1;
+        actualCameraVector.color.r = 1;
+        actualCameraVector.color.g = 1;
+        actualCameraVector.color.b = 0;
+        point1.x = position[0];
+        point1.y = position[1];
+        point1.z = position[2];
+        point2.x = viewCenterEigen(0,3);
+        point2.y = viewCenterEigen(1,3);
+        point2.z = viewCenterEigen(2,3);
+        actualCameraVector.points.push_back(point1);
+        actualCameraVector.points.push_back(point2);
+        vis_pub.publish(actualCameraVector);
 
 		// set pan
         //targetMILDRobotState->pan = sourceMILDRobotState->pan + x_pan_plus - x_pan_minus;
