@@ -105,7 +105,7 @@ public:
                             pose.position.y = randomVector[1];
                             pose.position.z = randomVector[2];
 
-                            element.object_type = types[idx];
+                            element.type = types[idx];
                             element.pose = pose;
                             objectPointCloudsMap[types[idx]]->push_back(element);
                             apc.request.point_cloud.elements.push_back(element);

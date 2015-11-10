@@ -80,7 +80,7 @@ public:
 				pose.position.y = randomVector[1];
 				pose.position.z = randomVector[2];
 
-                element.object_type = types[idx];
+                element.type = types[idx];
                 element.pose = pose;
                 objectPointCloudsMap[types[idx]]->push_back(element);
 				apc.request.point_cloud.elements.push_back(element);
@@ -142,7 +142,7 @@ public:
                     std::vector<pbd_msgs::PbdAttributedPoint> temp;
                     for (std::vector<pbd_msgs::PbdAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                     {
-                        if ((nbv.response.object_name_list[i].compare(it->object_type)) != 0)
+                        if ((nbv.response.object_name_list[i].compare(it->type)) != 0)
                         {
                             temp.push_back(*it);
                         }

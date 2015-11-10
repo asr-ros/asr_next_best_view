@@ -375,7 +375,7 @@ namespace next_best_view {
 				pbd_msgs::PbdAttributedPoint aPoint;
 
 				aPoint.pose = point.getPose();
-				aPoint.object_type = point.object_type_name;
+                aPoint.type = point.object_type_name;
 
 				pointCloudMessage.elements.push_back(aPoint);
 			}
@@ -428,7 +428,7 @@ namespace next_best_view {
             {
 				ViewportPoint viewportConversionPoint(point.pose);
 				viewportConversionPoint.object_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
-				viewportConversionPoint.object_name_set->insert(point.object_type);
+                viewportConversionPoint.object_name_set->insert(point.type);
 				viewportPointList.push_back(viewportConversionPoint);
 			}
 
@@ -499,7 +499,7 @@ namespace next_best_view {
 			world_model::PushViewport pushViewportServiceCall;
 			pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
 			BOOST_FOREACH(std::string objectName, *resultingViewport.object_name_set) {
-				pushViewportServiceCall.request.viewport.object_type = objectName;
+                pushViewportServiceCall.request.viewport.type = objectName;
 				mPushViewportServiceClient.call(pushViewportServiceCall);
 			}
 

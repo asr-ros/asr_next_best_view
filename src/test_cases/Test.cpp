@@ -68,7 +68,7 @@ public:
 				pose.position.y = randomVector[1];
 				pose.position.z = randomVector[2];
 
-				element.object_type = objectTypeNames[next_best_view::MathHelper::getRandomInteger(0, objectTypeNames.size() - 1)];
+                element.type = objectTypeNames[next_best_view::MathHelper::getRandomInteger(0, objectTypeNames.size() - 1)];
 				element.pose = pose;
 
 				apc.request.point_cloud.elements.push_back(element);

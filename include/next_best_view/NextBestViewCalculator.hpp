@@ -424,8 +424,11 @@ namespace next_best_view {
 				pointCloudPoint.r = 0;
 				pointCloudPoint.g = 255;
 				pointCloudPoint.b = 0;
-				pointCloudPoint.object_type_name = element.object_type;
-				mObjectNameSetPtr->insert(element.object_type);
+                pointCloudPoint.object_type_name = element.type;
+
+                // add type name to list if not already inserted
+                if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
+                    mObjectNameSetPtr->insert(element.type);
 
 				// Get the rotation matrix to translate the normal vectors of the object.
 				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
