@@ -26,10 +26,18 @@ public:
         std::vector<SimpleVector3> targetCameraPositions;
         std::vector<SimpleQuaternion> targetCameraOrientations;
         //Initialize Poses
-        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.57344818115, 0.8));
-        targetCameraOrientations.push_back(euler2Quaternion(-90, 0.0, 0.0));
-        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 0.8));
-        targetCameraOrientations.push_back(euler2Quaternion(-100, 0.0, 0.0));
+        targetCameraPositions.push_back(SimpleVector3(0, 0, 0));
+        targetCameraOrientations.push_back(euler2Quaternion(0.0, 0.0, 0.0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(euler2Quaternion(-170, 0, 80.0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(euler2Quaternion(-180, 0, 100.0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(euler2Quaternion(-200, 0, 40.0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(euler2Quaternion(-180, 0, -30.0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(euler2Quaternion(-190, 0, -50.0));
 
         ROS_INFO_STREAM("Initializing...");
 
@@ -40,6 +48,7 @@ public:
         MILDRobotStatePtr startStatePtr(startState);
 
         ROS_INFO_STREAM("Running test...");
+        ros::spinOnce();
         for (unsigned int i = 0; i < targetCameraPositions.size(); i++)
         {
             ROS_INFO_STREAM("Testpose " << (i+1));
@@ -50,6 +59,7 @@ public:
             waitForEnter();
             ros::Duration(2).sleep();
         }
+        ROS_INFO_STREAM("All tests done.");
 	}
 };
 
