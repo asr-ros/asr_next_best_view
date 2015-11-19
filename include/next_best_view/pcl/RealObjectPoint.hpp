@@ -53,7 +53,7 @@ namespace next_best_view {
 			};
 		};
 
-		std::string object_type_name;
+        std::string type;
 		SimpleVector3CollectionPtr normal_vectors;
 		IndicesPtr active_normal_vectors;
 	public:

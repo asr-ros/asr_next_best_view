@@ -341,7 +341,7 @@ namespace next_best_view {
 				ObjectPoint &point = mPointCloudPtr->at(index);
 
 				// check if object type is in ObjectNameSet
-				ObjectNameSet::iterator iter = std::find(objectNameSetPtr->begin(), objectNameSetPtr->end(), point.object_type_name);
+				ObjectNameSet::iterator iter = std::find(objectNameSetPtr->begin(), objectNameSetPtr->end(), point.type);
 				if (iter != objectNameSetPtr->end()) {
 					objectNameIndicesPtr->push_back(index);
 				}
@@ -424,7 +424,7 @@ namespace next_best_view {
 				pointCloudPoint.r = 0;
 				pointCloudPoint.g = 255;
 				pointCloudPoint.b = 0;
-                pointCloudPoint.object_type_name = element.type;
+                pointCloudPoint.type = element.type;
 
                 // add type name to list if not already inserted
                 if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
@@ -434,11 +434,11 @@ namespace next_best_view {
 				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
 				// get object type information
-				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.object_type_name);
+				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.type);
 
 
                 //Insert the meshpath
-                objectsResources[pointCloudPoint.object_type_name] = responsePtr->object_mesh_resource;
+                objectsResources[pointCloudPoint.type] = responsePtr->object_mesh_resource;
 
 				if (responsePtr) {
 					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
@@ -451,7 +451,7 @@ namespace next_best_view {
 						++normalVectorCount;
 					}
 				} else {
-					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.object_type_name.c_str());
+					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
 					return false;
 				}
 

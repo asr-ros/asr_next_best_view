@@ -635,7 +635,7 @@ namespace next_best_view {
             // Any marker sent with the same namespace and id will overwrite the old one
             marker.ns = ns;
 
-            if (mCalculator.getMeshPathByName(objectPoints.object_type_name) == "-2")
+            if (mCalculator.getMeshPathByName(objectPoints.type) == "-2")
             {
                 marker.type = visualization_msgs::Marker::SPHERE;
                 // Set the scale of the marker -- 1x1x1 here means 1m on a side
@@ -647,7 +647,7 @@ namespace next_best_view {
                 marker.type = visualization_msgs::Marker::MESH_RESOURCE;
                 marker.mesh_use_embedded_materials = true;
                 // Cut of .iv, append .dae
-                fs::path mesh_resource = fs::path(mCalculator.getMeshPathByName(objectPoints.object_type_name)).replace_extension(".dae");
+                fs::path mesh_resource = fs::path(mCalculator.getMeshPathByName(objectPoints.type)).replace_extension(".dae");
                 marker.mesh_resource = mesh_resource.string();
                 // the model size unit is mm
                 marker.scale.x =  marker.scale.y = marker.scale.z = 0.0005;
