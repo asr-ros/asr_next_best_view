@@ -29,6 +29,8 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <tf_conversions/tf_eigen.h>
 
+#include <visualization_msgs/Marker.h>
+
 namespace next_best_view {
     MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
@@ -71,6 +73,9 @@ namespace next_best_view {
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
+        listener = new tf::TransformListener();
+        //Temporary Visualization Publisher
+        vis_pub = n.advertise<visualization_msgs::Marker>( "/nbv/IK_Visualization", 1000);
 	}
 
     MILDRobotModelWithIK::~MILDRobotModelWithIK() {}
@@ -79,7 +84,7 @@ namespace next_best_view {
     {
         geometry_msgs::Pose robotPose;
         tf::StampedTransform transform;
-        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+        listener->lookupTransform("/map", "/base_link", ros::Time(0), transform);
         robotPose.position.x = transform.getOrigin()[0];
         robotPose.position.y = transform.getOrigin()[1];
         robotPose.position.z = transform.getOrigin()[2];
@@ -91,7 +96,7 @@ namespace next_best_view {
     {
         geometry_msgs::Pose cameraPose;
         tf::StampedTransform transform;
-        listener.lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
+        listener->lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
         cameraPose.position.x = transform.getOrigin()[0];
         cameraPose.position.y = transform.getOrigin()[1];
         cameraPose.position.z = transform.getOrigin()[2];
@@ -151,7 +156,7 @@ namespace next_best_view {
 		MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
 		MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());
 
-		SimpleVector3 visualAxis = MathHelper::getVisualAxis(orientation);
+        SimpleVector3 visualAxis = MathHelper::getVisualAxis(orientation);
 		SimpleSphereCoordinates sphereCoords = MathHelper::convertC2S(visualAxis);
 		while (sphereCoords[2] < 0) { sphereCoords[2] += 2 * M_PI; }
 		while (sphereCoords[2] > 2 * M_PI) { sphereCoords[2] -= 2 * M_PI; }
@@ -161,73 +166,219 @@ namespace next_best_view {
 		double currentPhi = sourceMILDRobotState->pan;
 		double currentRho = sourceMILDRobotState->rotation;
 
-        ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
-        ROS_DEBUG_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
+        ROS_INFO_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
+        ROS_INFO_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
+        ROS_INFO_STREAM("Orientation: " << orientation.w() << ", " << orientation.x() << ", " << orientation.y()<< ", " << orientation.z());
 
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
 		alpha = alpha < -M_PI ? alpha + 2 * M_PI : alpha;
 
         //BEGIN:Get Parameters from TF-Publishers
-        //**************************************
+        //----------------------------------------------
         double h_tilt;              //Height of the tilt axis above ground
-        Eigen::Affine3d t_tilt_cam; //Transform between tilted frame and camera frame
-        tf::StampedTransform cameraPoseTF, tiltToCameraTF;
-        Eigen::Affine3d cameraPoseEigen, tiltToCameraEigen;
-        listener.lookupTransform("/map", "/ptu_tilted_link", ros::Time(0), cameraPoseTF);
-        listener.lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCameraTF);
+        tf::StampedTransform cameraPoseTF, tiltToCameraTF, tiltAxisPointTF;
+        Eigen::Affine3d cameraPoseEigen, tiltToCameraEigen, tiltAxisPointEigen;
+        ROS_INFO_STREAM("Lookup transform");
+        try
+        {
+            //listener->waitForTransform("/map", "/ptu_tilted_link", ros::Time(0));
+            //listener->waitForTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0));
+            listener->lookupTransform("/map", "/ptu_tilted_link", ros::Time(0), tiltAxisPointTF);
+            listener->lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCameraTF);
+        }
+        catch (tf::TransformException ex)
+        {
+          ROS_ERROR("An error occured during tf-lookup: %s",ex.what());
+          return targetMILDRobotState;
+        }
+        ROS_INFO_STREAM("TFToEigen");
         tf::poseTFToEigen(cameraPoseTF, cameraPoseEigen);
         tf::poseTFToEigen(tiltToCameraTF, tiltToCameraEigen);
-        cameraPoseEigen = cameraPoseEigen*tiltToCameraEigen;
-        //**************************************
+        tf::poseTFToEigen(tiltAxisPointTF, tiltAxisPointEigen);
+        cameraPoseEigen = tiltAxisPointEigen*tiltToCameraEigen;
+        h_tilt = cameraPoseEigen.matrix()(2,3);
+        ROS_INFO_STREAM("Height above ground: " << h_tilt);
+        //----------------------------------------------
         //END:Get Parameters from TF-Publishers
-
         //BEGIN: Calculate ViewCenterPoint
-        //**************************************
-        Eigen::Affine3d targetCameraPoseEigen(Eigen::Translation3d(Eigen::Vector3d(position(0,0), position(1,0), position(2,0))));
+        //----------------------------------------------
+        Eigen::Affine3d targetCameraPoseEigen(Eigen::Translation3d(Eigen::Vector3d(position[0], position[1], position[2])));
         targetCameraPoseEigen = targetCameraPoseEigen*Eigen::Quaterniond(orientation.w(), orientation.x(), orientation.y(), orientation.z());
+        Eigen::Affine3d targetTiltMountPointEigen = targetCameraPoseEigen*tiltToCameraEigen.inverse();
         Eigen::Affine3d viewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, viewPointDistance, 0.0)));
-        viewCenterEigen = viewCenterEigen*targetCameraPoseEigen;
-        //**************************************
+        viewCenterEigen = targetCameraPoseEigen*viewCenterEigen;
+        //----------------------------------------------
         //END: Calculate ViewCenterPoint
 
 
+        //BEGIN: Calculate b and beta
+        //----------------------------------------------
+        Eigen::Vector3d cam_axis_x(cameraPoseEigen(0,0), cameraPoseEigen(1,0), cameraPoseEigen(2,0));
+        Eigen::Vector3d cam_axis_z(cameraPoseEigen(0,2), cameraPoseEigen(1,2), cameraPoseEigen(2,2));
+        cam_axis_x.normalize();
+        cam_axis_z.normalize();
+        ROS_INFO_STREAM("cam_axis_x: " << cam_axis_x[0] << ", " << cam_axis_x[1] << ", " << cam_axis_x[2]);
+        ROS_INFO_STREAM("cam_axis_z: " << cam_axis_z[0] << ", " << cam_axis_z[1] << ", " << cam_axis_z[2]);
+        Eigen::Vector3d tilt_to_cam(tiltAxisPointEigen(0,3) -cameraPoseEigen(0,3), tiltAxisPointEigen(1,3) -cameraPoseEigen(1,3), tiltAxisPointEigen(2,3) -cameraPoseEigen(2,3));
+        double z_product = cam_axis_x.dot(tilt_to_cam);
+        tilt_to_cam -= z_product*tilt_to_cam;
+        double b_4realthistime = tilt_to_cam.norm();
+        tilt_to_cam.normalize();
+        double beta_4realthistime = acos(cam_axis_z.dot(tilt_to_cam));
+        ROS_INFO_STREAM("beta: " << beta_4realthistime);
+        ROS_INFO_STREAM("sideB: " << b_4realthistime);
 
-        //BEGIN:Get Projection plain and calucate projected values
-        //**************************************
+        //----------------------------------------------
+        //END: Calculate b and beta
+
+        visualization_msgs::Marker targetCameraVector = visualization_msgs::Marker();
+        targetCameraVector.header.stamp = ros::Time();
+        targetCameraVector.header.frame_id = "/map";
+        targetCameraVector.type = targetCameraVector.ARROW;
+        targetCameraVector.action = targetCameraVector.ADD;
+        targetCameraVector.id = 0;
+        targetCameraVector.lifetime = ros::Duration();
+        targetCameraVector.ns = "targetCamera";
+        targetCameraVector.scale.x = 0.02;
+        targetCameraVector.scale.y = 0.05;
+        targetCameraVector.scale.z = 0.1;
+        targetCameraVector.color.a = 1;
+        targetCameraVector.color.r = 0;
+        targetCameraVector.color.g = 1;
+        targetCameraVector.color.b = 0;
+        geometry_msgs::Point point1;
+        geometry_msgs::Point point2;
+        point1.x = position[0];
+        point1.y = position[1];
+        point1.z = position[2];
+        point2.x = viewCenterEigen(0,3);
+        point2.y = viewCenterEigen(1,3);
+        point2.z = viewCenterEigen(2,3);
+        targetCameraVector.points.push_back(point1);
+        targetCameraVector.points.push_back(point2);
+        vis_pub.publish(targetCameraVector);
+/*
+        //BEGIN:Get Projection plain and calcucate projected values
+        //----------------------------------------------
         double beta;                //Angle between viewvector and projection of t_tilt_cam
         Eigen::Vector3d t_tilt_cam_proj;     //Projection of t_tilt_cam
         double sideB;
         //Eigen::Translation3d cameraPointEigen = cameraPoseEigen.matrix()(0,3);
         //Eigen::Translation3d viewCenterPointEigen(viewCenterEigen);
         //Eigen::Vector3d viewCenterEigen
-        Eigen::Vector3d targetCameraTranslation(targetCameraPoseEigen(0,3), targetCameraPoseEigen(1,3), targetCameraPoseEigen(2,3));
+        Eigen::Vector3d targetCameraTranslation(targetCameraPoseEigen(0,3) - targetTiltMountPointEigen(0,3), targetCameraPoseEigen(1,3) - targetTiltMountPointEigen(1,3), targetCameraPoseEigen(2,3) - targetTiltMountPointEigen(2,3));
+        ROS_INFO_STREAM("TargetCameraTranslation: " << targetCameraTranslation[0] << ", " << targetCameraTranslation[1] << ", " << targetCameraTranslation[2]);
         Eigen::Vector3d targetViewPointTranslation(targetCameraPoseEigen.matrix()(0,3)-viewCenterEigen.matrix()(0,3),targetCameraPoseEigen.matrix()(1,3)-viewCenterEigen.matrix()(1,3),targetCameraPoseEigen.matrix()(2,3)-viewCenterEigen.matrix()(2,3));
-        Eigen::Vector3d X_Axis(targetCameraPoseEigen.matrix()(0,3)-viewCenterEigen.matrix()(0,3),targetCameraPoseEigen.matrix()(1,3)-viewCenterEigen.matrix()(1,3),0.0);
+        Eigen::Vector3d X_Axis(targetViewPointTranslation[0],targetViewPointTranslation[1],0.0);
         X_Axis.normalize();
+        ROS_INFO_STREAM("XAxis: " << X_Axis[0] << ", " << X_Axis[1] << ", " << X_Axis[2]);
         Eigen::Vector3d Y_Axis(0.0,0.0,1.0);
         double ax, ay;
         ax = X_Axis.dot(targetCameraTranslation);
         ay = Y_Axis.dot(targetCameraTranslation);
+        //Projection of the view vector on the view axis plane
         t_tilt_cam_proj = ax * X_Axis + ay * Y_Axis;
+        ROS_INFO_STREAM("t_tilt_cam_proj: " << t_tilt_cam_proj[0] << ", " << t_tilt_cam_proj[1] << ", " << t_tilt_cam_proj[2]);
         beta = acos(targetViewPointTranslation.dot(t_tilt_cam_proj)/(t_tilt_cam_proj.norm()*targetViewPointTranslation.norm()));
         sideB = t_tilt_cam_proj.norm();
+        ROS_INFO_STREAM("beta: " << beta);
+        ROS_INFO_STREAM("sideB: " << sideB);
+        //----------------------------------------------
+        //END:Get Projection plain and calculate projected values
+*/
 
-        //X_Axis
-        //X_Axix.
+        //BEGIN:Calculate TILT and position of tilt joint
+       //----------------------------------------------
+        Eigen::Vector3d planeNormal(targetCameraPoseEigen(0,0), targetCameraPoseEigen(1,0), targetCameraPoseEigen(2,0));
+        planeNormal.normalize();
+        ROS_INFO_STREAM("planeNormal: " << planeNormal[0] << ", " << planeNormal[1] << ", " << planeNormal[2]);
+        double sideC = sqrt(pow(viewPointDistance,2.0)+pow(b_4realthistime,2.0)-2*viewPointDistance*b_4realthistime*cos(beta_4realthistime));
+        double tilt = pow(viewPointDistance,2.0)-pow(b_4realthistime,2.0)-pow(sideC,2.0);
+        tilt /= -(2*b_4realthistime*sideC);
+        tilt = acos(tilt);
+        ROS_INFO_STREAM("SideC: " << sideC << " tilt: " << tilt);
+        double t1, t2, t3;
+        t3 = h_tilt - viewCenterEigen.matrix()(2,3);
+        //Berechnung von t2 über abc-formel
+        double a, b, c;
+        a = 1 + pow(planeNormal(1), 2.0)/pow(planeNormal(0), 2.0);
+        b = (2*t3*planeNormal(2)*planeNormal(3))/pow(planeNormal(0), 2.0);
+        c = -pow(sideC, 2.0) + pow(t3, 2.0)*pow(planeNormal(2), 2.0)/pow(planeNormal(0), 2.0);
+        t2 = (-b + sqrt(pow(b, 2.0)-4*a*c))/(2*a);
+        t1 = -(t2*planeNormal(1)+t3*planeNormal(2))/planeNormal(0);
+        ROS_INFO_STREAM("Transform: " << t1 << ", " << t2 << ", " << t3);
 
+        //get tilt base point
+        Eigen::Vector3d tiltBasePoint(t1+viewCenterEigen(0,3), t2+viewCenterEigen(1,3), t3+viewCenterEigen(2,3));
+        //----------------------------------------------
+        //END:Calculate TILT and position of tilt joint
+        visualization_msgs::Marker tiltBaseVectorProjected = visualization_msgs::Marker();
+        tiltBaseVectorProjected.header.stamp = ros::Time();
+        tiltBaseVectorProjected.header.frame_id = "/map";
+        tiltBaseVectorProjected.type = targetCameraVector.SPHERE;
+        tiltBaseVectorProjected.action = tiltBaseVectorProjected.ADD;
+        tiltBaseVectorProjected.id = 0;
+        tiltBaseVectorProjected.lifetime = ros::Duration();
+        tiltBaseVectorProjected.ns = "tiltBaseVectorProjected";
+        tiltBaseVectorProjected.scale.x = 0.02;
+        tiltBaseVectorProjected.scale.y = 0.02;
+        tiltBaseVectorProjected.scale.z = 0.02;
+        tiltBaseVectorProjected.color.a = 1;
+        tiltBaseVectorProjected.color.r = 1;
+        tiltBaseVectorProjected.color.g = 0;
+        tiltBaseVectorProjected.color.b = 0;
+        tiltBaseVectorProjected.pose.position.x = tiltBasePoint(0);
+        tiltBaseVectorProjected.pose.position.y = tiltBasePoint(1);
+        tiltBaseVectorProjected.pose.position.z = tiltBasePoint(2);
+        vis_pub.publish(tiltBaseVectorProjected);
 
-        //**************************************
-        //END:Get Projection plain and calucate projected values
+        tiltBasePoint += z_product*planeNormal;
 
+        visualization_msgs::Marker tiltBaseVector = visualization_msgs::Marker();
+        tiltBaseVector.header.stamp = ros::Time();
+        tiltBaseVector.header.frame_id = "/map";
+        tiltBaseVector.type = targetCameraVector.SPHERE;
+        tiltBaseVector.action = tiltBaseVector.ADD;
+        tiltBaseVector.id = 0;
+        tiltBaseVector.lifetime = ros::Duration();
+        tiltBaseVector.ns = "tiltBaseVector";
+        tiltBaseVector.scale.x = 0.02;
+        tiltBaseVector.scale.y = 0.02;
+        tiltBaseVector.scale.z = 0.02;
+        tiltBaseVector.color.a = 1;
+        tiltBaseVector.color.r = 0;
+        tiltBaseVector.color.g = 0;
+        tiltBaseVector.color.b = 1;
+        tiltBaseVector.pose.position.x = tiltBasePoint(0);
+        tiltBaseVector.pose.position.y = tiltBasePoint(1);
+        tiltBaseVector.pose.position.z = tiltBasePoint(2);
+        vis_pub.publish(tiltBaseVector);
 
-        //BEGIN:Calulate TILT and position of tilt joint
-        //**************************************
-
-
-
-        //**************************************
-        //END:Calulate TILT and position of tilt joint
+        visualization_msgs::Marker actualCameraVector = visualization_msgs::Marker();
+        actualCameraVector.header.stamp = ros::Time();
+        actualCameraVector.header.frame_id = "/map";
+        actualCameraVector.type = targetCameraVector.ARROW;
+        actualCameraVector.action = actualCameraVector.ADD;
+        actualCameraVector.id = 0;
+        actualCameraVector.lifetime = ros::Duration();
+        actualCameraVector.ns = "actualCameraVector";
+        actualCameraVector.scale.x = 0.02;
+        actualCameraVector.scale.y = 0.05;
+        actualCameraVector.scale.z = 0.1;
+        actualCameraVector.color.a = 1;
+        actualCameraVector.color.r = 1;
+        actualCameraVector.color.g = 1;
+        actualCameraVector.color.b = 0;
+        point1.x = position[0];
+        point1.y = position[1];
+        point1.z = position[2];
+        point2.x = viewCenterEigen(0,3);
+        point2.y = viewCenterEigen(1,3);
+        point2.z = viewCenterEigen(2,3);
+        actualCameraVector.points.push_back(point1);
+        actualCameraVector.points.push_back(point2);
+        vis_pub.publish(actualCameraVector);
 
 		// set pan
         //targetMILDRobotState->pan = sourceMILDRobotState->pan + x_pan_plus - x_pan_minus;

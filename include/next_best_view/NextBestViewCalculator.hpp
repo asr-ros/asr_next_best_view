@@ -193,7 +193,7 @@ namespace next_best_view {
                 recognizerCosts_Max += mCameraModelFilterPtr->getRecognizerCosts(mPointCloudPtr->at(*it).object_type_name);
             }
 
-	    //Go through all interesting space sample points for one iteration step to create candidate viewports.
+            //Go through all interesting space sample points for one iteration step to create candidate viewports.
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
@@ -201,7 +201,7 @@ namespace next_best_view {
 
 				//For each space sample point: Go through all interesting orientations.
                 BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-		  //Now a concrete viewport is given.
+            //Now a concrete viewport is given.
 					objectNameViewportMapping.clear();
 
 					// do the frustum culling by camera model filter
