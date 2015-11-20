@@ -190,7 +190,7 @@ namespace next_best_view {
             double recognizerCosts_Max;
             for (Indices::iterator it = mActiveIndicesPtr->begin(); it != mActiveIndicesPtr->end(); it++)
             {
-                recognizerCosts_Max += mCameraModelFilterPtr->getRecognizerCosts(mPointCloudPtr->at(*it).object_type_name);
+                recognizerCosts_Max += mCameraModelFilterPtr->getRecognizerCosts(mPointCloudPtr->at(*it).type);
             }
 
             //Go through all interesting space sample points for one iteration step to create candidate viewports.

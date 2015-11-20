@@ -375,7 +375,7 @@ namespace next_best_view {
 				pbd_msgs::PbdAttributedPoint aPoint;
 
 				aPoint.pose = point.getPose();
-                aPoint.type = point.object_type_name;
+                aPoint.type = point.type;
 
 				pointCloudMessage.elements.push_back(aPoint);
 			}
