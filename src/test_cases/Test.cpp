@@ -31,7 +31,7 @@ public:
 
 		ROS_INFO("Generiere Häufungspunkte");
 		// Häufungspunkte
-		int hpSize = 3;
+        std::size_t hpSize = 3;
 		SimpleVector3* hp = new SimpleVector3[hpSize];
 		hp[0] = SimpleVector3(16.0, 16.0, 0.98);
 		hp[1] = SimpleVector3(25.0, 11.0, 1.32);
@@ -42,7 +42,7 @@ public:
 		objectTypeNames.push_back("Coffeebox");
 		objectTypeNames.push_back("Vitalis");
 
-		int sampleSize = 200;
+        std::size_t sampleSize = 200;
 
 		MapHelper mapHelper;
 

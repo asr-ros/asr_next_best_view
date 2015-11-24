@@ -27,17 +27,24 @@ public:
         std::vector<SimpleQuaternion> targetCameraOrientations;
         //Initialize Poses
         targetCameraPositions.push_back(SimpleVector3(0, 0, 0));
-        targetCameraOrientations.push_back(euler2Quaternion(0.0, 0.0, 0.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(0.0, 0.0, 0.0));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
-        targetCameraOrientations.push_back(euler2Quaternion(-170, 0, 80.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 0.0, 0 ));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
-        targetCameraOrientations.push_back(euler2Quaternion(-180, 0, 100.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 80.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
-        targetCameraOrientations.push_back(euler2Quaternion(-200, 0, 40.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-180, 100.0, 0 ));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
-        targetCameraOrientations.push_back(euler2Quaternion(-180, 0, -30.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-200, 40.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
-        targetCameraOrientations.push_back(euler2Quaternion(-190, 0, -50.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-180, -30.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-190, -50.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-120, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(120, -20.0, 0));
+
 
         ROS_INFO_STREAM("Initializing...");
 

@@ -58,14 +58,14 @@ namespace next_best_view {
 				const RobotModelPtr &robotModelPtr = RobotModelPtr(),
 				const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr(),
 				const RatingModulePtr &ratingModulePtr = RatingModulePtr())
-			: mUnitSphereSamplerPtr(unitSphereSamplerPtr),
+            : objectsResources(),
+              mUnitSphereSamplerPtr(unitSphereSamplerPtr),
 			  mSpaceSamplerPtr(spaceSamplerPtr),
 			  mRobotModelPtr(robotModelPtr),
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
 			  mRatingModulePtr(),
               mEpsilon(10E-3),
-              mVisHelper(),
-              objectsResources(){}
+              mVisHelper(){}
 	public:
 
 		/**

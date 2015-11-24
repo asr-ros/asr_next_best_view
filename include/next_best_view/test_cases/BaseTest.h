@@ -72,5 +72,7 @@ public:
     void waitForEnter();
 
     SimpleQuaternion euler2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
+
+    SimpleQuaternion ZXZ2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
 };
 

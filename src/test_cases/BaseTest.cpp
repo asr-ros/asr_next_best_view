@@ -218,4 +218,16 @@ using namespace next_best_view;
         return q;
     }
 
+   SimpleQuaternion  BaseTest::ZXZ2Quaternion( const Precision roll,
+                  const Precision pitch,
+                  const Precision yaw)
+    {
+
+        Eigen::AngleAxis<Precision> Z1_Angle(M_PI*roll/180.0,SimpleVector3::UnitZ());
+        Eigen::AngleAxis<Precision> X_Angle(M_PI*pitch/180.0,SimpleVector3::UnitX());
+        Eigen::AngleAxis<Precision> Z2_Angle(M_PI*yaw/180.0,SimpleVector3::UnitZ());
+
+        SimpleQuaternion q = Z1_Angle*X_Angle*Z2_Angle;
+        return q;
+    }
 

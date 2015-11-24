@@ -734,8 +734,8 @@ namespace next_best_view {
                 unsigned int index = 0;
                 for(ObjectPointCloud::iterator it = objectPointCloud.begin(); it < objectPointCloud.end(); it++)
                 {
-                    visualization_msgs::Marker niceMarker = createObjectMarker((*it),index++,colorMeshMarker,"mMeshMarkerArray");
-                    mMeshMarkerArrayPtr->markers.push_back(niceMarker);
+                    visualization_msgs::Marker objectMarker = createObjectMarker((*it),index++,colorMeshMarker,"mMeshMarkerArray");
+                    mMeshMarkerArrayPtr->markers.push_back(objectMarker);
                 }
                 mObjectMeshMarkerPublisher.publish(*mMeshMarkerArrayPtr);
 
@@ -795,8 +795,8 @@ namespace next_best_view {
                 unsigned int index = 0;
                 for(ObjectPointCloud::iterator it = frustumObjectPointCloud.begin(); it < frustumObjectPointCloud.end(); it++)
                 {
-                    visualization_msgs::Marker niceMarker = createObjectMarker((*it),index++,colorFrustumMeshMarker,"mFrustumObjectMesh");
-                    mFrustumMeshMarkerArrayPtr->markers.push_back(niceMarker);
+                    visualization_msgs::Marker objectMarker = createObjectMarker((*it),index++,colorFrustumMeshMarker,"mFrustumObjectMesh");
+                    mFrustumMeshMarkerArrayPtr->markers.push_back(objectMarker);
                 }
                 mFrustumObjectMeshMarkerPublisher.publish(*mFrustumMeshMarkerArrayPtr);
 

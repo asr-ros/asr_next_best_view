@@ -24,18 +24,18 @@ public:
 	void iterationTest() {
 		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
         ros::ServiceClient getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
-		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/nbv/get_point_cloud2");
+        //ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/nbv/get_point_cloud2");
 		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
 		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
-		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/nbv/get_space_sampling");
+        //ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/nbv/get_space_sampling");
 
         GetAttributedPointCloud gpc;
 		SetAttributedPointCloud apc;
 
 		ROS_INFO("Generiere Häufungspunkte");
 		// Häufungspunkte
-        int hpSize_scene1 = 6;
-        int hpSize_scene2 = 3;
+        std::size_t hpSize_scene1 = 6;
+        std::size_t hpSize_scene2 = 3;
         SimpleVector3* hp_scene1 = new SimpleVector3[hpSize_scene1];
         SimpleVector3* hp_scene2 = new SimpleVector3[hpSize_scene2];
         /*hp[0] = SimpleVector3(0.742521169572478, -0.166090965925641, 0.748947613126895);
