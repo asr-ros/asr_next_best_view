@@ -186,6 +186,12 @@ add_executable(
 )
 
 add_executable(
+	${PROJECT_NAME}_multi_id_scene_test
+	src/test_cases/MultiIdSceneTest.cpp
+	src/test_cases/BaseTest.cpp
+)
+
+add_executable(
         ${PROJECT_NAME}_ik_test
         src/test_cases/IKTest.cpp
         src/robot_model/RobotModel.cpp
@@ -232,6 +238,16 @@ target_link_libraries(
         ${PCL_LIBRARIES}
         glpk
         ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+	${PROJECT_NAME}_multi_id_scene_test
+	${PROJECT_NAME}_helper
+	${PROJECT_NAME}_packages
+	${PROJECT_NAME}_packages_impl
+	${PCL_LIBRARIES}
+	glpk
+	${catkin_LIBRARIES}
 )
 
 target_link_libraries(
