@@ -44,6 +44,10 @@ public:
         targetCameraOrientations.push_back(ZXZ2Quaternion(-120, -20.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.4));
         targetCameraOrientations.push_back(ZXZ2Quaternion(120, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.5));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(20, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.2));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 0.0, 0));
 
 
         ROS_INFO_STREAM("Initializing...");

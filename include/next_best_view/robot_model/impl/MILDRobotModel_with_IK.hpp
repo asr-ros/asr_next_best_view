@@ -64,7 +64,22 @@ namespace next_best_view {
 		 * Client used for communication with the global_planner to calculate movement costs
 		 */
 		 nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
-	public:
+
+         /*!
+          * Height of the tilt axis above ground
+          */
+         double h_tilt;
+         double viewTriangle_angleAlpha;
+         double viewTriangle_sideC;
+         Eigen::Affine3d tiltToCameraEigen;
+         double x_product;
+
+         /*!
+          * Trys to calculate parameters needed for the inverse kinematic using tf transformations
+          */
+         void setUpTFParameters();
+
+    public:
 		/*!
 		 * \brief constructor of the PTURobotModel
 		 */
