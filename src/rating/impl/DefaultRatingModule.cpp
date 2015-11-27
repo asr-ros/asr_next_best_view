@@ -54,6 +54,7 @@ namespace next_best_view {
         return 0.0;
     }
 
+
     float DefaultRatingModule::getCurrentFrustumPositionRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint)
     {
         float maxRating = 0.0;
@@ -66,6 +67,7 @@ namespace next_best_view {
         SimpleVector3 objectViewportVectorNormalized = (viewportPosition - objectPosition).normalized();
         SimpleVector3 objectViewportVector = viewportPosition - objectPosition;
 
+        //TODO
         maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector,
                                                             objectViewportVectorNormalized, angleMin)
                                                             *this->getSingleDistanceRating(viewportNormalVector,objectViewportVector),
@@ -102,6 +104,7 @@ namespace next_best_view {
 
 			float currentNormalityRating = this->getNormalityRating(candidateViewportPoint, objectPoint);
             float currentFrustumPositionRating = this->getCurrentFrustumPositionRating(candidateViewportPoint, objectPoint);
+            //TODO rename ElementDensity
             defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() + currentFrustumPositionRating);
 
 			if (currentNormalityRating == 0.0) {
@@ -147,7 +150,7 @@ namespace next_best_view {
 		}
 	}
 
-	BaseScoreContainerPtr DefaultRatingModule::getScoreContainerInstance() {
+    BaseScoreContainerPtr DefaultRatingModule::getScoreContainerInstance() {
 		return BaseScoreContainerPtr(new DefaultScoreContainer());
 	}
 

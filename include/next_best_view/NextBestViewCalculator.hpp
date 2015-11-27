@@ -214,7 +214,7 @@ namespace next_best_view {
 					}
 
 					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
-                    Precision movementCosts = mRobotModelPtr->getBase_TranslationalMovementCosts(targetRobotState);
+                    Precision movementCostsBase_Translation = mRobotModelPtr->getBase_TranslationalMovementCosts(targetRobotState);
                     Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(targetRobotState);
                     Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(targetRobotState);
                     Precision movementCostsPTU;
@@ -232,7 +232,7 @@ namespace next_best_view {
                         mOmegaPTU = mOmegaTilt;
                     }
 
-                    Precision rotationCosts = mRobotModelPtr->getBase_RotationalMovementCosts(targetRobotState);
+                    Precision movementCostsBase_Rotation = mRobotModelPtr->getBase_RotationalMovementCosts(targetRobotState);
 
 					// do the filtering for the single object types
 					for (std::set<ObjectNameSetPtr>::iterator subSetIter = mSingleObjectNameSubPowerSetPtr->begin(); subSetIter != mSingleObjectNameSubPowerSetPtr->end(); ++subSetIter) {
@@ -247,8 +247,8 @@ namespace next_best_view {
 						}
 
 						// assign movement costs for the given viewport.
-                        double movementCosts_ViewPort = (movementCosts*mOmegaBase + movementCostsPTU*mOmegaPTU + rotationCosts*mOmegaRot)/(mOmegaBase+mOmegaPTU+mOmegaRot);
-                        ROS_DEBUG_STREAM("Movement; " << movementCosts << ", rotation " << rotationCosts << ", movement PTU: " << movementCostsPTU);
+                        double movementCosts_ViewPort = (movementCostsBase_Translation*mOmegaBase + movementCostsPTU*mOmegaPTU + movementCostsBase_Rotation*mOmegaRot)/(mOmegaBase+mOmegaPTU+mOmegaRot);
+                        ROS_DEBUG_STREAM("Movement; " << movementCostsBase_Translation << ", rotation " << movementCostsBase_Rotation << ", movement PTU: " << movementCostsPTU);
                         candidateViewportPoint.score->setCosts(movementCosts_ViewPort);
 
 						std::string objectName = *((*subSetIter)->begin());
@@ -293,8 +293,8 @@ namespace next_best_view {
 
                         ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts<< " max " << recognizerCosts_Max);
                         double normalizedRecognitionCosts = 1.0 - recognitionCosts/recognizerCosts_Max;
-                        ROS_DEBUG_STREAM("Movement; " << movementCosts << ", rotation " << rotationCosts << ", movement PTU: " << movementCostsPTU << ", recognition: " << normalizedRecognitionCosts);
-                        aggregatedViewportPoint.score->setCosts((movementCosts*mOmegaBase + movementCostsPTU*mOmegaPTU + rotationCosts*mOmegaRot + normalizedRecognitionCosts*mOmegaRecognition)/(mOmegaBase+mOmegaPTU+mOmegaRot+mOmegaRecognition));
+                        ROS_DEBUG_STREAM("Movement; " << movementCostsBase_Translation << ", rotation " << movementCostsBase_Rotation << ", movement PTU: " << movementCostsPTU << ", recognition: " << normalizedRecognitionCosts);
+                        aggregatedViewportPoint.score->setCosts((movementCostsBase_Translation*mOmegaBase + movementCostsPTU*mOmegaPTU + movementCostsBase_Rotation*mOmegaRot + normalizedRecognitionCosts*mOmegaRecognition)/(mOmegaBase+mOmegaPTU+mOmegaRot+mOmegaRecognition));
 
 						nextBestViewports->push_back(aggregatedViewportPoint);
                     }
