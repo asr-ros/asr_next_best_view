@@ -439,10 +439,6 @@ namespace next_best_view {
 				// get object type information
 				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.type);
 
-
-                //Insert the meshpath
-                objectsResources[pointCloudPoint.type] = responsePtr->object_mesh_resource;
-
 				if (responsePtr) {
 					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
 					int normalVectorCount = 0;
@@ -457,6 +453,9 @@ namespace next_best_view {
 					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
 					return false;
 				}
+
+                //Insert the meshpath
+                objectsResources[pointCloudPoint.type] = responsePtr->object_mesh_resource;
 
 				// add point to array
 				pointCloudPtr->push_back(pointCloudPoint);
