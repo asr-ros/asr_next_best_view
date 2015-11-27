@@ -28,6 +28,8 @@
 #include "next_best_view/helper/MapHelper.hpp"
 #include "helper/VisualizationsHelper.hpp"
 
+//TODO Factor out combination calculation in doIterationStep
+
 namespace next_best_view {
     class NextBestViewCalculator {
 	private:
@@ -286,6 +288,7 @@ namespace next_best_view {
 						aggregatedViewportPoint.child_indices = aggregatedIndicesPtr;
 						aggregatedViewportPoint.object_name_set = subSetPtr;
 						aggregatedViewportPoint.score = mRatingModulePtr->getScoreContainerInstance();
+                        //TODO should be done in rating module on utility element basis
 						aggregatedViewportPoint.score->setUtility(utility);
 
                         ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts<< " max " << recognizerCosts_Max);

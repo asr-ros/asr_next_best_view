@@ -12,6 +12,10 @@
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 
+//TODO: Function & Parameter naming
+//TODO: Refactoring
+//TODO: Comments
+
 namespace next_best_view {
 	float DefaultRatingModule::getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint) {
 		float maxRating = 0.0;

@@ -10,6 +10,8 @@
 
 #include "next_best_view/common/CommonClass.hpp"
 
+//ToDo rename & comment (xtop,xbot,ytop,ybot)
+
 namespace next_best_view {
 	/*!
 	 * \brief SpaceSampler class generalizes the sampling of the space.

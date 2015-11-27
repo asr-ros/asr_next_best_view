@@ -68,6 +68,8 @@
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSampler.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 
+//TODO Move visualization components to helper/VisualizationHelper.hpp
+//TODO Clean up visualization
 
 namespace next_best_view {
 	// Defining namespace shorthandles
