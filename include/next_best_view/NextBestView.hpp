@@ -97,8 +97,8 @@ namespace next_best_view {
 		ros::NodeHandle mNodeHandle;
 
 		// ServiceServer and Publisher
-		ros::ServiceServer mGetPointCloud2ServiceServer;
-		ros::ServiceServer mGetPointCloudServiceServer;
+        ros::ServiceServer mGetPointCloud2ServiceServer;
+        ros::ServiceServer mGetPointCloudServiceServer;
 		ros::ServiceServer mSetPointCloudServiceServer;
 		ros::ServiceServer mGetNextBestViewServiceServer;
 		ros::ServiceServer mGetSpaceSamplingServiceServer;
@@ -108,10 +108,10 @@ namespace next_best_view {
         ros::ServiceServer mTriggerOldFrustumVisualizationServer;
         ros::ServiceServer mResetCalculatorServer;
 
-		ros::Publisher mSpaceSamplingPublisher;
-		ros::Publisher mPointCloudPublisher;
-		ros::Publisher mFrustumPointCloudPublisher;
-		ros::Publisher mUnitSpherPointCloudPublisher;
+        ros::Publisher mSpaceSamplingPublisher;         //TODO remove
+        ros::Publisher mPointCloudPublisher;            //TODO remove
+        ros::Publisher mFrustumPointCloudPublisher;     //TODO remove
+        ros::Publisher mUnitSpherPointCloudPublisher;   //TODO remove
 		ros::Publisher mFrustumMarkerArrayPublisher;
 		ros::Publisher mInitialPosePublisher;
         ros::Publisher mPointObjectNormalPublisher;
@@ -122,7 +122,7 @@ namespace next_best_view {
 		MoveBaseActionClientPtr mMoveBaseActionClient;
 
 		// ServiceClients and Subscriber
-		ros::ServiceClient mObjectTypeServiceClient;
+        ros::ServiceClient mObjectTypeServiceClient;    //TODO remove maybe
 		ros::ServiceClient mPushViewportServiceClient;
 		ros::ServiceClient mGetViewportListServiceClient;
 
