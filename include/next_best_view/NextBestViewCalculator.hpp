@@ -76,7 +76,7 @@ namespace next_best_view {
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
 			ROS_DEBUG("Starting calculation of next best view");
 
-			RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getSimpleVector3(), currentCameraViewport.getSimpleQuaternion());
+			RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
 			mRobotModelPtr->setCurrentRobotState(currentState);
 
 			// Get the orientations.
@@ -140,7 +140,7 @@ namespace next_best_view {
 					return false;
 				}
 
-                SimpleVector3 intermediateResultPosition =intermediateResultViewport.getSimpleVector3();
+                SimpleVector3 intermediateResultPosition =intermediateResultViewport.getPosition();
                 //currentCameraViewport.getSimpleQuaternion()
 
                 SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
@@ -155,7 +155,7 @@ namespace next_best_view {
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
                 ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
 
-				if (currentCameraViewport.getSimpleVector3() == intermediateResultViewport.getSimpleVector3() || (intermediateResultViewport.getSimpleVector3() - currentBestViewport.getSimpleVector3()).lpNorm<2>() <= this->getEpsilon()) {
+				if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() || (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
                     ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
 					return true;
@@ -172,7 +172,7 @@ namespace next_best_view {
 
 		bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor, ViewportPoint &resultViewport) {
 			// current camera position
-			SimpleVector3 currentBestPosition = currentBestViewport.getSimpleVector3();
+			SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
 			//Calculate hex grid for resolution given in this iteration step.
 			SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
@@ -213,7 +213,7 @@ namespace next_best_view {
 						continue;
 					}
 
-					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
+					RobotStatePtr targetRobotState = mRobotModelPtr->calculateRobotState(fullViewportPoint.getPosition(), fullViewportPoint.getSimpleQuaternion());
                     Precision movementCostsBase_Translation = mRobotModelPtr->getBase_TranslationalMovementCosts(targetRobotState);
                     Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(targetRobotState);
                     Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(targetRobotState);
@@ -283,7 +283,7 @@ namespace next_best_view {
 							continue;
 						}
 
-						ViewportPoint aggregatedViewportPoint = ViewportPoint(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
+						ViewportPoint aggregatedViewportPoint = ViewportPoint(fullViewportPoint.getPosition(), fullViewportPoint.getSimpleQuaternion());
 						aggregatedViewportPoint.child_point_cloud = fullViewportPoint.child_point_cloud;
 						aggregatedViewportPoint.child_indices = aggregatedIndicesPtr;
 						aggregatedViewportPoint.object_name_set = subSetPtr;
@@ -354,7 +354,7 @@ namespace next_best_view {
 				return false;
 			}
 
-			viewportPoint = ViewportPoint(fullViewportPoint.getSimpleVector3(), fullViewportPoint.getSimpleQuaternion());
+			viewportPoint = ViewportPoint(fullViewportPoint.getPosition(), fullViewportPoint.getSimpleQuaternion());
 			viewportPoint.child_indices = objectNameIndicesPtr;
 			viewportPoint.child_point_cloud = fullViewportPoint.child_point_cloud;
 			viewportPoint.object_name_set = objectNameSetPtr;
@@ -376,7 +376,7 @@ namespace next_best_view {
 					continue;
 				}
 
-                ROS_DEBUG_STREAM("Viewpoint TAKEN: " << resultingViewportPoint.getSimpleVector3());
+                ROS_DEBUG_STREAM("Viewpoint TAKEN: " << resultingViewportPoint.getPosition());
                 for (std::set<std::string>::iterator it=resultingViewportPoint.object_name_set->begin(); it!=resultingViewportPoint.object_name_set->end(); ++it)
                 {
                     ROS_DEBUG_STREAM("Object: " << *it);

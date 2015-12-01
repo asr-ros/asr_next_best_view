@@ -25,7 +25,7 @@ namespace next_best_view {
 		/*!
 		 * \brief the normality rating angle
 		 */
-		double mNormalityRatingAngle;
+        double mNormalAngleThreshold;
         double fovV,fovH;
         double fcp,ncp;
 
@@ -36,74 +36,88 @@ namespace next_best_view {
 
 		virtual ~DefaultRatingModule();
 
-		bool getScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr);
+        bool getScoreContainer(const ViewportPoint &currentCameraViewport, ViewportPoint &candidateCameraViewport, BaseScoreContainerPtr &scoreContainerPtr);
 
 		bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
 
-		void updateObjectPoints(const ViewportPoint &viewportPoint);
+        /*!
+         * \brief updates the object points by removing all normal vectors that are searched for in the given camera viewport.
+         * \param cameraViewport the camera viewport
+         */
+        void updateObjectPoints(const ViewportPoint &cameraViewport);
 
 		BaseScoreContainerPtr getScoreContainerInstance();
 
 		/*!
-		 * \brief returns the normality rating between the vieportPoint and an object point.
-		 * \param viewportPoint [in] the viewport point
-		 * \param objectPoint [in] the object point.
-		 * \return the normality rating
+         * \brief returns the orientation rating of an object point for a given camera viewport.
+         * The orientation rating is always between 0.0 and 1.0.
+         * \param cameraViewport [in] the camera viewport
+         * \param objectPoint [in] the object point.
+         * \return the orientation rating
 		 */
-		float getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint);
+        float getOrientationRating(const ViewportPoint &cameraViewport, ObjectPoint &objectPoint);
 
         /*!
-         * \brief returns the proximity rating between the vieportPoint and an object point.
-         * \param viewportPoint [in] the viewport point
+         * \brief returns the rating of the position of an object in the frustum of a given camera viewport.
+         * The frustum position rating is always between 0.0 and 1.0.
+         * \param cameraviewport [in] the camera viewport
          * \param objectPoint [in] the object point.
-         * \return the proximity rating
+         * \return the frustum position rating
          */
-        float getCurrentFrustumPositionRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint);
+        float getFrustumPositionRating(const ViewportPoint &cameraViewport, ObjectPoint &objectPoint);
 
 		/*!
-		 * \brief returns the single normality rating of two vectors.
-		 * \param viewportNormalVector [in] the normal vector of the viewport which is perpendicular to the NCP/FCP
-		 * \param objectSurfaceNormalVector [in] the vector which is perpendicular to the object surface
-		 * \param angleThreshold the threshold on which the rating is zero
-		 * \return the normality rating
+         * \brief returns the rating of one object normal for a given camera viewport.
+         * The normal rating is always between 0.0 and 1.0.
+         * \param cameraViewport [in] the the camera viewport
+         * \param objectNormalVector [in] the normalized vector which is perpendicular to the object surface
+         * \return the normality rating
 		 */ 
-		float getSingleNormalityRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector, float angleThreshold = M_PI);
+        float getNormalRating(const ViewportPoint &cameraViewport, const SimpleVector3 &objectNormalVector);
+
+        /*!
+         * \brief returns the proximity rating of a given object point for a given camera viewport.
+         * The proximizy rating is always between 0.0 and 1.0.
+         * \param cameraViewport the camera viewport
+         * \param objectPoint the object point
+         * \return
+         */
+        float getProximityRating(const ViewportPoint &cameraViewport, const ObjectPoint &objectPoint);
 
 		/*!
-		 * \brief returns the single normality rating of two quaternions.
-		 * \param quaternionA [in] the orientation A
-		 * \param quaternionB [in] the orientation B
-		 * \param angleThreshold the threshold on which the rating is zero
-		 * \return the normality rating
-		 */
-		float getSingleNormalityRatingByQuaternion(const SimpleQuaternion &quaternionA, const SimpleQuaternion &quaternionB, float angleThreshold = M_PI);
-
-        //TODO
-        float getSingleDistanceRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector);
-
-		/*!
-		 * \brief the weighted rating of a rating object.
+         * \brief returns the weighted rating of a rating object.
 		 * \param a [in] the rating object.
 		 * \return the weighted rating
 		 */
 		float getRating(const DefaultScoreContainerPtr &a);
 
 		/*!
-		 * \brief sets the normality rating angle.
-		 * \param angle the angle for the rating
+         * \brief sets the threshold for the angle between the orientation of an object and the camera orientation.
+         * \param angle the angle threshold
 		 */
-		void setNormalityRatingAngle(double angle);
+        void setNormalAngleThreshold(double angle);
 
 		/*!
-		 * \return the normality angle.
+         * Retuns the threshold for the angle between the orientation of an object and the camera orientation.
+         * \return the angle threshold.
 		 */
-		double getNormalityRatingAngle();
+        double getNormalAngleThreshold();
+
+    private:
+        /*!
+         * \brief returns the normalized rating for a given deviation from the optimum and a threshold for the deviation.
+         * The normalized rating is always between 0.0 and 1.0.
+         * \param rating the actual devation
+         * \param threshold the threshold for the deviation
+         * \return the normalized rating
+         */
+        float getNormalizedRating(float deviation, float threshold);
 	};
 
-	/*!
-	 * \brief Definition for the shared pointer type of the class.
-	 */
-	typedef boost::shared_ptr<DefaultRatingModule> DefaultRatingModulePtr;
+    /*!
+     * \brief Definition for the shared pointer type of the class.
+     */
+    typedef boost::shared_ptr<DefaultRatingModule> DefaultRatingModulePtr;
 }
 
 

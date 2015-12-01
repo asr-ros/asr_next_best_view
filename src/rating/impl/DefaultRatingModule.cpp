@@ -12,89 +12,95 @@
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 
-//TODO: Function & Parameter naming
-//TODO: Refactoring
-//TODO: Comments
-
 namespace next_best_view {
-	float DefaultRatingModule::getNormalityRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint) {
+
+    float DefaultRatingModule::getOrientationRating(const ViewportPoint &cameraViewport, ObjectPoint &objectPoint) {
 		float maxRating = 0.0;
-		SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
-        SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportOrientation);
 
-		SimpleVector3 visualAxis = MathHelper::getVisualAxis(viewportOrientation);
-
-		BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
-			SimpleVector3 objectSurfaceNormalVector = objectPoint.normal_vectors->at(index);
-			maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector, objectSurfaceNormalVector, mNormalityRatingAngle), maxRating);
+        // check the ratings for all normals and pick the best
+        BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
+            SimpleVector3 objectNormalVector = objectPoint.normal_vectors->at(index);
+            maxRating = std::max(this->getNormalRating(cameraViewport, objectNormalVector), maxRating);
 		}
 
 		return maxRating;
 	}
 
-	float DefaultRatingModule::getSingleNormalityRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector, float angleThreshold) {
-		float cosinus = MathHelper::getCosinus(-viewportNormalVector, objectSurfaceNormalVector);
-		float angle = acos(cosinus);
-		if (angle < angleThreshold) {
-			return .5 + .5 * cos(angle * M_PI / angleThreshold);
-		}
-		return 0.0;
+    float DefaultRatingModule::getNormalRating(const ViewportPoint &cameraViewport, const SimpleVector3 &objectNormalVector) {
+        SimpleVector3 cameraOrientation = cameraViewport.getOrientationVector();
+
+        // rate the angle between the camera orientation and the object normal
+        float angle = MathHelper.getAngle(-cameraOrientation, objectNormalVector);
+        float rating = this->getNormalizedRating(angle, mNormalAngleThreshold);
+
+        return rating;
 	}
 
-    float DefaultRatingModule::getSingleDistanceRating(const SimpleVector3 &viewportNormalVector, const SimpleVector3 &objectSurfaceNormalVector) {
+    float DefaultRatingModule::getProximityRating(const ViewportPoint &cameraViewport, const ObjectPoint &objectPoint) {
 
-        float dotProduct = MathHelper::getDotProduct(-viewportNormalVector, objectSurfaceNormalVector);
-	//ROS_INFO_STREAM("DotProduct value" << dotProduct << " fcp " << fcp << " ncp " << ncp);
-        float distanceToMid = abs(dotProduct-(fcp+ncp)/2.0);
+        SimpleVector3 cameraPosition = cameraViewport.getPosition();
+        SimpleVector3 cameraOrientation = cameraViewport.getOrientationVector();
+        SimpleVector3 objectPosition = objectPoint.getPosition();
+
+        SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
+
+        // project the object to the camera orientation vector in order to determine the distance to the mid
+        float projection = MathHelper::getDotProduct(-cameraOrientation, objectToCameraVector);
+        ROS_DEBUG("DotProduct value" << projection << " fcp " << fcp << " ncp " << ncp);
+
+        // determine the distance of the object to the mid of the frustum
+        float distanceToMid = abs(projection-(fcp+ncp)/2.0);
         float distanceThreshold = (fcp-ncp)/2.0;
-	//ROS_INFO_STREAM("distance to mid " << distanceToMid << " threh "  << distanceThreshold );
-        if (distanceToMid < distanceThreshold) {
-            return .5 + .5 * cos(distanceToMid * M_PI / distanceThreshold);
-        }
-        return 0.0;
+        ROS_DEBUG("distance to mid " << distanceToMid << " thresh "  << distanceThreshold );
+
+        float rating = this->getNormalizedRating(distanceToMid, distanceThreshold);
+
+        return rating;
     }
 
 
-    float DefaultRatingModule::getCurrentFrustumPositionRating(const ViewportPoint &viewportPoint, ObjectPoint &objectPoint)
+    float DefaultRatingModule::getFrustumPositionRating(const ViewportPoint &cameraViewport, ObjectPoint &objectPoint)
     {
-        float maxRating = 0.0;
-        SimpleVector3 viewportPosition = viewportPoint.getSimpleVector3();
-        SimpleQuaternion viewportOrientation = viewportPoint.getSimpleQuaternion();
-        SimpleVector3 viewportNormalVector = MathHelper::getVisualAxis(viewportOrientation);
+        SimpleVector3 cameraPosition = cameraViewport.getPosition();
+        SimpleVector3 cameraOrientation = cameraViewport.getOrientationVector();
 
-        float angleMin = (float)(std::min(fovV*M_PI/180,fovH*M_PI/180));
-        SimpleVector3 objectPosition = objectPoint.getSimpleVector3();
-        SimpleVector3 objectViewportVectorNormalized = (viewportPosition - objectPosition).normalized();
-        SimpleVector3 objectViewportVector = viewportPosition - objectPosition;
+        float angleMin = (float) MathHelper.degToRad(std::min(fovV,fovH));
+        SimpleVector3 objectPosition = objectPoint.getPosition();
+        SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
+        SimpleVector3 objectToCameraVectorNormalized = objectToCameraVector.normalized();
 
-        //TODO
-        maxRating = std::max(this->getSingleNormalityRating(viewportNormalVector,
-                                                            objectViewportVectorNormalized, angleMin)
-                                                            *this->getSingleDistanceRating(viewportNormalVector,objectViewportVector),
-                                                            maxRating);
-	//ROS_INFO_STREAM("Frustum angle diff "<< this->getSingleNormalityRating(viewportNormalVector,objectViewportVectorNormalized, angleMin));
-        //ROS_INFO_STREAM("Mitte im Frustum rating  " << this->getSingleDistanceRating(viewportNormalVector,objectViewportVector));
-        return maxRating;
+        // rating for how far the object is on the side of the camera view
+        float angle = MathHelper.getAngle(-cameraOrientation, objectToCameraVectorNormalized);
+        float sideRating = this->getNormalizedRating(angle, angleMin);
+
+        // rating for how far the object is away from the camera
+        float proximityRating = this->getProximityRating(cameraViewport,objectTPoint);
+
+        // the complete frumstum position rating
+        float rating = sideRating * proximityRating;
+
+        ROS_DEBUG("Frustum side rating "<< sideRating);
+        ROS_DEBUG("Frustum proximity rating  " << proximityRating);
+        return rating;
     }
 
 	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
         return (a->getUtility() * a->getCosts());
 	}
 
-	DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalityRatingAngle(M_PI * .5) { }
+    DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThreshold(M_PI * .5) { }
 
 	DefaultRatingModule::~DefaultRatingModule() { }
 
 	bool DefaultRatingModule::getScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewportPoint, BaseScoreContainerPtr &scoreContainerPtr) {
-		SimpleVector3 currentPosition = currentViewport.getSimpleVector3();
-		SimpleQuaternion currentOrientation = currentViewport.getSimpleQuaternion();
-		SimpleVector3 candidatePosition = candidateViewportPoint.getSimpleVector3();
-		SimpleQuaternion candidateOrientation = candidateViewportPoint.getSimpleQuaternion();
+        DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
 
-		DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
+        float orientationRating = 0.0;
+        float positionRating = 0.0;
 
 		double maxElements = this->getInputCloud()->size();
 
+        // build the sum of the orientation and frustum position ratings of all object points in the candidate camera view
 		BOOST_FOREACH(int index, *candidateViewportPoint.child_indices) {
 			ObjectPoint &objectPoint = this->getInputCloud()->at(index);
 
@@ -102,27 +108,29 @@ namespace next_best_view {
 				continue;
 			}
 
-			float currentNormalityRating = this->getNormalityRating(candidateViewportPoint, objectPoint);
-            float currentFrustumPositionRating = this->getCurrentFrustumPositionRating(candidateViewportPoint, objectPoint);
-            //TODO rename ElementDensity
-            defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() + currentFrustumPositionRating);
+            float currentOrientationRating = this->getOrientationRating(candidateViewportPoint, objectPoint);
+            float currentFrustumPositionRating = this->getFrustumPositionRating(candidateViewportPoint, objectPoint);
 
-			if (currentNormalityRating == 0.0) {
-				continue;
-			}
-			defRatingPtr->setNormality(defRatingPtr->getNormality() + currentNormalityRating);
+            orientationRating += currentOrientationRating;
+            positionRating += currentFrustumPositionRating;
 		}
 
-		defRatingPtr->setNormality(defRatingPtr->getNormality() / maxElements);
-		defRatingPtr->setElementDensity(defRatingPtr->getElementDensity() / maxElements);
+        // set the orientation and position ratings in relation to the amount of object points
+        orientationRating /= maxElements;
+        positionRating /= maxElements;
+
+        // set the ratings for the orientations and the positions of the objects in the candidate
+        defRatingPtr->setOrientationRating(orientationRating);
+        defRatingPtr->setPositionRating(positionRating);
 
 		// set the utility
-		defRatingPtr->setUtility(defRatingPtr->getElementDensity() * defRatingPtr->getNormality());
+        defRatingPtr->setUtility(orientationRating * positionRating);
 
 		scoreContainerPtr = defRatingPtr;
-		//ROS_INFO("Normality %f, Density %f", defRatingPtr->getNormality(), defRatingPtr->getElementDensity());
+        ROS_DEBUG("Orientation %f, Position %f", defRatingPtr->getOrientationRating(), defRatingPtr->getPositionRating());
 		return (defRatingPtr->getUtility() > 0);
 	}
+
 	bool DefaultRatingModule::compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) {
 		DefaultScoreContainerPtr defA = boost::static_pointer_cast<DefaultScoreContainer>(a);
 		DefaultScoreContainerPtr defB = boost::static_pointer_cast<DefaultScoreContainer>(b);
@@ -133,16 +141,15 @@ namespace next_best_view {
 		return ratingA < ratingB;
 	}
 
-	void DefaultRatingModule::updateObjectPoints(const ViewportPoint &viewportPoint) {
-		SimpleVector3 viewportNormalVector = viewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
-
-		BOOST_FOREACH(int index, *viewportPoint.child_indices) {
-			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
+    void DefaultRatingModule::updateObjectPoints(const ViewportPoint &cameraViewport) {
+        BOOST_FOREACH(int index, *cameraViewport.child_indices) {
+            ObjectPoint &objectPoint = cameraViewport.child_point_cloud->at(index);
 
 			SimpleVector3CollectionPtr normalVectorCollectionPtr(new SimpleVector3Collection());
 			BOOST_FOREACH(SimpleVector3 normalVector, *objectPoint.normal_vectors) {
-				float rating = this->getSingleNormalityRating(viewportNormalVector, normalVector, mNormalityRatingAngle);
-				if (rating == 0.0) {
+                float rating = this->getNormalRating(cameraViewport, normalVector);
+                // filter all the object normals that are in the given viewport
+                if (rating == 0.0) {
 					normalVectorCollectionPtr->push_back(normalVector);
 				}
 			}
@@ -154,12 +161,19 @@ namespace next_best_view {
 		return BaseScoreContainerPtr(new DefaultScoreContainer());
 	}
 
-	void DefaultRatingModule::setNormalityRatingAngle(double angle) {
-		mNormalityRatingAngle = angle;
+    void DefaultRatingModule::setNormalAngleThreshold(double angle) {
+        mNormalAngleThreshold = angle;
 	}
 
-	double DefaultRatingModule::getNormalityRatingAngle() {
-		return mNormalityRatingAngle;
+    double DefaultRatingModule::getNormalAngleThreshold() {
+        return mNormalAngleThreshold;
 	}
+
+    float DefaultRatingModule::getNormalizedRating(float deviation, float threshold) {
+        if (deviation < threshold) {
+            return .5 + .5 * cos(deviation * M_PI / threshold);
+        }
+        return 0.0;
+    }
 }
 

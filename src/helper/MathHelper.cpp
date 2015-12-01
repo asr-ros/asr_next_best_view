@@ -66,6 +66,12 @@ namespace next_best_view {
 		return X.dot(Y) / xNorm / yNorm;
 	}
 
+    Precision MathHelper::getAngle(const SimpleVector3 &X, const SimpleVector3 &Y) {
+        float cosinus = getCosinus(X, Y);
+        float angle = acos(cosinus);
+        return angle;
+    }
+
 	Precision MathHelper::getMinimumAngleDifference(const Precision &firstAngle, const Precision &secondAngle) {
 		Precision angleDiff = fabs(firstAngle - secondAngle);
 		return fmin(angleDiff, 2 * M_PI - angleDiff);

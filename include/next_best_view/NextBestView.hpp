@@ -311,7 +311,7 @@ namespace next_best_view {
              * The rating module calculates the use and the costs of an operation.
              */
             DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp));
-            ratingModulePtr->setNormalityRatingAngle(45 / 180.0 * M_PI);
+            ratingModulePtr->setNormalAngleThreshold(45 / 180.0 * M_PI);
 
             /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
              */
@@ -410,7 +410,7 @@ namespace next_best_view {
 
             mCurrentCameraViewport = ViewportPoint(request.pose);
 			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
-			mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getSimpleVector3());
+			mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getPosition());
 
 
 			MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
@@ -470,7 +470,7 @@ namespace next_best_view {
 
 			// robot state.
 			// TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
-			RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getSimpleVector3(), resultingViewport.getSimpleQuaternion());
+			RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
 			MILDRobotStatePtr mildState = boost::static_pointer_cast<MILDRobotState>(state);
 
 			RobotStateMessage robotStateMsg;

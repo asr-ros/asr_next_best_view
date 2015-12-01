@@ -21,29 +21,45 @@ namespace next_best_view {
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
 		/*!
-		 * \brief the density of elements.
+         * \brief the rating of the object positions.
 		 */
-		float mElementDensity;
+        float mPositionRating;
 
 		/*!
-		 * \brief the normality rating.
+         * \brief the rating of the object orientations.
 		 */
-		float mNormality;
+        float mOrientationRating;
 	public:
-		void setElementDensity(float value) {
-			mElementDensity = value;
+        /*!
+         * \brief sets the rating of the object positions
+         * \param value the position rating
+         */
+        void setPositionRating(float value) {
+            mPositionRating = value;
 		}
 
-		float getElementDensity() {
-			return mElementDensity;
+        /*!
+         * \brief returns the rating of the object positions
+         * \return the position rating
+         */
+        float getPositionRating() {
+            return mPositionRating;
 		}
 
-		void setNormality(float value) {
-			mNormality = value;
+        /*!
+         * \brief sets the rating of the object orientations
+         * \param value the orientation rating
+         */
+        void setOrientationRating(float value) {
+            mOrientationRating = value;
 		}
 
-		float getNormality() {
-			return mNormality;
+        /*!
+         * \brief returns the rating of the object orientations
+         * \return the orientation rating
+         */
+        float getOrientationRating() {
+            return mOrientationRating;
 		}
 	public:
 		/*!

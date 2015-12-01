@@ -99,7 +99,7 @@ namespace next_best_view {
 			return pose;
 		}
 
-		SimpleVector3 getSimpleVector3() const {
+        SimpleVector3 getPosition() const {
 			return SimpleVector3(x, y, z);
 		}
 

@@ -24,7 +24,7 @@ namespace next_best_view {
 		BOOST_FOREACH(int index, *intermediateIndicesPtr) {
 			ObjectPoint &point = this->getInputCloud()->at(index);
 
-			if (!mMapHelperPtr->doRaytracing(cameraPosition, point.getSimpleVector3())) {
+			if (!mMapHelperPtr->doRaytracing(cameraPosition, point.getPosition())) {
 				continue;
 			}
 
