@@ -11,7 +11,6 @@
 #define PCL_NO_PRECOMPILE
 #include "typedef.hpp"
 #include "next_best_view/rating/BaseScoreContainer.hpp"
-#include "next_best_view/helper/MathHelper.hpp"
 #include <geometry_msgs/Pose.h>
 #include <string>
 #include <pcl/point_types.h>
@@ -110,14 +109,7 @@ namespace next_best_view {
 			return SimpleQuaternion(qw, qx, qy, qz);
 		}
 
-        SimpleVector3 getOrientationVector() const {
-            SimpleQuaternion cameraOrientation = getSimpleQuaternion();
-            SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
-
-            return cameraOrientationVector;
-        }
-
-		void setOrientation(const SimpleQuaternion &orientation) {
+        void setOrientation(const SimpleQuaternion &orientation) {
 			qw = orientation.w();
 			qx = orientation.x();
 			qy = orientation.y();

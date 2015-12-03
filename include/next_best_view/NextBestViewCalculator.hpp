@@ -153,7 +153,9 @@ namespace next_best_view {
                                       intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
-                ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i", intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z, drPtr->getElementDensity(), drPtr->getNormality(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
+                ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i",
+                            intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
+                            drPtr->getPositionRating(), drPtr->getOrientationRating(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
 
 				if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() || (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
@@ -365,14 +367,14 @@ namespace next_best_view {
 		void updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewportPointList) {
 			BOOST_FOREACH(ViewportPoint viewportPoint, viewportPointList) {
 				ViewportPoint culledViewportPoint;
-				if (!this->doFrustumCulling(viewportPoint.getSimpleVector3(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
-                    ROS_DEBUG_STREAM("Viewpoint SKIPPED by Culling: " << viewportPoint.getSimpleVector3());
+                if (!this->doFrustumCulling(viewportPoint.getPosition(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
+                    ROS_DEBUG_STREAM("Viewpoint SKIPPED by Culling: " << viewportPoint.getPosition());
 					continue;
 				}
 
 				ViewportPoint resultingViewportPoint;
                 if (!this->doObjectNameFiltering(viewportPoint.object_name_set, culledViewportPoint, resultingViewportPoint)) {
-                    ROS_DEBUG_STREAM("Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getSimpleVector3());
+                    ROS_DEBUG_STREAM("Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getPosition());
 					continue;
 				}
 

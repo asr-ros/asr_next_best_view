@@ -27,10 +27,11 @@ namespace next_best_view {
 	}
 
     float DefaultRatingModule::getNormalRating(const ViewportPoint &cameraViewport, const SimpleVector3 &objectNormalVector) {
-        SimpleVector3 cameraOrientation = cameraViewport.getOrientationVector();
+        SimpleQuaternion cameraOrientation = cameraViewport.getSimpleQuaternion();
+        SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
 
         // rate the angle between the camera orientation and the object normal
-        float angle = MathHelper.getAngle(-cameraOrientation, objectNormalVector);
+        float angle = MathHelper::getAngle(-cameraOrientationVector, objectNormalVector);
         float rating = this->getNormalizedRating(angle, mNormalAngleThreshold);
 
         return rating;
@@ -39,19 +40,20 @@ namespace next_best_view {
     float DefaultRatingModule::getProximityRating(const ViewportPoint &cameraViewport, const ObjectPoint &objectPoint) {
 
         SimpleVector3 cameraPosition = cameraViewport.getPosition();
-        SimpleVector3 cameraOrientation = cameraViewport.getOrientationVector();
+        SimpleQuaternion cameraOrientation = cameraViewport.getSimpleQuaternion();
+        SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
         SimpleVector3 objectPosition = objectPoint.getPosition();
 
         SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
 
         // project the object to the camera orientation vector in order to determine the distance to the mid
-        float projection = MathHelper::getDotProduct(-cameraOrientation, objectToCameraVector);
-        ROS_DEBUG("DotProduct value" << projection << " fcp " << fcp << " ncp " << ncp);
+        float projection = MathHelper::getDotProduct(-cameraOrientationVector, objectToCameraVector);
+        ROS_DEBUG_STREAM("DotProduct value" << projection << " fcp " << fcp << " ncp " << ncp);
 
         // determine the distance of the object to the mid of the frustum
         float distanceToMid = abs(projection-(fcp+ncp)/2.0);
         float distanceThreshold = (fcp-ncp)/2.0;
-        ROS_DEBUG("distance to mid " << distanceToMid << " thresh "  << distanceThreshold );
+        ROS_DEBUG_STREAM("distance to mid " << distanceToMid << " thresh "  << distanceThreshold );
 
         float rating = this->getNormalizedRating(distanceToMid, distanceThreshold);
 
@@ -62,25 +64,26 @@ namespace next_best_view {
     float DefaultRatingModule::getFrustumPositionRating(const ViewportPoint &cameraViewport, ObjectPoint &objectPoint)
     {
         SimpleVector3 cameraPosition = cameraViewport.getPosition();
-        SimpleVector3 cameraOrientation = cameraViewport.getOrientationVector();
+        SimpleQuaternion cameraOrientation = cameraViewport.getSimpleQuaternion();
+        SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
 
-        float angleMin = (float) MathHelper.degToRad(std::min(fovV,fovH));
+        float angleMin = (float) MathHelper::degToRad(std::min(fovV,fovH));
         SimpleVector3 objectPosition = objectPoint.getPosition();
         SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
         SimpleVector3 objectToCameraVectorNormalized = objectToCameraVector.normalized();
 
         // rating for how far the object is on the side of the camera view
-        float angle = MathHelper.getAngle(-cameraOrientation, objectToCameraVectorNormalized);
+        float angle = MathHelper::getAngle(-cameraOrientationVector, objectToCameraVectorNormalized);
         float sideRating = this->getNormalizedRating(angle, angleMin);
 
         // rating for how far the object is away from the camera
-        float proximityRating = this->getProximityRating(cameraViewport,objectTPoint);
+        float proximityRating = this->getProximityRating(cameraViewport,objectPoint);
 
         // the complete frumstum position rating
         float rating = sideRating * proximityRating;
 
-        ROS_DEBUG("Frustum side rating "<< sideRating);
-        ROS_DEBUG("Frustum proximity rating  " << proximityRating);
+        ROS_DEBUG_STREAM("Frustum side rating "<< sideRating);
+        ROS_DEBUG_STREAM("Frustum proximity rating  " << proximityRating);
         return rating;
     }
 
