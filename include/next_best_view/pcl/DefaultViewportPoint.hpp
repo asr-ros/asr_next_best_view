@@ -55,6 +55,8 @@ namespace next_best_view {
 		};
 
 		ObjectPointCloudPtr child_point_cloud;
+        // the whole point cloud
+        ObjectPointCloudPtr point_cloud;
 		IndicesPtr child_indices;
 		ObjectNameSetPtr object_name_set;
 		BaseScoreContainerPtr score;
@@ -115,6 +117,37 @@ namespace next_best_view {
 			qy = orientation.y();
 			qz = orientation.z();
 		}
+
+        /*!
+         * \brief filters all the objects in this viewport with one of the given types and puts them in a new viewport.
+         * \param objectNameSetPtr [in] the object type names that shall be put in the new viewport
+         * \param viewportPoint [out] the new viewport only containing the objects with the given types
+         * \return whether the result is valid
+         */
+        bool filterObjectNames(const ObjectNameSetPtr &objectNameSetPtr, ViewportPoint &viewportPoint) {
+            IndicesPtr objectNameIndicesPtr(new Indices());
+            BOOST_FOREACH(std::size_t index, *(this->child_indices)) {
+                ObjectPoint &point = point_cloud->at(index);
+
+                // check if object type is in ObjectNameSet
+                ObjectNameSet::iterator iter = std::find(objectNameSetPtr->begin(), objectNameSetPtr->end(), point.type);
+                if (iter != objectNameSetPtr->end()) {
+                    objectNameIndicesPtr->push_back(index);
+                }
+            }
+
+            if (objectNameIndicesPtr->size() == 0) {
+                return false;
+            }
+
+            viewportPoint = ViewportPoint(this->getPosition(), this->getSimpleQuaternion());
+            viewportPoint.child_indices = objectNameIndicesPtr;
+            viewportPoint.child_point_cloud = this->child_point_cloud;
+            viewportPoint.point_cloud = this->point_cloud;
+            viewportPoint.object_name_set = objectNameSetPtr;
+
+            return true;
+        }
 	} EIGEN_ALIGN16;
 }
 //Comment?

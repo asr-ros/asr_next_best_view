@@ -310,8 +310,17 @@ namespace next_best_view {
             /* DefaultRatingModule is a specialization of the abstract RatingModule class.
              * The rating module calculates the use and the costs of an operation.
              */
-            DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp));
+            DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp,robotModelPtr, cameraModelFilterPtr));
             ratingModulePtr->setNormalAngleThreshold(45 / 180.0 * M_PI);
+
+            double mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
+            mNodeHandle.param("mOmegaTilt", mOmegaTilt, 1.0);
+            mNodeHandle.param("mOmegaPan", mOmegaPan, 1.0);
+            mNodeHandle.param("mOmegaRot", mOmegaRot, 1.0);
+            mNodeHandle.param("mOmegaBase", mOmegaBase, 1.0);
+            mNodeHandle.param("mOmegaRecognizer", mOmegaRecognizer, 1.0);
+
+            ratingModulePtr->setOmegaParameters(mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
 
             /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
              */
@@ -325,15 +334,6 @@ namespace next_best_view {
             mCalculator.setCameraModelFilter(cameraModelFilterPtr);
             mCalculator.setRobotModel(robotModelPtr);
             mCalculator.setRatingModule(ratingModulePtr);
-
-            double mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
-            mNodeHandle.param("mOmegaTilt", mOmegaTilt, 1.0);
-            mNodeHandle.param("mOmegaPan", mOmegaPan, 1.0);
-            mNodeHandle.param("mOmegaRot", mOmegaRot, 1.0);
-            mNodeHandle.param("mOmegaBase", mOmegaBase, 1.0);
-            mNodeHandle.param("mOmegaRecognizer", mOmegaRecognizer, 1.0);
-
-            mCalculator.setOmegaParameters(mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
         }
 
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
