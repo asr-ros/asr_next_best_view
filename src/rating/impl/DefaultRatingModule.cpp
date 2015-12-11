@@ -66,8 +66,8 @@ namespace next_best_view {
 
         bestViewport = *maxElement;
 
-        ROS_DEBUG_STREAM("bestViewport position: (" << bestViewport.getPosition()(0,1) << ","
-                            << bestViewport.getPosition()(0,2) << "," << bestViewport.getPosition()((0,3)) << ")");
+        ROS_DEBUG_STREAM("bestViewport position: (" << bestViewport.getPosition()(0,0) << ","
+                            << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")");
 
         return true;
     }
@@ -221,8 +221,8 @@ namespace next_best_view {
         defRatingPtr->setCosts(costs);
 
         candidateViewport.score = defRatingPtr;
-        ROS_DEBUG("Orientation rating %f, Position rating %f", defRatingPtr->getOrientationRating(), defRatingPtr->getPositionRating());
-        return (defRatingPtr->getUtility() > 0);
+        ROS_DEBUG("Utility %f, Orientation rating %f, Position rating %f", utility, orientationRating, positionRating);
+        return (utility > 0);
     }
 
     void DefaultRatingModule::setNormalAngleThreshold(double angle) {
@@ -368,6 +368,11 @@ namespace next_best_view {
     }
 
     double DefaultRatingModule::getNormalizedRecognitionCosts(const ViewportPoint &targetViewport) {
+        // avoid dividing by 0
+        if (mMaxRecognitionCosts == 0) {
+            return 1.0;
+        }
+
         // get the costs for the recoginition of each object type
         Precision recognitionCosts = 0;
         BOOST_FOREACH(string objectName, *(targetViewport.object_name_set)) {
@@ -375,7 +380,7 @@ namespace next_best_view {
         }
         double normalizedRecognitionCosts = 1.0 - recognitionCosts / mMaxRecognitionCosts;
 
-        ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts << " max " << mMaxRecognitionCosts);
+        ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts);
 
         return normalizedRecognitionCosts;
     }
@@ -439,6 +444,8 @@ namespace next_best_view {
             maxRecognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectPoint.type);
         }
         mMaxRecognitionCosts = maxRecognitionCosts;
+
+        ROS_DEBUG_STREAM("maxRecognitionCosts: " << mMaxRecognitionCosts);
     }
 
     void DefaultRatingModule::resetCache() {
