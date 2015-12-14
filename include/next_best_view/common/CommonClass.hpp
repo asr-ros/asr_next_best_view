@@ -38,23 +38,23 @@ namespace next_best_view {
 		 * \brief setting the input cloud.
 		 * \param pointCloudPtr the shared pointer to point cloud
 		 */
-		void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        virtual void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
 
 		/*!
 		 * \return the shared pointer to the point cloud.
 		 */
-		ObjectPointCloudPtr& getInputCloud();
+        virtual ObjectPointCloudPtr& getInputCloud();
 
 		/*!
 		 * \brief setting the shared pointer to the active indices of the point cloud.
 		 * \param indicesPtr the shared pointer to indices.
 		 */
-		void setIndices(const IndicesPtr &indicesPtr);
+        virtual void setIndices(const IndicesPtr &indicesPtr);
 
 		/*!
 		 * \return the shared pointer to the active indices of the point cloud.
 		 */
-		IndicesPtr& getIndices();
+        virtual IndicesPtr& getIndices();
 	};
 }
 

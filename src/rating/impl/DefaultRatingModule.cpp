@@ -13,6 +13,13 @@ namespace next_best_view {
 
     DefaultRatingModule::~DefaultRatingModule() { }
 
+    void DefaultRatingModule::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+        // set input cloud in parent class
+        RatingModule::setInputCloud(pointCloudPtr);
+
+        mInputCloudChanged = true;
+    }
+
     bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport) {
         // reset the cached data
         this->resetCache();
@@ -295,7 +302,7 @@ namespace next_best_view {
             positionRating += mObjectPositionRatings[objectType];
         }
 
-        // TODO: normalize?
+        // TODO normalize?
         return positionRating;
     }
 
@@ -305,9 +312,13 @@ namespace next_best_view {
 
         double maxElements = this->getInputCloud()->size();
 
-        // build the sum of the orientation and frustum position ratings of all object points in the candidate camera view
+        // build the sum of the orientation and frustum position ratings of all object points in the candidate camera view with the given type
         BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
             ObjectPoint &objectPoint = this->getInputCloud()->at(index);
+
+            if (objectPoint.type != objectType) {
+                continue;
+            }
 
             if (objectPoint.active_normal_vectors->size() == 0) {
                 continue;
@@ -352,9 +363,7 @@ namespace next_best_view {
             this->setCostsNormalization();
         }
 
-        // TODO it could happen that this check does not work when the input cloud changed
-        // problem: this->setInputCloud cannot be overwritten
-        if (mMaxRecognitionCosts < 0 || mLastInputCloud != this->getInputCloud()) {
+        if (mInputCloudChanged) {
             this->setMaxRecognitionCosts();
         }
 
@@ -436,14 +445,16 @@ namespace next_best_view {
     }
 
     void DefaultRatingModule::setMaxRecognitionCosts() {
-        mMaxRecognitionCosts = -1;
-        mLastInputCloud = this->getInputCloud();
+        mMaxRecognitionCosts = 0;
+        ObjectPointCloudPtr inputCloud = this->getInputCloud();
 
         double maxRecognitionCosts = 0;
-        BOOST_FOREACH(ObjectPoint objectPoint, *(mLastInputCloud)) {
+        BOOST_FOREACH(ObjectPoint objectPoint, *(inputCloud)) {
+            // TODO only check each type once?
             maxRecognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectPoint.type);
         }
         mMaxRecognitionCosts = maxRecognitionCosts;
+        mInputCloudChanged = false;
 
         ROS_DEBUG_STREAM("maxRecognitionCosts: " << mMaxRecognitionCosts);
     }

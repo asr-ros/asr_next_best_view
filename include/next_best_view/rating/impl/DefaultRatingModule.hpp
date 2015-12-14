@@ -68,9 +68,9 @@ namespace next_best_view {
          * members to cache the calculated data
          */
         // the maximum recognition costs - stays the same as long as the input cloud does not change
-        double mMaxRecognitionCosts = -1;
-        // the input cloud that was used the last time mMaxRecognitionCosts was calculated
-        ObjectPointCloudPtr mLastInputCloud = NULL;
+        double mMaxRecognitionCosts;
+        // whether the input cloud changed since the last time the maximum recognition costs were updated
+        bool mInputCloudChanged = true;
 
 	public:
 		DefaultRatingModule();
@@ -83,6 +83,8 @@ namespace next_best_view {
                             mCameraModelFilterPtr(cameraModelFilterPtr){}
 
         virtual ~DefaultRatingModule();
+
+        void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
 
         bool setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport);
 
