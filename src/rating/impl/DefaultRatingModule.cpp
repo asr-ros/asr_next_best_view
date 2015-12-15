@@ -74,7 +74,8 @@ namespace next_best_view {
         bestViewport = *maxElement;
 
         ROS_DEBUG_STREAM("bestViewport position: (" << bestViewport.getPosition()(0,0) << ","
-                            << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")");
+                            << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")"
+                            << " rating: " << this->getRating(bestViewport.score));
 
         return true;
     }
@@ -92,11 +93,8 @@ namespace next_best_view {
             ROS_ERROR("Score container b is nullpointer");
         }
 
-        DefaultScoreContainerPtr defA = boost::static_pointer_cast<DefaultScoreContainer>(a);
-        DefaultScoreContainerPtr defB = boost::static_pointer_cast<DefaultScoreContainer>(b);
-
-        Precision ratingA = this->getRating(defA);
-        Precision ratingB = this->getRating(defB);
+        Precision ratingA = this->getRating(a);
+        Precision ratingB = this->getRating(b);
 
         return ratingA < ratingB;
     }
@@ -195,7 +193,7 @@ namespace next_best_view {
         return rating;
     }
 
-	float DefaultRatingModule::getRating(const DefaultScoreContainerPtr &a) {
+    float DefaultRatingModule::getRating(const BaseScoreContainerPtr &a) {
         if (!a) {
             ROS_ERROR("Score container is nullpointer");
         }

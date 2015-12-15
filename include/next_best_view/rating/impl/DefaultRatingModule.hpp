@@ -143,7 +143,7 @@ namespace next_best_view {
 		 * \param a [in] the rating object.
          * \return the weighted rating
 		 */
-		float getRating(const DefaultScoreContainerPtr &a);
+        float getRating(const BaseScoreContainerPtr &a);
 
 		/*!
          * \brief sets the threshold for the angle between the orientation of an object and the camera orientation.
