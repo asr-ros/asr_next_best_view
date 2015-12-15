@@ -211,6 +211,11 @@ namespace next_best_view {
 
         // set the utility
         float utility = this->getUtility(candidateViewport);
+
+        if (utility <= 0) {
+            return false;
+        }
+
         defRatingPtr->setUtility(utility);
 
         // set the ratings for the orientations and the positions of the objects in the candidate viewport
@@ -227,7 +232,7 @@ namespace next_best_view {
 
         candidateViewport.score = defRatingPtr;
         ROS_DEBUG("Utility %f, Orientation rating %f, Position rating %f", utility, orientationRating, positionRating);
-        return (utility > 0);
+        return true;
     }
 
     void DefaultRatingModule::setNormalAngleThreshold(double angle) {
@@ -261,6 +266,11 @@ namespace next_best_view {
             // set the utility for the object type if not already done
             if (mObjectUtilities.count(objectType) == 0) {
                 setObjectUtilities(candidateViewport, objectType);
+            }
+
+            // if one of the objects has a utility of 0, it shouldn't be searched at all
+            if (mObjectUtilities[objectType] == 0) {
+                return 0;
             }
 
             utility += mObjectUtilities[objectType];
