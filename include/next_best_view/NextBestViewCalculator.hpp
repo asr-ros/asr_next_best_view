@@ -28,8 +28,6 @@
 #include "next_best_view/helper/MapHelper.hpp"
 #include "helper/VisualizationsHelper.hpp"
 
-//TODO Factor out combination calculation in doIterationStep
-
 namespace next_best_view {
     class NextBestViewCalculator {
 	private:
@@ -63,7 +61,7 @@ namespace next_best_view {
               mVisHelper(){}
 	public:
 
-		/**
+        /**
 		 * Calculates the next best view.
 		 */
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
@@ -135,7 +133,6 @@ namespace next_best_view {
 				}
 
                 SimpleVector3 intermediateResultPosition =intermediateResultViewport.getPosition();
-                //currentCameraViewport.getSimpleQuaternion()
 
                 SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
                 SamplePointCloudPtr pointcloud =
@@ -151,7 +148,8 @@ namespace next_best_view {
                             intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
                             drPtr->getPositionRating(), drPtr->getOrientationRating(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
 
-				if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() || (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
+                if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
+                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
 					resultViewport = intermediateResultViewport;
                     ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
 					return true;
