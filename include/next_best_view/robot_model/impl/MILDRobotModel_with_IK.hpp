@@ -70,14 +70,30 @@ namespace next_best_view {
           */
          double h_tilt;
          double viewTriangle_angleAlpha;
-         double viewTriangle_sideC;
+         double viewTriangle_angleGamma;
+         double viewTriangle_sideA;
+         /*!
+          * Transformation frame from the tilted-link to camera left
+          */
          Eigen::Affine3d tiltToCameraEigen;
+         /*!
+          * Transformation frame from the pan-link to the tilt-link
+          */
+         Eigen::Affine3d panToTiltEigen;
+         /*!
+          * Transformation frame from the base-link to the pan-link
+          */
+         Eigen::Affine3d baseToPanEigen;
          double x_product;
+         /*!
+          * Flag, shows if the tf parameters have already been initialized
+          */
+         bool tfParametersInitialized;
 
          /*!
           * Trys to calculate parameters needed for the inverse kinematic using tf transformations
           */
-         void setUpTFParameters();
+         bool setUpTFParameters();
 
     public:
 		/*!
