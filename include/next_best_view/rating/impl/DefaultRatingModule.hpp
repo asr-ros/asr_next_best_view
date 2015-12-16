@@ -94,13 +94,7 @@ namespace next_best_view {
 
 		bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
 
-        /*!
-         * \brief updates the object points by removing all normal vectors that are searched for in the given camera viewport.
-         * \param viewport the camera viewport
-         */
-        void updateObjectPoints(const ViewportPoint &viewport);
-
-		BaseScoreContainerPtr getScoreContainerInstance();
+        BaseScoreContainerPtr getScoreContainerInstance();
 
 		/*!
          * \brief returns the orientation rating of an object point for a given camera viewport.

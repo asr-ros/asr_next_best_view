@@ -99,23 +99,6 @@ namespace next_best_view {
         return ratingA < ratingB;
     }
 
-    // TODO remove?
-    void DefaultRatingModule::updateObjectPoints(const ViewportPoint &viewport) {
-        BOOST_FOREACH(int index, *viewport.child_indices) {
-            ObjectPoint &objectPoint = viewport.child_point_cloud->at(index);
-
-            SimpleVector3CollectionPtr normalVectorCollectionPtr(new SimpleVector3Collection());
-            BOOST_FOREACH(SimpleVector3 normalVector, *objectPoint.normal_vectors) {
-                float rating = this->getNormalRating(viewport, normalVector);
-                // filter all the object normals that are in the given viewport
-                if (rating == 0.0) {
-                    normalVectorCollectionPtr->push_back(normalVector);
-                }
-            }
-            objectPoint.normal_vectors = normalVectorCollectionPtr;
-        }
-    }
-
     BaseScoreContainerPtr DefaultRatingModule::getScoreContainerInstance() {
         return BaseScoreContainerPtr(new DefaultScoreContainer());
     }
@@ -198,10 +181,10 @@ namespace next_best_view {
             ROS_ERROR("Score container is nullpointer");
         }
 
-        ROS_DEBUG_STREAM("utility: " << a->getUtility() << " costs: " << a->getCosts());
-
-        // TODO divide instead of multiply?
         float result = a->getUtility() * a->getCosts();
+
+        ROS_DEBUG_STREAM("rating: " << result << " utility: " << a->getUtility() << " costs: " << a->getCosts());
+
         return result;
 	}
 
@@ -276,7 +259,6 @@ namespace next_best_view {
             utility += mObjectUtilities[objectType];
         }
 
-        // TODO: normalize?
         return utility;
     }
 
@@ -293,7 +275,6 @@ namespace next_best_view {
             orientationRating += mObjectOrientationRatings[objectType];
         }
 
-        // TODO: normalize?
         return orientationRating;
     }
 
@@ -310,7 +291,6 @@ namespace next_best_view {
             positionRating += mObjectPositionRatings[objectType];
         }
 
-        // TODO normalize?
         return positionRating;
     }
 
