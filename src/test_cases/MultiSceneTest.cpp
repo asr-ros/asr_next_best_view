@@ -73,7 +73,7 @@ public:
         types[2] = "VitalisSchoko";*/
         types_scene1[0] = "Cup";
         types_scene1[1] = "PlateDeep";
-        types_scene1[2] = "Coffeebox";
+        types_scene1[2] = "CoffeeBox";
         types_scene1[3] = "CoffeeFilters2";
         types_scene1[4] = "Smacks";
         types_scene1[5] = "VitalisSchoko";

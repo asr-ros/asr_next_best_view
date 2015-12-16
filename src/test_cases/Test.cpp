@@ -39,7 +39,7 @@ public:
 
 		std::vector<std::string> objectTypeNames;
 		objectTypeNames.push_back("Smacks");
-		objectTypeNames.push_back("Coffeebox");
+		objectTypeNames.push_back("CoffeeBox");
 		objectTypeNames.push_back("Vitalis");
 
         std::size_t sampleSize = 200;

@@ -53,7 +53,7 @@ public:
         std::string* types = new std::string[hpSize];
         types[0] = "Knaeckebrot";
         types[1] = "VitalisSchoko";
-        types[2] = "Coffeebox";
+        types[2] = "CoffeeBox";
         types[3] = "Smacks";
 
        int sampleSize = 2;

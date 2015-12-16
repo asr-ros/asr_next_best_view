@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 //	next_best_view::NextBestView nbv;
 //	std::vector<std::string> objectTypeNames;
 //	objectTypeNames.push_back("Smacks");
-//	objectTypeNames.push_back("Coffeebox");
+//	objectTypeNames.push_back("CoffeeBox");
 //
 //	float roomHeight = 2.2;
 //
