@@ -11,16 +11,22 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Vector3.h>
+#include <std_msgs/ColorRGBA.h>
+#include <vector>
 #include "typedef.hpp"
 
 namespace next_best_view {
 	class TypeHelper {
 	public:
 		static geometry_msgs::Point getPointMSG(const SimpleVector3 &vector);
+        static geometry_msgs::Quaternion getQuaternionMSG(const SimpleQuaternion &quaternion);
 		static SimpleVector3 getSimpleVector3(const geometry_msgs::Pose &pose);
 		static SimpleVector3 getSimpleVector3(const geometry_msgs::Point &point);
 		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Pose &pose);
 		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Quaternion &quaternion);
+        static geometry_msgs::Vector3 getVector3(const vector<double> &vector);
+        static std_msgs::ColorRGBA getColor(const vector<double> &vector);
 	};
 }
 

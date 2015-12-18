@@ -14,36 +14,52 @@ namespace next_best_view {
 
 	MarkerHelper::~MarkerHelper() { }
 
-	visualization_msgs::Marker MarkerHelper::getBasicMarker(int id) {
+    visualization_msgs::Marker MarkerHelper::getBasicMarker(int id, std::string ns) {
 		visualization_msgs::Marker marker;
 		marker.header.frame_id = "/map";
 		marker.header.stamp = ros::Time();
-		marker.ns = "my_namespace";
+        marker.lifetime = ros::Duration();
+        marker.ns = ns;
 		marker.id = id;
 		marker.action = visualization_msgs::Marker::ADD;
 		return marker;
 	}
-    visualization_msgs::Marker MarkerHelper::getTextMarker(int id, string text)
+
+    visualization_msgs::Marker MarkerHelper::getBasicMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
+                                                std::vector<double> scale, std::vector<double> color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, ns);
+
+        marker.pose.position = TypeHelper::getPointMSG(position);
+        marker.pose.orientation = TypeHelper::getQuaternionMSG(orientation);
+        marker.scale = TypeHelper::getVector3(scale);
+        marker.color = TypeHelper::getColor(color);
+
+        return marker;
+    }
+
+    visualization_msgs::Marker MarkerHelper::getTextMarker(int id, string text, geometry_msgs::Pose pose, std::string ns)
     {
-        visualization_msgs::Marker textMarker = getBasicMarker(id);
+        visualization_msgs::Marker textMarker = getBasicMarker(id, ns);
         textMarker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
         textMarker.color.a = 1;
         textMarker.color.r = 1;
         textMarker.color.g = 1;
         textMarker.color.b = 1;
         textMarker.text = text;
+        textMarker.pose = pose;
         textMarker.scale.z = 0.25;
         return textMarker;
     }
 
-	visualization_msgs::Marker MarkerHelper::getDeleteMarker(int id) {
-		visualization_msgs::Marker marker = getBasicMarker(id);
-		marker.action = visualization_msgs::Marker::DELETE;
+    visualization_msgs::Marker MarkerHelper::getDeleteMarker(int id, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, ns);
+
+        marker.action = visualization_msgs::Marker::DELETE;
 
 		return marker;
 	}
 
-	visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, SimpleVector3 centroid, SimpleQuaternion quaternion) {
+    visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, SimpleVector3 centroid, SimpleQuaternion quaternion, std::string ns) {
 		geometry_msgs::Pose pose;
 		pose.orientation.w = quaternion.w();
 		pose.orientation.x = quaternion.x();
@@ -53,11 +69,11 @@ namespace next_best_view {
 		pose.position.y = centroid[1];
 		pose.position.z = centroid[2];
 
-		return getMeshMarker(id, mesh_resource, pose);
+        return getMeshMarker(id, mesh_resource, pose, ns);
 	}
 
-	visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, geometry_msgs::Pose pose) {
-		visualization_msgs::Marker marker = getBasicMarker(id);
+    visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, geometry_msgs::Pose pose, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, ns);
 		marker.type = visualization_msgs::Marker::MESH_RESOURCE;
 		marker.mesh_resource = mesh_resource;
 		marker.mesh_use_embedded_materials = true;
@@ -70,8 +86,8 @@ namespace next_best_view {
 	}
 
 
-	visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint, SimpleVector4 color) {
-		visualization_msgs::Marker lmarker = getBasicMarker(id);
+    visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint, SimpleVector4 color, std::string ns) {
+        visualization_msgs::Marker lmarker = getBasicMarker(id, ns);
 
 		lmarker.type = visualization_msgs::Marker::ARROW;
 		lmarker.pose.position.x = 0;
@@ -97,8 +113,51 @@ namespace next_best_view {
 		return lmarker;
 	}
 
+    visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
+                                                                std::vector<double> scale, std::vector<double> color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, position, orientation, scale, color, ns);
+
+        marker.type = visualization_msgs::Marker::ARROW;
+
+        return marker;
+    }
+
+    visualization_msgs::Marker MarkerHelper::getCubeMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
+                                                                std::vector<double> scale, std::vector<double> color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, position, orientation, scale, color, ns);
+
+        marker.type = visualization_msgs::Marker::CUBE;
+
+        return marker;
+    }
+
+    visualization_msgs::Marker MarkerHelper::getSphereMarker(int id, SimpleVector3 position, std::vector<double> scale,
+                                                                std::vector<double> color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, position, SimpleQuaternion(), scale, color, ns);
+
+        marker.type = visualization_msgs::Marker::SPHERE;
+
+        return marker;
+    }
+
+    visualization_msgs::Marker MarkerHelper::getLineListMarker(int id, std::vector<SimpleVector3> points, double scale,
+                                                                    std::vector<double> color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, ns);
+
+        marker.type = visualization_msgs::Marker::LINE_LIST;
+
+        BOOST_FOREACH(SimpleVector3 point, points) {
+            marker.points.push_back(TypeHelper::getPointMSG(point));
+        }
+
+        marker.scale.x = scale;
+        marker.color = TypeHelper::getColor(color);
+
+        return marker;
+    }
+
 	void MarkerHelper::getRainbowColor(visualization_msgs::Marker &marker, double x, double alpha) {
-		// clamping value to [0.0, 1.0)
+        // clamping value to [0.0, 1.0):125
 		if (x >= 1.0) {
 			while(x >= 1.0) {
 				x -= 1.0;

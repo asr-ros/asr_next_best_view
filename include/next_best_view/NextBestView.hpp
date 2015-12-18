@@ -52,7 +52,7 @@
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
-#include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/camera_model_filter/impl/MapBasedSingleCameraModelFilter.hpp"
@@ -535,9 +535,7 @@ namespace next_best_view {
             }
 
             std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
-            viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
-            textMarker.ns = "searched_obj";
-            textMarker.pose = pose;
+            viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result, pose, "searched_obj");
             mMarkerArrayPtr->markers.push_back(textMarker);
 
             mFrustumMarkerArrayPublisher.publish(*mMarkerArrayPtr);
@@ -815,9 +813,7 @@ namespace next_best_view {
                     numberSearchedObjects = viewport.object_name_set->size();
                     ROS_INFO_STREAM("numberSearchedObjects: " <<  numberSearchedObjects);
                     std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
-                    viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result);
-                    textMarker.pose = viewport.getPose();
-                    textMarker.ns = "new_nbv_frustum_text";
+                    viz::Marker textMarker = MarkerHelper::getTextMarker(mMarkerArrayPtr->markers.size(), result, viewport.getPose(), "new_nbv_frustum_text");
                     mMarkerArrayPtr->markers.push_back(textMarker);
                 }
                 if (TempMarkerArray) mFrustumMarkerArrayPublisher.publish(*TempMarkerArray);

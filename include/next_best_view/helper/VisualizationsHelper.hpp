@@ -7,16 +7,9 @@
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
-#include "next_best_view/robot_model/RobotModel.hpp"
-#include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
-#include "next_best_view/unit_sphere_sampler/UnitSphereSampler.hpp"
+#include "next_best_view/helper/MarkerHelper.hpp"
+#include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
-#include "next_best_view/rating/RatingModule.hpp"
-#include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
-#include "pbd_msgs/PbdAttributedPointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
-#include "next_best_view/helper/MapHelper.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Point.h>
@@ -31,150 +24,156 @@ class VisualizationHelper
 
 private:
 
+    ros::Publisher vis_pub;
+    ros::NodeHandle node_handle;
+    visualization_msgs::MarkerArray markerArray;
+    visualization_msgs::MarkerArray markerArrayDeleteList;
+    int i;
+    float j;
+    int iterationStep;
+    bool boolClearBetweenIterations;
+
+public:
+
+    VisualizationHelper():i(0),j(0),iterationStep(0) {
+        vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "/nbv/iteration_visualization", 1000);
+        node_handle.getParam("/nbv/boolClearBetweenIterations", boolClearBetweenIterations);
+        ROS_DEBUG_STREAM("boolClearBetweenIterations: " << boolClearBetweenIterations);
+        markerArray = visualization_msgs::MarkerArray();
+    }
+
+    void triggerIterationVisualizations(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr
+                               &sampledOrientationsPtr, ViewportPoint currentBestViewport,
+                               IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
+                               SpaceSamplerPtr spaceSamplerPtr) {
+
+        ROS_DEBUG_STREAM("iteration visualization");
+
+        if(iterationStep==0 && boolClearBetweenIterations == true) {
+            clearVisualzation();
+        }
+
+        std::string s = boost::lexical_cast<std::string>(iterationStep);
+        this->iterationStep=iterationStep;
+        j = iterationStep*0.25;
+        j = std::min(1.0f, j); //Prevent overflow
+
+        triggerSpaceSampling(feasibleIndices, pointcloud,s);
+        triggerGrid(spaceSamplerPtr, s);
+        triggerCameraVis(s, position, sampledOrientationsPtr, currentBestViewport);
+
+        ROS_DEBUG_STREAM("publish markers");
+
+        vis_pub.publish(markerArray);
+    }
+
+private:
+
     void triggerCameraVis(std::string s,SimpleVector3 position,
                           const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
-                          ViewportPoint currentBestViewport){
-
+                          ViewportPoint currentBestViewport) {
+        // get parameters
         std::vector<double> ViewPortMarkerScales;
         std::vector<double> ViewPortMarkerRGBA;
         std::vector<double> ViewPortDirectionsRGBA;
         std::vector<double> ViewPortDirectionsScales;
+        std::vector<double> ColumnPositionMarkerRGBA;
         double ViewPortMarkerHeightFactor;
         double ViewPortMarkerShrinkFactor;
+        double ColumnPositionMarkerWidth;
+
         node_handle.getParam("/nbv/ViewPortMarker_Scales", ViewPortMarkerScales);
         node_handle.getParam("/nbv/ViewPortMarker_HeightFactor", ViewPortMarkerHeightFactor);
         node_handle.getParam("/nbv/ViewPortMarker_ShrinkFactor", ViewPortMarkerShrinkFactor);
         node_handle.getParam("/nbv/ViewPortMarker_RGBA", ViewPortMarkerRGBA);
         node_handle.getParam("/nbv/ViewPortDirections_RGBA", ViewPortDirectionsRGBA);
         node_handle.getParam("/nbv/ViewPortDirections_Scales", ViewPortDirectionsScales);
-
+        node_handle.getParam("/nbv/ColumnPositionMarker_Width", ColumnPositionMarkerWidth);
+        node_handle.getParam("/nbv/ColumnPositionMarker_RGBA", ColumnPositionMarkerRGBA);
 
         BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr)
         {
-
+            // get the data for the markers
             SimpleVector3 visualAxis = MathHelper::getVisualAxis(q);
-            geometry_msgs::Point extPoint;
-            extPoint.x = visualAxis[0]/ViewPortMarkerShrinkFactor + position[0];
-            extPoint.y = visualAxis[1]/ViewPortMarkerShrinkFactor + position[1];
-            extPoint.z = visualAxis[2]/ViewPortMarkerShrinkFactor + position[2]
-                    + iterationStep * ViewPortMarkerHeightFactor;
-            //tf::createQuaternionMsgFromRollPitchYaw(roll,pitch,yaw);
-            geometry_msgs::Quaternion orientation;
-            orientation.w = q.w();
-            orientation.x = q.x();
-            orientation.y = q.y();
-            orientation.z = q.z();
+            visualAxis[0] = visualAxis[0]/ViewPortMarkerShrinkFactor + position[0];
+            visualAxis[1] = visualAxis[1]/ViewPortMarkerShrinkFactor + position[1];
+            visualAxis[2] = visualAxis[2]/ViewPortMarkerShrinkFactor + position[2]
+                                + iterationStep * ViewPortMarkerHeightFactor;
 
-            visualization_msgs::Marker ViewPortDirectionsMarker = visualization_msgs::Marker();
+            // get viewport direction marker
+            std::vector<double> color = std::vector<double>(ViewPortDirectionsRGBA);
+            color[0] -= j;
+            color[1] += j;
 
-            ViewPortDirectionsMarker.header.stamp = ros::Time();
-            ViewPortDirectionsMarker.header.frame_id = "/map";
-            ViewPortDirectionsMarker.type = ViewPortDirectionsMarker.ARROW;
-            ViewPortDirectionsMarker.action = ViewPortDirectionsMarker.ADD;
-            ViewPortDirectionsMarker.id = ++i;
-            ViewPortDirectionsMarker.lifetime = ros::Duration();
-            ViewPortDirectionsMarker.ns = "ViewPortDirections" +s ;
-            ViewPortDirectionsMarker.scale.x = ViewPortDirectionsScales[0];
-            ViewPortDirectionsMarker.scale.y = ViewPortDirectionsScales[1];
-            ViewPortDirectionsMarker.scale.z = ViewPortDirectionsScales[2];
-            ViewPortDirectionsMarker.color.a = ViewPortDirectionsRGBA[3];
-            ViewPortDirectionsMarker.color.r = ViewPortDirectionsRGBA[0]-j;
-            ViewPortDirectionsMarker.color.g = ViewPortDirectionsRGBA[1]+j;
-            ViewPortDirectionsMarker.color.b = ViewPortDirectionsRGBA[2];
-            ViewPortDirectionsMarker.pose.position = extPoint;
-            ViewPortDirectionsMarker.pose.orientation = orientation;
+            std::string ns = "ViewPortDirections" + s;
 
-            visualization_msgs::Marker ViewPortDirectionsDeleteAction = ViewPortDirectionsMarker;
-            ViewPortDirectionsDeleteAction.action = ViewPortDirectionsDeleteAction.DELETE;
-            markerArrayDeleteList.markers.push_back(ViewPortDirectionsDeleteAction);
+            i++;
+
+            visualization_msgs::Marker ViewPortDirectionsMarker = MarkerHelper::getArrowMarker(i, visualAxis, q, ViewPortDirectionsScales, color, ns);
+            visualization_msgs::Marker ViewPortDirectionsDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
+
             markerArray.markers.push_back(ViewPortDirectionsMarker);
+            markerArrayDeleteList.markers.push_back(ViewPortDirectionsDeleteAction);
 
 
-            visualization_msgs::Marker ViewPortMarker = visualization_msgs::Marker();
-            ViewPortMarker.header.stamp = ros::Time();
-            ViewPortMarker.header.frame_id = "/map";
-            ViewPortMarker.type = ViewPortMarker.CUBE                                                    ;
-            ViewPortMarker.action = ViewPortMarker.ADD;
-            ViewPortMarker.id = ++i;
-            ViewPortMarker.lifetime = ros::Duration();
-            ViewPortMarker.ns = "visualAxis" +s ;
-            ViewPortMarker.scale.x = ViewPortMarkerScales[0];
-            ViewPortMarker.scale.y = ViewPortMarkerScales[1];
-            ViewPortMarker.scale.z = ViewPortMarkerScales[2];
-            ViewPortMarker.color.a = ViewPortMarkerRGBA[3];
-            ViewPortMarker.color.r = ViewPortMarkerRGBA[0]-j;
-            ViewPortMarker.color.g = ViewPortMarkerRGBA[1]+j;
-            ViewPortMarker.color.b = ViewPortMarkerRGBA[2];
-            ViewPortMarker.pose.position = extPoint;
-            ViewPortMarker.pose.orientation = orientation;
+            // get viewport marker
+            color = std::vector<double>(ViewPortMarkerRGBA);
+            color[0] -= j;
+            color[1] += j;
 
-            visualization_msgs::Marker ViewPortMarkerDeleteAction = ViewPortMarker;
-            ViewPortMarkerDeleteAction.action = ViewPortMarkerDeleteAction.DELETE;
-            markerArrayDeleteList.markers.push_back(ViewPortMarkerDeleteAction);
+            ns = "visualAxis" + s;
+
+            i++;
+
+            visualization_msgs::Marker ViewPortMarker = MarkerHelper::getCubeMarker(i, visualAxis, q, ViewPortMarkerScales, color, ns);
+            visualization_msgs::Marker ViewPortMarkerDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
+
             markerArray.markers.push_back(ViewPortMarker);
+            markerArrayDeleteList.markers.push_back(ViewPortMarkerDeleteAction);
         }
 
-        visualization_msgs::Marker ViewPortSphereMarker = visualization_msgs::Marker();
+        // get unit sphere marker
+        SimpleVector3 spherePosition = SimpleVector3(position);
+        spherePosition[2] += iterationStep * ViewPortMarkerHeightFactor;
 
-        ViewPortSphereMarker.header.stamp = ros::Time();
-        ViewPortSphereMarker.header.frame_id = "/map";
-        ViewPortSphereMarker.type = ViewPortSphereMarker.SPHERE;
-        ViewPortSphereMarker.action = ViewPortSphereMarker.ADD;
-        ViewPortSphereMarker.id = ++i;
-        ViewPortSphereMarker.lifetime = ros::Duration();
-        ViewPortSphereMarker.ns = "visualAxisSphere" +s ;
-        ViewPortSphereMarker.scale.x = 2.0/ViewPortMarkerShrinkFactor;
-        ViewPortSphereMarker.scale.y = 2.0/ViewPortMarkerShrinkFactor;
-        ViewPortSphereMarker.scale.z = 2.0/ViewPortMarkerShrinkFactor;
-        ViewPortSphereMarker.color.a = ViewPortMarkerRGBA[3] / 2.0;
-        ViewPortSphereMarker.color.r = ViewPortMarkerRGBA[0]-j;
-        ViewPortSphereMarker.color.g = ViewPortMarkerRGBA[1]+j;
-        ViewPortSphereMarker.color.b = ViewPortMarkerRGBA[2];
-        ViewPortSphereMarker.pose.position.x = position[0];
-        ViewPortSphereMarker.pose.position.y = position[1];
-        ViewPortSphereMarker.pose.position.z = position[2]+iterationStep * ViewPortMarkerHeightFactor;
+        std::vector<double> scale = std::vector<double>(3, 2.0/ViewPortMarkerShrinkFactor);
 
-        visualization_msgs::Marker  ViewPortSphereDeleteAction = ViewPortSphereMarker;
-        ViewPortSphereDeleteAction.action = ViewPortSphereDeleteAction.DELETE;
+        std::vector<double> color = std::vector<double>(ViewPortMarkerRGBA);
+        color[0] -= j;
+        color[1] += j;
+        color[3] /= 2.0;
+
+        std::string ns = "visualAxisSphere" + s;
+
+        i++;
+
+        visualization_msgs::Marker ViewPortSphereMarker = MarkerHelper::getSphereMarker(i, spherePosition, scale, color, ns);
+        visualization_msgs::Marker ViewPortSphereDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
+
         markerArrayDeleteList.markers.push_back(ViewPortSphereDeleteAction);
         markerArray.markers.push_back(ViewPortSphereMarker);
 
+        // get column position marker
+        SimpleVector3 point1 = SimpleVector3(position);
+        SimpleVector3 point2 = SimpleVector3(position);
+        point1[2] = 0;
+        point2[2] += iterationStep * ViewPortMarkerHeightFactor;
+        std::vector<SimpleVector3> points;
+        points.push_back(point1);
+        points.push_back(point2);
 
-        double ColumnPositionMarkerWidth;
-        std::vector<double> ColumnPositionMarkerRGBA;
-        node_handle.getParam("/nbv/ColumnPositionMarker_Width", ColumnPositionMarkerWidth);
-        node_handle.getParam("/nbv/ColumnPositionMarker_RGBA", ColumnPositionMarkerRGBA);
-	
-        visualization_msgs::Marker ColumnPositionMarker = visualization_msgs::Marker();
+        ns = "LineVizu" + s;
 
-        ColumnPositionMarker.header.stamp = ros::Time();
-        ColumnPositionMarker.header.frame_id = "/map";
-        ColumnPositionMarker.type = ColumnPositionMarker.LINE_LIST;
-        ColumnPositionMarker.action = ColumnPositionMarker.ADD;
-        ColumnPositionMarker.id = ++i;
-        ColumnPositionMarker.lifetime = ros::Duration();
-        ColumnPositionMarker.ns = "LineVizu" +s ;
-        ColumnPositionMarker.scale.x = ColumnPositionMarkerWidth;
-        ColumnPositionMarker.color.a = ColumnPositionMarkerRGBA[3];
-        ColumnPositionMarker.color.r = ColumnPositionMarkerRGBA[0];
-        ColumnPositionMarker.color.g = ColumnPositionMarkerRGBA[1];
-        ColumnPositionMarker.color.b = ColumnPositionMarkerRGBA[2];
-        geometry_msgs::Point point1 = geometry_msgs::Point();
-        point1.x = position[0];
-        point1.y = position[1];
-        point1.z = 0;
-        geometry_msgs::Point point2 = geometry_msgs::Point();
-        point2.x = position[0];
-        point2.y = position[1];
-        point2.z = position[2]+iterationStep*ViewPortMarkerHeightFactor;
-        ColumnPositionMarker.points.push_back(point1);
-        ColumnPositionMarker.points.push_back(point2);
+        i++;
 
-        visualization_msgs::Marker ColumnPositionDeleteAction = ColumnPositionMarker;
-        ColumnPositionDeleteAction.action = ColumnPositionDeleteAction.DELETE;
+        visualization_msgs::Marker ColumnPositionMarker = MarkerHelper::getLineListMarker(i, points, ColumnPositionMarkerWidth,
+                                                                                            ColumnPositionMarkerRGBA, ns);
+        visualization_msgs::Marker ColumnPositionDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
+
         markerArrayDeleteList.markers.push_back(ColumnPositionDeleteAction);
         markerArray.markers.push_back(ColumnPositionMarker);
 
+        // get nbv camera direction
         visualization_msgs::Marker NextBestViewCameraDirectionMarker = visualization_msgs::Marker();
 
         NextBestViewCameraDirectionMarker.header.stamp = ros::Time();
@@ -289,40 +288,14 @@ private:
         i=0;
     }
 
-    ros::Publisher vis_pub;
-    ros::NodeHandle node_handle;
-    visualization_msgs::MarkerArray markerArray;
-    visualization_msgs::MarkerArray markerArrayDeleteList;
-    int i;
-    float j;
-    int iterationStep;
-    bool boolClearBetweenIterations;
-public:
+    geometry_msgs::Vector3 convertVectorTo3DVector(vector<double> v) {
+        geometry_msgs::Vector3 result;
 
-    VisualizationHelper():i(0),j(0),iterationStep(0){
-        vis_pub = node_handle.advertise<visualization_msgs::MarkerArray>( "/nbv/iteration_visualization", 1000);
-        node_handle.getParam("/nbv/boolClearBetweenIterations", boolClearBetweenIterations);
-        ROS_DEBUG_STREAM("boolClearBetweenIterations: " << boolClearBetweenIterations);
-        markerArray = visualization_msgs::MarkerArray();
-    }
+        result.x = v[0];
+        result.y = v[1];
+        result.z = v[2];
 
-    void triggerVisualizations(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr
-                               &sampledOrientationsPtr, ViewportPoint currentBestViewport,
-                               IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
-                               SpaceSamplerPtr spaceSamplerPtr){
-      
-    if(iterationStep==0 && boolClearBetweenIterations == true)  clearVisualzation();
-        std::string s = boost::lexical_cast<std::string>(iterationStep);
-        this->iterationStep=iterationStep;
-        j = iterationStep*0.25;
-	j = std::min(1.0f, j); //Prevent overflow
-
-        triggerSpaceSampling(feasibleIndices, pointcloud,s);
-        triggerGrid(spaceSamplerPtr, s);
-        triggerCameraVis(s, position, sampledOrientationsPtr, currentBestViewport);
-
-        vis_pub.publish(markerArray);
-    
+        return result;
     }
 
 };

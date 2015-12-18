@@ -27,49 +27,72 @@ namespace next_best_view {
 	public:
 		/*!
          * \param id the id of the marker
+         * \param ns the namespace of the marker
 		 * \return a marker with all basic settings
 		 */
-		static visualization_msgs::Marker getBasicMarker(int id);
+        static visualization_msgs::Marker getBasicMarker(int id, std::string ns = "my_namespace");
+
+        static visualization_msgs::Marker getBasicMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
+                                                            std::vector<double> scale, std::vector<double> color, std::string ns = "my_namespace");
 
         /*!
          * \brief getTextMarker
          * \param id the id of the marker
          * \param text the text of the marker
+         * \param pose the pose of the marker
+         * \param ns the namespace of the marker
          * \return a marker with all basic settings
          */
-        static visualization_msgs::Marker getTextMarker(int id, std::string text);
+        static visualization_msgs::Marker getTextMarker(int id, std::string text, geometry_msgs::Pose pose, std::string ns = "my_namespace");
 
 		/*!
-		 * \param id the id of the marker
+         * \param id the id of the marker
+         * \param ns the namespace of the marker
 		 * \return a marker which will delete the corresponding marker with the same id
 		 */
-		static visualization_msgs::Marker getDeleteMarker(int id);
+        static visualization_msgs::Marker getDeleteMarker(int id, std::string ns = "my_namespace");
 
 		/*!
 		 * \param id the id of the marker
 		 * \param mesh_resource a uri to the mesh's resource
 		 * \param centroid the centroid of the mesh object
 		 * \param quaternion the orientation of the mesh object
+         * \param ns the namespace of the marker
 		 * \return a marker with all settings for a visualization of a mesh
 		 */
-		static visualization_msgs::Marker getMeshMarker(int id, std::string mesh_resource, SimpleVector3 centroid, SimpleQuaternion quaternion);
+        static visualization_msgs::Marker getMeshMarker(int id, std::string mesh_resource, SimpleVector3 centroid, SimpleQuaternion quaternion, std::string ns = "my_namespace");
 
 		/*!
 		 * \param id the id of the marker
 		 * \param mesh_resource a uri to the mesh's resource
 		 * \param pose the pose of the mesh object
+         * \param ns the namespace of the marker
 		 * \return a marker with all settings for a visualization of a mesh
 		 */
-		static visualization_msgs::Marker getMeshMarker(int id, std::string mesh_resource, geometry_msgs::Pose pose);
+        static visualization_msgs::Marker getMeshMarker(int id, std::string mesh_resource, geometry_msgs::Pose pose, std::string ns = "my_namespace");
 
 		/*!
 		 * \param id the id of the marker
 		 * \param startPoint the 3d point of start
 		 * \param endPoint the 3d point of end
 		 * \param color a 4d point which encodes color in RGBA
+         * \param ns the namespace of the marker
 		 * \return a marker with all settings for a visualization of an arrow
 		 */
-		static visualization_msgs::Marker getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint, SimpleVector4 color = SimpleVector4(1.0, 0.0, 0.0, 1.0));
+        static visualization_msgs::Marker getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint,
+                                                            SimpleVector4 color = SimpleVector4(1.0, 0.0, 0.0, 1.0), std::string ns = "my_namespace");
+
+        static visualization_msgs::Marker getArrowMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
+                                                            std::vector<double> scale, std::vector<double> color, std::string ns = "my_namespace");
+
+        static visualization_msgs::Marker getCubeMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
+                                                            std::vector<double> scale, std::vector<double> color, std::string ns = "my_namespace");
+
+        static visualization_msgs::Marker getSphereMarker(int id, SimpleVector3 position, std::vector<double> scale,
+                                                            std::vector<double> color, std::string ns = "my_namespace");
+
+        static visualization_msgs::Marker getLineListMarker(int id, vector<SimpleVector3> points, double scale,
+                                                                std::vector<double> color, std::string ns = "my_namespace");
 
 		/*!
 		 * \param marker [in / out] the marker which color gets set

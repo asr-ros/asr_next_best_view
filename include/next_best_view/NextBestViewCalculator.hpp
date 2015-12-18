@@ -140,7 +140,7 @@ namespace next_best_view {
                 IndicesPtr feasibleIndices(new Indices());
                 this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
-                mVisHelper.triggerVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
+                mVisHelper.triggerIterationVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
                                       intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
 
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
