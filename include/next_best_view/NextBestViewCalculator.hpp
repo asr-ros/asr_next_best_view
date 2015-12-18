@@ -457,6 +457,12 @@ namespace next_best_view {
                 //Insert the meshpath
                 objectsResources[pointCloudPoint.type] = responsePtr->object_mesh_resource;
 
+                //Insert color
+                std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
+                pointCloudPoint.color = colorByID;
+                ROS_DEBUG_STREAM("Got color (" << colorByID.r << ", " << colorByID.g << ", " << colorByID.b << ", " << colorByID.a << ") for id " << element.identifier);
+
+
 				// add point to array
 				pointCloudPtr->push_back(pointCloudPoint);
 			}

@@ -52,7 +52,6 @@ add_service_files(
    CalculateRobotState.srv
    CalculateCameraPose.srv
    IsPositionReachable.srv
-   IsPoseReachable.srv
    TriggerFrustumVisualization.srv
    ResetCalculator.srv
    GetPose.srv

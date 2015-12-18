@@ -22,6 +22,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
 #include "tf/transform_datatypes.h"
+#include <std_msgs/ColorRGBA.h>
 
 namespace next_best_view
 {
@@ -289,6 +290,18 @@ private:
         i=0;
     }
 
+    static std_msgs::ColorRGBA createColorRGBA(float red, float green, float blue, float alpha)
+    {
+        std_msgs::ColorRGBA color;
+
+        color.r = red;
+        color.g = green;
+        color.b = blue;
+        color.a = alpha;
+
+        return color;
+    }
+
     ros::Publisher vis_pub;
     ros::NodeHandle node_handle;
     visualization_msgs::MarkerArray markerArray;
@@ -325,9 +338,40 @@ public:
     
     }
 
+    /* only working because the shape-based recognizer sets the observedId with the object color */
+    static std_msgs::ColorRGBA getMeshColor(std::string observedId)
+    {
+        std_msgs::ColorRGBA retColor = VisualizationHelper::createColorRGBA(0.0, 0.0, 0.0, 0.0);
+
+
+        if ( ( observedId.length() == 12 ) && ( observedId.find_first_not_of("0123456789") == std::string::npos ) )
+        {
+            float rgba[4];
+            bool isColor = true;
+            try
+            {
+                for (int i = 0; i <= 3; i++)
+                {
+                    std::string temp;
+
+                    temp = observedId.substr( (i * 3), 3 );
+                    rgba[i] = std::stof(temp) / 100.0;
+                }
+            }
+            catch (std::invalid_argument& ia)
+            {
+                ROS_DEBUG_STREAM(ia.what());
+                isColor = false;
+            }
+
+            if(isColor)
+            {
+                retColor = VisualizationHelper::createColorRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
+            }
+        }
+
+        return retColor;
+    }
+
 };
-
-
-
-
 }

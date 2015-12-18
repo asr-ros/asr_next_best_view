@@ -65,6 +65,7 @@ public:
         MILDRobotState * startState = new MILDRobotState(0,0,0,0,0);
         MILDRobotStatePtr startStatePtr(startState);
 
+        myRobotModelPtr->setPanAngleLimits(-80, 80);
         ROS_INFO_STREAM("Running test...");
         ros::spinOnce();
         for (unsigned int i = 0; i < targetCameraPositions.size(); i++)
