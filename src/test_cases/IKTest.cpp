@@ -48,6 +48,13 @@ public:
         targetCameraOrientations.push_back(ZXZ2Quaternion(20, -20.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.2));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 0.0, 0));
+        //a couple of very difficult test cases
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 2.5));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-20, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 0.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 30.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, -1.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 30.0, 0));
 
 
         ROS_INFO_STREAM("Initializing...");
@@ -58,6 +65,7 @@ public:
         MILDRobotState * startState = new MILDRobotState(0,0,0,0,0);
         MILDRobotStatePtr startStatePtr(startState);
 
+        myRobotModelPtr->setPanAngleLimits(-80, 80);
         ROS_INFO_STREAM("Running test...");
         ros::spinOnce();
         for (unsigned int i = 0; i < targetCameraPositions.size(); i++)

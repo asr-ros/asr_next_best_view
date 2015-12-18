@@ -53,10 +53,16 @@ public:
         std::string* types = new std::string[hpSize];
         types[0] = "Knaeckebrot";
         types[1] = "VitalisSchoko";
-        types[2] = "Coffeebox";
-        types[3] = "Smacks";
+        types[2] = "Cup";
+        types[3] = "Cup";
 
-       int sampleSize = 2;
+        std::string* ids = new std::string[hpSize];
+        ids[0] = "1";
+        ids[1] = "2";
+        ids[2] = "000100000100";
+        ids[3] = "100000000100";
+
+       int sampleSize = 50;
        std::map<std::string, std::vector<pbd_msgs::PbdAttributedPoint>* > objectPointCloudsMap;
 
         for (std::size_t idx = 0; idx < (std::size_t)hpSize; idx++) {
@@ -82,6 +88,7 @@ public:
 
                 element.type = types[idx];
                 element.pose = pose;
+                element.identifier = ids[idx];
                 objectPointCloudsMap[types[idx]]->push_back(element);
 				apc.request.point_cloud.elements.push_back(element);
 			}

@@ -10,11 +10,17 @@
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
+#include "next_best_view/rating/RatingModule.hpp"
+#include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
+#include "pbd_msgs/PbdAttributedPointCloud.h"
+#include "pbd_msgs/PbdAttributedPoint.h"
+#include "next_best_view/helper/MapHelper.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
 #include "tf/transform_datatypes.h"
+#include <std_msgs/ColorRGBA.h>
 
 namespace next_best_view
 {
@@ -114,7 +120,6 @@ private:
 
             markerArray.markers.push_back(ViewPortDirectionsMarker);
             markerArrayDeleteList.markers.push_back(ViewPortDirectionsDeleteAction);
-
 
             // get viewport marker
             color = std::vector<double>(ViewPortMarkerRGBA);
@@ -288,19 +293,52 @@ private:
         i=0;
     }
 
-    geometry_msgs::Vector3 convertVectorTo3DVector(vector<double> v) {
-        geometry_msgs::Vector3 result;
+    static std_msgs::ColorRGBA createColorRGBA(float red, float green, float blue, float alpha)
+    {
+        std_msgs::ColorRGBA color;
 
-        result.x = v[0];
-        result.y = v[1];
-        result.z = v[2];
+        color.r = red;
+        color.g = green;
+        color.b = blue;
+        color.a = alpha;
 
-        return result;
+        return color;
+    }
+
+    /* only working because the shape-based recognizer sets the observedId with the object color */
+    static std_msgs::ColorRGBA getMeshColor(std::string observedId)
+    {
+        std_msgs::ColorRGBA retColor = VisualizationHelper::createColorRGBA(0.0, 0.0, 0.0, 0.0);
+
+
+        if ( ( observedId.length() == 12 ) && ( observedId.find_first_not_of("0123456789") == std::string::npos ) )
+        {
+            float rgba[4];
+            bool isColor = true;
+            try
+            {
+                for (int i = 0; i <= 3; i++)
+                {
+                    std::string temp;
+
+                    temp = observedId.substr( (i * 3), 3 );
+                    rgba[i] = std::stof(temp) / 100.0;
+                }
+            }
+            catch (std::invalid_argument& ia)
+            {
+                ROS_DEBUG_STREAM(ia.what());
+                isColor = false;
+            }
+
+            if(isColor)
+            {
+                retColor = VisualizationHelper::createColorRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
+            }
+        }
+
+        return retColor;
     }
 
 };
-
-
-
-
 }

@@ -702,13 +702,10 @@ namespace next_best_view {
 
                 this->deleteMarkerArray(mMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
                 std_msgs::ColorRGBA colorMeshMarker;
-                colorMeshMarker.a = 0;
-                colorMeshMarker.r = 0;
-                colorMeshMarker.b = 0;
-                colorMeshMarker.g = 0;
                 unsigned int index = 0;
                 for(ObjectPointCloud::iterator it = objectPointCloud.begin(); it < objectPointCloud.end(); it++)
                 {
+                    colorMeshMarker = (*it).color;
                     visualization_msgs::Marker objectMarker = createObjectMarker((*it),index++,colorMeshMarker,"mMeshMarkerArray");
                     mMeshMarkerArrayPtr->markers.push_back(objectMarker);
                 }
