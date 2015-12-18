@@ -10,6 +10,7 @@
 
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "typedef.hpp"
 #include "geometry_msgs/Pose.h"
 #include "nav_msgs/Path.h"
@@ -72,6 +73,7 @@ namespace next_best_view {
          double viewTriangle_angleAlpha;
          double viewTriangle_angleGamma;
          double viewTriangle_sideA;
+         unsigned int panAngleSamplingStepsPerIteration;
          /*!
           * Transformation frame from the tilted-link to camera left
           */
@@ -94,6 +96,16 @@ namespace next_best_view {
           * Trys to calculate parameters needed for the inverse kinematic using tf transformations
           */
          bool setUpTFParameters();
+
+         /*!
+          * Calculates the optimal pan angle for the given pose of the pan joint
+          */
+         double getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState);
+         /*!
+          * Returns a rating value for the given pan angle and the pose of the pan joint
+          */
+         double getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle);
+
 
     public:
 		/*!
