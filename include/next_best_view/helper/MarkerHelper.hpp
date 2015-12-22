@@ -94,6 +94,9 @@ namespace next_best_view {
         static visualization_msgs::Marker getLineListMarker(int id, vector<SimpleVector3> points, double scale,
                                                                 std::vector<double> color, std::string ns = "my_namespace");
 
+        static visualization_msgs::Marker getCylinderMarker(int id, SimpleVector3 position, double w, std::vector<double> scale,
+                                                                std::vector<double> color, std::string ns = "my_namespace");
+
 		/*!
 		 * \param marker [in / out] the marker which color gets set
 		 * \param x a value between 0 and 1

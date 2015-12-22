@@ -73,6 +73,41 @@ public:
         vis_pub.publish(markerArray);
     }
 
+    /* only working because the shape-based recognizer sets the observedId with the object color */
+    static std_msgs::ColorRGBA getMeshColor(std::string observedId)
+    {
+        std_msgs::ColorRGBA retColor = VisualizationHelper::createColorRGBA(0.0, 0.0, 0.0, 0.0);
+
+
+        if ( ( observedId.length() == 12 ) && ( observedId.find_first_not_of("0123456789") == std::string::npos ) )
+        {
+            float rgba[4];
+            bool isColor = true;
+            try
+            {
+                for (int i = 0; i <= 3; i++)
+                {
+                    std::string temp;
+
+                    temp = observedId.substr( (i * 3), 3 );
+                    rgba[i] = std::stof(temp) / 100.0;
+                }
+            }
+            catch (std::invalid_argument& ia)
+            {
+                ROS_DEBUG_STREAM(ia.what());
+                isColor = false;
+            }
+
+            if(isColor)
+            {
+                retColor = VisualizationHelper::createColorRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
+            }
+        }
+
+        return retColor;
+    }
+
 private:
 
     void triggerCameraVis(std::string s,SimpleVector3 position,
@@ -179,76 +214,66 @@ private:
         markerArray.markers.push_back(ColumnPositionMarker);
 
         // get nbv camera direction
-        visualization_msgs::Marker NextBestViewCameraDirectionMarker = visualization_msgs::Marker();
+        scale.clear();
+        scale.push_back(1);
+        scale.push_back(ColumnPositionMarkerWidth);
+        scale.push_back(ColumnPositionMarkerWidth);
 
-        NextBestViewCameraDirectionMarker.header.stamp = ros::Time();
-        NextBestViewCameraDirectionMarker.header.frame_id = "/map";
-        NextBestViewCameraDirectionMarker.type = NextBestViewCameraDirectionMarker.ARROW;
-        NextBestViewCameraDirectionMarker.action = NextBestViewCameraDirectionMarker.ADD;
-        NextBestViewCameraDirectionMarker.id = ++i;
-        NextBestViewCameraDirectionMarker.lifetime = ros::Duration();
-        NextBestViewCameraDirectionMarker.ns = "ArrowVizu" +s ;
-        NextBestViewCameraDirectionMarker.scale.x = 1;
-        NextBestViewCameraDirectionMarker.scale.y = ColumnPositionMarkerWidth;
-        NextBestViewCameraDirectionMarker.scale.z = ColumnPositionMarkerWidth;
-        NextBestViewCameraDirectionMarker.color.a = ViewPortMarkerRGBA[3];
-        NextBestViewCameraDirectionMarker.color.r = ViewPortMarkerRGBA[0]-j;
-        NextBestViewCameraDirectionMarker.color.g = ViewPortMarkerRGBA[1]+j;
-        NextBestViewCameraDirectionMarker.color.b = ViewPortMarkerRGBA[2];
-        NextBestViewCameraDirectionMarker.pose.position.x = position[0];
-        NextBestViewCameraDirectionMarker.pose.position.y = position[1];
-        NextBestViewCameraDirectionMarker.pose.position.z = position[2];
-        NextBestViewCameraDirectionMarker.pose.orientation = currentBestViewport.getQuaternion();
+        color = std::vector<double>(ViewPortMarkerRGBA);
+        color[0] -= j;
+        color[1] += j;
 
-        visualization_msgs::Marker NextBestViewCameraDirectionDeleteAction = NextBestViewCameraDirectionMarker;
-        NextBestViewCameraDirectionDeleteAction.action = NextBestViewCameraDirectionDeleteAction.DELETE;
+        ns = "ArrowVizu" +s ;
+
+        i++;
+
+        visualization_msgs::Marker NextBestViewCameraDirectionMarker = MarkerHelper::getArrowMarker(i, position,
+                                                                                                        currentBestViewport.getSimpleQuaternion(),
+                                                                                                        scale, color, ns);
+        visualization_msgs::Marker NextBestViewCameraDirectionDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
+
         markerArrayDeleteList.markers.push_back(NextBestViewCameraDirectionDeleteAction);
         markerArray.markers.push_back(NextBestViewCameraDirectionMarker);
     }
 
     void triggerSpaceSampling(IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud, std::string s){
 
+        // get parameters
         double SpaceSamplingMarkerScale;
         std::vector<double> SpaceSamplingMarkerRGBA;
         node_handle.getParam("/nbv/SpaceSamplingMarker_Scale", SpaceSamplingMarkerScale);
         node_handle.getParam("/nbv/SpaceSamplingMarker_RGBA", SpaceSamplingMarkerRGBA);
 
+        std::vector<double> scale(3, SpaceSamplingMarkerScale);
+        std::vector<double> color = std::vector<double>(SpaceSamplingMarkerRGBA);
+        color[0] -= j;
+        color[1] += j;
+
         SamplePointCloud pcl = SamplePointCloud(*pointcloud, *feasibleIndices);
 
         for(SamplePointCloud::iterator it = pcl.points.begin(); it < pcl.points.end(); it++)
         {
+            // get space sampling marker
             gm::Point point = it->getPoint();
-            visualization_msgs::Marker SpaceSamplingMarker = visualization_msgs::Marker();
-            SpaceSamplingMarker.header.stamp = ros::Time();
-            SpaceSamplingMarker.header.frame_id = "/map";
-            SpaceSamplingMarker.type = SpaceSamplingMarker.CYLINDER;
-            SpaceSamplingMarker.action = SpaceSamplingMarker.ADD;
-            SpaceSamplingMarker.id = ++i;
-            SpaceSamplingMarker.lifetime = ros::Duration();
-            SpaceSamplingMarker.ns = "SamplePoints_NS"+s;
-            SpaceSamplingMarker.scale.x = SpaceSamplingMarkerScale;
-            SpaceSamplingMarker.scale.y = SpaceSamplingMarkerScale;
-            SpaceSamplingMarker.scale.z = SpaceSamplingMarkerScale;
-            SpaceSamplingMarker.color.a = SpaceSamplingMarkerRGBA[3];
-            SpaceSamplingMarker.color.r = SpaceSamplingMarkerRGBA[0]-j;
-            SpaceSamplingMarker.color.g = SpaceSamplingMarkerRGBA[1]+j;
-            SpaceSamplingMarker.color.b = SpaceSamplingMarkerRGBA[2];
-            SpaceSamplingMarker.pose.position.x = point.x;
-            SpaceSamplingMarker.pose.position.y = point.y;
-            SpaceSamplingMarker.pose.position.z = 0.1;
-            SpaceSamplingMarker.pose.orientation.w = 1;
+            SimpleVector3 position = TypeHelper::getSimpleVector3(point);
+            position[2] = 0.1;
 
-            visualization_msgs::Marker SpaceSamplingMarkerDeleteAction = SpaceSamplingMarker;
-            SpaceSamplingMarkerDeleteAction.action = SpaceSamplingMarkerDeleteAction.DELETE;
-            markerArrayDeleteList.markers.push_back(SpaceSamplingMarkerDeleteAction);
+            std::string ns = "SamplePoints_NS" + s;
+
+            i++;
+
+            visualization_msgs::Marker SpaceSamplingMarker = MarkerHelper::getCylinderMarker(i, position, 1, scale, color, ns);
+            visualization_msgs::Marker SpaceSamplingMarkerDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
 
             markerArray.markers.push_back(SpaceSamplingMarker);
+            markerArrayDeleteList.markers.push_back(SpaceSamplingMarkerDeleteAction);
         }
 
     }
 
     void triggerGrid(SpaceSamplerPtr spaceSamplerPtr, std::string s){
 
+        // get parameters
         double GridMarkerScaleZ;
         std::vector<double> GridMarkerRGBA;
         node_handle.getParam("/nbv/GridMarker_ScaleZ", GridMarkerScaleZ);
@@ -259,31 +284,27 @@ private:
         double xmid = (spaceSamplerPtr->getXtop() + spaceSamplerPtr->getXbot())/2.0;
         double ymid =  (spaceSamplerPtr->getYtop() + spaceSamplerPtr->getYbot())/2.0;
 
-        visualization_msgs::Marker GridMarker = visualization_msgs::Marker();
-        GridMarker.header.stamp = ros::Time();
-        GridMarker.header.frame_id = "/map";
-        GridMarker.type = GridMarker.CUBE;
-        GridMarker.action = GridMarker.ADD;
-        GridMarker.id = ++i;
-        GridMarker.lifetime = ros::Duration();
-        GridMarker.ns = "Radius" + s;
-        GridMarker.scale.x = xwidth;
-        GridMarker.scale.y = ywidth;
-        GridMarker.scale.z = GridMarkerScaleZ;
-        GridMarker.color.a = GridMarkerRGBA[3];
-        GridMarker.color.r = GridMarkerRGBA[0];
-        GridMarker.color.g = GridMarkerRGBA[1];
-        GridMarker.color.b = GridMarkerRGBA[2];
-        GridMarker.pose.position.x = xmid;
-        GridMarker.pose.position.y = ymid;
-        GridMarker.pose.position.z = 0;
-        GridMarker.pose.orientation.w = 1;
+        SimpleVector3 position;
+        position[0] = xmid;
+        position[1] = ymid;
+        position[2] = 0;
 
-        visualization_msgs::Marker GridMarkerDeleteAction = GridMarker;
-        GridMarkerDeleteAction.action = GridMarkerDeleteAction.DELETE;
-        markerArrayDeleteList.markers.push_back(GridMarkerDeleteAction);
+        SimpleQuaternion orientation(1,0,0,0);
+
+        std::vector<double> scale;
+        scale.push_back(xwidth);
+        scale.push_back(ywidth);
+        scale.push_back(GridMarkerScaleZ);
+
+        std::string ns = "Radius" + s;
+
+        i++;
+
+        visualization_msgs::Marker GridMarker = MarkerHelper::getCubeMarker(i, position, orientation, scale, GridMarkerRGBA, ns);
+        visualization_msgs::Marker GridMarkerDeleteAction = MarkerHelper::getDeleteMarker(i, ns);
 
         markerArray.markers.push_back(GridMarker);
+        markerArrayDeleteList.markers.push_back(GridMarkerDeleteAction);
     }
     
     void clearVisualzation(){
@@ -303,41 +324,6 @@ private:
         color.a = alpha;
 
         return color;
-    }
-
-    /* only working because the shape-based recognizer sets the observedId with the object color */
-    static std_msgs::ColorRGBA getMeshColor(std::string observedId)
-    {
-        std_msgs::ColorRGBA retColor = VisualizationHelper::createColorRGBA(0.0, 0.0, 0.0, 0.0);
-
-
-        if ( ( observedId.length() == 12 ) && ( observedId.find_first_not_of("0123456789") == std::string::npos ) )
-        {
-            float rgba[4];
-            bool isColor = true;
-            try
-            {
-                for (int i = 0; i <= 3; i++)
-                {
-                    std::string temp;
-
-                    temp = observedId.substr( (i * 3), 3 );
-                    rgba[i] = std::stof(temp) / 100.0;
-                }
-            }
-            catch (std::invalid_argument& ia)
-            {
-                ROS_DEBUG_STREAM(ia.what());
-                isColor = false;
-            }
-
-            if(isColor)
-            {
-                retColor = VisualizationHelper::createColorRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
-            }
-        }
-
-        return retColor;
     }
 
 };

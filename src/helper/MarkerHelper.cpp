@@ -156,6 +156,15 @@ namespace next_best_view {
         return marker;
     }
 
+    visualization_msgs::Marker MarkerHelper::getCylinderMarker(int id, SimpleVector3 position, double w, std::vector<double> scale,
+                                                                    std::vector<double> color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, position, SimpleQuaternion(0, 0, 0, w), scale, color, ns);
+
+        marker.type = visualization_msgs::Marker::CYLINDER;
+
+        return marker;
+    }
+
 	void MarkerHelper::getRainbowColor(visualization_msgs::Marker &marker, double x, double alpha) {
         // clamping value to [0.0, 1.0):125
 		if (x >= 1.0) {
