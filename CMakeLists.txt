@@ -104,6 +104,7 @@ add_library(
 	src/camera_model_filter/CameraModelFilter.cpp
 	src/rating/BaseScoreContainer.cpp
 	src/rating/RatingModule.cpp
+        src/rating/IKRatingModule.cpp
 	src/robot_model/RobotModel.cpp
 	src/robot_model/RobotState.cpp
 	src/space_sampler/SpaceSampler.cpp
@@ -119,6 +120,7 @@ add_library(
 	src/camera_model_filter/impl/MapBasedSingleCameraModelFilter.cpp
 	src/camera_model_filter/impl/MapBasedStereoCameraModelFilter.cpp
 	src/rating/impl/DefaultRatingModule.cpp
+        src/rating/impl/DefaultIKRatingModule.cpp
 	src/rating/impl/DefaultScoreContainer.cpp
 	src/robot_model/impl/MILDRobotModel.cpp
         src/robot_model/impl/MILDRobotModel_with_IK.cpp

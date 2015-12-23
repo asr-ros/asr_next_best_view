@@ -62,7 +62,7 @@ public:
         //Initialize robot model
         MILDRobotModelWithIK *myRobotModel = new MILDRobotModelWithIK();
         MILDRobotModelWithIKPtr myRobotModelPtr(myRobotModel);
-        MILDRobotState * startState = new MILDRobotState(0,0,0,0,0);
+        MILDRobotState * startState = new MILDRobotState(0,0,0,-1.04597437382,-0.092691808939);
         MILDRobotStatePtr startStatePtr(startState);
 
         myRobotModelPtr->setPanAngleLimits(-80, 80);

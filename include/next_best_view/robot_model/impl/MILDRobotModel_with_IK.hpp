@@ -16,6 +16,7 @@
 #include "nav_msgs/Path.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include "next_best_view/rating/impl/DefaultIKRatingModule.h"
 
 namespace next_best_view {
 	/*!
@@ -67,6 +68,11 @@ namespace next_best_view {
 		 nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
          /*!
+          * The rating module for the inverse kinematic sampling
+          */
+         IKRatingModulePtr ikRatingModule;
+
+         /*!
           * Height of the tilt axis above ground
           */
          double h_tilt;
@@ -74,19 +80,24 @@ namespace next_best_view {
          double viewTriangle_angleGamma;
          double viewTriangle_sideA;
          unsigned int panAngleSamplingStepsPerIteration;
+
          /*!
           * Transformation frame from the tilted-link to camera left
           */
          Eigen::Affine3d tiltToCameraEigen;
+
          /*!
           * Transformation frame from the pan-link to the tilt-link
           */
          Eigen::Affine3d panToTiltEigen;
+
          /*!
           * Transformation frame from the base-link to the pan-link
           */
          Eigen::Affine3d baseToPanEigen;
+
          double x_product;
+
          /*!
           * Flag, shows if the tf parameters have already been initialized
           */
@@ -102,10 +113,25 @@ namespace next_best_view {
           */
          double getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState);
          /*!
-          * Returns a rating value for the given pan angle and the pose of the pan joint
+          * Visualizes the output of the IK calculation
           */
-         double getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle);
-
+         void visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point, Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point);
+         /*!
+          * Visualizes a point for a single frame position
+          */
+         void visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns);
+         /*!
+          * Visualizes the translation between two frames through an arrow
+          */
+         void visualizeIKArrowLarge(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns);
+         /*!
+          * Visualizes the translation between two frames through an arrow
+          */
+         void visualizeIKArrowSmall(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns);
+         /*!
+          * Visualizes the translation between two frames through an arrow
+          */
+         void visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters);
 
     public:
 		/*!
