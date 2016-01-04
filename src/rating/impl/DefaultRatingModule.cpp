@@ -9,8 +9,6 @@
 
 namespace next_best_view {
 
-     // TODO rating -> utility
-
     DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThreshold(M_PI * .5) { }
 
     DefaultRatingModule::~DefaultRatingModule() { }
@@ -105,30 +103,30 @@ namespace next_best_view {
         return BaseScoreContainerPtr(new DefaultScoreContainer());
     }
 
-    float DefaultRatingModule::getOrientationRating(const ViewportPoint &viewport, ObjectPoint &objectPoint) {
-		float maxRating = 0.0;
+    float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint) {
+        float maxUtility= 0.0;
 
-        // check the ratings for all normals and pick the best
+        // check the utilities for each normal and pick the best
         BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
             SimpleVector3 objectNormalVector = objectPoint.normal_vectors->at(index);
-            maxRating = std::max(this->getNormalRating(viewport, objectNormalVector), maxRating);
+            maxUtility = std::max(this->getNormalUtility(viewport, objectNormalVector), maxUtility);
 		}
 
-		return maxRating;
+        return maxUtility;
 	}
 
-    float DefaultRatingModule::getNormalRating(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector) {
+    float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector) {
         SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
         SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
 
         // rate the angle between the camera orientation and the object normal
         float angle = MathHelper::getAngle(-cameraOrientationVector, objectNormalVector);
-        float rating = this->getNormalizedRating(angle, mNormalAngleThreshold);
+        float utility = this->getNormalizedRating(angle, mNormalAngleThreshold);
 
-        return rating;
+        return utility;
 	}
 
-    float DefaultRatingModule::getProximityRating(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
+    float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
 
         SimpleVector3 cameraPosition = viewport.getPosition();
         SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
@@ -146,13 +144,13 @@ namespace next_best_view {
         float distanceThreshold = (fcp-ncp)/2.0;
         ROS_DEBUG_STREAM("distance to mid " << distanceToMid << " thresh "  << distanceThreshold );
 
-        float rating = this->getNormalizedRating(distanceToMid, distanceThreshold);
+        float utility = this->getNormalizedRating(distanceToMid, distanceThreshold);
 
-        return rating;
+        return utility;
     }
 
 
-    float DefaultRatingModule::getFrustumPositionRating(const ViewportPoint &viewport, ObjectPoint &objectPoint)
+    float DefaultRatingModule::getFrustumPositionUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint)
     {
         SimpleVector3 cameraPosition = viewport.getPosition();
         SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
@@ -163,19 +161,19 @@ namespace next_best_view {
         SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
         SimpleVector3 objectToCameraVectorNormalized = objectToCameraVector.normalized();
 
-        // rating for how far the object is on the side of the camera view
+        // utility for how far the object is on the side of the camera view
         float angle = MathHelper::getAngle(-cameraOrientationVector, objectToCameraVectorNormalized);
-        float sideRating = this->getNormalizedRating(angle, angleMin);
+        float sideUtility = this->getNormalizedRating(angle, angleMin);
 
-        // rating for how far the object is away from the camera
-        float proximityRating = this->getProximityRating(viewport,objectPoint);
+        // utility for how far the object is away from the camera
+        float proximityUtility = this->getProximityUtility(viewport,objectPoint);
 
-        // the complete frumstum position rating
-        float rating = sideRating * proximityRating;
+        // the complete frumstum position utility
+        float utility = sideUtility * proximityUtility;
 
-        ROS_DEBUG_STREAM("Frustum side rating "<< sideRating);
-        ROS_DEBUG_STREAM("Frustum proximity rating  " << proximityRating);
-        return rating;
+        ROS_DEBUG_STREAM("Frustum side utility "<< sideUtility);
+        ROS_DEBUG_STREAM("Frustum proximity utility  " << proximityUtility);
+        return utility;
     }
 
     float DefaultRatingModule::getRating(const BaseScoreContainerPtr &a) {
@@ -204,18 +202,18 @@ namespace next_best_view {
         defRatingPtr->setUtility(utility);
 
         // set the ratings for the orientations and the positions of the objects in the candidate viewport
-        float orientationRating = this->getFullOrientationRating(candidateViewport);
-        float positionRating = this->getFullPositionRating(candidateViewport);
+        float orientationUtility = this->getFullOrientationUtility(candidateViewport);
+        float positionUtility = this->getFullPositionUtility(candidateViewport);
 
-        defRatingPtr->setOrientationRating(orientationRating);
-        defRatingPtr->setPositionRating(positionRating);
+        defRatingPtr->setOrientationUtility(orientationUtility);
+        defRatingPtr->setPositionUtility(positionUtility);
 
         // set the costs
         double costs = this->getCosts(currentViewport, candidateViewport);
         defRatingPtr->setCosts(costs);
 
         candidateViewport.score = defRatingPtr;
-        ROS_DEBUG("Utility %f, Orientation rating %f, Position rating %f", utility, orientationRating, positionRating);
+        ROS_DEBUG("Utility %f, Orientation utility %f, Position utility %f", utility, orientationUtility, positionUtility);
         return true;
     }
 
@@ -263,45 +261,45 @@ namespace next_best_view {
         return utility;
     }
 
-    double DefaultRatingModule::getFullOrientationRating(const ViewportPoint &candidateViewport) {
-        double orientationRating = 0.0;
+    double DefaultRatingModule::getFullOrientationUtility(const ViewportPoint &candidateViewport) {
+        double orientationUtility = 0.0;
 
-        // get the orientation rating for each object type and sum them up
+        // get the orientation utility for each object type and sum them up
         BOOST_FOREACH(string objectType, *(candidateViewport.object_name_set)) {
-            // set the orientation rating for the object type if not already done
-            if (mObjectOrientationRatings.count(objectType) == 0) {
+            // set the orientation utility for the object type if not already done
+            if (mObjectOrientationUtilities.count(objectType) == 0) {
                 setObjectUtilities(candidateViewport, objectType);
             }
 
-            orientationRating += mObjectOrientationRatings[objectType];
+            orientationUtility += mObjectOrientationUtilities[objectType];
         }
 
-        return orientationRating;
+        return orientationUtility;
     }
 
-    double DefaultRatingModule::getFullPositionRating(const ViewportPoint &candidateViewport) {
-        double positionRating = 0.0;
+    double DefaultRatingModule::getFullPositionUtility(const ViewportPoint &candidateViewport) {
+        double positionUtility = 0.0;
 
-        // get the orientation rating for each object type and sum them up
+        // get the orientation utility for each object type and sum them up
         BOOST_FOREACH(string objectType, *(candidateViewport.object_name_set)) {
-            // set the orientation rating for the object type if not already done
-            if (mObjectPositionRatings.count(objectType) == 0) {
+            // set the orientation utility for the object type if not already done
+            if (mObjectPositionUtilities.count(objectType) == 0) {
                 setObjectUtilities(candidateViewport, objectType);
             }
 
-            positionRating += mObjectPositionRatings[objectType];
+            positionUtility += mObjectPositionUtilities[objectType];
         }
 
-        return positionRating;
+        return positionUtility;
     }
 
     void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, string objectType) {
-        float orientationRating = 0.0;
-        float positionRating = 0.0;
+        float orientationUtility = 0.0;
+        float positionUtility = 0.0;
 
         double maxElements = this->getInputCloud()->size();
 
-        // build the sum of the orientation and frustum position ratings of all object points in the candidate camera view with the given type
+        // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
         BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
             ObjectPoint &objectPoint = this->getInputCloud()->at(index);
 
@@ -313,27 +311,27 @@ namespace next_best_view {
                 continue;
             }
 
-            float currentOrientationRating = this->getOrientationRating(candidateViewport, objectPoint);
-            float currentFrustumPositionRating = this->getFrustumPositionRating(candidateViewport, objectPoint);
+            float currentOrientationUtility = this->getOrientationUtility(candidateViewport, objectPoint);
+            float currentFrustumPositionUtility = this->getFrustumPositionUtility(candidateViewport, objectPoint);
 
             // TODO calculate utility here and sum it up
-            orientationRating += currentOrientationRating;
-            positionRating += currentFrustumPositionRating;
+            orientationUtility += currentOrientationUtility;
+            positionUtility += currentFrustumPositionUtility;
         }
 
         // TODO normalize utility ( /= maxElements)
 
-        // set the orientation and position ratings in relation to the amount of object points
-        orientationRating /= maxElements;
-        positionRating /= maxElements;
+        // set the orientation and position utilities in relation to the amount of object points
+        orientationUtility /= maxElements;
+        positionUtility /= maxElements;
 
         // set the utility
-        float utility = orientationRating * positionRating;
+        float utility = orientationUtility * positionUtility;
 
-        // cache the utility and the orientation and position rating
+        // cache the utility and the orientation and position utilities
         mObjectUtilities[objectType] = utility;
-        mObjectOrientationRatings[objectType] = orientationRating;
-        mObjectPositionRatings[objectType] = positionRating;
+        mObjectOrientationUtilities[objectType] = orientationUtility;
+        mObjectPositionUtilities[objectType] = positionUtility;
     }
 
     double DefaultRatingModule::getCosts(const ViewportPoint &sourceViewport,
@@ -456,8 +454,8 @@ namespace next_best_view {
 
     void DefaultRatingModule::resetCache() {
         mObjectUtilities.clear();
-        mObjectOrientationRatings.clear();
-        mObjectPositionRatings.clear();
+        mObjectOrientationUtilities.clear();
+        mObjectPositionUtilities.clear();
         mMovementCosts = -1;
         mCostsNormalization = -1;
         mOmegaPTU = -1;

@@ -146,7 +146,7 @@ namespace next_best_view {
 				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
                 ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i",
                             intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
-                            drPtr->getPositionRating(), drPtr->getOrientationRating(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
+                            drPtr->getPositionUtility(), drPtr->getOrientationUtility(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
 
                 if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
                         (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {

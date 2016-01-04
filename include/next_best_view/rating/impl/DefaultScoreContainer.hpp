@@ -21,45 +21,45 @@ namespace next_best_view {
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
 		/*!
-         * \brief the rating of the object positions.
+         * \brief the utility of the object positions.
 		 */
-        float mPositionRating;
+        float mPositionUtility;
 
 		/*!
-         * \brief the rating of the object orientations.
+         * \brief the utility of the object orientations.
 		 */
-        float mOrientationRating;
+        float mOrientationUtility;
 	public:
         /*!
-         * \brief sets the rating of the object positions
-         * \param value the position rating
+         * \brief sets the utility of the object positions
+         * \param value the position utility
          */
-        void setPositionRating(float value) {
-            mPositionRating = value;
+        void setPositionUtility(float value) {
+            mPositionUtility = value;
 		}
 
         /*!
-         * \brief returns the rating of the object positions
-         * \return the position rating
+         * \brief returns the utility of the object positions
+         * \return the position utility
          */
-        float getPositionRating() {
-            return mPositionRating;
+        float getPositionUtility() {
+            return mPositionUtility;
 		}
 
         /*!
-         * \brief sets the rating of the object orientations
-         * \param value the orientation rating
+         * \brief sets the utility of the object orientations
+         * \param value the orientation utility
          */
-        void setOrientationRating(float value) {
-            mOrientationRating = value;
+        void setOrientationUtility(float value) {
+            mOrientationUtility = value;
 		}
 
         /*!
-         * \brief returns the rating of the object orientations
-         * \return the orientation rating
+         * \brief returns the utility of the object orientations
+         * \return the orientation utility
          */
-        float getOrientationRating() {
-            return mOrientationRating;
+        float getOrientationUtility() {
+            return mOrientationUtility;
 		}
 	public:
 		/*!

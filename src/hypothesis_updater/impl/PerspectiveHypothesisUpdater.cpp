@@ -26,7 +26,7 @@ namespace next_best_view {
 				int normalIndex = *iter;
 				SimpleVector3 normalVector = objectPoint.normal_vectors->at(normalIndex);
 
-                float rating = mDefaultRatingModulePtr->getNormalRating(viewportPoint, normalVector);
+                float rating = mDefaultRatingModulePtr->getNormalUtility(viewportPoint, normalVector);
 				if (rating != 0.0) {
 					end--;
 					std::iter_swap(iter, end);
