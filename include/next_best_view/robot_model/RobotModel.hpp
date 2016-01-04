@@ -13,6 +13,8 @@
 #include "typedef.hpp"
 
 namespace next_best_view {
+
+    // TODO costs -> inverse costs
 	/*!
 	 * \brief RobotModel generalizes a robot model.
 	 * \author Ralf Schleicher

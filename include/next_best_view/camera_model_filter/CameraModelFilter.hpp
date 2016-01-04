@@ -12,7 +12,7 @@
 #include <visualization_msgs/MarkerArray.h>
 
 namespace next_best_view {
-	namespace viz = visualization_msgs;
+    namespace viz = visualization_msgs;
 
 	/*!
 	 * \brief CameraModelFilter class was built to generalize the filtering for different camera models.
@@ -57,6 +57,7 @@ namespace next_best_view {
 		 * \brief the orientation of the pivot point.
 		 */
 		SimpleQuaternion mPivotPointOrientation;
+        // TODO different recognizerCosts for different objects
 		/**
 		 * \brief The time it takes to recognize an object (in seconds)
 		 */
@@ -82,6 +83,7 @@ namespace next_best_view {
 		 */
 		virtual viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0) = 0;
 
+        // TODO use parameters
 		/*!
 		 * \param recognizerCosts the costs of the recognition of the object
 		 * \param objectName the object to recognize.

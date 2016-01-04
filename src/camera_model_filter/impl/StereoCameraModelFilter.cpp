@@ -14,6 +14,7 @@ namespace next_best_view {
 		mRightCameraModelFilter = SingleCameraModelFilter(rightCameraPivotPointOffset);
 	}
 
+    // TODO remove
 	float StereoCameraModelFilter::getRecognizerCosts(std::string objectName) {
 		return 0.0;
 	}

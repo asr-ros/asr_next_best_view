@@ -9,6 +9,8 @@
 
 namespace next_best_view {
 
+     // TODO rating -> utility
+
     DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThreshold(M_PI * .5) { }
 
     DefaultRatingModule::~DefaultRatingModule() { }
@@ -31,7 +33,7 @@ namespace next_best_view {
         //Create list of all viewports
         ViewportPointCloudPtr viewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
-        // do the filtering for the single object types
+        // do the filtering for each combination of object types
         for (std::set<ObjectNameSetPtr>::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
             ViewportPoint viewport;
             if (!candidateViewport.filterObjectNames(*subSetIter, viewport)) {
@@ -208,7 +210,6 @@ namespace next_best_view {
         defRatingPtr->setOrientationRating(orientationRating);
         defRatingPtr->setPositionRating(positionRating);
 
-        // TODO set recognizer costs only for viewports with multiple objects types?
         // set the costs
         double costs = this->getCosts(currentViewport, candidateViewport);
         defRatingPtr->setCosts(costs);
@@ -315,9 +316,12 @@ namespace next_best_view {
             float currentOrientationRating = this->getOrientationRating(candidateViewport, objectPoint);
             float currentFrustumPositionRating = this->getFrustumPositionRating(candidateViewport, objectPoint);
 
+            // TODO calculate utility here and sum it up
             orientationRating += currentOrientationRating;
             positionRating += currentFrustumPositionRating;
         }
+
+        // TODO normalize utility ( /= maxElements)
 
         // set the orientation and position ratings in relation to the amount of object points
         orientationRating /= maxElements;
@@ -355,6 +359,7 @@ namespace next_best_view {
             this->setMaxRecognitionCosts();
         }
 
+        // TODO save and return in srv
         // get the costs for the recoginition of the objects
         double normalizedRecognitionCosts = this->getNormalizedRecognitionCosts(targetViewport);
 
@@ -367,6 +372,7 @@ namespace next_best_view {
     double DefaultRatingModule::getNormalizedRecognitionCosts(const ViewportPoint &targetViewport) {
         // avoid dividing by 0
         if (mMaxRecognitionCosts == 0) {
+            // TODO throw exception
             return 1.0;
         }
 
@@ -407,6 +413,7 @@ namespace next_best_view {
     }
 
     void DefaultRatingModule::setMovementCosts() {
+        // TODO save each movement cost and return in srv
         // get the different movement costs
         Precision movementCostsBase_Translation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
         Precision movementCostsBase_Rotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
@@ -438,7 +445,7 @@ namespace next_best_view {
 
         double maxRecognitionCosts = 0;
         BOOST_FOREACH(ObjectPoint objectPoint, *(inputCloud)) {
-            // TODO only check each type once?
+            // TODO only check each type once
             maxRecognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectPoint.type);
         }
         mMaxRecognitionCosts = maxRecognitionCosts;
