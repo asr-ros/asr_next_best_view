@@ -37,8 +37,10 @@ namespace next_best_view {
 		float speedFactorPTU;
 		float speedFactorBaseMove;
 		float speedFactorBaseRot;
-        float viewPointDistance;
+        float mViewPointDistance;
 		float tolerance;
+        float mInverseKinematicIterationAccuracy;
+
 		bool useGlobalPlanner;
         tf::TransformListener *listener;
 
@@ -65,7 +67,8 @@ namespace next_best_view {
 		/*!
 		 * Client used for communication with the global_planner to calculate movement costs
 		 */
-		 nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
          /*!
           * The rating module for the inverse kinematic sampling
@@ -79,7 +82,7 @@ namespace next_best_view {
          double viewTriangle_angleAlpha;
          double viewTriangle_angleGamma;
          double viewTriangle_sideA;
-         unsigned int panAngleSamplingStepsPerIteration;
+         unsigned int mPanAngleSamplingStepsPerIteration;
 
          /*!
           * Transformation frame from the tilted-link to camera left
@@ -119,19 +122,19 @@ namespace next_best_view {
          /*!
           * Visualizes a point for a single frame position
           */
-         void visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns);
+         void visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns, int id);
          /*!
           * Visualizes the translation between two frames through an arrow
           */
-         void visualizeIKArrowLarge(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns);
+         void visualizeIKArrowLarge(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id);
          /*!
           * Visualizes the translation between two frames through an arrow
           */
-         void visualizeIKArrowSmall(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns);
+         void visualizeIKArrowSmall(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id);
          /*!
           * Visualizes the translation between two frames through an arrow
           */
-         void visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters);
+         void visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters, int id);
 
     public:
 		/*!
