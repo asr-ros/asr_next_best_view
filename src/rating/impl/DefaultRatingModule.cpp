@@ -264,10 +264,8 @@ namespace next_best_view {
     }
 
     void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, string objectType) {
-        float orientationUtility = 0.0;
-        float positionUtility = 0.0;
-
         double maxElements = this->getInputCloud()->size();
+        float utility = 0;
 
         // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
         BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
@@ -281,22 +279,15 @@ namespace next_best_view {
                 continue;
             }
 
-            float currentOrientationUtility = this->getOrientationUtility(candidateViewport, objectPoint);
-            float currentFrustumPositionUtility = this->getFrustumPositionUtility(candidateViewport, objectPoint);
+            float orientationUtility = this->getOrientationUtility(candidateViewport, objectPoint);
+            float positionUtility = this->getFrustumPositionUtility(candidateViewport, objectPoint);
 
-            // TODO calculate utility here and sum it up
-            orientationUtility += currentOrientationUtility;
-            positionUtility += currentFrustumPositionUtility;
+            // calculate utility
+            utility += orientationUtility * positionUtility;
         }
 
-        // TODO normalize utility ( /= maxElements)
-
-        // set the orientation and position utilities in relation to the amount of object points
-        orientationUtility /= maxElements;
-        positionUtility /= maxElements;
-
-        // set the utility
-        float utility = orientationUtility * positionUtility;
+        // normalize utility
+        utility /= maxElements;
 
         // cache the utility and the orientation and position utilities
         mObjectUtilities[objectType] = utility;
