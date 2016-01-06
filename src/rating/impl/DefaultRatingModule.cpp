@@ -252,11 +252,6 @@ namespace next_best_view {
                 setObjectUtilities(candidateViewport, objectType);
             }
 
-            // if one of the objects has a utility of 0, it shouldn't be searched at all
-            if (mObjectUtilities[objectType] == 0) {
-                return 0;
-            }
-
             utility += mObjectUtilities[objectType];
         }
 
@@ -328,8 +323,7 @@ namespace next_best_view {
     double DefaultRatingModule::getRecognitionCosts(const ViewportPoint &targetViewport) {
         // avoid dividing by 0
         if (mMaxRecognitionCosts == 0) {
-            // TODO throw exception
-            return 1.0;
+            throw "Maximum recognition costs are 0.";
         }
 
         // get the costs for the recoginition of each object type

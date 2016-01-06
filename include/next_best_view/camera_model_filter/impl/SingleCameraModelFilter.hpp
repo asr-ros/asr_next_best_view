@@ -43,9 +43,7 @@ namespace next_best_view {
 		 */
 		virtual ~SingleCameraModelFilter();
 
-		float getRecognizerCosts(std::string objectName);
-
-		void doFiltering(IndicesPtr &indicesPtr);
+        void doFiltering(IndicesPtr &indicesPtr);
 
 		/*!
 		 * \brief sets the offset between the pivot point and the actual camera position.

@@ -60,9 +60,7 @@ namespace next_best_view {
 		 */
 		void copySettings();
 	public:
-		float getRecognizerCosts(std::string objectName);
-
-		void doFiltering(IndicesPtr &indicesPtr);
+        void doFiltering(IndicesPtr &indicesPtr);
 
 		/*!
 		 * \brief sets the filtering type.
