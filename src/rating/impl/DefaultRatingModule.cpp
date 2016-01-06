@@ -398,9 +398,14 @@ namespace next_best_view {
         ObjectPointCloudPtr inputCloud = this->getInputCloud();
 
         double maxRecognitionCosts = 0;
+        vector<string> types;
+
         BOOST_FOREACH(ObjectPoint objectPoint, *(inputCloud)) {
-            // TODO only check each type once
-            maxRecognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectPoint.type);
+            // only check each type once
+            if (std::find(types.begin(), types.end(), objectPoint.type) == types.end()) {
+                maxRecognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectPoint.type);
+                types.push_back(objectPoint.type);
+            }
         }
         mMaxRecognitionCosts = maxRecognitionCosts;
         mInputCloudChanged = false;
