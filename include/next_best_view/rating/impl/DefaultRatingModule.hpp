@@ -51,12 +51,16 @@ namespace next_best_view {
          */
         // the utility for each object type
         std::map<string, float> mObjectUtilities;
-        // the orientation ratings for each object type
-        std::map<string, float> mObjectOrientationUtilities;
-        // the position ratings for each object type
-        std::map<string, float> mObjectPositionUtilities;
-        // the costs of the movement - does not contain the costs of the recognition
+        // the full costs of the movement - does not contain the costs of the recognition
         double mMovementCosts = -1;
+        // the costs of the translational movement of the base
+        Precision mMovementCostsBaseTranslation = -1;
+        // the costs of the rotational movement of the base
+        Precision mMovementCostsBaseRotation = -1;
+        // the costs of the PTU movement
+        Precision mMovementCostsPTU = -1;
+        // the costs of the recognition of the objects
+        double mRecognitionCosts = -1;
         // the normalization value for the costs
         double mCostsNormalization = -1;
         // the PTU omega parameter
@@ -92,43 +96,43 @@ namespace next_best_view {
 
         bool compareViewports(ViewportPoint &a, ViewportPoint &b);
 
-		bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
+        bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
 
         BaseScoreContainerPtr getScoreContainerInstance();
 
 		/*!
-         * \brief returns the orientation rating of an object point for a given camera viewport.
-         * The orientation rating is always between 0.0 and 1.0.
+         * \brief returns the orientation utility of an object point for a given camera viewport.
+         * The orientation utility is always between 0.0 and 1.0.
          * \param viewport [in] the camera viewport
          * \param objectPoint [in] the object point.
-         * \return the orientation rating
+         * \return the orientation utility
 		 */
         float getOrientationUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint);
 
         /*!
-         * \brief returns the rating of the position of an object in the frustum of a given camera viewport.
-         * The frustum position rating is always between 0.0 and 1.0.
+         * \brief returns the utility of the position of an object in the frustum of a given camera viewport.
+         * The frustum position utility is always between 0.0 and 1.0.
          * \param viewport [in] the camera viewport
          * \param objectPoint [in] the object point.
-         * \return the frustum position rating
+         * \return the frustum position utility
          */
         float getFrustumPositionUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint);
 
 		/*!
-         * \brief returns the rating of one object normal for a given camera viewport.
-         * The normal rating is always between 0.0 and 1.0.
+         * \brief returns the utility of one object normal for a given camera viewport.
+         * The normal utility is always between 0.0 and 1.0.
          * \param viewport [in] the the camera viewport
          * \param objectNormalVector [in] the normalized vector which is perpendicular to the object surface
-         * \return the normality rating
+         * \return the normality utility
 		 */ 
         float getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector);
 
         /*!
-         * \brief returns the proximity rating of a given object point for a given camera viewport.
-         * The proximizy rating is always between 0.0 and 1.0.
+         * \brief returns the proximity utility of a given object point for a given camera viewport.
+         * The proximizy utility is always between 0.0 and 1.0.
          * \param viewport the camera viewport
          * \param objectPoint the object point
-         * \return the proximity rating
+         * \return the proximity utility
          */
         float getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint);
 
@@ -180,21 +184,7 @@ namespace next_best_view {
         double getUtility(const ViewportPoint &candidateViewport);
 
         /*!
-         * \brief returns the normalized orientation rating for all objects in the given camera viewport.
-         * \param candidateViewport the candidate camera viewport
-         * \return the orientation rating
-         */
-        double getFullOrientationUtility(const ViewportPoint &candidateViewport);
-
-        /*!
-         * \brief returns the normalized position rating for all objects in the given camera viewport.
-         * \param candidateViewport the candidate camera viewport
-         * \return the position rating
-         */
-        double getFullPositionUtility(const ViewportPoint &candidateViewport);
-
-        /*!
-         * \brief sets the mObjectUtilities, mObjectOrientationRatings and mObjectPositionRatings members.
+         * \brief sets the mObjectUtilities member.
          * \param candidateViewport the candidate camera viewport
          * \param objectType the object type for which the utility shall be set
          */
@@ -210,11 +200,11 @@ namespace next_best_view {
         double getCosts(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
 
         /*!
-         * \brief returns the normalized recognition costs for the objects in the target viewport
+         * \brief returns the recognition costs for the objects in the target viewport
          * \param targetViewport the target viewport
          * \return the normalized recognition costs
          */
-        double getNormalizedRecognitionCosts(const ViewportPoint &targetViewport);
+        double getRecognitionCosts(const ViewportPoint &targetViewport);
 
         /*!
          * \brief sets the robot state and the mTargetState member.

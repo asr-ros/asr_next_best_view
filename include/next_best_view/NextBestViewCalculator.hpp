@@ -143,10 +143,13 @@ namespace next_best_view {
                 mVisHelper.triggerIterationVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
                                       intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
 
-				DefaultScoreContainerPtr drPtr = boost::static_pointer_cast<DefaultScoreContainer>(intermediateResultViewport.score);
-                ROS_DEBUG("x: %f, y: %f, z: %f, ElementCount: %f, Normality: %f, Utility: %f, Costs: %f, IterationStep: %i",
+                DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
+                ROS_DEBUG("x: %f, y: %f, z: %f, Utility: %f, Costs: %f, Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f, IterationStep: %i",
                             intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
-                            drPtr->getPositionUtility(), drPtr->getOrientationUtility(), drPtr->getUtility(), drPtr->getCosts(), iterationStep);
+                            drPtr->getUtility(), drPtr->getCosts(),
+                            drPtr->getMovementCostsBaseTranslation(), drPtr->getMovementCostsBaseRotation(),
+                            drPtr->getMovementCostsPTU(), drPtr->getRecognitionCosts(),
+                            iterationStep);
 
                 if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
                         (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {

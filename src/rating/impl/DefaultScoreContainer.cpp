@@ -8,7 +8,10 @@
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 
 namespace next_best_view {
-    DefaultScoreContainer::DefaultScoreContainer() : BaseScoreContainer(), mPositionUtility(0.0), mOrientationUtility(0.0) {
+    DefaultScoreContainer::DefaultScoreContainer() : BaseScoreContainer(), mMovementCostsBaseTranslation(0.0),
+                                                                            mMovementCostsBaseRotation(0.0),
+                                                                            mMovementCostsPTU(0.0),
+                                                                            mRecognitionCosts(0.0) {
 	}
 
 	DefaultScoreContainer::~DefaultScoreContainer() { }

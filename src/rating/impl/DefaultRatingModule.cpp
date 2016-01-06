@@ -100,7 +100,7 @@ namespace next_best_view {
     }
 
     BaseScoreContainerPtr DefaultRatingModule::getScoreContainerInstance() {
-        return BaseScoreContainerPtr(new DefaultScoreContainer());
+        return DefaultScoreContainerPtr(new DefaultScoreContainer());
     }
 
     float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint) {
@@ -201,19 +201,21 @@ namespace next_best_view {
 
         defRatingPtr->setUtility(utility);
 
-        // set the ratings for the orientations and the positions of the objects in the candidate viewport
-        float orientationUtility = this->getFullOrientationUtility(candidateViewport);
-        float positionUtility = this->getFullPositionUtility(candidateViewport);
-
-        defRatingPtr->setOrientationUtility(orientationUtility);
-        defRatingPtr->setPositionUtility(positionUtility);
-
         // set the costs
         double costs = this->getCosts(currentViewport, candidateViewport);
         defRatingPtr->setCosts(costs);
 
+        defRatingPtr->setMovementCostsBaseTranslation(mMovementCostsBaseTranslation);
+        defRatingPtr->setMovementCostsBaseRotation(mMovementCostsBaseRotation);
+        defRatingPtr->setMovementCostsPTU(mMovementCostsPTU);
+        defRatingPtr->setRecognitionCosts(mRecognitionCosts);
+
         candidateViewport.score = defRatingPtr;
-        ROS_DEBUG("Utility %f, Orientation utility %f, Position utility %f", utility, orientationUtility, positionUtility);
+        ROS_DEBUG_STREAM("Utility: " << utility << " Costs: " << costs
+                    << " Costs base translation: " << mMovementCostsBaseTranslation
+                    << " Costs base rotation: " << mMovementCostsBaseRotation
+                    << " Costs PTU movement: " << mMovementCostsPTU
+                    << " Costs recognition: " << mRecognitionCosts);
         return true;
     }
 
@@ -261,38 +263,6 @@ namespace next_best_view {
         return utility;
     }
 
-    double DefaultRatingModule::getFullOrientationUtility(const ViewportPoint &candidateViewport) {
-        double orientationUtility = 0.0;
-
-        // get the orientation utility for each object type and sum them up
-        BOOST_FOREACH(string objectType, *(candidateViewport.object_name_set)) {
-            // set the orientation utility for the object type if not already done
-            if (mObjectOrientationUtilities.count(objectType) == 0) {
-                setObjectUtilities(candidateViewport, objectType);
-            }
-
-            orientationUtility += mObjectOrientationUtilities[objectType];
-        }
-
-        return orientationUtility;
-    }
-
-    double DefaultRatingModule::getFullPositionUtility(const ViewportPoint &candidateViewport) {
-        double positionUtility = 0.0;
-
-        // get the orientation utility for each object type and sum them up
-        BOOST_FOREACH(string objectType, *(candidateViewport.object_name_set)) {
-            // set the orientation utility for the object type if not already done
-            if (mObjectPositionUtilities.count(objectType) == 0) {
-                setObjectUtilities(candidateViewport, objectType);
-            }
-
-            positionUtility += mObjectPositionUtilities[objectType];
-        }
-
-        return positionUtility;
-    }
-
     void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, string objectType) {
         float orientationUtility = 0.0;
         float positionUtility = 0.0;
@@ -330,8 +300,6 @@ namespace next_best_view {
 
         // cache the utility and the orientation and position utilities
         mObjectUtilities[objectType] = utility;
-        mObjectOrientationUtilities[objectType] = orientationUtility;
-        mObjectPositionUtilities[objectType] = positionUtility;
     }
 
     double DefaultRatingModule::getCosts(const ViewportPoint &sourceViewport,
@@ -357,17 +325,16 @@ namespace next_best_view {
             this->setMaxRecognitionCosts();
         }
 
-        // TODO save and return in srv
         // get the costs for the recoginition of the objects
-        double normalizedRecognitionCosts = this->getNormalizedRecognitionCosts(targetViewport);
+        mRecognitionCosts = this->getRecognitionCosts(targetViewport);
 
         // calculate the full movement costs
-        double fullCosts = (mMovementCosts + normalizedRecognitionCosts * mOmegaRecognition) / mCostsNormalization;
+        double fullCosts = (mMovementCosts + mRecognitionCosts * mOmegaRecognition) / mCostsNormalization;
 
         return fullCosts;
     }
 
-    double DefaultRatingModule::getNormalizedRecognitionCosts(const ViewportPoint &targetViewport) {
+    double DefaultRatingModule::getRecognitionCosts(const ViewportPoint &targetViewport) {
         // avoid dividing by 0
         if (mMaxRecognitionCosts == 0) {
             // TODO throw exception
@@ -411,26 +378,24 @@ namespace next_best_view {
     }
 
     void DefaultRatingModule::setMovementCosts() {
-        // TODO save each movement cost and return in srv
         // get the different movement costs
-        Precision movementCostsBase_Translation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
-        Precision movementCostsBase_Rotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
-        Precision movementCostsPTU;
+        mMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
+        mMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
 
         if (mOmegaPTU == mOmegaPan) {
-            movementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+            mMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
         }
         else {
-            movementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+            mMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
         }
 
-        ROS_DEBUG_STREAM("PTU Costs Tilt: " << movementCostsPTU);
+        ROS_DEBUG_STREAM("PTU Costs Tilt: " << mMovementCostsPTU);
 
         // set the movement costs
-        mMovementCosts = movementCostsBase_Translation * mOmegaBase + movementCostsPTU * mOmegaPTU
-                            + movementCostsBase_Rotation * mOmegaRot;
+        mMovementCosts = mMovementCostsBaseTranslation * mOmegaBase + mMovementCostsPTU * mOmegaPTU
+                            + mMovementCostsBaseRotation * mOmegaRot;
 
-        ROS_DEBUG_STREAM("Movement; " << movementCostsBase_Translation << ", rotation " << movementCostsBase_Rotation << ", movement PTU: " << movementCostsPTU);
+        ROS_DEBUG_STREAM("Movement; " << mMovementCostsBaseTranslation << ", rotation " << mMovementCostsBaseRotation << ", movement PTU: " << mMovementCostsPTU);
     }
 
     void DefaultRatingModule::setCostsNormalization() {
@@ -454,9 +419,11 @@ namespace next_best_view {
 
     void DefaultRatingModule::resetCache() {
         mObjectUtilities.clear();
-        mObjectOrientationUtilities.clear();
-        mObjectPositionUtilities.clear();
         mMovementCosts = -1;
+        mMovementCostsBaseTranslation = -1;
+        mMovementCostsBaseRotation = -1;
+        mMovementCostsPTU = -1;
+        mRecognitionCosts = -1;
         mCostsNormalization = -1;
         mOmegaPTU = -1;
         mTargetState = NULL;

@@ -10,7 +10,7 @@
 
 #define PCL_NO_PRECOMPILE
 #include "typedef.hpp"
-#include "next_best_view/rating/BaseScoreContainer.hpp"
+#include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include <geometry_msgs/Pose.h>
 #include <string>
 #include <pcl/point_types.h>
@@ -59,7 +59,7 @@ namespace next_best_view {
         ObjectPointCloudPtr point_cloud;
 		IndicesPtr child_indices;
 		ObjectNameSetPtr object_name_set;
-		BaseScoreContainerPtr score;
+        DefaultScoreContainerPtr score;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) : child_indices(new Indices()) {

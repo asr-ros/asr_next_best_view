@@ -20,57 +20,87 @@ namespace next_best_view {
 	 */
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
-		/*!
-         * \brief the utility of the object positions.
-		 */
-        float mPositionUtility;
 
-		/*!
-         * \brief the utility of the object orientations.
-		 */
-        float mOrientationUtility;
+        float mMovementCostsBaseTranslation;
+        float mMovementCostsBaseRotation;
+        float mMovementCostsPTU;
+        float mRecognitionCosts;
+
 	public:
-        /*!
-         * \brief sets the utility of the object positions
-         * \param value the position utility
-         */
-        void setPositionUtility(float value) {
-            mPositionUtility = value;
-		}
 
         /*!
-         * \brief returns the utility of the object positions
-         * \return the position utility
+         * \brief constructor of the DefaultRating object.
          */
-        float getPositionUtility() {
-            return mPositionUtility;
-		}
+        DefaultScoreContainer();
 
         /*!
-         * \brief sets the utility of the object orientations
-         * \param value the orientation utility
+         * \brief destructor of the DefaultRating object.
          */
-        void setOrientationUtility(float value) {
-            mOrientationUtility = value;
-		}
+        virtual ~DefaultScoreContainer();
 
         /*!
-         * \brief returns the utility of the object orientations
-         * \return the orientation utility
+         * \brief sets the movement costs for the base translation
+         * \param value the movement costs for the base translation
          */
-        float getOrientationUtility() {
-            return mOrientationUtility;
-		}
-	public:
-		/*!
-		 * \brief constructor of the DefaultRating object.
-		 */
-		DefaultScoreContainer();
+        void setMovementCostsBaseTranslation(float value) {
+            mMovementCostsBaseTranslation = value;
+        }
 
-		/*!
-		 * \brief destructor of the DefaultRating object.
-		 */
-		virtual ~DefaultScoreContainer();
+        /*!
+         * \brief returns the movement costs for the base translation
+         * \return the movement costs for the base translation
+         */
+        float getMovementCostsBaseTranslation() {
+            return mMovementCostsBaseTranslation;
+        }
+
+        /*!
+         * \brief sets the movement costs for the base rotation
+         * \param value the movement costs for the base rotation
+         */
+        void setMovementCostsBaseRotation(float value) {
+            mMovementCostsBaseRotation = value;
+        }
+
+        /*!
+         * \brief returns the movement costs for the base rotation
+         * \return the movement costs for the base rotation
+         */
+        float getMovementCostsBaseRotation() {
+            return mMovementCostsBaseRotation;
+        }
+
+        /*!
+         * \brief sets the costs for the PTU movement
+         * \param value the costs for the PTU movement
+         */
+        void setMovementCostsPTU(float value) {
+            mMovementCostsPTU = value;
+        }
+
+        /*!
+         * \brief returns the costs for the PTU movement
+         * \return the costs for the PTU movement
+         */
+        float getMovementCostsPTU() {
+            return mMovementCostsPTU;
+        }
+
+        /*!
+         * \brief sets the costs for the recognition of the objects
+         * \param value the costs for the recognition of the objects
+         */
+        void setRecognitionCosts(float value) {
+            mRecognitionCosts = value;
+        }
+
+        /*!
+         * \brief returns the costs for the recognition of the objects
+         * \return the costs for the recognition of the objects
+         */
+        float getRecognitionCosts() {
+            return mRecognitionCosts;
+        }
 	};
 
 	/*!
