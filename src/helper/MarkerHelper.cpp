@@ -56,8 +56,8 @@ namespace next_best_view {
 
         marker.action = visualization_msgs::Marker::DELETE;
 
-		return marker;
-	}
+        return marker;
+    }
 
     visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, SimpleVector3 centroid, SimpleQuaternion quaternion, std::string ns) {
 		geometry_msgs::Pose pose;
@@ -86,7 +86,8 @@ namespace next_best_view {
 	}
 
 
-    visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint, SimpleVector4 color, std::string ns) {
+    visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint, SimpleVector3 scale,
+                                                                SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker lmarker = getBasicMarker(id, ns);
 
 		lmarker.type = visualization_msgs::Marker::ARROW;
@@ -98,9 +99,9 @@ namespace next_best_view {
 		lmarker.pose.orientation.z = 0.0;
 		lmarker.pose.orientation.w = 1.0;
 		// the model size unit is mm
-		lmarker.scale.x = .025;
-		lmarker.scale.y = .05;
-		lmarker.scale.z = .05;
+        lmarker.scale.x = scale[0];
+        lmarker.scale.y = scale[1];
+        lmarker.scale.z = scale[2];
 
 		lmarker.color.r = color[0];
 		lmarker.color.g = color[1];
@@ -161,6 +162,34 @@ namespace next_best_view {
         visualization_msgs::Marker marker = getBasicMarker(id, position, SimpleQuaternion(0, 0, 0, w), scale, color, ns);
 
         marker.type = visualization_msgs::Marker::CYLINDER;
+
+        return marker;
+    }
+
+    visualization_msgs::Marker MarkerHelper::getObjectMarker(int id, std::string meshResource, geometry_msgs::Pose pose,
+                                                                std_msgs::ColorRGBA color, std::string ns) {
+        visualization_msgs::Marker marker = getBasicMarker(id, ns);
+
+        // TODO make check in the caller?
+        if (meshResource == "-2")
+        {
+            marker.type = visualization_msgs::Marker::SPHERE;
+            // Set the scale of the marker -- 1x1x1 here means 1m on a side
+            marker.scale.x =  marker.scale.y = marker.scale.z = 0.01;
+        }
+        else
+        {
+            marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+            marker.mesh_use_embedded_materials = true;
+            // Cut off .iv, append .dae
+            boost::filesystem::path mesh_resource = boost::filesystem::path(meshResource).replace_extension(".dae");
+            marker.mesh_resource = mesh_resource.string();
+            // the model size unit is mm
+            marker.scale.x = marker.scale.y = marker.scale.z = 0.0005;
+        }
+
+        marker.color = color;
+        marker.pose = pose;
 
         return marker;
     }

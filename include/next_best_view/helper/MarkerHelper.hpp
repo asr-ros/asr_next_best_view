@@ -8,6 +8,7 @@
 #ifndef MARKER_HELPER_HPP_
 #define MARKER_HELPER_HPP_
 
+#include <boost/filesystem.hpp>
 #include <geometry_msgs/Pose.h>
 #include <visualization_msgs/Marker.h>
 #include "typedef.hpp"
@@ -20,6 +21,7 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
+    // TODO consistent methods
 	class MarkerHelper {
 	private:
 		MarkerHelper();
@@ -80,7 +82,9 @@ namespace next_best_view {
 		 * \return a marker with all settings for a visualization of an arrow
 		 */
         static visualization_msgs::Marker getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint,
-                                                            SimpleVector4 color = SimpleVector4(1.0, 0.0, 0.0, 1.0), std::string ns = "my_namespace");
+                                                            SimpleVector3 scale = SimpleVector3(0.025, 0.05, 0.05),
+                                                            SimpleVector4 color = SimpleVector4(1.0, 0.0, 0.0, 1.0),
+                                                            std::string ns = "my_namespace");
 
         static visualization_msgs::Marker getArrowMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
                                                             std::vector<double> scale, std::vector<double> color, std::string ns = "my_namespace");
@@ -96,6 +100,9 @@ namespace next_best_view {
 
         static visualization_msgs::Marker getCylinderMarker(int id, SimpleVector3 position, double w, std::vector<double> scale,
                                                                 std::vector<double> color, std::string ns = "my_namespace");
+
+        static visualization_msgs::Marker getObjectMarker(int id, std::string meshResource, geometry_msgs::Pose pose,
+                                                            std_msgs::ColorRGBA color, std::string ns = "my_namespace");
 
 		/*!
 		 * \param marker [in / out] the marker which color gets set
