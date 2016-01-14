@@ -26,7 +26,7 @@ namespace next_best_view {
 	}
 
     visualization_msgs::Marker MarkerHelper::getBasicMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
-                                                std::vector<double> scale, std::vector<double> color, std::string ns) {
+                                                SimpleVector3 scale, SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, ns);
 
         marker.pose.position = TypeHelper::getPointMSG(position);
@@ -59,32 +59,19 @@ namespace next_best_view {
         return marker;
     }
 
-    visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, SimpleVector3 centroid, SimpleQuaternion quaternion, std::string ns) {
-		geometry_msgs::Pose pose;
-		pose.orientation.w = quaternion.w();
-		pose.orientation.x = quaternion.x();
-		pose.orientation.y = quaternion.y();
-		pose.orientation.z = quaternion.z();
-		pose.position.x = centroid[0];
-		pose.position.y = centroid[1];
-		pose.position.z = centroid[2];
-
-        return getMeshMarker(id, mesh_resource, pose, ns);
-	}
-
-    visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string mesh_resource, geometry_msgs::Pose pose, std::string ns) {
+    visualization_msgs::Marker MarkerHelper::getMeshMarker(int id, std::string meshResource, SimpleVector3 centroid, SimpleQuaternion quaternion,
+                                                            SimpleVector3 scale, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, ns);
-		marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-		marker.mesh_resource = mesh_resource;
-		marker.mesh_use_embedded_materials = true;
-		marker.pose = pose;
-		marker.scale.x = 0.001;
-		marker.scale.y = 0.001;
-		marker.scale.z = 0.001;
 
-		return marker;
+        marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+        marker.mesh_resource = meshResource;
+        marker.mesh_use_embedded_materials = true;
+        marker.pose.position = TypeHelper::getPointMSG(centroid);
+        marker.pose.orientation = TypeHelper::getQuaternionMSG(quaternion);
+        marker.scale = TypeHelper::getVector3(scale);
+
+        return marker;
 	}
-
 
     visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 startPoint, SimpleVector3 endPoint, SimpleVector3 scale,
                                                                 SimpleVector4 color, std::string ns) {
@@ -115,7 +102,7 @@ namespace next_best_view {
 	}
 
     visualization_msgs::Marker MarkerHelper::getArrowMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
-                                                                std::vector<double> scale, std::vector<double> color, std::string ns) {
+                                                                SimpleVector3 scale, SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, position, orientation, scale, color, ns);
 
         marker.type = visualization_msgs::Marker::ARROW;
@@ -124,7 +111,7 @@ namespace next_best_view {
     }
 
     visualization_msgs::Marker MarkerHelper::getCubeMarker(int id, SimpleVector3 position, SimpleQuaternion orientation,
-                                                                std::vector<double> scale, std::vector<double> color, std::string ns) {
+                                                                SimpleVector3 scale, SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, position, orientation, scale, color, ns);
 
         marker.type = visualization_msgs::Marker::CUBE;
@@ -132,8 +119,8 @@ namespace next_best_view {
         return marker;
     }
 
-    visualization_msgs::Marker MarkerHelper::getSphereMarker(int id, SimpleVector3 position, std::vector<double> scale,
-                                                                std::vector<double> color, std::string ns) {
+    visualization_msgs::Marker MarkerHelper::getSphereMarker(int id, SimpleVector3 position, SimpleVector3 scale,
+                                                                SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, position, SimpleQuaternion(), scale, color, ns);
 
         marker.type = visualization_msgs::Marker::SPHERE;
@@ -142,7 +129,7 @@ namespace next_best_view {
     }
 
     visualization_msgs::Marker MarkerHelper::getLineListMarker(int id, std::vector<SimpleVector3> points, double scale,
-                                                                    std::vector<double> color, std::string ns) {
+                                                                    SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, ns);
 
         marker.type = visualization_msgs::Marker::LINE_LIST;
@@ -157,39 +144,11 @@ namespace next_best_view {
         return marker;
     }
 
-    visualization_msgs::Marker MarkerHelper::getCylinderMarker(int id, SimpleVector3 position, double w, std::vector<double> scale,
-                                                                    std::vector<double> color, std::string ns) {
+    visualization_msgs::Marker MarkerHelper::getCylinderMarker(int id, SimpleVector3 position, double w, SimpleVector3 scale,
+                                                                    SimpleVector4 color, std::string ns) {
         visualization_msgs::Marker marker = getBasicMarker(id, position, SimpleQuaternion(0, 0, 0, w), scale, color, ns);
 
         marker.type = visualization_msgs::Marker::CYLINDER;
-
-        return marker;
-    }
-
-    visualization_msgs::Marker MarkerHelper::getObjectMarker(int id, std::string meshResource, geometry_msgs::Pose pose,
-                                                                std_msgs::ColorRGBA color, std::string ns) {
-        visualization_msgs::Marker marker = getBasicMarker(id, ns);
-
-        // TODO make check in the caller?
-        if (meshResource == "-2")
-        {
-            marker.type = visualization_msgs::Marker::SPHERE;
-            // Set the scale of the marker -- 1x1x1 here means 1m on a side
-            marker.scale.x =  marker.scale.y = marker.scale.z = 0.01;
-        }
-        else
-        {
-            marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-            marker.mesh_use_embedded_materials = true;
-            // Cut off .iv, append .dae
-            boost::filesystem::path mesh_resource = boost::filesystem::path(meshResource).replace_extension(".dae");
-            marker.mesh_resource = mesh_resource.string();
-            // the model size unit is mm
-            marker.scale.x = marker.scale.y = marker.scale.z = 0.0005;
-        }
-
-        marker.color = color;
-        marker.pose = pose;
 
         return marker;
     }

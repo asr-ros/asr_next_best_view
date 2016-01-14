@@ -37,6 +37,17 @@ namespace next_best_view {
 		return SimpleVector3(point.x, point.y, point.z);
 	}
 
+    SimpleVector3 TypeHelper::getSimpleVector3(const vector<double> &vector) {
+        return SimpleVector3(vector[0], vector[1], vector[2]);
+    }
+
+    SimpleVector4 TypeHelper::getSimpleVector4(const vector<double> &vector) {
+        return SimpleVector4(vector[0], vector[1], vector[2], vector[3]);
+    }
+
+    SimpleVector4 TypeHelper::getSimpleVector4(const std_msgs::ColorRGBA &color) {
+        return SimpleVector4(color.r, color.g, color.b, color.a);
+    }
 
 	SimpleQuaternion TypeHelper::getSimpleQuaternion(const geometry_msgs::Pose &pose) {
 		return TypeHelper::getSimpleQuaternion(pose.orientation);
@@ -46,7 +57,7 @@ namespace next_best_view {
 		return SimpleQuaternion(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
 	}
 
-    geometry_msgs::Vector3 TypeHelper::getVector3(const vector<double> &vector) {
+    geometry_msgs::Vector3 TypeHelper::getVector3(const SimpleVector3 &vector) {
         geometry_msgs::Vector3 result;
 
         result.x = vector[0];
@@ -56,13 +67,13 @@ namespace next_best_view {
         return result;
     }
 
-    std_msgs::ColorRGBA TypeHelper::getColor(const vector<double> &vector) {
+    std_msgs::ColorRGBA TypeHelper::getColor(const SimpleVector4 &vector) {
         std_msgs::ColorRGBA result;
 
-        result.a = vector[3];
         result.r = vector[0];
         result.g = vector[1];
         result.b = vector[2];
+        result.a = vector[3];
 
         return result;
     }

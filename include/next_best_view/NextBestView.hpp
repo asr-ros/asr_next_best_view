@@ -492,7 +492,7 @@ namespace next_best_view {
             SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
             mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-            mVisHelper.triggerFrustumVisualization(mCalculator.getCameraModelFilter(), numberSearchedObjects);
+            mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter(), numberSearchedObjects);
 
             return true;
         }
@@ -571,11 +571,11 @@ namespace next_best_view {
             if (mVisualizationSettings.frustum_marker_array && publishFrustum)
             {
                 if (is_initial) {
-                    mVisHelper.triggerFrustumMarkerArrayVisualization(this->mCalculator.getCameraModelFilter());
+                    mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
                 }
                 else {
                     numberSearchedObjects = viewport.object_name_set->size();
-                    mVisHelper.triggerFrustumMarkerArrayVisualization(this->mCalculator.getCameraModelFilter(), numberSearchedObjects, viewport.getPose());
+                    mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter(), numberSearchedObjects);
                 }
             }
             mCurrentlyPublishingVisualization = false;
@@ -593,7 +593,11 @@ namespace next_best_view {
             std::map<std::string, std::string> typeToMeshResource;
             for(ObjectPointCloud::iterator it = objectPointCloud.begin(); it < objectPointCloud.end(); it++) {
                 if (typeToMeshResource.count(it->type) == 0) {
-                    typeToMeshResource[it->type] = mCalculator.getMeshPathByName(it->type);
+                    std::string path = mCalculator.getMeshPathByName(it->type);
+                    // check if the path is valid
+                    if (path.compare("-2") != 0) {
+                        typeToMeshResource[it->type] = mCalculator.getMeshPathByName(it->type);
+                    }
                 }
             }
             return typeToMeshResource;
