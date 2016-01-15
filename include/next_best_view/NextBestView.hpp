@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef NEXTBESTVIEW_HPP_
-#define NEXTBESTVIEW_HPP_
+#pragma once
 
 // Global Includes
 #include <algorithm>
@@ -65,9 +64,6 @@
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSampler.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 
-//TODO Move visualization components to helper/VisualizationHelper.hpp
-//TODO Clean up visualization
-
 namespace next_best_view {
 	// Defining namespace shorthandles
     namespace viz = visualization_msgs;
@@ -110,8 +106,7 @@ namespace next_best_view {
 		MoveBaseActionClientPtr mMoveBaseActionClient;
 
 		// ServiceClients and Subscriber
-        ros::ServiceClient mObjectTypeServiceClient;    //TODO remove maybe
-		ros::ServiceClient mPushViewportServiceClient;
+        ros::ServiceClient mPushViewportServiceClient;
 		ros::ServiceClient mGetViewportListServiceClient;
 
 		// Etcetera
@@ -143,7 +138,6 @@ namespace next_best_view {
 
             mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
 
-            mObjectTypeServiceClient = mGlobalNodeHandle.serviceClient<odb::ObjectType>("/object_database/object_type");
             mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
 
@@ -546,7 +540,7 @@ namespace next_best_view {
             {
                 Indices pointCloudIndices;
                 if (mVisualizationSettings.frustum_point_cloud) {
-                    point_cloud_indices_diff(mCalculator.getActiveIndices(), viewport.child_indices, pointCloudIndices);
+                    this->getIndicesOutsideFrustum(viewport, pointCloudIndices);
                     ROS_DEBUG_STREAM("viewport.child_indices Size: " << viewport.child_indices->size());
                 } else {
                     pointCloudIndices = *mCalculator.getActiveIndices();
@@ -581,12 +575,12 @@ namespace next_best_view {
             mCurrentlyPublishingVisualization = false;
         }
 
-        static void point_cloud_indices_diff(const IndicesPtr &AVect, const IndicesPtr &BVect, Indices &resultIndices) {
-            std::set<int> A(AVect->begin(), AVect->end());
-            std::set<int> B(BVect->begin(), BVect->end());
-
-            std::set_difference( A.begin(), A.end(), B.begin(), B.end(),
-                    std::back_inserter( resultIndices ) );
+        void getIndicesOutsideFrustum(const ViewportPoint &viewport, Indices &resultIndices) {
+            IndicesPtr activeIndices = mCalculator.getActiveIndices();
+            IndicesPtr childIndices = viewport.child_indices;
+            std::set_difference(activeIndices->begin(), activeIndices->end(),
+                                    childIndices->begin(), childIndices->end(),
+                                    std::back_inserter(resultIndices));
         }
 
         std::map<std::string, std::string> getMeshResources(ObjectPointCloud objectPointCloud) {
@@ -605,5 +599,3 @@ namespace next_best_view {
 	};
 }
 
-
-#endif /* NEXTBESTVIEW_HPP_ */

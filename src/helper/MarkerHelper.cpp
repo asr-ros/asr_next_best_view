@@ -6,8 +6,6 @@
  */
 
 #include "next_best_view/helper/MarkerHelper.hpp"
-#include "next_best_view/helper/MathHelper.hpp"
-#include "next_best_view/helper/TypeHelper.hpp"
 
 namespace next_best_view {
 	MarkerHelper::MarkerHelper() { }

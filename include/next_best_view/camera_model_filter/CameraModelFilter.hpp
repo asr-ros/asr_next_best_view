@@ -83,8 +83,7 @@ namespace next_best_view {
 		 */
 		virtual viz::MarkerArrayPtr getVisualizationMarkerArray(uint32_t &sequence, double lifetime = 30.0) = 0;
 
-        // TODO use parameters
-		/*!
+        /*!
 		 * \param recognizerCosts the costs of the recognition of the object
 		 * \param objectName the object to recognize.
 		 */
