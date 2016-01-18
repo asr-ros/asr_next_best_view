@@ -83,6 +83,7 @@ namespace next_best_view {
          double viewTriangle_angleGamma;
          double viewTriangle_sideA;
          unsigned int mPanAngleSamplingStepsPerIteration;
+         unsigned int mIKVisualizationLastMarkerCount = 0;
 
          /*!
           * Transformation frame from the tilted-link to camera left
@@ -112,13 +113,25 @@ namespace next_best_view {
          bool setUpTFParameters();
 
          /*!
+          * Calculates the rotation angle of the base from its pose frame
+          */
+         double getBaseAngleFromBaseFrame(Eigen::Affine3d &baseFrame);
+         /*!
           * Calculates the optimal pan angle for the given pose of the pan joint
           */
          double getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState);
          /*!
           * Visualizes the output of the IK calculation
           */
-         void visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point, Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point);
+         void visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point);
+         /*!
+          * Visualizes the IK camera target
+          */
+         void visualizeIKCameraTarget(Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point);
+         /*!
+          * Deletes all visualization markers for the IK calculation
+          */
+         void resetIKVisualization();
          /*!
           * Visualizes a point for a single frame position
           */
