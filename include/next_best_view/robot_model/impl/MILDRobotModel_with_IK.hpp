@@ -10,11 +10,13 @@
 
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "typedef.hpp"
 #include "geometry_msgs/Pose.h"
 #include "nav_msgs/Path.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include "next_best_view/rating/impl/DefaultIKRatingModule.h"
 
 namespace next_best_view {
 	/*!
@@ -35,8 +37,10 @@ namespace next_best_view {
 		float speedFactorPTU;
 		float speedFactorBaseMove;
 		float speedFactorBaseRot;
-        float viewPointDistance;
+        float mViewPointDistance;
 		float tolerance;
+        float mInverseKinematicIterationAccuracy;
+
 		bool useGlobalPlanner;
         tf::TransformListener *listener;
 
@@ -63,7 +67,13 @@ namespace next_best_view {
 		/*!
 		 * Client used for communication with the global_planner to calculate movement costs
 		 */
-		 nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
+
+         /*!
+          * The rating module for the inverse kinematic sampling
+          */
+         IKRatingModulePtr ikRatingModule;
 
          /*!
           * Height of the tilt axis above ground
@@ -72,19 +82,26 @@ namespace next_best_view {
          double viewTriangle_angleAlpha;
          double viewTriangle_angleGamma;
          double viewTriangle_sideA;
+         unsigned int mPanAngleSamplingStepsPerIteration;
+         unsigned int mIKVisualizationLastMarkerCount = 0;
+
          /*!
           * Transformation frame from the tilted-link to camera left
           */
          Eigen::Affine3d tiltToCameraEigen;
+
          /*!
           * Transformation frame from the pan-link to the tilt-link
           */
          Eigen::Affine3d panToTiltEigen;
+
          /*!
           * Transformation frame from the base-link to the pan-link
           */
          Eigen::Affine3d baseToPanEigen;
+
          double x_product;
+
          /*!
           * Flag, shows if the tf parameters have already been initialized
           */
@@ -94,6 +111,43 @@ namespace next_best_view {
           * Trys to calculate parameters needed for the inverse kinematic using tf transformations
           */
          bool setUpTFParameters();
+
+         /*!
+          * Calculates the rotation angle of the base from its pose frame
+          */
+         double getBaseAngleFromBaseFrame(Eigen::Affine3d &baseFrame);
+         /*!
+          * Calculates the optimal pan angle for the given pose of the pan joint
+          */
+         double getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState);
+         /*!
+          * Visualizes the output of the IK calculation
+          */
+         void visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point);
+         /*!
+          * Visualizes the IK camera target
+          */
+         void visualizeIKCameraTarget(Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point);
+         /*!
+          * Deletes all visualization markers for the IK calculation
+          */
+         void resetIKVisualization();
+         /*!
+          * Visualizes a point for a single frame position
+          */
+         void visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns, int id);
+         /*!
+          * Visualizes the translation between two frames through an arrow
+          */
+         void visualizeIKArrowLarge(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id);
+         /*!
+          * Visualizes the translation between two frames through an arrow
+          */
+         void visualizeIKArrowSmall(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id);
+         /*!
+          * Visualizes the translation between two frames through an arrow
+          */
+         void visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters, int id);
 
     public:
 		/*!
