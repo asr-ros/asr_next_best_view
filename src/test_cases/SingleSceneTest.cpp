@@ -138,6 +138,8 @@ public:
 				break;
 			}
 
+            ROS_INFO_STREAM("Name list size " << nbv.response.object_name_list.size());
+
             if (nbv.response.object_name_list.size() > 0)
             {
                 getPointCloudClient.call(gpc);
@@ -147,8 +149,10 @@ public:
                 for(unsigned int i=0;i<nbv.response.object_name_list.size();i++)
                 {
                     std::vector<pbd_msgs::PbdAttributedPoint> temp;
+                    ROS_INFO_STREAM("Type: " << nbv.response.object_name_list[i]);
                     for (std::vector<pbd_msgs::PbdAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                     {
+
                         if ((nbv.response.object_name_list[i].compare(it->type)) != 0)
                         {
                             temp.push_back(*it);

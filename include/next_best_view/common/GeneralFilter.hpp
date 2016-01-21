@@ -53,7 +53,7 @@ namespace next_best_view {
 
 		/*!
 		 * \brief Applies the filter on the indices
-		 * \param indicesPtr the indices
+         * \param indicesPtr [out] the indices
 		 */
 		void filter(IndicesPtr &indicesPtr) {
 			// set an empty indices list.

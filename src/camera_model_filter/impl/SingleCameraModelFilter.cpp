@@ -16,11 +16,7 @@ namespace next_best_view {
 
 	SingleCameraModelFilter::~SingleCameraModelFilter() { }
 
-	float SingleCameraModelFilter::getRecognizerCosts(std::string objectName) {
-		return 0.0;
-	}
-
-	void SingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
+    void SingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		indicesPtr = IndicesPtr(new Indices());
 
 		// get the settings of the pivot point
@@ -73,7 +69,7 @@ namespace next_best_view {
 		double fcp = this->getFarClippingPlane();
 
 		// Mark Frustum
-		viz::Marker axisX = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 0) * fcp);
+        viz::Marker axisX = MarkerHelper::getArrowMarker(sequence++, cameraPosition, cameraPosition + rotationMatrix.block<3,1>(0, 0) * fcp);
 		MarkerHelper::getRainbowColor(axisX, 1.0 / 6.0, 0.8);
 		axisX.lifetime = lifetimeDur;
 		markerArrayPtr->markers.push_back(axisX);
@@ -138,7 +134,7 @@ namespace next_best_view {
 		markerArrayPtr->markers.push_back(lineListMarker);
 
 		if (pivotPointPosition != cameraPosition) {
-			viz::Marker offsetArrow = MarkerHelper::getArrowMarker(sequence++, pivotPointPosition, cameraPosition);
+            viz::Marker offsetArrow = MarkerHelper::getArrowMarker(sequence++, pivotPointPosition, cameraPosition);
 			offsetArrow.lifetime = lifetimeDur;
 			MarkerHelper::getRainbowColor(offsetArrow, 1.0 / 6.0, 1.0);
 			markerArrayPtr->markers.push_back(offsetArrow);

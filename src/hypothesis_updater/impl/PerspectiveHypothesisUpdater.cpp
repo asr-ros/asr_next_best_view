@@ -17,10 +17,7 @@ namespace next_best_view {
 	PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
 	void PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
-		SimpleVector3 viewportNormalVector;
-		MathHelper::getVisualAxis(viewportPoint.getSimpleQuaternion(), viewportNormalVector);
-
-		BOOST_FOREACH(int index, *viewportPoint.child_indices) {
+        BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
 
 			Indices::iterator begin = objectPoint.active_normal_vectors->begin();
@@ -29,7 +26,7 @@ namespace next_best_view {
 				int normalIndex = *iter;
 				SimpleVector3 normalVector = objectPoint.normal_vectors->at(normalIndex);
 
-				float rating = mDefaultRatingModulePtr->getSingleNormalityRating(viewportNormalVector, normalVector, mDefaultRatingModulePtr->getNormalityRatingAngle());
+                float rating = mDefaultRatingModulePtr->getNormalUtility(viewportPoint, normalVector);
 				if (rating != 0.0) {
 					end--;
 					std::iter_swap(iter, end);

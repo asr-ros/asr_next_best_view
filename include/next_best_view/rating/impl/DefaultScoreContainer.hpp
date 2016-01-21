@@ -20,41 +20,87 @@ namespace next_best_view {
 	 */
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
-		/*!
-		 * \brief the density of elements.
-		 */
-		float mElementDensity;
 
-		/*!
-		 * \brief the normality rating.
-		 */
-		float mNormality;
+        float mMovementCostsBaseTranslation;
+        float mMovementCostsBaseRotation;
+        float mMovementCostsPTU;
+        float mRecognitionCosts;
+
 	public:
-		void setElementDensity(float value) {
-			mElementDensity = value;
-		}
 
-		float getElementDensity() {
-			return mElementDensity;
-		}
+        /*!
+         * \brief constructor of the DefaultRating object.
+         */
+        DefaultScoreContainer();
 
-		void setNormality(float value) {
-			mNormality = value;
-		}
+        /*!
+         * \brief destructor of the DefaultRating object.
+         */
+        virtual ~DefaultScoreContainer();
 
-		float getNormality() {
-			return mNormality;
-		}
-	public:
-		/*!
-		 * \brief constructor of the DefaultRating object.
-		 */
-		DefaultScoreContainer();
+        /*!
+         * \brief sets the movement costs for the base translation
+         * \param value the movement costs for the base translation
+         */
+        void setMovementCostsBaseTranslation(float value) {
+            mMovementCostsBaseTranslation = value;
+        }
 
-		/*!
-		 * \brief destructor of the DefaultRating object.
-		 */
-		virtual ~DefaultScoreContainer();
+        /*!
+         * \brief returns the movement costs for the base translation
+         * \return the movement costs for the base translation
+         */
+        float getMovementCostsBaseTranslation() {
+            return mMovementCostsBaseTranslation;
+        }
+
+        /*!
+         * \brief sets the movement costs for the base rotation
+         * \param value the movement costs for the base rotation
+         */
+        void setMovementCostsBaseRotation(float value) {
+            mMovementCostsBaseRotation = value;
+        }
+
+        /*!
+         * \brief returns the movement costs for the base rotation
+         * \return the movement costs for the base rotation
+         */
+        float getMovementCostsBaseRotation() {
+            return mMovementCostsBaseRotation;
+        }
+
+        /*!
+         * \brief sets the costs for the PTU movement
+         * \param value the costs for the PTU movement
+         */
+        void setMovementCostsPTU(float value) {
+            mMovementCostsPTU = value;
+        }
+
+        /*!
+         * \brief returns the costs for the PTU movement
+         * \return the costs for the PTU movement
+         */
+        float getMovementCostsPTU() {
+            return mMovementCostsPTU;
+        }
+
+        /*!
+         * \brief sets the costs for the recognition of the objects
+         * \param value the costs for the recognition of the objects
+         */
+        void setRecognitionCosts(float value) {
+            mRecognitionCosts = value;
+        }
+
+        /*!
+         * \brief returns the costs for the recognition of the objects
+         * \return the costs for the recognition of the objects
+         */
+        float getRecognitionCosts() {
+            return mRecognitionCosts;
+        }
 	};
 
 	/*!

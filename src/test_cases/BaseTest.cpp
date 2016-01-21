@@ -111,7 +111,7 @@ using namespace next_best_view;
             geometry_msgs::Point pt = objectTypeResPtr->normal_vectors.at(index);
             SimpleVector3 pos = TypeHelper::getSimpleVector3(pt);
             pos = rotation.toRotationMatrix() * pos;
-            visualization_msgs::Marker arrowMarker = MarkerHelper::getArrowMarker(id, zero, pos, SimpleVector4(0.3, 0.3, 1.0, 1.0));
+            visualization_msgs::Marker arrowMarker = MarkerHelper::getArrowMarker(id, zero, pos, SimpleVector3(0.025, 0.05, 0.05), SimpleVector4(0.3, 0.3, 1.0, 1.0));
             markerArray.markers.push_back(arrowMarker);
             id++;
 

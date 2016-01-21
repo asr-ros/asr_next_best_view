@@ -83,18 +83,18 @@ namespace next_best_view {
 		/*!
 		 * \param X [in] the first 3d vector
 		 * \param Y [in] the second 3d vector
-		 * \return the cosinus between the both vectors.
+         * \return the cosinus between the two vectors.
 		 */
 		static Precision getCosinus(const SimpleVector3 &X, const SimpleVector3 &Y);
 
-		/*!
-		 * \param angle [in] the angle
-		 * \param angleThreshold [in] the threshold to which the rating function shall rate.
-		 * \return the rating
-		 */
-		static Precision getRatingFunction(const Precision &angle, const Precision &angleThreshold);
+        /*!
+         * \param X [in] the first 3d vector
+         * \param Y [in] the second 3d vector
+         * \return the angle between the two vectors
+         */
+        static Precision getAngle(const SimpleVector3 &X, const SimpleVector3 &Y);
 
-		/*!
+        /*!
 		 * \param firstAngle [in] the first angle
 		 * \param secondAngle [in] the second angle
 		 * \return the minimum angle difference.
