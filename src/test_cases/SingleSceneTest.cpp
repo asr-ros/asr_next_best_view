@@ -62,7 +62,7 @@ public:
         ids[2] = "000100000100";
         ids[3] = "100000000100";
 
-       int sampleSize = 50;
+       int sampleSize = 1;
        std::map<std::string, std::vector<pbd_msgs::PbdAttributedPoint>* > objectPointCloudsMap;
 
         for (std::size_t idx = 0; idx < (std::size_t)hpSize; idx++) {

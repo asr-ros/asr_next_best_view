@@ -13,16 +13,16 @@ useGlobalPlanner: false
 fovx: 30
 fovy: 20
 ncp: 0.7 #Entfernung der NearClippingPlane in meter
-fcp: 1.3 ##Entfernung der FarClippingPlane in meter
+fcp: 1.1 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
 move_robot: true
 recognition_time: 6
-panMin: -22
-panMax: 19
-tiltMin: -50
+panMin: -20
+panMax: 20
+tiltMin: -45
 tiltMax: 25
 radius: 0.2
 samples: 128
