@@ -25,7 +25,7 @@ namespace next_best_view {
         this->resetCache();
 
         // get the power set of the object name set
-        ObjectNameSetPtr objectNameSetPtr = candidateViewport.object_name_set;
+        ObjectNameSetPtr objectNameSetPtr = candidateViewport.object_type_name_set;
         ObjectNamePowerSetPtr powerSetPtr = MathHelper::powerSet<ObjectNameSet> (objectNameSetPtr);
 
         //Create list of all viewports
@@ -246,7 +246,7 @@ namespace next_best_view {
         double utility = 0.0;
 
         // get the utility for each object type and sum them up
-        BOOST_FOREACH(string objectType, *(candidateViewport.object_name_set)) {
+        BOOST_FOREACH(string objectType, *(candidateViewport.object_type_name_set)) {
             // set the utility for the object type if not already done
             if (mObjectUtilities.count(objectType) == 0) {
                 setObjectUtilities(candidateViewport, objectType);
@@ -328,7 +328,7 @@ namespace next_best_view {
 
         // get the costs for the recoginition of each object type
         Precision recognitionCosts = 0;
-        BOOST_FOREACH(string objectName, *(targetViewport.object_name_set)) {
+        BOOST_FOREACH(string objectName, *(targetViewport.object_type_name_set)) {
             recognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectName);
         }
         double normalizedRecognitionCosts = 1.0 - recognitionCosts / mMaxRecognitionCosts;

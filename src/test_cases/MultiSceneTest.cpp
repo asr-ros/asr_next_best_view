@@ -151,20 +151,20 @@ public:
 				ROS_ERROR("Something went wrong in next best view");
 				break;
 			}
-            if (nbv.response.object_name_list.size() > 0)
+            if (nbv.response.object_type_name_list.size() > 0)
             {
                 getPointCloudClient.call(gpc);
                 apc.request.point_cloud.elements.clear();
                 apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
 
-                for(unsigned int i=0;i<nbv.response.object_name_list.size();i++)
+                for(unsigned int i=0;i<nbv.response.object_type_name_list.size();i++)
                 {
-                    if (nbv.response.object_name_list[i] != "CeylonTea")
+                    if (nbv.response.object_type_name_list[i] != "CeylonTea")
                     {
                         std::vector<pbd_msgs::PbdAttributedPoint> temp;
                         for (std::vector<pbd_msgs::PbdAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                         {
-                            if ((nbv.response.object_name_list[i].compare(it->type)) != 0)
+                            if ((nbv.response.object_type_name_list[i].compare(it->type)) != 0)
                             {
                                 temp.push_back(*it);
                             }
@@ -173,7 +173,7 @@ public:
                         apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), temp.begin(), temp.end());
                         setPointCloud = true;
                     }
-                    if (nbv.response.object_name_list[i] == "Smacks" && !scene2_isInitialized)
+                    if (nbv.response.object_type_name_list[i] == "Smacks" && !scene2_isInitialized)
                     {
                         for (std::size_t idx = 0; idx < (std::size_t)hpSize_scene2; idx++) {
 

@@ -58,7 +58,7 @@ namespace next_best_view {
         // the whole point cloud
         ObjectPointCloudPtr point_cloud;
 		IndicesPtr child_indices;
-		ObjectNameSetPtr object_name_set;
+		ObjectNameSetPtr object_type_name_set;
         DefaultScoreContainerPtr score;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -144,7 +144,7 @@ namespace next_best_view {
             viewportPoint.child_indices = objectNameIndicesPtr;
             viewportPoint.child_point_cloud = this->child_point_cloud;
             viewportPoint.point_cloud = this->point_cloud;
-            viewportPoint.object_name_set = objectNameSetPtr;
+            viewportPoint.object_type_name_set = objectNameSetPtr;
 
             return true;
         }

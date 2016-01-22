@@ -393,8 +393,8 @@ namespace next_best_view {
 			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
             {
 				ViewportPoint viewportConversionPoint(point.pose);
-				viewportConversionPoint.object_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
-                viewportConversionPoint.object_name_set->insert(point.type);
+				viewportConversionPoint.object_type_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
+                viewportConversionPoint.object_type_name_set->insert(point.type);
 				viewportPointList.push_back(viewportConversionPoint);
 			}
 
@@ -425,8 +425,8 @@ namespace next_best_view {
 			response.resulting_pose = resultingViewport.getPose();
 
 			// copying the object to be searched for into a list
-			response.object_name_list = ObjectNameList(resultingViewport.object_name_set->size());
-			std::copy(resultingViewport.object_name_set->begin(), resultingViewport.object_name_set->end(), response.object_name_list.begin());
+			response.object_type_name_list = ObjectNameList(resultingViewport.object_type_name_set->size());
+			std::copy(resultingViewport.object_type_name_set->begin(), resultingViewport.object_type_name_set->end(), response.object_type_name_list.begin());
 
 			// robot state.
 			// TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
@@ -456,7 +456,7 @@ namespace next_best_view {
 			// push to the viewport list.
 			world_model::PushViewport pushViewportServiceCall;
 			pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
-			BOOST_FOREACH(std::string objectName, *resultingViewport.object_name_set) {
+			BOOST_FOREACH(std::string objectName, *resultingViewport.object_type_name_set) {
                 pushViewportServiceCall.request.viewport.type = objectName;
 				mPushViewportServiceClient.call(pushViewportServiceCall);
 			}
@@ -568,7 +568,7 @@ namespace next_best_view {
                     mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
                 }
                 else {
-                    numberSearchedObjects = viewport.object_name_set->size();
+                    numberSearchedObjects = viewport.object_type_name_set->size();
                     mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter(), numberSearchedObjects);
                 }
             }

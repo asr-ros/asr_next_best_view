@@ -241,7 +241,7 @@ namespace next_best_view {
 			viewportPoint.child_indices = frustumIndicesPtr;
 			viewportPoint.child_point_cloud = mCameraModelFilterPtr->getInputCloud();
             viewportPoint.point_cloud = mPointCloudPtr;
-			viewportPoint.object_name_set = mObjectNameSetPtr;
+			viewportPoint.object_type_name_set = mObjectNameSetPtr;
 
 			return true;
 		}
@@ -255,13 +255,13 @@ namespace next_best_view {
 				}
 
 				ViewportPoint resultingViewportPoint;
-                if (!culledViewportPoint.filterObjectNames(viewportPoint.object_name_set, resultingViewportPoint)) {
+                if (!culledViewportPoint.filterObjectNames(viewportPoint.object_type_name_set, resultingViewportPoint)) {
                     ROS_DEBUG_STREAM("Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getPosition());
 					continue;
 				}
 
                 ROS_DEBUG_STREAM("Viewpoint TAKEN: " << resultingViewportPoint.getPosition());
-                for (std::set<std::string>::iterator it=resultingViewportPoint.object_name_set->begin(); it!=resultingViewportPoint.object_name_set->end(); ++it)
+                for (std::set<std::string>::iterator it=resultingViewportPoint.object_type_name_set->begin(); it!=resultingViewportPoint.object_type_name_set->end(); ++it)
                 {
                     ROS_DEBUG_STREAM("Object: " << *it);
                 }
