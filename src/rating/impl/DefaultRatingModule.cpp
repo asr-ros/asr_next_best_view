@@ -181,9 +181,9 @@ namespace next_best_view {
             ROS_ERROR("Score container is nullpointer");
         }
 
-        float result = a->getUtility() * a->getCosts();
+        float result = a->getUtility() * a->getInverseCosts();
 
-        ROS_DEBUG_STREAM("rating: " << result << " utility: " << a->getUtility() << " costs: " << a->getCosts());
+        ROS_DEBUG_STREAM("rating: " << result << " utility: " << a->getUtility() << " costs: " << a->getInverseCosts());
 
         return result;
 	}
@@ -202,20 +202,20 @@ namespace next_best_view {
         defRatingPtr->setUtility(utility);
 
         // set the costs
-        double costs = this->getCosts(currentViewport, candidateViewport);
-        defRatingPtr->setCosts(costs);
+        double costs = this->getInverseCosts(currentViewport, candidateViewport);
+        defRatingPtr->setInverseCosts(costs);
 
-        defRatingPtr->setMovementCostsBaseTranslation(mMovementCostsBaseTranslation);
-        defRatingPtr->setMovementCostsBaseRotation(mMovementCostsBaseRotation);
-        defRatingPtr->setMovementCostsPTU(mMovementCostsPTU);
-        defRatingPtr->setRecognitionCosts(mRecognitionCosts);
+        defRatingPtr->setInverseMovementCostsBaseTranslation(mInverseMovementCostsBaseTranslation);
+        defRatingPtr->setInverseMovementCostsBaseRotation(mInverseMovementCostsBaseRotation);
+        defRatingPtr->setInverseMovementCostsPTU(mInverseMovementCostsPTU);
+        defRatingPtr->setInverseRecognitionCosts(mInverseRecognitionCosts);
 
         candidateViewport.score = defRatingPtr;
         ROS_DEBUG_STREAM("Utility: " << utility << " Costs: " << costs
-                    << " Costs base translation: " << mMovementCostsBaseTranslation
-                    << " Costs base rotation: " << mMovementCostsBaseRotation
-                    << " Costs PTU movement: " << mMovementCostsPTU
-                    << " Costs recognition: " << mRecognitionCosts);
+                    << " Costs base translation: " << mInverseMovementCostsBaseTranslation
+                    << " Costs base rotation: " << mInverseMovementCostsBaseRotation
+                    << " Costs PTU movement: " << mInverseMovementCostsPTU
+                    << " Costs recognition: " << mInverseRecognitionCosts);
         return true;
     }
 
@@ -288,7 +288,7 @@ namespace next_best_view {
         mObjectUtilities[objectType] = utility;
     }
 
-    double DefaultRatingModule::getCosts(const ViewportPoint &sourceViewport,
+    double DefaultRatingModule::getInverseCosts(const ViewportPoint &sourceViewport,
                                             const ViewportPoint &targetViewport) {
         // set the cache members needed for the costs if not already done
         if (!mTargetState) {
@@ -299,8 +299,8 @@ namespace next_best_view {
             this->setOmegaPTU();
         }
 
-        if (mMovementCosts < 0) {
-            this->setMovementCosts();
+        if (mInverseMovementCosts < 0) {
+            this->setInverseMovementCosts();
         }
 
         if (mCostsNormalization < 0) {
@@ -312,15 +312,15 @@ namespace next_best_view {
         }
 
         // get the costs for the recoginition of the objects
-        mRecognitionCosts = this->getRecognitionCosts(targetViewport);
+        mInverseRecognitionCosts = this->getInverseRecognitionCosts(targetViewport);
 
         // calculate the full movement costs
-        double fullCosts = (mMovementCosts + mRecognitionCosts * mOmegaRecognition) / mCostsNormalization;
+        double fullCosts = (mInverseMovementCosts + mInverseRecognitionCosts * mOmegaRecognition) / mCostsNormalization;
 
         return fullCosts;
     }
 
-    double DefaultRatingModule::getRecognitionCosts(const ViewportPoint &targetViewport) {
+    double DefaultRatingModule::getInverseRecognitionCosts(const ViewportPoint &targetViewport) {
         // avoid dividing by 0
         if (mMaxRecognitionCosts == 0) {
             throw "Maximum recognition costs are 0.";
@@ -362,25 +362,25 @@ namespace next_best_view {
         }
     }
 
-    void DefaultRatingModule::setMovementCosts() {
+    void DefaultRatingModule::setInverseMovementCosts() {
         // get the different movement costs
-        mMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
-        mMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
+        mInverseMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
+        mInverseMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
 
         if (mOmegaPTU == mOmegaPan) {
-            mMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+            mInverseMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
         }
         else {
-            mMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+            mInverseMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
         }
 
-        ROS_DEBUG_STREAM("PTU Costs Tilt: " << mMovementCostsPTU);
+        ROS_DEBUG_STREAM("PTU Costs Tilt: " << mInverseMovementCostsPTU);
 
         // set the movement costs
-        mMovementCosts = mMovementCostsBaseTranslation * mOmegaBase + mMovementCostsPTU * mOmegaPTU
-                            + mMovementCostsBaseRotation * mOmegaRot;
+        mInverseMovementCosts = mInverseMovementCostsBaseTranslation * mOmegaBase + mInverseMovementCostsPTU * mOmegaPTU
+                            + mInverseMovementCostsBaseRotation * mOmegaRot;
 
-        ROS_DEBUG_STREAM("Movement; " << mMovementCostsBaseTranslation << ", rotation " << mMovementCostsBaseRotation << ", movement PTU: " << mMovementCostsPTU);
+        ROS_DEBUG_STREAM("Movement; " << mInverseMovementCostsBaseTranslation << ", rotation " << mInverseMovementCostsBaseRotation << ", movement PTU: " << mInverseMovementCostsPTU);
     }
 
     void DefaultRatingModule::setCostsNormalization() {
@@ -409,11 +409,11 @@ namespace next_best_view {
 
     void DefaultRatingModule::resetCache() {
         mObjectUtilities.clear();
-        mMovementCosts = -1;
-        mMovementCostsBaseTranslation = -1;
-        mMovementCostsBaseRotation = -1;
-        mMovementCostsPTU = -1;
-        mRecognitionCosts = -1;
+        mInverseMovementCosts = -1;
+        mInverseMovementCostsBaseTranslation = -1;
+        mInverseMovementCostsBaseRotation = -1;
+        mInverseMovementCostsPTU = -1;
+        mInverseRecognitionCosts = -1;
         mCostsNormalization = -1;
         mOmegaPTU = -1;
         mTargetState = NULL;

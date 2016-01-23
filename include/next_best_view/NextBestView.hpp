@@ -424,7 +424,7 @@ namespace next_best_view {
 			response.found = true;
 			response.resulting_pose = resultingViewport.getPose();
 
-			// copying the object to be searched for into a list
+            // copying the objects to be searched for into a list
 			response.object_name_list = ObjectNameList(resultingViewport.object_name_set->size());
 			std::copy(resultingViewport.object_name_set->begin(), resultingViewport.object_name_set->end(), response.object_name_list.begin());
 
@@ -442,6 +442,14 @@ namespace next_best_view {
 
 			// set it to the response
 			response.robot_state = robotStateMsg;
+
+            // set utility and costs
+            response.utility = resultingViewport.score->getUtility();
+            response.inverse_costs = resultingViewport.score->getInverseCosts();
+            response.base_translation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseTranslation();
+            response.base_rotation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseRotation();
+            response.ptu_movement_inverse_costs = resultingViewport.score->getInverseMovementCostsPTU();
+            response.recognition_inverse_costs = resultingViewport.score->getInverseRecognitionCosts();
 
 			mCurrentCameraViewport = resultingViewport;
 

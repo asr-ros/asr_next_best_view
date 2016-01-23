@@ -22,7 +22,7 @@ namespace next_best_view {
 	struct BaseScoreContainer {
 	private:
 		float mUtility;
-		float mCosts;
+        float mInverseCosts;
 	public:
 		void setUtility(float value) {
 			mUtility = value;
@@ -32,12 +32,12 @@ namespace next_best_view {
 			return mUtility;
 		}
 
-		void setCosts(float value) {
-			mCosts = value;
+        void setInverseCosts(float value) {
+            mInverseCosts = value;
 		}
 
-		float getCosts() {
-			return mCosts;
+        float getInverseCosts() {
+            return mInverseCosts;
 		}
 	public:
 		BaseScoreContainer();
