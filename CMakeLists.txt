@@ -161,35 +161,45 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
+add_library(
+	${PROJECT_NAME}_test_core
+	src/test_cases/BaseTest.cpp
+)
+
+target_link_libraries(
+	${PROJECT_NAME}_test_core
+	${PROJECT_NAME}_helper
+	${PROJECT_NAME}_packages
+	${PROJECT_NAME}_packages_impl
+	${PCL_LIBRARIES}
+	glpk
+	${catkin_LIBRARIES}
+)
+
 add_executable(
 	${PROJECT_NAME}_test
 	src/test_cases/Test.cpp
-        src/test_cases/BaseTest.cpp
 )
 
 add_executable(
         ${PROJECT_NAME}_performance_test
         src/test_cases/PerformanceTest.cpp
-        src/test_cases/BaseTest.cpp
 )
 
 add_executable(
         ${PROJECT_NAME}_single_scene_test
         src/test_cases/SingleSceneTest.cpp
-        src/test_cases/BaseTest.cpp
 )
 
 
 add_executable(
         ${PROJECT_NAME}_multi_scene_test
         src/test_cases/MultiSceneTest.cpp
-        src/test_cases/BaseTest.cpp
 )
 
 add_executable(
 	${PROJECT_NAME}_multi_id_scene_test
 	src/test_cases/MultiIdSceneTest.cpp
-	src/test_cases/BaseTest.cpp
 )
 
 add_executable(
@@ -198,7 +208,6 @@ add_executable(
         src/robot_model/RobotModel.cpp
         src/robot_model/impl/MILDRobotModel_with_IK.cpp
         src/robot_model/impl/MILDRobotState.cpp
-        src/test_cases/BaseTest.cpp
 )
 
 target_link_libraries(
@@ -206,6 +215,7 @@ target_link_libraries(
 	${PROJECT_NAME}_helper
 	${PROJECT_NAME}_packages
 	${PROJECT_NAME}_packages_impl
+	${PROJECT_NAME}_test_core
 	${PCL_LIBRARIES}
 	glpk
 	${catkin_LIBRARIES}
@@ -216,6 +226,7 @@ target_link_libraries(
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
+        ${PROJECT_NAME}_test_core
         ${PCL_LIBRARIES}
         glpk
         ${catkin_LIBRARIES}
@@ -226,6 +237,7 @@ target_link_libraries(
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
+        ${PROJECT_NAME}_test_core
         ${PCL_LIBRARIES}
         glpk
         ${catkin_LIBRARIES}
@@ -236,6 +248,7 @@ target_link_libraries(
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
+        ${PROJECT_NAME}_test_core
         ${PCL_LIBRARIES}
         glpk
         ${catkin_LIBRARIES}
@@ -246,6 +259,7 @@ target_link_libraries(
 	${PROJECT_NAME}_helper
 	${PROJECT_NAME}_packages
 	${PROJECT_NAME}_packages_impl
+	${PROJECT_NAME}_test_core
 	${PCL_LIBRARIES}
 	glpk
 	${catkin_LIBRARIES}
@@ -256,6 +270,7 @@ target_link_libraries(
         ${PROJECT_NAME}_helper
         ${PROJECT_NAME}_packages
         ${PROJECT_NAME}_packages_impl
+        ${PROJECT_NAME}_test_core
         ${PCL_LIBRARIES}
         glpk
         ${catkin_LIBRARIES}
