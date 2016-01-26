@@ -246,7 +246,7 @@ namespace next_best_view {
         double utility = 0.0;
 
         // get the utility for each object type and sum them up
-        BOOST_FOREACH(string objectType, *(candidateViewport.object_type_name_set)) {
+        BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_name_set)) {
             // set the utility for the object type if not already done
             if (mObjectUtilities.count(objectType) == 0) {
                 setObjectUtilities(candidateViewport, objectType);
@@ -258,7 +258,7 @@ namespace next_best_view {
         return utility;
     }
 
-    void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, string objectType) {
+    void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {
         double maxElements = this->getInputCloud()->size();
         float utility = 0;
 
@@ -328,7 +328,7 @@ namespace next_best_view {
 
         // get the costs for the recoginition of each object type
         Precision recognitionCosts = 0;
-        BOOST_FOREACH(string objectName, *(targetViewport.object_type_name_set)) {
+        BOOST_FOREACH(std::string objectName, *(targetViewport.object_type_name_set)) {
             recognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectName);
         }
         double normalizedRecognitionCosts = 1.0 - recognitionCosts / mMaxRecognitionCosts;
@@ -392,7 +392,7 @@ namespace next_best_view {
         ObjectPointCloudPtr inputCloud = this->getInputCloud();
 
         double maxRecognitionCosts = 0;
-        vector<string> types;
+        std::vector<std::string> types;
 
         BOOST_FOREACH(ObjectPoint objectPoint, *(inputCloud)) {
             // only check each type once

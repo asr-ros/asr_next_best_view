@@ -184,10 +184,10 @@ namespace next_best_view {
 			}
 
 			// get the bounds - needed to prevent non feasible results
-			int32_t minX = min(fromMapX, toMapX);
-			int32_t maxX = max(fromMapX, toMapX);
-			int32_t minY = min(fromMapY, toMapY);
-			int32_t maxY = max(fromMapY, toMapY);
+			int32_t minX = std::min(fromMapX, toMapX);
+			int32_t maxX = std::max(fromMapX, toMapX);
+			int32_t minY = std::min(fromMapY, toMapY);
+			int32_t maxY = std::max(fromMapY, toMapY);
 
 			// get the resolution
 			float resolution = mRaytracingMap.info.resolution;

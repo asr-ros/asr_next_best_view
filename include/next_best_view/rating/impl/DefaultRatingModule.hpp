@@ -50,7 +50,7 @@ namespace next_best_view {
          * must be reset everytime setBaseScoreContainer is called
          */
         // the utility for each object type
-        std::map<string, float> mObjectUtilities;
+        std::map<std::string, float> mObjectUtilities;
         // the full costs of the movement - does not contain the costs of the recognition
         double mMovementCosts = -1;
         // the costs of the translational movement of the base
@@ -188,7 +188,7 @@ namespace next_best_view {
          * \param candidateViewport the candidate camera viewport
          * \param objectType the object type for which the utility shall be set
          */
-        void setObjectUtilities(const ViewportPoint &candidateViewport, string objectType);
+        void setObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType);
 
         /*!
          * \brief returns the costs for the movement from the source to the target viewport

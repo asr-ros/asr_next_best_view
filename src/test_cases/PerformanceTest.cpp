@@ -140,7 +140,7 @@ public:
                     //ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
                     bool setPointCloud = false;
                     int x = 1;
-                    cout << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
+                    std::cout << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
                     while(ros::ok()) {
                         if(apc.request.point_cloud.elements.size() == 0)
                         {
@@ -200,8 +200,8 @@ public:
                 if (countNBV > 0)
                 {
                     file << totalTimeNBV << "," << totalTimeNBV /(double)countNBV << ",";
-                    cout << "Total time NBV : " << totalTimeNBV << std::endl;
-                    cout << "Average time NBV : " << totalTimeNBV /(double)countNBV << std::endl;
+                    std::cout << "Total time NBV : " << totalTimeNBV << std::endl;
+                    std::cout << "Average time NBV : " << totalTimeNBV /(double)countNBV << std::endl;
                 }
                 else
                 {
@@ -210,14 +210,14 @@ public:
                 if (countUpdate > 0)
                 {
                     file << totalTimeUpdate << "," << totalTimeUpdate / (double)countUpdate << std::endl;
-                    cout << "Total time update : " << totalTimeUpdate << std::endl;
-                    cout << "Average time update : " << totalTimeUpdate / (double)countUpdate << std::endl;
+                    std::cout << "Total time update : " << totalTimeUpdate << std::endl;
+                    std::cout << "Average time update : " << totalTimeUpdate / (double)countUpdate << std::endl;
                 }
                 else
                 {
                     file << "0,0" << std::endl;
                 }
-                cout << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
+                std::cout << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
             }
         }
       file.close();

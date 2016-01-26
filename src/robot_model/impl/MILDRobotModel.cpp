@@ -316,7 +316,7 @@ namespace next_best_view {
         targetPoint.z = 0;
 
 
-        float rotationCosts = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/M_PI;
+        float rotationCosts = std::min(fabs(rotDiff), (2.0f*M_PI-fabs(rotDiff)))/M_PI;
         return 1.0 - rotationCosts;
     }
 

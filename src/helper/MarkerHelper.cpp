@@ -35,7 +35,7 @@ namespace next_best_view {
         return marker;
     }
 
-    visualization_msgs::Marker MarkerHelper::getTextMarker(int id, string text, geometry_msgs::Pose pose, std::string ns)
+    visualization_msgs::Marker MarkerHelper::getTextMarker(int id, std::string text, geometry_msgs::Pose pose, std::string ns)
     {
         visualization_msgs::Marker textMarker = getBasicMarker(id, ns);
         textMarker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
