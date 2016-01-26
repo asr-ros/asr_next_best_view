@@ -56,7 +56,7 @@
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.hpp"
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
@@ -267,7 +267,7 @@ namespace next_best_view {
              * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
              * non-reachable conros::Publishefigurations of the robot which can therefore be ignored during calculation.
              */
-            MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
+            MILDRobotModelWithIKPtr robotModelPtr(new MILDRobotModelWithIK());
             robotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
             robotModelPtr->setPanAngleLimits(panMin, panMax);
 
