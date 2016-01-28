@@ -19,7 +19,7 @@ namespace next_best_view {
 		PerspectiveHypothesisUpdater();
 		virtual ~PerspectiveHypothesisUpdater();
 
-		void update(const ViewportPoint &viewportPoint);
+        unsigned int update(const ViewportPoint &viewportPoint);
 
 		void setDefaultRatingModule(const DefaultRatingModulePtr &defaultRatingModulePtr);
 

@@ -480,7 +480,9 @@ namespace next_best_view {
             ROS_DEBUG_STREAM("Do frustum culling: ActiveIndices="<< mCalculator.getActiveIndices()->size());
 			mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
             ROS_DEBUG_STREAM("Do update object point cloud");
-			mCalculator.updateObjectPointCloud(viewportPoint);
+            unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(viewportPoint);
+
+            response.deactivated_object_normals = deactivatedNormals;
 
 			return true;
 		}

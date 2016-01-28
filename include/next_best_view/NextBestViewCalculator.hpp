@@ -270,8 +270,13 @@ namespace next_best_view {
 			}
 		}
 
-		void updateObjectPointCloud(const ViewportPoint &viewportPoint) {
-			mHypothesisUpdaterPtr->update(viewportPoint);
+        /*!
+         * \brief Updates the point cloud under the assumption that the given viewport was chosen.
+         * \param viewportPoint the viewport that was chosen
+         * \return the number of deactivated normals
+         */
+        unsigned int updateObjectPointCloud(const ViewportPoint &viewportPoint) {
+            return mHypothesisUpdaterPtr->update(viewportPoint);
         }
 
         /////
