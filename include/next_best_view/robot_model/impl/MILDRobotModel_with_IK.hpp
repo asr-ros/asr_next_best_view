@@ -108,7 +108,6 @@ namespace next_best_view {
           * Trys to calculate parameters needed for the inverse kinematic using tf transformations
           */
          bool setUpTFParameters();
-
          /*!
           * Calculates the rotation angle of the base from its pose frame
           */
@@ -117,6 +116,15 @@ namespace next_best_view {
           * Calculates the optimal pan angle for the given pose of the pan joint
           */
          double getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState);
+         /*!
+          * Calculates the tilt angle and the projected pose of the tilt joint
+          * returns true if successful
+          */
+         bool getTiltAngleAndTiltBasePointProjected(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &target_view_center_point, double &tilt, Eigen::Vector3d &tilt_base_point_projected);
+         /*!
+          * Calculates the transformation frame of the tilt joint
+          */
+         Eigen::Affine3d getTiltJointFrame(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &tilt_base_point);
          /*!
           * Visualizes the output of the IK calculation
           */

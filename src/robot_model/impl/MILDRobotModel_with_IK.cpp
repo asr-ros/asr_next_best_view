@@ -170,22 +170,21 @@ namespace next_best_view {
             }
         }
         Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
-        Eigen::Vector3d planeNormal = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitY();
-        planeNormal[2] = 0.0;
         Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
+        Eigen::Vector3d planeNormal = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitY();
+        //Avoid rotation around the camera view axis
+        if (fabs(planeNormal[2]) > 0.0001)
+        {
+            ROS_WARN("The camera pose is rotated around the camera view axis in a way that is not reachable. The pose will be corrected automatically.");
+            planeNormal[2] = 0.0;
+        }
         planeNormal.normalize(); targetViewVector.normalize();
-
-        //Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
-        //targetOrientation = Eigen::Quaterniond(0.70711, 0.0, 0.70711, 0.0) * targetOrientation;
 
         ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
         ROS_INFO_STREAM("Target Position: " << position[0] << ", " << position[1] << ", " << position[2]);
         ROS_INFO_STREAM("Target Orientation: " << targetOrientation.w() << ", " << targetOrientation.x() << ", " << targetOrientation.y()<< ", " << targetOrientation.z());
-
-        //Calculate ViewCenterPoint
-        //TODO:Abfangen von Drehungen um die Y-Achse    
-        //Eigen::Affine3d targetCameraPoseEigen = Eigen::Affine3d(Eigen::Translation3d(Eigen::Vector3d(position[0], position[1], position[2]))) * targetOrientation;
-        //Eigen::Affine3d viewCenterEigen = targetCameraPoseEigen * Eigen::Affine3d (Eigen::Translation3d(Eigen::Vector3d(0.0, -mViewPointDistance, 0.0)));
+        ROS_DEBUG_STREAM("planeNormal: " << planeNormal[0] << ", " << planeNormal[1] << ", " << planeNormal[2]);
+        ROS_DEBUG_STREAM("targetViewVector: " << targetViewVector[0] << ", " << targetViewVector[1] << ", " << targetViewVector[2]);
 
         //Visualize target camera pose & target viewcenter
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
@@ -193,10 +192,80 @@ namespace next_best_view {
         visualizeIKCameraTarget(target_view_center_point, target_cam_point);
 
         //Calculate TILT and position of Tilt joint
-        planeNormal.normalize();
-        targetViewVector.normalize();
-        ROS_INFO_STREAM("planeNormal: " << planeNormal[0] << ", " << planeNormal[1] << ", " << planeNormal[2]);
-        ROS_INFO_STREAM("targetViewVector: " << targetViewVector[0] << ", " << targetViewVector[1] << ", " << targetViewVector[2]);
+        double tilt; Eigen::Vector3d tilt_base_point_projected;
+        if (!getTiltAngleAndTiltBasePointProjected(planeNormal, targetViewVector, target_view_center_point, tilt, tilt_base_point_projected))
+        {
+             ROS_ERROR_STREAM("No solution found.");
+             return targetMILDRobotState;
+        }
+        ROS_DEBUG_STREAM("tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
+        ROS_INFO_STREAM("Tilt: " << tilt*(180.0/M_PI));
+
+        Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
+        ROS_DEBUG_STREAM("tilt_base_point: " << tilt_base_point[0] << ", " << tilt_base_point[1] << ", " << tilt_base_point[2]);
+
+        // Get pose of PAN joint
+        Eigen::Affine3d tiltFrame = getTiltJointFrame(planeNormal, targetViewVector,  tilt_base_point);
+        Eigen::Affine3d tiltedFrame =  tiltFrame * Eigen::AngleAxisd(-tilt, Eigen::Vector3d::UnitY());
+        Eigen::Affine3d camFrame = tiltedFrame * tiltToCameraEigen;
+        Eigen::Affine3d actualViewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, 0.0, mViewPointDistance)));
+        actualViewCenterEigen = camFrame*actualViewCenterEigen;
+
+        Eigen::Affine3d pan_rotated_Frame = tiltFrame * panToTiltEigen.inverse();
+
+        //Calculate PAN and base rotation
+        double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
+        ROS_INFO_STREAM("Pan: " << pan*(180.0/M_PI));
+
+        Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(-pan, Eigen::Vector3d::UnitZ());
+        Eigen::Affine3d base_Frame = pan_Frame * baseToPanEigen.inverse();
+
+        //Visualization
+        Eigen::Vector3d base_point(base_Frame(0,3), base_Frame(1,3), base_Frame(2,3));
+        Eigen::Vector3d pan_base_point(pan_Frame(0,3), pan_Frame(1,3), pan_Frame(2,3));
+        Eigen::Vector3d pan_rotated_point(pan_rotated_Frame(0,3), pan_rotated_Frame(1,3), pan_rotated_Frame(2,3));
+        Eigen::Vector3d cam_point(camFrame(0,3), camFrame(1,3), camFrame(2,3));
+        Eigen::Vector3d actual_view_center_point(actualViewCenterEigen(0,3), actualViewCenterEigen(1,3), actualViewCenterEigen(2,3));
+        Eigen::Vector3d base_orientation(base_Frame(0,0), base_Frame(1,0), base_Frame(2,0));
+        visualizeIKcalculation(base_point, base_orientation, pan_base_point, pan_rotated_point, tilt_base_point,tilt_base_point_projected, cam_point, actual_view_center_point);
+
+        // Set output values
+		// set pan
+        targetMILDRobotState->pan = pan;
+
+		// set rotation
+        targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
+		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
+		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
+
+		// set tilt
+        targetMILDRobotState->tilt = tilt;
+
+		// set x, y
+        targetMILDRobotState->x = base_Frame(0,3);
+        targetMILDRobotState->y = base_Frame(1,3);
+        ROS_DEBUG_STREAM("Targetstate: (Pan: " << targetMILDRobotState->pan << ", Tilt: " << targetMILDRobotState->tilt << ", Rotation " << targetMILDRobotState->rotation << ", X:" << targetMILDRobotState->x << ", Y:" << targetMILDRobotState->y << ")");
+		return targetMILDRobotState;
+	}
+
+    Eigen::Affine3d MILDRobotModelWithIK::getTiltJointFrame(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &tilt_base_point)
+    {
+        Eigen::Vector3d viewDirection;
+        viewDirection = targetViewVector;
+        viewDirection[2] = 0.0;
+        viewDirection.normalize();
+        Eigen::Matrix4d tiltFrame_Rotation;
+        tiltFrame_Rotation.col(0) << viewDirection[0], viewDirection[1],  0.0 , 0.0;
+        tiltFrame_Rotation.col(1) << -planeNormal[0] , -planeNormal[1] ,  -planeNormal[2] ,0.0;
+        tiltFrame_Rotation.col(2) << 0.0, 0.0, 1.0, 0.0;
+        tiltFrame_Rotation.col(3) << tilt_base_point[0] , tilt_base_point[1] ,  tilt_base_point[2] , 1.0;
+
+        Eigen::Affine3d tiltFrame(tiltFrame_Rotation);
+        return tiltFrame;
+    }
+
+    bool MILDRobotModelWithIK::getTiltAngleAndTiltBasePointProjected(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &target_view_center_point, double &tilt, Eigen::Vector3d &tilt_base_point_projected)
+    {
         //Calculate tilt base point (t1, t2, t3)
         double t1, t2, t3;
         //Calculate t3 using h
@@ -208,8 +277,7 @@ namespace next_best_view {
         c = -pow(viewTriangle_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormal(0), 2.0));
         if (pow(b, 2.0)<4*a*c)
         {
-            ROS_ERROR_STREAM("No solution found.");
-            return targetMILDRobotState;
+            return false;
         }
 
         double t2_1, t2_2, t1_1, t1_2;
@@ -230,74 +298,18 @@ namespace next_best_view {
             t2 = t2_2;
         }
 
-        //get tilt base point
-        Eigen::Vector3d tilt_base_point_projected(t1+target_view_center_point[0], t2+target_view_center_point[1], t3+target_view_center_point[2]);
-        ROS_INFO_STREAM("tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
-        double tilt;
+        //get projected tilt base point
+        tilt_base_point_projected = Eigen::Vector3d(t1+target_view_center_point[0], t2+target_view_center_point[1], t3+target_view_center_point[2]);
+        //get tilt angle
         Eigen::Vector3d targetToBase(tilt_base_point_projected[0]-target_view_center_point[0], tilt_base_point_projected[1]-target_view_center_point[1], tilt_base_point_projected[2]-target_view_center_point[2]);
         targetToBase.normalize();
         double targetToBase_Angle = acos(targetToBase[2]);
-        ROS_INFO_STREAM("targetToBase_Angle: " << targetToBase_Angle);
+        ROS_DEBUG_STREAM("targetToBase_Angle: " << targetToBase_Angle);
         tilt = targetToBase_Angle+viewTriangle_angleGamma-viewTriangle_angleAlpha-M_PI/2.0;
+        return true;
+    }
 
-        ROS_INFO_STREAM("Tilt: " << tilt*(180.0/M_PI));
 
-        Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
-        ROS_INFO_STREAM("tilt_base_point: " << tilt_base_point[0] << ", " << tilt_base_point[1] << ", " << tilt_base_point[2]);
-
-        Eigen::Vector3d viewDirection;
-        viewDirection = targetViewVector;
-        viewDirection[2] = 0.0;
-        viewDirection.normalize();
-        Eigen::Matrix4d tiltFrame_Rotation;
-        tiltFrame_Rotation.col(0) << viewDirection[0], viewDirection[1],  0.0 , 0.0;
-        tiltFrame_Rotation.col(1) << -planeNormal[0] , -planeNormal[1] ,  -planeNormal[2] ,0.0;
-        tiltFrame_Rotation.col(2) << 0.0, 0.0, 1.0, 0.0;
-        tiltFrame_Rotation.col(3) << tilt_base_point[0] , tilt_base_point[1] ,  tilt_base_point[2] , 1.0;
-
-        Eigen::Affine3d tiltFrame(tiltFrame_Rotation);
-        Eigen::Affine3d tiltedFrame =  tiltFrame * Eigen::AngleAxisd(-tilt, Eigen::Vector3d::UnitY());
-        Eigen::Affine3d camFrame = tiltedFrame * tiltToCameraEigen;
-        Eigen::Affine3d actualViewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, 0.0, mViewPointDistance)));
-        actualViewCenterEigen = camFrame*actualViewCenterEigen;
-
-        //tiltFrame_Rotation * Eigen::AngleAxisd(-tilt, Eigen::Vector3d::UnitY()) * tiltToCameraEigen;
-        
-        Eigen::Affine3d pan_rotated_Frame = tiltFrame * panToTiltEigen.inverse();
-
-        //Calculate PAN and base rotation
-        double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
-        ROS_INFO_STREAM("Pan: " << pan*(180.0/M_PI));
-
-        Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(-pan, Eigen::Vector3d::UnitZ());
-        Eigen::Affine3d base_Frame = pan_Frame * baseToPanEigen.inverse();
-
-        //Visualization
-        Eigen::Vector3d base_point(base_Frame(0,3), base_Frame(1,3), base_Frame(2,3));
-        Eigen::Vector3d pan_base_point(pan_Frame(0,3), pan_Frame(1,3), pan_Frame(2,3));
-        Eigen::Vector3d pan_rotated_point(pan_rotated_Frame(0,3), pan_rotated_Frame(1,3), pan_rotated_Frame(2,3));
-        Eigen::Vector3d cam_point(camFrame(0,3), camFrame(1,3), camFrame(2,3));
-        Eigen::Vector3d actual_view_center_point(actualViewCenterEigen(0,3), actualViewCenterEigen(1,3), actualViewCenterEigen(2,3));
-        Eigen::Vector3d base_orientation(base_Frame(0,0), base_Frame(1,0), base_Frame(2,0));
-        visualizeIKcalculation(base_point, base_orientation, pan_base_point, pan_rotated_point, tilt_base_point,tilt_base_point_projected, cam_point, actual_view_center_point);
-
-		// set pan
-        targetMILDRobotState->pan = pan;
-
-		// set rotation
-        targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
-		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
-		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
-
-		// set tilt
-        targetMILDRobotState->tilt = tilt;
-
-		// set x, y
-        targetMILDRobotState->x = base_Frame(0,3);
-        targetMILDRobotState->y = base_Frame(1,3);
-        ROS_DEBUG_STREAM("Targetstate: (Pan: " << targetMILDRobotState->pan << ", Tilt: " << targetMILDRobotState->tilt << ", Rotation " << targetMILDRobotState->rotation << ", X:" << targetMILDRobotState->x << ", Y:" << targetMILDRobotState->y << ")");
-		return targetMILDRobotState;
-	}
 
     double MILDRobotModelWithIK::getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState)
     {
