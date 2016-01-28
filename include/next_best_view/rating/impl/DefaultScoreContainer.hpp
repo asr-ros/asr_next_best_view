@@ -21,10 +21,10 @@ namespace next_best_view {
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
 
-        float mMovementCostsBaseTranslation;
-        float mMovementCostsBaseRotation;
-        float mMovementCostsPTU;
-        float mRecognitionCosts;
+        float mInverseMovementCostsBaseTranslation;
+        float mInverseMovementCostsBaseRotation;
+        float mInverseMovementCostsPTU;
+        float mInverseRecognitionCosts;
 
 	public:
 
@@ -39,67 +39,67 @@ namespace next_best_view {
         virtual ~DefaultScoreContainer();
 
         /*!
-         * \brief sets the movement costs for the base translation
-         * \param value the movement costs for the base translation
+         * \brief sets the inverse movement costs for the base translation
+         * \param value the inverse movement costs for the base translation
          */
-        void setMovementCostsBaseTranslation(float value) {
-            mMovementCostsBaseTranslation = value;
+        void setInverseMovementCostsBaseTranslation(float value) {
+            mInverseMovementCostsBaseTranslation = value;
         }
 
         /*!
-         * \brief returns the movement costs for the base translation
-         * \return the movement costs for the base translation
+         * \brief returns the inverse movement costs for the base translation
+         * \return the inverse movement costs for the base translation
          */
-        float getMovementCostsBaseTranslation() {
-            return mMovementCostsBaseTranslation;
+        float getInverseMovementCostsBaseTranslation() {
+            return mInverseMovementCostsBaseTranslation;
         }
 
         /*!
-         * \brief sets the movement costs for the base rotation
-         * \param value the movement costs for the base rotation
+         * \brief sets the inverse movement costs for the base rotation
+         * \param value the inverse movement costs for the base rotation
          */
-        void setMovementCostsBaseRotation(float value) {
-            mMovementCostsBaseRotation = value;
+        void setInverseMovementCostsBaseRotation(float value) {
+            mInverseMovementCostsBaseRotation = value;
         }
 
         /*!
-         * \brief returns the movement costs for the base rotation
-         * \return the movement costs for the base rotation
+         * \brief returns the inverse movement costs for the base rotation
+         * \return the movement inverse costs for the base rotation
          */
-        float getMovementCostsBaseRotation() {
-            return mMovementCostsBaseRotation;
+        float getInverseMovementCostsBaseRotation() {
+            return mInverseMovementCostsBaseRotation;
         }
 
         /*!
-         * \brief sets the costs for the PTU movement
-         * \param value the costs for the PTU movement
+         * \brief sets the inverse costs for the PTU movement
+         * \param value the inverse costs for the PTU movement
          */
-        void setMovementCostsPTU(float value) {
-            mMovementCostsPTU = value;
+        void setInverseMovementCostsPTU(float value) {
+            mInverseMovementCostsPTU = value;
         }
 
         /*!
-         * \brief returns the costs for the PTU movement
-         * \return the costs for the PTU movement
+         * \brief returns the inverse costs for the PTU movement
+         * \return the inverse costs for the PTU movement
          */
-        float getMovementCostsPTU() {
-            return mMovementCostsPTU;
+        float getInverseMovementCostsPTU() {
+            return mInverseMovementCostsPTU;
         }
 
         /*!
-         * \brief sets the costs for the recognition of the objects
-         * \param value the costs for the recognition of the objects
+         * \brief sets the inverse costs for the recognition of the objects
+         * \param value the inverse costs for the recognition of the objects
          */
-        void setRecognitionCosts(float value) {
-            mRecognitionCosts = value;
+        void setInverseRecognitionCosts(float value) {
+            mInverseRecognitionCosts = value;
         }
 
         /*!
-         * \brief returns the costs for the recognition of the objects
-         * \return the costs for the recognition of the objects
+         * \brief returns the inverse costs for the recognition of the objects
+         * \return the inverse costs for the recognition of the objects
          */
-        float getRecognitionCosts() {
-            return mRecognitionCosts;
+        float getInverseRecognitionCosts() {
+            return mInverseRecognitionCosts;
         }
 	};
 

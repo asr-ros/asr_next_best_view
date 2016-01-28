@@ -424,7 +424,7 @@ namespace next_best_view {
 			response.found = true;
 			response.resulting_pose = resultingViewport.getPose();
 
-			// copying the object to be searched for into a list
+			// copying the objects to be searched for into a list
 			response.object_type_name_list = ObjectNameList(resultingViewport.object_type_name_set->size());
 			std::copy(resultingViewport.object_type_name_set->begin(), resultingViewport.object_type_name_set->end(), response.object_type_name_list.begin());
 
@@ -442,6 +442,14 @@ namespace next_best_view {
 
 			// set it to the response
 			response.robot_state = robotStateMsg;
+
+            // set utility and costs
+            response.utility = resultingViewport.score->getUtility();
+            response.inverse_costs = resultingViewport.score->getInverseCosts();
+            response.base_translation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseTranslation();
+            response.base_rotation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseRotation();
+            response.ptu_movement_inverse_costs = resultingViewport.score->getInverseMovementCostsPTU();
+            response.recognition_inverse_costs = resultingViewport.score->getInverseRecognitionCosts();
 
 			mCurrentCameraViewport = resultingViewport;
 
@@ -472,7 +480,9 @@ namespace next_best_view {
             ROS_DEBUG_STREAM("Do frustum culling: ActiveIndices="<< mCalculator.getActiveIndices()->size());
 			mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
             ROS_DEBUG_STREAM("Do update object point cloud");
-			mCalculator.updateObjectPointCloud(viewportPoint);
+            unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(viewportPoint);
+
+            response.deactivated_object_normals = deactivatedNormals;
 
 			return true;
 		}

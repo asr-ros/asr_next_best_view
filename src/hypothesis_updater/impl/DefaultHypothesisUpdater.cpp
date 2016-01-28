@@ -11,11 +11,16 @@ namespace next_best_view {
 	DefaultHypothesisUpdater::DefaultHypothesisUpdater() { }
 	DefaultHypothesisUpdater::~DefaultHypothesisUpdater() { }
 
-	void DefaultHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
-		BOOST_FOREACH(int index, *viewportPoint.child_indices) {
+    unsigned int DefaultHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
+        unsigned int count = 0;
+
+        BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
+            count += objectPoint.active_normal_vectors->size();
 			objectPoint.active_normal_vectors->clear();
 			//objectPoint.normal_vectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
 		}
+
+        return count;
 	}
 }
