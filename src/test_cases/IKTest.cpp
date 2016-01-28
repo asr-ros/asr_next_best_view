@@ -46,7 +46,27 @@ public:
         targetCameraOrientations.push_back(ZXZ2Quaternion(120, -20.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.5));
         targetCameraOrientations.push_back(ZXZ2Quaternion(20, -20.0, 0));
-        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.2));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 0.8));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 0.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.7));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 0.0, 0 ));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 0.4));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 80.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 0.5));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-180, 100.0, 0 ));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-200, 40.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.8));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-180, -30.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.3));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-190, -50.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.1));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(-120, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.7));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(120, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 1.0));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(20, -20.0, 0));
+        targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 0.9));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 0.0, 0));
         //a couple of very difficult test cases
         targetCameraPositions.push_back(SimpleVector3(0.725892364979, 1.67344818115, 2.5));

@@ -34,15 +34,12 @@ namespace next_best_view {
     MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_,inverseKinematicIterationAccuracy_, ncp_, fcp_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
         n.getParam("mOmegaUseBase", mOmegaUseBase_);
-        n.getParam("speedFactorPTU", speedFactorPTU_);
-        n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
-        n.getParam("speedFactorBaseRot", speedFactorBaseRot_);
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         n.getParam("panAngleSamplingStepsPerIteration", panAngleSamplingStepsPerIteration_);
@@ -62,17 +59,11 @@ namespace next_best_view {
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaUseBase = mOmegaUseBase_;
-        speedFactorPTU = speedFactorPTU_;
-        speedFactorBaseMove = speedFactorBaseMove_;
-        speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
         mPanAngleSamplingStepsPerIteration = panAngleSamplingStepsPerIteration_;
         mViewPointDistance = (ncp_ + fcp_)/2.0;
         mInverseKinematicIterationAccuracy = inverseKinematicIterationAccuracy_;
         ROS_DEBUG_STREAM("mOmegaUseBase: " << mOmegaPan);
-        ROS_DEBUG_STREAM("speedFactorPTU: " << speedFactorPTU);
-        ROS_DEBUG_STREAM("speedFactorBaseMove: " << speedFactorBaseMove);
-        ROS_DEBUG_STREAM("speedFactorBaseRot: " << speedFactorBaseRot);
         ROS_DEBUG_STREAM("tolerance: " << tolerance);
         ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan);
         ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt);
@@ -166,8 +157,7 @@ namespace next_best_view {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());
 
-        //Reset previous markers
-        resetIKVisualization();
+        this->resetIKVisualization();
 
         //Make sure the necessary geometry parameters are initialized
         if (!tfParametersInitialized)
@@ -179,24 +169,30 @@ namespace next_best_view {
                 return targetMILDRobotState;
             }
         }
+        Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
+        Eigen::Vector3d planeNormal = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitY();
+        planeNormal[2] = 0.0;
+        Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
+        planeNormal.normalize(); targetViewVector.normalize();
 
-        ROS_INFO_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
-        ROS_INFO_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
-        ROS_INFO_STREAM("Orientation: " << orientation.w() << ", " << orientation.x() << ", " << orientation.y()<< ", " << orientation.z());
+        //Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
+        //targetOrientation = Eigen::Quaterniond(0.70711, 0.0, 0.70711, 0.0) * targetOrientation;
+
+        ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
+        ROS_INFO_STREAM("Target Position: " << position[0] << ", " << position[1] << ", " << position[2]);
+        ROS_INFO_STREAM("Target Orientation: " << targetOrientation.w() << ", " << targetOrientation.x() << ", " << targetOrientation.y()<< ", " << targetOrientation.z());
 
         //Calculate ViewCenterPoint
-        //TODO:Abfangen von Drehungen um die Y-Achse
-        Eigen::Affine3d targetCameraPoseEigen = Eigen::Affine3d(Eigen::Translation3d(Eigen::Vector3d(position[0], position[1], position[2])))*Eigen::Quaterniond(orientation.w(), orientation.x(), orientation.y(), orientation.z());
-        Eigen::Affine3d viewCenterEigen = targetCameraPoseEigen * Eigen::Affine3d (Eigen::Translation3d(Eigen::Vector3d(0.0, mViewPointDistance, 0.0)));
+        //TODO:Abfangen von Drehungen um die Y-Achse    
+        //Eigen::Affine3d targetCameraPoseEigen = Eigen::Affine3d(Eigen::Translation3d(Eigen::Vector3d(position[0], position[1], position[2]))) * targetOrientation;
+        //Eigen::Affine3d viewCenterEigen = targetCameraPoseEigen * Eigen::Affine3d (Eigen::Translation3d(Eigen::Vector3d(0.0, -mViewPointDistance, 0.0)));
 
         //Visualize target camera pose & target viewcenter
-        Eigen::Vector3d target_view_center_point(viewCenterEigen(0,3), viewCenterEigen(1,3), viewCenterEigen(2,3));
+        Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
         Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
         visualizeIKCameraTarget(target_view_center_point, target_cam_point);
 
         //Calculate TILT and position of Tilt joint
-        Eigen::Vector3d planeNormal(targetCameraPoseEigen(0,0), targetCameraPoseEigen(1,0), targetCameraPoseEigen(2,0));
-        Eigen::Vector3d targetViewVector(targetCameraPoseEigen(0,1), targetCameraPoseEigen(1,1), targetCameraPoseEigen(2,1));
         planeNormal.normalize();
         targetViewVector.normalize();
         ROS_INFO_STREAM("planeNormal: " << planeNormal[0] << ", " << planeNormal[1] << ", " << planeNormal[2]);
@@ -204,7 +200,7 @@ namespace next_best_view {
         //Calculate tilt base point (t1, t2, t3)
         double t1, t2, t3;
         //Calculate t3 using h
-        t3 = h_tilt - viewCenterEigen(2,3);
+        t3 = h_tilt - target_view_center_point[2];
         //Calculate t2 using abc-formula
         double a, b, c;
         a = 1 + pow(planeNormal(1)/planeNormal(0), 2.0);
@@ -235,10 +231,10 @@ namespace next_best_view {
         }
 
         //get tilt base point
-        Eigen::Vector3d tilt_base_point_projected(t1+viewCenterEigen(0,3), t2+viewCenterEigen(1,3), t3+viewCenterEigen(2,3));
-        ROS_INFO_STREAM("tilt_base_point: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
+        Eigen::Vector3d tilt_base_point_projected(t1+target_view_center_point[0], t2+target_view_center_point[1], t3+target_view_center_point[2]);
+        ROS_INFO_STREAM("tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
         double tilt;
-        Eigen::Vector3d targetToBase(tilt_base_point_projected[0]-viewCenterEigen(0,3), tilt_base_point_projected[1]-viewCenterEigen(1,3), tilt_base_point_projected[2]-viewCenterEigen(2,3));
+        Eigen::Vector3d targetToBase(tilt_base_point_projected[0]-target_view_center_point[0], tilt_base_point_projected[1]-target_view_center_point[1], tilt_base_point_projected[2]-target_view_center_point[2]);
         targetToBase.normalize();
         double targetToBase_Angle = acos(targetToBase[2]);
         ROS_INFO_STREAM("targetToBase_Angle: " << targetToBase_Angle);
@@ -247,6 +243,7 @@ namespace next_best_view {
         ROS_INFO_STREAM("Tilt: " << tilt*(180.0/M_PI));
 
         Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
+        ROS_INFO_STREAM("tilt_base_point: " << tilt_base_point[0] << ", " << tilt_base_point[1] << ", " << tilt_base_point[2]);
 
         Eigen::Vector3d viewDirection;
         viewDirection = targetViewVector;
@@ -263,6 +260,8 @@ namespace next_best_view {
         Eigen::Affine3d camFrame = tiltedFrame * tiltToCameraEigen;
         Eigen::Affine3d actualViewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, 0.0, mViewPointDistance)));
         actualViewCenterEigen = camFrame*actualViewCenterEigen;
+
+        //tiltFrame_Rotation * Eigen::AngleAxisd(-tilt, Eigen::Vector3d::UnitY()) * tiltToCameraEigen;
         
         Eigen::Affine3d pan_rotated_Frame = tiltFrame * panToTiltEigen.inverse();
 
@@ -313,10 +312,9 @@ namespace next_best_view {
         actualRobotPosition.y = robotState->y;
         actualRobotPosition.z = targetRobotPosition.z = 0.0;
         Eigen::Affine3d baseFrame;
-        ROS_INFO_STREAM("phiMin: " << phiMin << " phiMax: " << phiMax);
+        ROS_DEBUG_STREAM("phiMin: " << phiMin << " phiMax: " << phiMax);
         Eigen::Vector4d color_failed(1.0,0.0,0.0,1.0);
         Eigen::Vector3d basePoint, basePoint2;
-        Eigen::Vector3d panJointPoint;
         Eigen::Vector3d baseOrientation;
         //do sampling
         do
@@ -337,7 +335,6 @@ namespace next_best_view {
                     //Calculate the base frame with respect to the current angle
                     baseFrame = panJointFrame * Eigen::AngleAxisd(-currentIterationAngle, Eigen::Vector3d::UnitZ()) * baseToPanEigen.inverse();
                     basePoint = Eigen::Vector3d(baseFrame(0,3),baseFrame(1,3),baseFrame(2,3));
-                    panJointPoint = Eigen::Vector3d(panJointFrame(0,3),panJointFrame(1,3),panJointFrame(2,3));
                     baseOrientation = Eigen::Vector3d(baseFrame(0,0),baseFrame(1,0),baseFrame(2,0));
                     baseOrientation.normalize();
                     basePoint2 = basePoint+baseOrientation*0.15;
@@ -354,15 +351,13 @@ namespace next_best_view {
                             currentBestAngle = currentIterationAngle;
                         }
                         Eigen::Vector4d color_succeeded(1.0-currentRating,currentRating, 0.0, 1.0);
-                        visualizeIKArrowSmall(basePoint, panJointPoint, color_succeeded, nsIterationVector, 3*i);
-                        visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 3*i+1);
-                        visualizeIKArrowSmall(basePoint, basePoint2, color_succeeded, nsIterationVector, 3*i+2);
+                        visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 2*i);
+                        visualizeIKArrowSmall(basePoint, basePoint2, color_succeeded, nsIterationVector, 2*i+1);
                     }
                     else
                     {
-                        visualizeIKArrowSmall(basePoint, panJointPoint, color_failed, nsIterationVector, 3*i);
-                        visualizeIKPoint(basePoint, color_failed, nsIterationVector, 3*i+1);
-                        visualizeIKArrowSmall(basePoint, basePoint2, color_failed, nsIterationVector, 3*i+2);
+                        visualizeIKPoint(basePoint, color_failed, nsIterationVector, 2*i);
+                        visualizeIKArrowSmall(basePoint, basePoint2, color_failed, nsIterationVector, 2*i+1);
                     }
                 }
             }
@@ -402,8 +397,8 @@ namespace next_best_view {
         }
         catch (tf::TransformException ex)
         {
-          ROS_ERROR("An error occured during tf-lookup: %s",ex.what());
-          return false;
+            ROS_ERROR("An error occured during tf-lookup: %s",ex.what());
+            return false;
         }
         tf::poseTFToEigen(tiltToCameraTF, tiltToCameraEigen);
         tf::poseTFToEigen(panToTiltTF, panToTiltEigen);
@@ -421,7 +416,7 @@ namespace next_best_view {
         cam_axis_z.normalize();
         Eigen::Vector3d tilt_to_cam(tiltAxisPointEigen(0,3)-cameraLeftPointEigen(0,3), tiltAxisPointEigen(1,3)-cameraLeftPointEigen(1,3), tiltAxisPointEigen(2,3)-cameraLeftPointEigen(2,3));
         x_product = cam_axis_x.dot(tilt_to_cam);
-        tilt_to_cam -= x_product*tilt_to_cam;
+        tilt_to_cam -= x_product*cam_axis_x;
         double viewTriangle_sideB = tilt_to_cam.norm();
         tilt_to_cam.normalize();
         viewTriangle_angleAlpha = acos(cam_axis_z.dot(tilt_to_cam));
@@ -431,8 +426,8 @@ namespace next_best_view {
         viewTriangle_angleGamma = acos(viewTriangle_angleGamma);
         ROS_INFO_STREAM("viewTriangle_angleAlpha: " << viewTriangle_angleAlpha);
         ROS_INFO_STREAM("viewTriangle_angleGamma: " << viewTriangle_angleGamma);
-        ROS_INFO_STREAM("viewTriangle_sideB: " << viewTriangle_sideB);
         ROS_INFO_STREAM("viewTriangle_sideA: " << viewTriangle_sideA);
+        ROS_INFO_STREAM("viewTriangle_sideB: " << viewTriangle_sideB);
         ROS_INFO_STREAM("TF lookup successful.");
 
         return true;
@@ -444,6 +439,10 @@ namespace next_best_view {
         resetMarker.id = 0;
         resetMarker.header.frame_id = "/map";
         resetMarker.type = visualization_msgs::Marker::DELETE;
+        resetMarker.scale.x = 0.02;
+        resetMarker.scale.y = 0.02;
+        resetMarker.scale.z = 0.02;
+
         //Reset camToActualViewCenterVector
         resetMarker.header.stamp = ros::Time();
         resetMarker.ns = "camToActualViewCenterVector";

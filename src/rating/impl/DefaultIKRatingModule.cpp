@@ -13,7 +13,7 @@ namespace next_best_view {
 
     double DefaultIKRatingModule::getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle, nav_msgs::Path &navigationPath)
     {
-        if (navigationPath.poses.size() > 1)
+        if (navigationPath.poses.size() > 2)
         {
             //Get length and angle change of the path
             double length = 0;
