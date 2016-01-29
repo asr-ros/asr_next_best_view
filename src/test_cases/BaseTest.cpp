@@ -73,8 +73,8 @@ using namespace next_best_view;
         ros::Publisher pub = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 100, false);
 
         visualization_msgs::MarkerArray markerArray;
-        object_database::ObjectManager manager;
-        object_database::ObjectTypeResponsePtr objectTypeResPtr = manager.get("Smacks");
+        ObjectHelper objectHelper;
+        ObjectMetaDataResponsePtr objectMetaDataResPtr = objectHelper.get("Smacks");
 
         ros::Duration(5).sleep();
 
@@ -90,12 +90,12 @@ using namespace next_best_view;
         SimpleQuaternion rotation = MathHelper::getQuaternionByAngles(0, 0, -M_PI / 2.0);
 
         Indices ind;
-        for (std::size_t idx = 0; idx < objectTypeResPtr->normal_vectors.size(); idx++) {
-            geometry_msgs::Point pt = objectTypeResPtr->normal_vectors.at(idx);
+        for (std::size_t idx = 0; idx < objectMetaDataResPtr->normal_vectors.size(); idx++) {
+            geometry_msgs::Point pt = objectMetaDataResPtr->normal_vectors.at(idx);
             SimpleVector3 pos = TypeHelper::getSimpleVector3(pt);
             bool rebel = false;
             BOOST_FOREACH(std::size_t index, ind) {
-                geometry_msgs::Point pt2 = objectTypeResPtr->normal_vectors.at(index);
+                geometry_msgs::Point pt2 = objectMetaDataResPtr->normal_vectors.at(index);
                 SimpleVector3 pos2 = TypeHelper::getSimpleVector3(pt2);
                 double val = pos.dot(pos2);
                 if (val >= cos(M_PI / 3.0)) {
@@ -109,7 +109,7 @@ using namespace next_best_view;
         }
 
         BOOST_FOREACH(std::size_t index, ind) {
-            geometry_msgs::Point pt = objectTypeResPtr->normal_vectors.at(index);
+            geometry_msgs::Point pt = objectMetaDataResPtr->normal_vectors.at(index);
             SimpleVector3 pos = TypeHelper::getSimpleVector3(pt);
             pos = rotation.toRotationMatrix() * pos;
             visualization_msgs::Marker arrowMarker = MarkerHelper::getArrowMarker(id, zero, pos, SimpleVector3(0.025, 0.05, 0.05), SimpleVector4(0.3, 0.3, 1.0, 1.0));
@@ -118,7 +118,7 @@ using namespace next_best_view;
 
         }
 
-        visualization_msgs::Marker objectMarker = MarkerHelper::getMeshMarker(id, objectTypeResPtr->object_mesh_resource, zero, rotation);
+        visualization_msgs::Marker objectMarker = MarkerHelper::getMeshMarker(id, objectMetaDataResPtr->object_mesh_resource, zero, rotation);
         markerArray.markers.push_back(objectMarker);
 
         pub.publish(markerArray);

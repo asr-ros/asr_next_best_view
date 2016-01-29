@@ -21,8 +21,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/PointCloud2.h>
 
-#include "object_database/ObjectType.h"
-#include "object_database/ObjectManager.h"
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetPointCloud2.h"
@@ -33,6 +31,7 @@
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
+#include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
