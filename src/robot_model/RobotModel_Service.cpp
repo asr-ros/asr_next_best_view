@@ -1,4 +1,5 @@
 #include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/robot_model/RobotState.hpp"
 #include <ros/ros.h>
@@ -18,7 +19,8 @@
 
 
 using namespace next_best_view;
-MILDRobotModelWithIKPtr robotModelPtr;
+//MILDRobotModelWithIKPtr robotModelPtr;
+MILDRobotModelPtr robotModelPtr;
 
 bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
@@ -104,7 +106,8 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
     ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);
 
-    robotModelPtr = MILDRobotModelWithIKPtr(new MILDRobotModelWithIK());
+    //robotModelPtr = MILDRobotModelWithIKPtr(new MILDRobotModelWithIK());
+    robotModelPtr = MILDRobotModelPtr(new MILDRobotModel());
     robotModelPtr->setTiltAngleLimits(-45, 45);
     robotModelPtr->setPanAngleLimits(-60, 60);
 

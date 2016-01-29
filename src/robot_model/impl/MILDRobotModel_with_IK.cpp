@@ -11,6 +11,7 @@
 #include <ros/node_handle.h>
 
 #include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 
 #include "nav_msgs/GetPlan.h"

@@ -9,6 +9,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include "next_best_view/test_cases/BaseTest.h"
 #include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/GetAttributedPointCloud.h"
 
@@ -80,8 +81,10 @@ public:
         ROS_INFO_STREAM("Initializing...");
 
         //Initialize robot model
-        MILDRobotModelWithIK *myRobotModel = new MILDRobotModelWithIK();
-        MILDRobotModelWithIKPtr myRobotModelPtr(myRobotModel);
+        //MILDRobotModelWithIK *myRobotModel = new MILDRobotModelWithIK();
+        //MILDRobotModelWithIKPtr myRobotModelPtr(myRobotModel);
+        MILDRobotModel *myRobotModel = new MILDRobotModel();
+        MILDRobotModelPtr myRobotModelPtr(myRobotModel);
         MILDRobotState * startState = new MILDRobotState(0,0,0,-1.59984135628,-0.908775866032);
         MILDRobotStatePtr startStatePtr(startState);
 

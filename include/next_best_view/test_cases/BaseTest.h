@@ -34,6 +34,7 @@
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include <tf/tf.h>
