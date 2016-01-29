@@ -26,7 +26,8 @@
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/helper/MapHelper.hpp"
-#include "helper/VisualizationsHelper.hpp"
+#include "next_best_view/helper/ObjectHelper.h"
+#include "next_best_view/helper/VisualizationsHelper.hpp"
 
 namespace next_best_view {
     class NextBestViewCalculator {
@@ -293,7 +294,7 @@ namespace next_best_view {
 			// create a new point cloud
 			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
-			object_database::ObjectManager manager;
+            ObjectHelper objectHelper;
 
 			// empty object name set
 			mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
@@ -315,7 +316,7 @@ namespace next_best_view {
 				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
 				// get object type information
-				object_database::ObjectTypeResponsePtr responsePtr = manager.get(pointCloudPoint.type);
+                ObjectMetaDataResponsePtr responsePtr = objectHelper.get(pointCloudPoint.type);
 
 				if (responsePtr) {
 					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
