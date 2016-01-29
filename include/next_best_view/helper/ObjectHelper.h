@@ -25,7 +25,7 @@ namespace next_best_view {
 
             State() : mNodeHandle() {
                 object_type_service_client = mNodeHandle.serviceClient<object_database::ObjectMetaData>("/object_database/object_meta_data");
-                recognizer_name_service_client = mNodeHandle.serviceClient<world_model::GetRecognizerName>("/world_model/get_recognizer_name");
+                recognizer_name_service_client = mNodeHandle.serviceClient<world_model::GetRecognizerName>("/env/world_model/get_recognizer_name");
             }
         };
 
