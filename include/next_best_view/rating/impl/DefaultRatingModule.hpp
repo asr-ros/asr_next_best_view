@@ -50,17 +50,17 @@ namespace next_best_view {
          * must be reset everytime setBaseScoreContainer is called
          */
         // the utility for each object type
-        std::map<string, float> mObjectUtilities;
+        std::map<std::string, float> mObjectUtilities;
         // the full costs of the movement - does not contain the costs of the recognition
-        double mMovementCosts = -1;
+        double mInverseMovementCosts = -1;
         // the costs of the translational movement of the base
-        Precision mMovementCostsBaseTranslation = -1;
+        Precision mInverseMovementCostsBaseTranslation = -1;
         // the costs of the rotational movement of the base
-        Precision mMovementCostsBaseRotation = -1;
+        Precision mInverseMovementCostsBaseRotation = -1;
         // the costs of the PTU movement
-        Precision mMovementCostsPTU = -1;
+        Precision mInverseMovementCostsPTU = -1;
         // the costs of the recognition of the objects
-        double mRecognitionCosts = -1;
+        double mInverseRecognitionCosts = -1;
         // the normalization value for the costs
         double mCostsNormalization = -1;
         // the PTU omega parameter
@@ -188,23 +188,23 @@ namespace next_best_view {
          * \param candidateViewport the candidate camera viewport
          * \param objectType the object type for which the utility shall be set
          */
-        void setObjectUtilities(const ViewportPoint &candidateViewport, string objectType);
+        void setObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType);
 
         /*!
-         * \brief returns the costs for the movement from the source to the target viewport
+         * \brief returns the inverse costs for the movement from the source to the target viewport
          * and the recognition of the objects
          * \param sourceViewport the source viewport
          * \param targetViewport the target viewport
-         * \return the movement and recognition costs
+         * \return the inverse movement and recognition costs
          */
-        double getCosts(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
+        double getInverseCosts(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
 
         /*!
-         * \brief returns the recognition costs for the objects in the target viewport
+         * \brief returns the inverse recognition costs for the objects in the target viewport
          * \param targetViewport the target viewport
-         * \return the normalized recognition costs
+         * \return the normalized inverse recognition costs
          */
-        double getRecognitionCosts(const ViewportPoint &targetViewport);
+        double getInverseRecognitionCosts(const ViewportPoint &targetViewport);
 
         /*!
          * \brief sets the robot state and the mTargetState member.
@@ -223,7 +223,7 @@ namespace next_best_view {
         /*!
          * \brief sets the mMovementCosts member
          */
-        void setMovementCosts();
+        void setInverseMovementCosts();
 
         /*!
          * \brief sets the mCostsNormalization member

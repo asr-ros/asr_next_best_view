@@ -28,7 +28,7 @@ namespace next_best_view {
 
 		int spanX = ceil(contractor * .5 * width / horizontalSpacing);
 		int spanY = ceil(contractor * .25 * height / radius);
-		int span = max(spanX, spanY);
+		int span = std::max(spanX, spanY);
 
         xtop = 0;
         ytop = 0;

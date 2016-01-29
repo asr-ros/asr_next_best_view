@@ -16,7 +16,7 @@ namespace next_best_view {
 		DefaultHypothesisUpdater();
 		virtual ~DefaultHypothesisUpdater();
 
-		void update(const ViewportPoint &viewportPoint);
+        unsigned int update(const ViewportPoint &viewportPoint);
 	};
 
 	/*!

@@ -138,7 +138,7 @@ namespace next_best_view {
          * \param ns the namespace of the marker
          * \return a line list marker with the given settings
          */
-        static visualization_msgs::Marker getLineListMarker(int id, vector<SimpleVector3> points, double scale,
+        static visualization_msgs::Marker getLineListMarker(int id, std::vector<SimpleVector3> points, double scale,
                                                                 SimpleVector4 color, std::string ns = "my_namespace");
 
         /*!

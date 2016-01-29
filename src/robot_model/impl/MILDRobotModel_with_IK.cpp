@@ -334,7 +334,7 @@ namespace next_best_view {
         {
             std::ostringstream converter;
             converter << iterationCount;
-            string nsIterationVector = string("iterationVector") + converter.str();
+            std::string nsIterationVector = std::string("iterationVector") + converter.str();
             double angleStepSize = currentAngleRange / mPanAngleSamplingStepsPerIteration;
             double currentIterationAngle, currentRating, angleCenter;
             currentBestRating = newBestRating;
@@ -499,7 +499,7 @@ namespace next_best_view {
         {
             std::ostringstream converter;
             converter << i;
-            string nsIterationVector = string("iterationVector") + converter.str();
+            std::string nsIterationVector = std::string("iterationVector") + converter.str();
             for (unsigned int j = 0; j < 3*(mPanAngleSamplingStepsPerIteration+1); j++)
             {
                 resetMarker.ns = nsIterationVector;
@@ -535,7 +535,7 @@ namespace next_best_view {
     }
 
 
-    void MILDRobotModelWithIK::visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, string ns, int id)
+    void MILDRobotModelWithIK::visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns, int id)
     {
         visualization_msgs::Marker pointMarker = visualization_msgs::Marker();
         pointMarker.header.stamp = ros::Time();
@@ -570,7 +570,7 @@ namespace next_best_view {
         visualizeIKArrow(pointStart, pointEnd, colorRGBA, ns, scaleParameters, id);
     }
 
-    void MILDRobotModelWithIK::visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, string ns, Eigen::Vector3d &scaleParameters, int id)
+    void MILDRobotModelWithIK::visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters, int id)
     {
         geometry_msgs::Point point1, point2;
         visualization_msgs::Marker arrowMarker = visualization_msgs::Marker();

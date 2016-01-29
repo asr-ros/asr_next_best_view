@@ -16,7 +16,9 @@ namespace next_best_view {
 	PerspectiveHypothesisUpdater::PerspectiveHypothesisUpdater() { }
 	PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
-	void PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
+    unsigned int PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
+        unsigned int counter = 0;
+
         BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
 
@@ -30,6 +32,7 @@ namespace next_best_view {
 				if (rating != 0.0) {
 					end--;
 					std::iter_swap(iter, end);
+                    counter++;
 					continue;
 				}
 
@@ -47,6 +50,8 @@ namespace next_best_view {
 			objectPoint.g = ratio > .5 ? 255 : int(2.0  * ratio * 255);
 			objectPoint.b = 0;
 		}
+
+        return counter;
 	}
 
 	void PerspectiveHypothesisUpdater::setDefaultRatingModule(const DefaultRatingModulePtr &defaultRatingModulePtr) {

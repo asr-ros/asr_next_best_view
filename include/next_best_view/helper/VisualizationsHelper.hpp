@@ -518,7 +518,7 @@ private:
     }
 
     static visualization_msgs::Marker getObjectMarker(geometry_msgs::Pose pose, std::string type, std_msgs::ColorRGBA color,
-                                                        std::map<string, string> typeToMeshResource, int id, std::string ns) {
+                                                        std::map<std::string, std::string> typeToMeshResource, int id, std::string ns) {
         visualization_msgs::Marker objectMarker;
 
         SimpleVector3 position = TypeHelper::getSimpleVector3(pose);

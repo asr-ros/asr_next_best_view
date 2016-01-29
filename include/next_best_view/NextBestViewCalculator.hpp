@@ -146,9 +146,9 @@ namespace next_best_view {
                 DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
                 ROS_DEBUG("x: %f, y: %f, z: %f, Utility: %f, Costs: %f, Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f, IterationStep: %i",
                             intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
-                            drPtr->getUtility(), drPtr->getCosts(),
-                            drPtr->getMovementCostsBaseTranslation(), drPtr->getMovementCostsBaseRotation(),
-                            drPtr->getMovementCostsPTU(), drPtr->getRecognitionCosts(),
+                            drPtr->getUtility(), drPtr->getInverseCosts(),
+                            drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
+                            drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts(),
                             iterationStep);
 
                 if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
@@ -270,8 +270,13 @@ namespace next_best_view {
 			}
 		}
 
-		void updateObjectPointCloud(const ViewportPoint &viewportPoint) {
-			mHypothesisUpdaterPtr->update(viewportPoint);
+        /*!
+         * \brief Updates the point cloud under the assumption that the given viewport was chosen.
+         * \param viewportPoint the viewport that was chosen
+         * \return the number of deactivated normals
+         */
+        unsigned int updateObjectPointCloud(const ViewportPoint &viewportPoint) {
+            return mHypothesisUpdaterPtr->update(viewportPoint);
         }
 
         /////

@@ -23,8 +23,8 @@ namespace next_best_view {
         static geometry_msgs::Quaternion getQuaternionMSG(const SimpleQuaternion &quaternion);
 		static SimpleVector3 getSimpleVector3(const geometry_msgs::Pose &pose);
 		static SimpleVector3 getSimpleVector3(const geometry_msgs::Point &point);
-        static SimpleVector3 getSimpleVector3(const vector<double> &vector);
-        static SimpleVector4 getSimpleVector4(const vector<double> &vector);
+        static SimpleVector3 getSimpleVector3(const std::vector<double> &vector);
+        static SimpleVector4 getSimpleVector4(const std::vector<double> &vector);
         static SimpleVector4 getSimpleVector4(const std_msgs::ColorRGBA &color);
 		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Pose &pose);
 		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Quaternion &quaternion);

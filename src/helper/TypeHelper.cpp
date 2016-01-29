@@ -37,11 +37,11 @@ namespace next_best_view {
 		return SimpleVector3(point.x, point.y, point.z);
 	}
 
-    SimpleVector3 TypeHelper::getSimpleVector3(const vector<double> &vector) {
+    SimpleVector3 TypeHelper::getSimpleVector3(const std::vector<double> &vector) {
         return SimpleVector3(vector[0], vector[1], vector[2]);
     }
 
-    SimpleVector4 TypeHelper::getSimpleVector4(const vector<double> &vector) {
+    SimpleVector4 TypeHelper::getSimpleVector4(const std::vector<double> &vector) {
         return SimpleVector4(vector[0], vector[1], vector[2], vector[3]);
     }
 

@@ -1,2 +1,3 @@
 geometry_msgs/Pose update_pose
 ---
+uint32 deactivated_object_normals
