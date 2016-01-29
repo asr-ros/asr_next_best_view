@@ -235,6 +235,7 @@ namespace next_best_view {
 
 		// set rotation
         targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
+        targetMILDRobotState->rotation =  targetMILDRobotState->rotation; //M_PI/2.0 -
 		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
 		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
 
