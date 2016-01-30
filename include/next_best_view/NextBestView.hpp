@@ -56,7 +56,7 @@
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
-//#include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.hpp"
@@ -268,10 +268,26 @@ namespace next_best_view {
              * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
              * non-reachable conros::Publishefigurations of the robot which can therefore be ignored during calculation.
              */
-            //MILDRobotModelWithIKPtr robotModelPtr(new MILDRobotModelWithIK());
-            MILDRobotModelPtr robotModelPtr(new MILDRobotModel());
-            robotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
-            robotModelPtr->setPanAngleLimits(panMin, panMax);
+            bool useNewIK;
+            mNodeHandle.param("useNewIK", useNewIK, false);
+            RobotModelPtr robotModelPtr;
+            if (useNewIK)
+            {
+                ROS_INFO_STREAM("NBV: Using new IK model.");
+                MILDRobotModelWithIK *tempRobotModel = new MILDRobotModelWithIK();
+                tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
+                tempRobotModel->setPanAngleLimits(panMin, panMax);
+                robotModelPtr = MILDRobotModelWithIKPtr(tempRobotModel);
+            }
+            else
+            {
+                ROS_INFO_STREAM("NBV: Using old IK model.");
+                MILDRobotModel *tempRobotModel = new MILDRobotModel();
+                tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
+                tempRobotModel->setPanAngleLimits(panMin, panMax);
+                robotModelPtr = MILDRobotModelPtr(tempRobotModel);
+            }
+
 
             /* DefaultRatingModule is a specialization of the abstract RatingModule class.
              * The rating module calculates the use and the costs of an operation.

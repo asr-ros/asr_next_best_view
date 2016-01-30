@@ -322,7 +322,7 @@ namespace next_best_view {
 
     float MILDRobotModel::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
-        float distance, costs ;
+        double distance, costs;
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;

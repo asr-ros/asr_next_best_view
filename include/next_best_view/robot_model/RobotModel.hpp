@@ -42,6 +42,9 @@ namespace next_best_view {
 		 */
 		virtual bool isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation) = 0;
 
+        virtual bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition) = 0;
+
+
 		/*!
 		 * \brief calculates the target robot state by assuming the saved current state of the roboter as source state
 		 * \param position the position
@@ -83,6 +86,17 @@ namespace next_best_view {
         float getBase_RotationalMovementCosts(const RobotStatePtr &targetRobotState);
 
         virtual float getBase_RotationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState) = 0;
+
+        virtual float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition) = 0;
+
+        virtual geometry_msgs::Pose getRobotPose() = 0;
+
+        virtual geometry_msgs::Pose getCameraPose() = 0;
+
+        /*!
+         * \brief Uses a given RobotState to calculate the camera frame
+         */
+        virtual geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState) = 0;
 
         /*!
          * \param currentRobotState sets the current robot state ptr
