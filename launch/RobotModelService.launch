@@ -1,5 +1,5 @@
 <launch>
 	<node pkg="next_best_view" type="next_best_view_robotmodel_service" name="nbv_srv" output="screen">
-	  <rosparam file="$(find next_best_view)/launch/next_best_view_settings.yaml"/>
+	  <rosparam file="$(find next_best_view)/launch/next_best_view_settings_sim.yaml"/>
 	</node>
 </launch>
