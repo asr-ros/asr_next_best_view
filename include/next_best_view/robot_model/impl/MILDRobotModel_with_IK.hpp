@@ -81,6 +81,7 @@ namespace next_best_view {
          double viewTriangle_sideA;
          unsigned int mPanAngleSamplingStepsPerIteration;
          unsigned int mIKVisualizationLastMarkerCount = 0;
+         double mTiltAngleOffset;
 
          /*!
           * Transformation frame from the tilted-link to camera left
@@ -91,11 +92,13 @@ namespace next_best_view {
           * Transformation frame from the pan-link to the tilt-link
           */
          Eigen::Affine3d panToTiltEigen;
+         Eigen::Affine3d tiltToPanEigen;
 
          /*!
           * Transformation frame from the base-link to the pan-link
           */
          Eigen::Affine3d baseToPanEigen;
+         Eigen::Affine3d panToBaseEigen;
 
          double x_product;
 

@@ -157,6 +157,8 @@ namespace next_best_view {
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());
+        double tiltMin = mTiltLimits.get<0>();
+        double tiltMax = mTiltLimits.get<1>();
 
         this->resetIKVisualization();
 
@@ -182,10 +184,8 @@ namespace next_best_view {
         planeNormal.normalize(); targetViewVector.normalize();
 
         ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
-        ROS_INFO_STREAM("Target Position: " << position[0] << ", " << position[1] << ", " << position[2]);
-        ROS_INFO_STREAM("Target Orientation: " << targetOrientation.w() << ", " << targetOrientation.x() << ", " << targetOrientation.y()<< ", " << targetOrientation.z());
-        ROS_DEBUG_STREAM("planeNormal: " << planeNormal[0] << ", " << planeNormal[1] << ", " << planeNormal[2]);
-        ROS_DEBUG_STREAM("targetViewVector: " << targetViewVector[0] << ", " << targetViewVector[1] << ", " << targetViewVector[2]);
+        ROS_DEBUG_STREAM("Target Position: " << position[0] << ", " << position[1] << ", " << position[2]);
+        ROS_DEBUG_STREAM("Target Orientation: " << targetOrientation.w() << ", " << targetOrientation.x() << ", " << targetOrientation.y()<< ", " << targetOrientation.z());
 
         //Visualize target camera pose & target viewcenter
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
@@ -200,6 +200,16 @@ namespace next_best_view {
              return targetMILDRobotState;
         }
         ROS_DEBUG_STREAM("tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
+        if (tilt < tiltMin)
+        {
+            ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tilt);
+            tilt = tiltMin;
+        }
+        if (tilt > tiltMax)
+        {
+            ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt);
+            tilt = tiltMax;
+        }
         ROS_INFO_STREAM("Tilt: " << tilt*(180.0/M_PI));
 
         Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
@@ -212,14 +222,14 @@ namespace next_best_view {
         Eigen::Affine3d actualViewCenterEigen(Eigen::Translation3d(Eigen::Vector3d(0.0, 0.0, mViewPointDistance)));
         actualViewCenterEigen = camFrame*actualViewCenterEigen;
 
-        Eigen::Affine3d pan_rotated_Frame = tiltFrame * panToTiltEigen.inverse();
+        Eigen::Affine3d pan_rotated_Frame = tiltFrame * tiltToPanEigen;
 
         //Calculate PAN and base rotation
         double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
         ROS_INFO_STREAM("Pan: " << pan*(180.0/M_PI));
 
-        Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(-pan, Eigen::Vector3d::UnitZ());
-        Eigen::Affine3d base_Frame = pan_Frame * baseToPanEigen.inverse();
+        Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
+        Eigen::Affine3d base_Frame = pan_Frame * panToBaseEigen;
 
         //Visualization
         Eigen::Vector3d base_point(base_Frame(0,3), base_Frame(1,3), base_Frame(2,3));
@@ -236,7 +246,7 @@ namespace next_best_view {
 
 		// set rotation
         targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
-        targetMILDRobotState->rotation =  targetMILDRobotState->rotation; //M_PI/2.0 -
+        //targetMILDRobotState->rotation = targetMILDRobotState->rotation; //M_PI/2.0 -
 		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
 		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
 
@@ -307,7 +317,7 @@ namespace next_best_view {
         targetToBase.normalize();
         double targetToBase_Angle = acos(targetToBase[2]);
         ROS_DEBUG_STREAM("targetToBase_Angle: " << targetToBase_Angle);
-        tilt = targetToBase_Angle+viewTriangle_angleGamma-viewTriangle_angleAlpha-M_PI/2.0;
+        tilt = targetToBase_Angle+mTiltAngleOffset;
         return true;
     }
 
@@ -354,10 +364,11 @@ namespace next_best_view {
                     basePoint2 = basePoint+baseOrientation*0.15;
                     targetRobotPosition.x = baseFrame(0,3);
                     targetRobotPosition.y = baseFrame(1,3);
-                    if (isPositionReachable(actualRobotPosition, targetRobotPosition))
+                    if (true) //isPositionReachable(actualRobotPosition, targetRobotPosition))
                     {
-                        nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                        currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
+                        //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
+                        //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
+                        currentRating = 1.0;
                         ROS_DEBUG_STREAM("Angle: " << currentIterationAngle << " with rating: " << currentRating);
                         if (currentRating > newBestRating)
                         {
@@ -419,6 +430,8 @@ namespace next_best_view {
         tf::poseTFToEigen(baseToPanTF, baseToPanEigen);
         tf::poseTFToEigen(tiltAxisPointTF, tiltAxisPointEigen);
         tf::poseTFToEigen(cameraLeftPointTF, cameraLeftPointEigen);
+        tiltToPanEigen = panToTiltEigen.inverse();
+        panToBaseEigen = baseToPanEigen.inverse();
         h_tilt = tiltAxisPointEigen.matrix()(2,3);
         ROS_INFO_STREAM("Height above ground: " << h_tilt);
 
@@ -438,6 +451,7 @@ namespace next_best_view {
         viewTriangle_angleGamma = pow(mViewPointDistance, 2.0) - pow(viewTriangle_sideA,2.0)-pow(viewTriangle_sideB,2.0);
         viewTriangle_angleGamma = viewTriangle_angleGamma / (-2.0*viewTriangle_sideA*viewTriangle_sideB);
         viewTriangle_angleGamma = acos(viewTriangle_angleGamma);
+        mTiltAngleOffset = viewTriangle_angleGamma-viewTriangle_angleAlpha-M_PI/2.0;
         ROS_INFO_STREAM("viewTriangle_angleAlpha: " << viewTriangle_angleAlpha);
         ROS_INFO_STREAM("viewTriangle_angleGamma: " << viewTriangle_angleGamma);
         ROS_INFO_STREAM("viewTriangle_sideA: " << viewTriangle_sideA);
@@ -603,8 +617,16 @@ namespace next_best_view {
     double MILDRobotModelWithIK::getBaseAngleFromBaseFrame(Eigen::Affine3d &baseFrame)
     {
         Eigen::Vector3d xAxis(baseFrame(0,0), baseFrame(1,0), 0.0);
-        xAxis.normalize();
-        return acos(xAxis[0])+M_PI/2.0;
+        Eigen::Vector3d yAxis(baseFrame(0,1), baseFrame(1,1), 0.0);
+        xAxis.normalize(); yAxis.normalize();
+        if (yAxis[0] >= 0)
+        {
+            return acos(xAxis[0]);
+        }
+        else
+        {
+            return 2.0*M_PI - acos(xAxis[0]);
+        }
     }
 
 
