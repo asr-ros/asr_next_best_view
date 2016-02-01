@@ -19,12 +19,12 @@ namespace next_best_view {
         private:
             ros::NodeHandle mNodeHandle;
         public:
-            ros::ServiceClient object_type_service_client;
+            ros::ServiceClient object_metadata_service_client;
             ros::ServiceClient recognizer_name_service_client;
-            std::map<std::string, ObjectMetaDataResponsePtr> object_type_cache;
+            std::map<std::string, ObjectMetaDataResponsePtr> object_metadata_cache;
 
             State() : mNodeHandle() {
-                object_type_service_client = mNodeHandle.serviceClient<object_database::ObjectMetaData>("/object_database/object_meta_data");
+                object_metadata_service_client = mNodeHandle.serviceClient<object_database::ObjectMetaData>("/object_database/object_meta_data");
                 recognizer_name_service_client = mNodeHandle.serviceClient<world_model::GetRecognizerName>("/env/world_model/get_recognizer_name");
             }
         };
@@ -41,11 +41,11 @@ namespace next_best_view {
         ObjectMetaDataResponsePtr get(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
 
-            if (!statePtr->object_type_service_client.exists()) {
+            if (!statePtr->object_metadata_service_client.exists()) {
                 return ObjectMetaDataResponsePtr();
             }
 
-            ObjectMetaDataResponsePtr responsePtr = statePtr->object_type_cache[objectTypeName];
+            ObjectMetaDataResponsePtr responsePtr = statePtr->object_metadata_cache[objectTypeName];
 
             if (!responsePtr) {
                 world_model::GetRecognizerName getRecognizerName;
@@ -57,13 +57,13 @@ namespace next_best_view {
                 object_database::ObjectMetaData objectMetaData;
                 objectMetaData.request.object_type = objectTypeName;
                 objectMetaData.request.recognizer = recognizer;
-                statePtr->object_type_service_client.call(objectMetaData);
+                statePtr->object_metadata_service_client.call(objectMetaData);
                 if (!objectMetaData.response.is_valid) {
                     return ObjectMetaDataResponsePtr();
                 }
 
                 responsePtr = ObjectMetaDataResponsePtr(new object_database::ObjectMetaData::Response(objectMetaData.response));
-                statePtr->object_type_cache[objectTypeName] = responsePtr;
+                statePtr->object_metadata_cache[objectTypeName] = responsePtr;
             }
             return responsePtr;
         }
