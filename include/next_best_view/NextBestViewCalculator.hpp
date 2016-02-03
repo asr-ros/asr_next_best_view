@@ -29,6 +29,9 @@
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 
+#include <rapid_xml/rapidxml.hpp>
+#include <rapid_xml/rapidxml_utils.hpp>
+
 namespace next_best_view {
     class NextBestViewCalculator {
 	private:
@@ -45,6 +48,7 @@ namespace next_best_view {
 		float mEpsilon;
 		ObjectNameSetPtr mObjectNameSetPtr;
         VisualizationHelper mVisHelper;
+        std::string mCropBoxListFilePath;
 
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -292,7 +296,8 @@ namespace next_best_view {
 		 */
       bool setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg) {
 			// create a new point cloud
-			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+            ObjectPointCloudPtr originalPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+            ObjectPointCloudPtr croppedPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
             ObjectHelper objectHelper;
 
@@ -343,17 +348,99 @@ namespace next_best_view {
 
 
 				// add point to array
-				pointCloudPtr->push_back(pointCloudPoint);
+                originalPointCloudPtr->push_back(pointCloudPoint);
 			}
 
+
+
+            std::string xml_path = this->mCropBoxListFilePath;
+            ROS_DEBUG_STREAM("Path to objects.xml: " << xml_path);
+            std::vector<CropBoxPtr> cropBoxPtrList;
+            try {
+                rapidxml::file<> xmlFile(xml_path.c_str());
+                rapidxml::xml_document<> doc;
+                doc.parse<0>(xmlFile.data());
+
+                rapidxml::xml_node<> *root_node = doc.first_node();
+                if (root_node) {
+                    rapidxml::xml_node<> *child_node = root_node->first_node();
+                    while (child_node)
+                    {
+                        CropBoxPtr bufferCropBoxPtr;
+                        rapidxml::xml_node<> * min_pt = child_node->first_node("min_pt");
+                        rapidxml::xml_attribute<> *x = min_pt->first_attribute("x");
+                        rapidxml::xml_attribute<> *y = min_pt->first_attribute("y");
+                        rapidxml::xml_attribute<> *z = min_pt->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            bufferCropBoxPtr->setMin(Eigen::Vector4f(x_,y_,z_,0));
+                        }
+
+                        rapidxml::xml_node<> * max_pt = child_node->first_node("max_pt");
+                        x = max_pt->first_attribute("x");
+                        y = max_pt->first_attribute("y");
+                        z = max_pt->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            bufferCropBoxPtr->setMax(Eigen::Vector4f(x_,y_,z_,0));
+                        }
+
+                        rapidxml::xml_node<> * rotation = child_node->first_node("rotation");
+                        x = rotation->first_attribute("x");
+                        y = rotation->first_attribute("y");
+                        z = rotation->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            bufferCropBoxPtr->setRotation(Eigen::Vector3f(x_,y_,z_));
+                        }
+
+                        rapidxml::xml_node<> * translation = child_node->first_node("translation");
+                        x = translation->first_attribute("x");
+                        y = translation->first_attribute("y");
+                        z = translation->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            bufferCropBoxPtr->setTranslation(Eigen::Vector3f(x_,y_,z_));
+                        }
+                        cropBoxPtrList.push_back(bufferCropBoxPtr);
+                        child_node = child_node->next_sibling();
+                    }
+                }
+            } catch(std::runtime_error err) {
+                ROS_DEBUG_STREAM("Can't parse xml-file. Runtime error: " << err.what());
+            } catch (rapidxml::parse_error err) {
+                ROS_DEBUG_STREAM("Can't parse xml-file Parse error: " << err.what());
+            }
+
+
+            //Filter the point cloud
+            for(std::vector<CropBoxPtr>::iterator it=cropBoxPtrList.begin(); it!=cropBoxPtrList.end(); ++it)
+            {
+                ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+                (*it)->setInputCloud(originalPointCloudPtr);
+                (*it)->filter(*outputTempPointCloudPtr);
+                (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
+            }
 			// the active indices.
-			IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(msg.elements.size()));
+            IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(croppedPointCloudPtr->size()));
 			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
 
 
 			// set the point cloud
 			this->setActiveIndices(activeIndicesPtr);
-			this->setPointCloudPtr(pointCloudPtr);
+            this->setPointCloudPtr(croppedPointCloudPtr);
 			return true;
 		}
 
@@ -386,7 +473,13 @@ namespace next_best_view {
 			mSpaceSamplerPtr->setInputCloud(mPointCloudPtr);
 		}
 
-		/**
+        void setCropBoxListFilePath(const std::string mCropBoxListFilePath)
+        {
+            this->mCropBoxListFilePath = mCropBoxListFilePath;
+        }
+
+
+         /**
 		 * @return the point cloud pointer
 		 */
 		ObjectPointCloudPtr getPointCloudPtr() {

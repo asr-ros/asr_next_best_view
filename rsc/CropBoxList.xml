@@ -1,0 +1,8 @@
+<CropBoxList name="Map">
+  <CropBox name="Table1">
+    <min_pt x="0" y="0" z="0"/>
+    <max_pt x="0" y="0" z="0"/>
+    <rotation x="0" y="0" z="0"/>
+    <translation x="0" y="0" z="0"/>
+  </CropBox>
+</CropBoxList>

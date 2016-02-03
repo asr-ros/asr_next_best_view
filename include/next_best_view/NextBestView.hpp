@@ -161,6 +161,10 @@ namespace next_best_view {
             mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
             mNodeHandle.param("move_robot", move_robot, false);
 
+            //get XML path
+            std::string mCropBoxListFilePath;
+            mNodeHandle.param("mCropBoxListFilePath", mCropBoxListFilePath,std::string());
+
             // assign the values to the settings struct
             mVisualizationSettings.space_sampling = show_space_sampling;
             mVisualizationSettings.point_cloud = show_point_cloud;
@@ -316,6 +320,7 @@ namespace next_best_view {
             mCalculator.setCameraModelFilter(cameraModelFilterPtr);
             mCalculator.setRobotModel(robotModelPtr);
             mCalculator.setRatingModule(ratingModulePtr);
+            mCalculator.setCropBoxListFilePath(mCropBoxListFilePath);
         }
 
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
@@ -336,7 +341,7 @@ namespace next_best_view {
 			double contractor = request.contractor;
 			SimpleVector3 position = TypeHelper::getSimpleVector3(request.position);
 
-			SamplePointCloudPtr pointcloud = mCalculator.getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
+            SamplePointCloudPtr pointcloud = mCalculator.getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
 			IndicesPtr feasibleIndices(new Indices());
 			mCalculator.getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
