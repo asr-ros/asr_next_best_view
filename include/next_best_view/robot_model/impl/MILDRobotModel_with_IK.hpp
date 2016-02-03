@@ -84,6 +84,11 @@ namespace next_best_view {
          double mTiltAngleOffset;
 
          /*!
+          * Detemines if the IK calculation should be visualized by markers. Turn this off to speed up calculation
+          */
+         bool mVisualizeIK;
+
+         /*!
           * Transformation frame from the tilted-link to camera left
           */
          Eigen::Affine3d tiltToCameraEigen;
