@@ -37,14 +37,14 @@ namespace next_best_view {
 		KdTreePtr mKdTreePtr;
         std::map<std::string, std::string> objectsResources;
 		UnitSphereSamplerPtr mUnitSphereSamplerPtr;
-        SpaceSamplerPtr mSpaceSamplerPtr;
+                SpaceSamplerPtr mSpaceSamplerPtr;
 		RobotModelPtr mRobotModelPtr;
 		CameraModelFilterPtr mCameraModelFilterPtr;
 		RatingModulePtr mRatingModulePtr;
 		HypothesisUpdaterPtr mHypothesisUpdaterPtr;
 		float mEpsilon;
 		ObjectNameSetPtr mObjectNameSetPtr;
-        VisualizationHelper mVisHelper;
+                VisualizationHelper mVisHelper;
 
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
