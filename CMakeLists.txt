@@ -128,6 +128,7 @@ add_library(
 	src/space_sampler/impl/PlaneSubSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
+        src/space_sampler/impl/RandomSpaceSampler.cpp
 	src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
 )
 target_link_libraries(
