@@ -1,11 +1,8 @@
 <launch>
     <env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" />
-	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
-	<include file="$(find mild_navigation)/launch/simulation.launch" />
 	<include file="$(find next_best_view)/launch/RobotModelService.launch" />
-	<include file="$(find world_model)/launch/world_model.launch" />
 	<node pkg="next_best_view" type="next_best_view" name="nbv" output="screen">
-	  <rosparam file="$(find next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
+	  <rosparam file="$(find next_best_view)/rsc/next_best_view_settings_real.yaml"/>
 	  <rosparam file="$(find next_best_view)/rsc/VisualizationConfig.yaml"/>
 	</node>
 </launch>
