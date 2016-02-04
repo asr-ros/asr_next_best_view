@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(next_best_view)
 
-add_definitions(-std=gnu++0x -Wall)
+
+
+add_definitions(-std=gnu++0x -g -Wall)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp

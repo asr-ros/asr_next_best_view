@@ -334,7 +334,7 @@ namespace next_best_view {
 						++normalVectorCount;
 					}
 				} else {
-					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
+                    ROS_ERROR("InvabufferCropBoxPtrlid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
 					return false;
 				}
 
@@ -354,7 +354,7 @@ namespace next_best_view {
 
 
             std::string xml_path = this->mCropBoxListFilePath;
-            ROS_DEBUG_STREAM("Path to objects.xml: " << xml_path);
+            ROS_DEBUG_STREAM("Path to CropBoxList xml file: " << xml_path);
             std::vector<CropBoxPtr> cropBoxPtrList;
             try {
                 rapidxml::file<> xmlFile(xml_path.c_str());
@@ -366,7 +366,7 @@ namespace next_best_view {
                     rapidxml::xml_node<> *child_node = root_node->first_node();
                     while (child_node)
                     {
-                        CropBoxPtr bufferCropBoxPtr;
+                        CropBoxPtr bufferCropBoxPtr = CropBoxPtr(new CropBox);
                         rapidxml::xml_node<> * min_pt = child_node->first_node("min_pt");
                         rapidxml::xml_attribute<> *x = min_pt->first_attribute("x");
                         rapidxml::xml_attribute<> *y = min_pt->first_attribute("y");
@@ -376,7 +376,8 @@ namespace next_best_view {
                             double x_ = boost::lexical_cast<double>(x->value());
                             double y_ = boost::lexical_cast<double>(y->value());
                             double z_ = boost::lexical_cast<double>(z->value());
-                            bufferCropBoxPtr->setMin(Eigen::Vector4f(x_,y_,z_,1));
+                            Eigen::Vector4f pt_min(x_,y_,z_,1);
+                            bufferCropBoxPtr->setMin(pt_min);
                         }
 
                         rapidxml::xml_node<> * max_pt = child_node->first_node("max_pt");
@@ -388,7 +389,8 @@ namespace next_best_view {
                             double x_ = boost::lexical_cast<double>(x->value());
                             double y_ = boost::lexical_cast<double>(y->value());
                             double z_ = boost::lexical_cast<double>(z->value());
-                            bufferCropBoxPtr->setMax(Eigen::Vector4f(x_,y_,z_,1));
+                            Eigen::Vector4f pt_max(x_,y_,z_,1);
+                            bufferCropBoxPtr->setMax(pt_max);
                         }
 
                         rapidxml::xml_node<> * rotation = child_node->first_node("rotation");
@@ -400,7 +402,8 @@ namespace next_best_view {
                             double x_ = boost::lexical_cast<double>(x->value());
                             double y_ = boost::lexical_cast<double>(y->value());
                             double z_ = boost::lexical_cast<double>(z->value());
-                            bufferCropBoxPtr->setRotation(Eigen::Vector3f(x_,y_,z_));
+                            Eigen::Vector3f rotation(x_,y_,z_);
+                            bufferCropBoxPtr->setRotation(rotation);
                         }
 
                         rapidxml::xml_node<> * translation = child_node->first_node("translation");
@@ -412,7 +415,8 @@ namespace next_best_view {
                             double x_ = boost::lexical_cast<double>(x->value());
                             double y_ = boost::lexical_cast<double>(y->value());
                             double z_ = boost::lexical_cast<double>(z->value());
-                            bufferCropBoxPtr->setTranslation(Eigen::Vector3f(x_,y_,z_));
+                            Eigen::Vector3f translation(x_,y_,z_);
+                            bufferCropBoxPtr->setTranslation(translation);
                         }
                         cropBoxPtrList.push_back(bufferCropBoxPtr);
                         child_node = child_node->next_sibling();
@@ -424,17 +428,21 @@ namespace next_best_view {
                 ROS_DEBUG_STREAM("Can't parse xml-file Parse error: " << err.what());
             }
 
-
+            ROS_DEBUG_STREAM("CropBoxList xml File parsed");
             //Filter the point cloud
             for(std::vector<CropBoxPtr>::iterator it=cropBoxPtrList.begin(); it!=cropBoxPtrList.end(); ++it)
             {
-                ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+                ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
                 (*it)->setInputCloud(originalPointCloudPtr);
                 (*it)->filter(*outputTempPointCloudPtr);
                 (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
             }
 
+            ROS_DEBUG_STREAM("Filtering point cloud finished.");
+
             mVisHelper.triggerCropBoxVisualization(cropBoxPtrList);
+
+            ROS_DEBUG_STREAM("Visualization finished.");
 
 			// the active indices.
             IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(croppedPointCloudPtr->size()));
