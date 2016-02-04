@@ -276,18 +276,18 @@ target_link_libraries(
 #        ${catkin_LIBRARIES}
 #)
 
-##add_executable(
-#	${PROJECT_NAME}_robotmodel_service
-#	src/robot_model/RobotModel_Service.cpp
-#)
+add_executable(
+        ${PROJECT_NAME}_robotmodel_service
+        src/robot_model/RobotModel_Service.cpp
+)
 
-##target_link_libraries(
-#	${PROJECT_NAME}_robotmodel_service
-#	${PCL_LIBRARIES}
-#	${PROJECT_NAME}_packages_impl
-#	glpk
-#	${catkin_LIBRARIES}
-#)
+target_link_libraries(
+        ${PROJECT_NAME}_robotmodel_service
+        ${PCL_LIBRARIES}
+        ${PROJECT_NAME}_packages_impl
+        glpk
+        ${catkin_LIBRARIES}
+)
 
 
 
