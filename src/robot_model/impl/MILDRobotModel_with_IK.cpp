@@ -37,7 +37,7 @@ namespace next_best_view {
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
-        bool useGlobalPlanner_;
+        bool useGlobalPlanner_, visualizeIK_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
         n.getParam("mOmegaUseBase", mOmegaUseBase_);
@@ -45,6 +45,7 @@ namespace next_best_view {
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         n.getParam("panAngleSamplingStepsPerIteration", panAngleSamplingStepsPerIteration_);
         n.getParam("inverseKinematicIterationAccuracy", inverseKinematicIterationAccuracy_);
+        n.getParam("visualizeIK", visualizeIK_);
         n.getParam("ncp", ncp_);
         n.getParam("fcp", fcp_);
         useGlobalPlanner = useGlobalPlanner_;
@@ -56,7 +57,14 @@ namespace next_best_view {
         {
             ROS_DEBUG("Use of global planner DISABLED. Using simplified calculation instead...");
         }
-
+        if (visualizeIK_)
+        {
+            ROS_DEBUG("IK Visualization ENABLED");
+        }
+        else
+        {
+            ROS_DEBUG("IK Visualization DISABLED");
+        }
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaUseBase = mOmegaUseBase_;
@@ -64,6 +72,7 @@ namespace next_best_view {
         mPanAngleSamplingStepsPerIteration = panAngleSamplingStepsPerIteration_;
         mViewPointDistance = (ncp_ + fcp_)/2.0;
         mInverseKinematicIterationAccuracy = inverseKinematicIterationAccuracy_;
+        mVisualizeIK = visualizeIK_;
         ROS_DEBUG_STREAM("mOmegaUseBase: " << mOmegaPan);
         ROS_DEBUG_STREAM("tolerance: " << tolerance);
         ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan);
@@ -160,7 +169,7 @@ namespace next_best_view {
         double tiltMin = mTiltLimits.get<0>();
         double tiltMax = mTiltLimits.get<1>();
 
-        this->resetIKVisualization();
+        if (mVisualizeIK) {this->resetIKVisualization();}
 
         //Make sure the necessary geometry parameters are initialized
         if (!tfParametersInitialized)
@@ -189,8 +198,11 @@ namespace next_best_view {
 
         //Visualize target camera pose & target viewcenter
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
-        Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
-        visualizeIKCameraTarget(target_view_center_point, target_cam_point);
+        if (mVisualizeIK)
+        {
+            Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
+            visualizeIKCameraTarget(target_view_center_point, target_cam_point);
+        }
 
         //Calculate TILT and position of Tilt joint
         double tilt; Eigen::Vector3d tilt_base_point_projected;
@@ -202,12 +214,12 @@ namespace next_best_view {
         ROS_DEBUG_STREAM("tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
         if (tilt < tiltMin)
         {
-            ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tilt);
+            ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tilt*(180.0/M_PI));
             tilt = tiltMin;
         }
         if (tilt > tiltMax)
         {
-            ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt);
+            ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI));
             tilt = tiltMax;
         }
         ROS_INFO_STREAM("Tilt: " << tilt*(180.0/M_PI));
@@ -225,20 +237,28 @@ namespace next_best_view {
         Eigen::Affine3d pan_rotated_Frame = tiltFrame * tiltToPanEigen;
 
         //Calculate PAN and base rotation
+        using namespace std;
+        clock_t begin = clock();
         double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
+        clock_t end = clock();
+        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+        ROS_INFO_STREAM("IK Iteration time: " << elapsed_secs);
         ROS_INFO_STREAM("Pan: " << pan*(180.0/M_PI));
 
         Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d base_Frame = pan_Frame * panToBaseEigen;
 
         //Visualization
-        Eigen::Vector3d base_point(base_Frame(0,3), base_Frame(1,3), base_Frame(2,3));
-        Eigen::Vector3d pan_base_point(pan_Frame(0,3), pan_Frame(1,3), pan_Frame(2,3));
-        Eigen::Vector3d pan_rotated_point(pan_rotated_Frame(0,3), pan_rotated_Frame(1,3), pan_rotated_Frame(2,3));
-        Eigen::Vector3d cam_point(camFrame(0,3), camFrame(1,3), camFrame(2,3));
-        Eigen::Vector3d actual_view_center_point(actualViewCenterEigen(0,3), actualViewCenterEigen(1,3), actualViewCenterEigen(2,3));
-        Eigen::Vector3d base_orientation(base_Frame(0,0), base_Frame(1,0), base_Frame(2,0));
-        visualizeIKcalculation(base_point, base_orientation, pan_base_point, pan_rotated_point, tilt_base_point,tilt_base_point_projected, cam_point, actual_view_center_point);
+        if (mVisualizeIK)
+        {
+            Eigen::Vector3d base_point(base_Frame(0,3), base_Frame(1,3), base_Frame(2,3));
+            Eigen::Vector3d pan_base_point(pan_Frame(0,3), pan_Frame(1,3), pan_Frame(2,3));
+            Eigen::Vector3d pan_rotated_point(pan_rotated_Frame(0,3), pan_rotated_Frame(1,3), pan_rotated_Frame(2,3));
+            Eigen::Vector3d cam_point(camFrame(0,3), camFrame(1,3), camFrame(2,3));
+            Eigen::Vector3d actual_view_center_point(actualViewCenterEigen(0,3), actualViewCenterEigen(1,3), actualViewCenterEigen(2,3));
+            Eigen::Vector3d base_orientation(base_Frame(0,0), base_Frame(1,0), base_Frame(2,0));
+            visualizeIKcalculation(base_point, base_orientation, pan_base_point, pan_rotated_point, tilt_base_point,tilt_base_point_projected, cam_point, actual_view_center_point);
+        }
 
         // Set output values
 		// set pan
@@ -375,14 +395,20 @@ namespace next_best_view {
                             newBestRating = currentRating;
                             currentBestAngle = currentIterationAngle;
                         }
-                        Eigen::Vector4d color_succeeded(1.0-currentRating,currentRating, 0.0, 1.0);
-                        visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 2*i);
-                        visualizeIKArrowSmall(basePoint, basePoint2, color_succeeded, nsIterationVector, 2*i+1);
+                        if (mVisualizeIK)
+                        {
+                            Eigen::Vector4d color_succeeded(1.0-currentRating,currentRating, 0.0, 1.0);
+                            visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 2*i);
+                            visualizeIKArrowSmall(basePoint, basePoint2, color_succeeded, nsIterationVector, 2*i+1);
+                        }
                     }
                     else
                     {
-                        visualizeIKPoint(basePoint, color_failed, nsIterationVector, 2*i);
-                        visualizeIKArrowSmall(basePoint, basePoint2, color_failed, nsIterationVector, 2*i+1);
+                        if (mVisualizeIK)
+                        {
+                            visualizeIKPoint(basePoint, color_failed, nsIterationVector, 2*i);
+                            visualizeIKArrowSmall(basePoint, basePoint2, color_failed, nsIterationVector, 2*i+1);
+                        }
                     }
                 }
             }
