@@ -25,7 +25,9 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 radius: 0.2
-samples: 128
+sampleSizeUnitSphereSampler: 128
 colThresh: 45
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
+sampleSizeRandomSpaceSampler: 100
+samplerId: 1 #smaplerId == 1 => MapBasedHexagonSpaceSampler, samplerId == 2 => RandomSpaceSampler

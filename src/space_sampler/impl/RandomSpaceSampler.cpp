@@ -10,28 +10,32 @@ namespace next_best_view {
         float width = mMapHelperPtr->getMetricWidth() * contractor;
         float height = mMapHelperPtr->getMetricHeight() * contractor;
 
-        float startX = std::max(0.f, currentSpacePosition[0] - (0.5f * width));
-        float startY = std::max(0.f, currentSpacePosition[1] - (0.5f * height));
+        float xStart = std::max(0.f, currentSpacePosition[0] - (0.5f * width));
+        float xEnd = std::min(mMapHelperPtr->getMetricWidth(), currentSpacePosition[0] + (0.5f * width));
 
-        unsigned int numberPoints = 100;
+        float yStart = std::max(0.f, currentSpacePosition[1] - (0.5f * height));
+        float yEnd = std::min(mMapHelperPtr->getMetricHeight(), currentSpacePosition[1] + (0.5f * height));
 
-        while (pointCloud->size() < numberPoints)
+        float xDist = xEnd - xStart;
+        float yDist = yEnd - yStart;
+
+        while (pointCloud->size() < mSampleSize)
         {
             //random numbers between 0 and 1;
-            float rX = ((float) std::rand() / (RAND_MAX));
-            float rY = ((float) std::rand() / (RAND_MAX));
+            float xRandom = ((float) std::rand() / (RAND_MAX));
+            float yRandom = ((float) std::rand() / (RAND_MAX));
 
-            float clampedX = std::min(mMapHelperPtr->getMetricWidth(), startX + rX * width);
-            float clampedY = std::min(mMapHelperPtr->getMetricHeight(), startY + rY * height);
-            SimpleVector3 randomPoint(clampedX, clampedY, 0);
+            SimpleVector3 randomPoint(xStart + xRandom * xDist, yStart + yRandom * yDist, 0);
 
-            //check if randomPoint does not intersect with an obstacle
+            //make sure randomPoint does not intersect with an obstacle
             int8_t occupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(randomPoint);
             if (mMapHelperPtr->isOccupancyValueAcceptable(occupancyValue))
             {
                 pointCloud->push_back(randomPoint);
             }
         }
+
+        return pointCloud;
 
 
     }

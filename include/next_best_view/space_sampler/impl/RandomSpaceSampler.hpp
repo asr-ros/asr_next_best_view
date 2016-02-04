@@ -15,12 +15,12 @@ namespace next_best_view {
     class RandomSpaceSampler : public SpaceSampler {
     private:
         MapHelperPtr mMapHelperPtr;
-        double mHexagonRadius;
+        unsigned int mSampleSize;
     public:
         /*!
          * \brief constructor for CostmapBasedSpaceSampler object
          */
-        RandomSpaceSampler(const MapHelperPtr &mapHelperPtr);
+        RandomSpaceSampler(const MapHelperPtr &mapHelperPtr, unsigned int sampleSize) : mMapHelperPtr(mapHelperPtr), mSampleSize(sampleSize) {}
 
         /*!
          * \brief destructor for CostmapBasedSpaceSampler object

@@ -63,6 +63,8 @@
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/RandomSpaceSampler.hpp"
+
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 
 namespace next_best_view {
@@ -176,14 +178,14 @@ namespace next_best_view {
             */
             numberSearchedObjects = 0;
             double fovx, fovy, ncp, fcp, speedFactorRecognizer;
-            double radius,samples,colThresh;
+            double radius,sampleSizeUnitSphereSampler,colThresh;
             mNodeHandle.param("fovx", fovx, 62.5);
             mNodeHandle.param("fovy", fovy, 48.9);
             mNodeHandle.param("ncp", ncp, .5);
             mNodeHandle.param("fcp", fcp, 5.0);
             mNodeHandle.param("radius", radius, 0.75);
             mNodeHandle.param("colThresh", colThresh, 45.0);
-            mNodeHandle.param("samples", samples, 128.0);
+            mNodeHandle.param("sampleSizeUnitSphereSampler", sampleSizeUnitSphereSampler, 128.0);
             mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
             ROS_DEBUG_STREAM("fovx: " << fovx);
             ROS_DEBUG_STREAM("fovy: " << fovy);
@@ -191,7 +193,7 @@ namespace next_best_view {
             ROS_DEBUG_STREAM("fcp: " << fcp);
             ROS_DEBUG_STREAM("radius: " << radius);
             ROS_DEBUG_STREAM("colThresh: " << colThresh);
-            ROS_DEBUG_STREAM("samples: " << samples);
+            ROS_DEBUG_STREAM("samples: " << sampleSizeUnitSphereSampler);
             ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
 
             //////////////////////////////////////////////////////////////////
@@ -220,7 +222,7 @@ namespace next_best_view {
              * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
              */
             SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
-            unitSphereSamplerPtr->setSamples(samples);
+            unitSphereSamplerPtr->setSamples(sampleSizeUnitSphereSampler);
 
             /* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
              * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
@@ -230,14 +232,39 @@ namespace next_best_view {
             MapHelperPtr mapHelperPtr(new MapHelper());
             mapHelperPtr->setCollisionThreshold(colThresh);
 
-            /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
-             * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
-             * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
-             * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
-             * the map and calculate the points which are contained in the feasible map space.
-             */
-            MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
-            spaceSamplerPtr->setHexagonRadius(radius);
+
+            int sampleSizeRandomSpaceSampler, samplerId;
+            mNodeHandle.param("sampleSizeRandomSpaceSampler", sampleSizeRandomSpaceSampler, 100);
+            mNodeHandle.param("samplerId", samplerId, 1);
+
+            ROS_DEBUG_STREAM("sampleSizeRandomSpaceSampler: " << sampleSizeRandomSpaceSampler);
+            ROS_DEBUG_STREAM("samplerId: " << samplerId);
+
+            SpaceSamplerPtr spaceSamplerPtr;
+            switch (samplerId)
+            {
+            case 1:
+                 /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
+                 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
+                 * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
+                 * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
+                 * the map and calculate the points which are contained in the feasible map space.
+                 */
+                MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler(new MapBasedHexagonSpaceSampler(mapHelperPtr));
+                mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
+                spaceSamplerPtr = mapBasedHexagonSpaceSampler;
+                break;
+            case 2:
+                spaceSamplerPtr = RandomSpaceSamplerPtr(new RandomSpaceSampler(mapHelperPtr, sampleSizeRandomSpaceSampler));
+                break;
+            default:
+                MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler(new MapBasedHexagonSpaceSampler(mapHelperPtr));
+                mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
+                spaceSamplerPtr = mapBasedHexagonSpaceSampler;
+                break;
+             }
+
+
 
             /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
              * The camera model filter takes account for the fact, that there are different cameras around in the real world.
