@@ -1,7 +1,7 @@
 import csv
 
 def get_max_point(point):
-    return [abs(point[2]-point[0]),abs(point[3]-point[1]),1.2]
+    return [(point[2]-point[0]),(point[3]-point[1]),0.3]
 
 def get_translation(point):
     return [point[0],point[1],0.8]

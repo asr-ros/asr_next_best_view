@@ -77,6 +77,8 @@ public:
         visualization_msgs::MarkerArray* objectMeshMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* frustumObjectMeshMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* objectNormalsMarkerArray = new visualization_msgs::MarkerArray();
+        visualization_msgs::MarkerArray* mCropBoxMarkerArray = new visualization_msgs::MarkerArray();
+
 
         mIterationMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*iterationMarkerArray);
         mNewFrustumMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*newFrustumMarkerArray);
@@ -84,6 +86,7 @@ public:
         mObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*objectMeshMarkerArray);
         mObjectNormalsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*objectNormalsMarkerArray);
         mFrustumObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*frustumObjectMeshMarkerArray);
+        mCropBoxMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*mCropBoxMarkerArray);
     }
 
     void triggerIterationVisualizations(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr
@@ -308,20 +311,20 @@ public:
             translation = (*it)->getTranslation();
 
             Eigen::Matrix3f rotationMatrix;
-            rotationMatrix = Eigen::AngleAxisf(rotation[0], Eigen::Vector3f::UnitZ())
+            rotationMatrix = Eigen::AngleAxisf(rotation[0], Eigen::Vector3f::UnitX())
             * Eigen::AngleAxisf(rotation[1], Eigen::Vector3f::UnitY())
             * Eigen::AngleAxisf(rotation[2], Eigen::Vector3f::UnitZ());
 
 
             SimpleVector3 position_cb_frame;
-            position_cb_frame[0] = std::abs(ptMax[0] - ptMin[0])/2;
-            position_cb_frame[1] = std::abs(ptMax[1] - ptMin[1])/2;
-            position_cb_frame[2] = std::abs(ptMax[2] - ptMin[2])/2;
+            position_cb_frame[0] = (ptMax[0] + ptMin[0])/2;
+            position_cb_frame[1] = (ptMax[1] + ptMin[1])/2;
+            position_cb_frame[2] = (ptMax[2] + ptMin[2])/2;
 
             SimpleVector3 position_map_frame;
             position_map_frame = rotationMatrix * position_cb_frame + translation;
 
-            SimpleVector4 color = SimpleVector4(1,0,0,1);
+            SimpleVector4 color = SimpleVector4(0.5,0,0,0.5);
 
             SimpleQuaternion orientation(rotationMatrix);
 

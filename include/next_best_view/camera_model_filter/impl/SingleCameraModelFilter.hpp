@@ -9,6 +9,7 @@
 #define SINGLECAMERAMODELFILTER_HPP_
 
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
+#include <pcl/filters/impl/frustum_culling.hpp>
 
 namespace next_best_view {
 	/*!

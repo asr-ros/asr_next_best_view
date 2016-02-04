@@ -29,6 +29,8 @@
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 
+#include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
+
 #include <rapid_xml/rapidxml.hpp>
 #include <rapid_xml/rapidxml_utils.hpp>
 

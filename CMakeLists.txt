@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(next_best_view)
 
-
-
 add_definitions(-std=gnu++0x -g -Wall)
+
+
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -89,6 +89,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
+
 
 ## Declare a cpp library
 
