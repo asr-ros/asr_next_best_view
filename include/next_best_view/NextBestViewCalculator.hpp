@@ -376,7 +376,7 @@ namespace next_best_view {
                             double x_ = boost::lexical_cast<double>(x->value());
                             double y_ = boost::lexical_cast<double>(y->value());
                             double z_ = boost::lexical_cast<double>(z->value());
-                            bufferCropBoxPtr->setMin(Eigen::Vector4f(x_,y_,z_,0));
+                            bufferCropBoxPtr->setMin(Eigen::Vector4f(x_,y_,z_,1));
                         }
 
                         rapidxml::xml_node<> * max_pt = child_node->first_node("max_pt");
@@ -388,7 +388,7 @@ namespace next_best_view {
                             double x_ = boost::lexical_cast<double>(x->value());
                             double y_ = boost::lexical_cast<double>(y->value());
                             double z_ = boost::lexical_cast<double>(z->value());
-                            bufferCropBoxPtr->setMax(Eigen::Vector4f(x_,y_,z_,0));
+                            bufferCropBoxPtr->setMax(Eigen::Vector4f(x_,y_,z_,1));
                         }
 
                         rapidxml::xml_node<> * rotation = child_node->first_node("rotation");
@@ -433,6 +433,9 @@ namespace next_best_view {
                 (*it)->filter(*outputTempPointCloudPtr);
                 (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
             }
+
+            mVisHelper.triggerCropBoxVisualization(cropBoxPtrList);
+
 			// the active indices.
             IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(croppedPointCloudPtr->size()));
 			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
