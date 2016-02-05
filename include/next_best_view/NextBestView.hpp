@@ -233,6 +233,12 @@ namespace next_best_view {
             mapHelperPtr->setCollisionThreshold(colThresh);
 
 
+            /*
+             * Intializes SpaceSampler spaceSampler with the SpaceSampler sublcass specified by the parameter samplerId :
+             * - samplerId == 1 => MapBasedHexagonSpaceSampler
+             * - smaplerId == 2 => RandomSpaceSampler
+             */
+
             int sampleSizeRandomSpaceSampler, samplerId;
             mNodeHandle.param("sampleSizeRandomSpaceSampler", sampleSizeRandomSpaceSampler, 100);
             mNodeHandle.param("samplerId", samplerId, 1);
@@ -260,6 +266,13 @@ namespace next_best_view {
                 randomSpaceSampler = RandomSpaceSamplerPtr(new RandomSpaceSampler(mapHelperPtr, sampleSizeRandomSpaceSampler));
                 spaceSamplerPtr = randomSpaceSampler;
                 break;
+            default:
+                std::stringstream ss;
+                ss << samplerId << " is not a valid sampler ID";
+                ROS_ERROR_STREAM(ss.str());
+                throw std::runtime_error(ss.str());
+                break;
+
             }
 
 
