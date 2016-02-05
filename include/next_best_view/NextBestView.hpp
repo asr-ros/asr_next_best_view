@@ -241,6 +241,8 @@ namespace next_best_view {
             ROS_DEBUG_STREAM("samplerId: " << samplerId);
 
             SpaceSamplerPtr spaceSamplerPtr;
+            RandomSpaceSamplerPtr randomSpaceSampler;
+            MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler;
             switch (samplerId)
             {
             case 1:
@@ -250,19 +252,15 @@ namespace next_best_view {
                  * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
                  * the map and calculate the points which are contained in the feasible map space.
                  */
-                MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler(new MapBasedHexagonSpaceSampler(mapHelperPtr));
+                mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
                 mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
                 spaceSamplerPtr = mapBasedHexagonSpaceSampler;
                 break;
             case 2:
-                spaceSamplerPtr = RandomSpaceSamplerPtr(new RandomSpaceSampler(mapHelperPtr, sampleSizeRandomSpaceSampler));
+                randomSpaceSampler = RandomSpaceSamplerPtr(new RandomSpaceSampler(mapHelperPtr, sampleSizeRandomSpaceSampler));
+                spaceSamplerPtr = randomSpaceSampler;
                 break;
-            default:
-                MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler(new MapBasedHexagonSpaceSampler(mapHelperPtr));
-                mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
-                spaceSamplerPtr = mapBasedHexagonSpaceSampler;
-                break;
-             }
+            }
 
 
 
