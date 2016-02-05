@@ -504,6 +504,9 @@ private:
     
     static void deleteMarkerArray(visualization_msgs::MarkerArray::Ptr &array, ros::Publisher &publisher)
     {
+      if(!array)
+	return;
+
         if (array->markers.size() == 0) {
             return;
         }
