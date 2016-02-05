@@ -1,10 +1,10 @@
 import csv
 
 def get_max_point(point):
-    return [(point[2]-point[0]),(point[3]-point[1]),0.3]
+    return [(point[2]-point[0]),(point[3]-point[1]),0.5]
 
 def get_translation(point):
-    return [point[0],point[1],0.8]
+    return [point[0],point[1],0.7]
 
 def main():
 
@@ -12,12 +12,13 @@ def main():
     i = 0
 
     with open('regions.csv', 'rb') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             region = []
             for elt in row:
                 region.append(float(elt))
             Regions.append(region)
+            print Regions
 
     returnString = '<CropBoxList name="Map">'
     for t in Regions:

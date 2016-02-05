@@ -300,6 +300,11 @@ public:
 
     void triggerCropBoxVisualization(const std::vector<CropBoxPtr> cropBoxListPtr)
     {
+        if(!mCropBoxMarkerArrayPtr)
+        {
+            ROS_ERROR_STREAM("triggerCropBoxVisualization::mCropBoxMarkerArrayPtr is empty.");
+            return;
+        }
         int id = 0;
         for(std::vector<CropBoxPtr>::const_iterator it = cropBoxListPtr.begin(); it != cropBoxListPtr.end(); ++it)
         {
@@ -324,7 +329,8 @@ public:
             SimpleVector3 position_map_frame;
             position_map_frame = rotationMatrix * position_cb_frame + translation;
 
-            SimpleVector4 color = SimpleVector4(0.5,0,0,0.5);
+            //TODO : IN PARAM EXTERN STORE
+            SimpleVector4 color = SimpleVector4(0,0.5,0,0.4);
 
             SimpleQuaternion orientation(rotationMatrix);
 
@@ -333,7 +339,11 @@ public:
             scale[1] = std::abs(ptMax[1] - ptMin[1]);
             scale[2] = std::abs(ptMax[2] - ptMin[2]);
 
-            mCropBoxMarkerArrayPtr->markers.push_back(MarkerHelper::getCubeMarker(id, position_map_frame, orientation, scale,  color, "cropbox_ns"));
+            std::stringstream ns;
+            ns << "cropbox_ns" << id;
+
+            mCropBoxMarkerArrayPtr->markers.push_back(MarkerHelper::getCubeMarker(id,
+                                    position_map_frame, orientation, scale,  color, ns.str()));
             id++;
         }
         mCropBoxMarkerPublisher.publish(*mCropBoxMarkerArrayPtr);

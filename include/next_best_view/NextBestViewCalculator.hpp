@@ -51,6 +51,7 @@ namespace next_best_view {
 		ObjectNameSetPtr mObjectNameSetPtr;
         VisualizationHelper mVisHelper;
         std::string mCropBoxListFilePath;
+        std::vector<CropBoxPtr> mCropBoxPtrList;
 
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -65,7 +66,10 @@ namespace next_best_view {
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
               mRatingModulePtr(ratingModulePtr),
               mEpsilon(10E-3),
-              mVisHelper(){}
+              mVisHelper()
+        {
+            readCropBoxDataFromXMLFile();
+        }
 	public:
 
         /**
@@ -124,6 +128,85 @@ namespace next_best_view {
 		}
 
 	private:
+
+        //TODO : REFACTOR
+        void readCropBoxDataFromXMLFile()
+        {
+            std::string xml_path = this->mCropBoxListFilePath;
+            ROS_DEBUG_STREAM("Path to CropBoxList xml file: " << xml_path);
+            try {
+                rapidxml::file<> xmlFile(xml_path.c_str());
+                rapidxml::xml_document<> doc;
+                doc.parse<0>(xmlFile.data());
+
+                rapidxml::xml_node<> *root_node = doc.first_node();
+                if (root_node) {
+                    rapidxml::xml_node<> *child_node = root_node->first_node();
+                    while (child_node)
+                    {
+                        CropBoxPtr bufferCropBoxPtr = CropBoxPtr(new CropBox);
+                        rapidxml::xml_node<> * min_pt = child_node->first_node("min_pt");
+                        rapidxml::xml_attribute<> *x = min_pt->first_attribute("x");
+                        rapidxml::xml_attribute<> *y = min_pt->first_attribute("y");
+                        rapidxml::xml_attribute<> *z = min_pt->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector4f pt_min(x_,y_,z_,1);
+                            bufferCropBoxPtr->setMin(pt_min);
+                        }
+
+                        rapidxml::xml_node<> * max_pt = child_node->first_node("max_pt");
+                        x = max_pt->first_attribute("x");
+                        y = max_pt->first_attribute("y");
+                        z = max_pt->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector4f pt_max(x_,y_,z_,1);
+                            bufferCropBoxPtr->setMax(pt_max);
+                        }
+
+                        rapidxml::xml_node<> * rotation = child_node->first_node("rotation");
+                        x = rotation->first_attribute("x");
+                        y = rotation->first_attribute("y");
+                        z = rotation->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector3f rotation(x_,y_,z_);
+                            bufferCropBoxPtr->setRotation(rotation);
+                        }
+
+                        rapidxml::xml_node<> * translation = child_node->first_node("translation");
+                        x = translation->first_attribute("x");
+                        y = translation->first_attribute("y");
+                        z = translation->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector3f translation(x_,y_,z_);
+                            bufferCropBoxPtr->setTranslation(translation);
+                        }
+                        mCropBoxPtrList.push_back(bufferCropBoxPtr);
+                        child_node = child_node->next_sibling();
+                    }
+                }
+            } catch(std::runtime_error err) {
+                ROS_ERROR_STREAM("Can't parse xml-file. Runtime error: " << err.what());
+            } catch (rapidxml::parse_error err) {
+                ROS_ERROR_STREAM("Can't parse xml-file Parse error: " << err.what());
+            }
+        }
+
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
 
             int iterationStep = 0;
@@ -353,86 +436,8 @@ namespace next_best_view {
                 originalPointCloudPtr->push_back(pointCloudPoint);
 			}
 
-
-
-            std::string xml_path = this->mCropBoxListFilePath;
-            ROS_DEBUG_STREAM("Path to CropBoxList xml file: " << xml_path);
-            std::vector<CropBoxPtr> cropBoxPtrList;
-            try {
-                rapidxml::file<> xmlFile(xml_path.c_str());
-                rapidxml::xml_document<> doc;
-                doc.parse<0>(xmlFile.data());
-
-                rapidxml::xml_node<> *root_node = doc.first_node();
-                if (root_node) {
-                    rapidxml::xml_node<> *child_node = root_node->first_node();
-                    while (child_node)
-                    {
-                        CropBoxPtr bufferCropBoxPtr = CropBoxPtr(new CropBox);
-                        rapidxml::xml_node<> * min_pt = child_node->first_node("min_pt");
-                        rapidxml::xml_attribute<> *x = min_pt->first_attribute("x");
-                        rapidxml::xml_attribute<> *y = min_pt->first_attribute("y");
-                        rapidxml::xml_attribute<> *z = min_pt->first_attribute("z");
-                        if (x && y && z)
-                        {
-                            double x_ = boost::lexical_cast<double>(x->value());
-                            double y_ = boost::lexical_cast<double>(y->value());
-                            double z_ = boost::lexical_cast<double>(z->value());
-                            Eigen::Vector4f pt_min(x_,y_,z_,1);
-                            bufferCropBoxPtr->setMin(pt_min);
-                        }
-
-                        rapidxml::xml_node<> * max_pt = child_node->first_node("max_pt");
-                        x = max_pt->first_attribute("x");
-                        y = max_pt->first_attribute("y");
-                        z = max_pt->first_attribute("z");
-                        if (x && y && z)
-                        {
-                            double x_ = boost::lexical_cast<double>(x->value());
-                            double y_ = boost::lexical_cast<double>(y->value());
-                            double z_ = boost::lexical_cast<double>(z->value());
-                            Eigen::Vector4f pt_max(x_,y_,z_,1);
-                            bufferCropBoxPtr->setMax(pt_max);
-                        }
-
-                        rapidxml::xml_node<> * rotation = child_node->first_node("rotation");
-                        x = rotation->first_attribute("x");
-                        y = rotation->first_attribute("y");
-                        z = rotation->first_attribute("z");
-                        if (x && y && z)
-                        {
-                            double x_ = boost::lexical_cast<double>(x->value());
-                            double y_ = boost::lexical_cast<double>(y->value());
-                            double z_ = boost::lexical_cast<double>(z->value());
-                            Eigen::Vector3f rotation(x_,y_,z_);
-                            bufferCropBoxPtr->setRotation(rotation);
-                        }
-
-                        rapidxml::xml_node<> * translation = child_node->first_node("translation");
-                        x = translation->first_attribute("x");
-                        y = translation->first_attribute("y");
-                        z = translation->first_attribute("z");
-                        if (x && y && z)
-                        {
-                            double x_ = boost::lexical_cast<double>(x->value());
-                            double y_ = boost::lexical_cast<double>(y->value());
-                            double z_ = boost::lexical_cast<double>(z->value());
-                            Eigen::Vector3f translation(x_,y_,z_);
-                            bufferCropBoxPtr->setTranslation(translation);
-                        }
-                        cropBoxPtrList.push_back(bufferCropBoxPtr);
-                        child_node = child_node->next_sibling();
-                    }
-                }
-            } catch(std::runtime_error err) {
-                ROS_DEBUG_STREAM("Can't parse xml-file. Runtime error: " << err.what());
-            } catch (rapidxml::parse_error err) {
-                ROS_DEBUG_STREAM("Can't parse xml-file Parse error: " << err.what());
-            }
-
-            ROS_DEBUG_STREAM("CropBoxList xml File parsed");
             //Filter the point cloud
-            for(std::vector<CropBoxPtr>::iterator it=cropBoxPtrList.begin(); it!=cropBoxPtrList.end(); ++it)
+            for(std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
             {
                 ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
                 (*it)->setInputCloud(originalPointCloudPtr);
@@ -440,19 +445,26 @@ namespace next_best_view {
                 (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
             }
 
-            ROS_DEBUG_STREAM("Filtering point cloud finished.");
+            ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
 
-            mVisHelper.triggerCropBoxVisualization(cropBoxPtrList);
+            mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
 
-            ROS_DEBUG_STREAM("Visualization finished.");
+            //If point cloud is empty, getting the indices lead to an Error.
+            if(croppedPointCloudPtr->size() > 0)
+            {
+                // the active indices.
+                IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(croppedPointCloudPtr->size()));
+                boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
 
-			// the active indices.
-            IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(croppedPointCloudPtr->size()));
-			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
 
+                // set the point cloud
+                this->setActiveIndices(activeIndicesPtr);
+            }
+            else
+            {
+                ROS_DEBUG_STREAM("setPointCloudFromMessage::Cropped point cloud is empty.");
+            }
 
-			// set the point cloud
-			this->setActiveIndices(activeIndicesPtr);
             this->setPointCloudPtr(croppedPointCloudPtr);
 			return true;
 		}

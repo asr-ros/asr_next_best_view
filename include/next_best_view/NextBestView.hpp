@@ -424,6 +424,14 @@ namespace next_best_view {
 			mCalculator.updateFromExternalObjectPointList(viewportPointList);
 
 			response.is_valid = true;
+            if(mCalculator.getPointCloudPtr()->size() == 0)
+            {
+                response.is_empty = true;
+            }
+            else
+            {
+                response.is_empty = false;
+            }
             ROS_DEBUG_STREAM("processSetPointCloudServiceCall3: " << mCalculator.getCameraModelFilter()->getPivotPointPosition());
 			// publish the visualization
             this->publishVisualization(request.pose, true, false);

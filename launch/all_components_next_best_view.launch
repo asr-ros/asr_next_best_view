@@ -5,6 +5,7 @@
 	<include file="$(find next_best_view)/launch/RobotModelService.launch" />
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<node pkg="next_best_view" type="next_best_view" name="nbv" output="screen">
+	  <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxList.xml"/>
 	  <rosparam file="$(find next_best_view)/launch/next_best_view_settings_sim.yaml"/>
 	  <rosparam file="$(find next_best_view)/launch/VisualizationConfig.yaml"/>
 	</node>
