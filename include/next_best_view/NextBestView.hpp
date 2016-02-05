@@ -63,7 +63,7 @@
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSampler.hpp"
-#include "next_best_view/space_sampler/impl/RandomSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/MapBasedRandomSpaceSampler.hpp"
 
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 
@@ -236,20 +236,20 @@ namespace next_best_view {
             /*
              * Intializes SpaceSampler spaceSampler with the SpaceSampler sublcass specified by the parameter samplerId :
              * - samplerId == 1 => MapBasedHexagonSpaceSampler
-             * - smaplerId == 2 => RandomSpaceSampler
+             * - smaplerId == 2 => MapBasedRandomSpaceSampler
              */
 
-            int sampleSizeRandomSpaceSampler, samplerId;
-            mNodeHandle.param("sampleSizeRandomSpaceSampler", sampleSizeRandomSpaceSampler, 100);
-            mNodeHandle.param("samplerId", samplerId, 1);
+            int sampleSizeMapBasedRandomSpaceSampler, spaceSamplerId;
+            mNodeHandle.param("sampleSizeMapBasedRandomSpaceSampler", sampleSizeMapBasedRandomSpaceSampler, 100);
+            mNodeHandle.param("spaceSamplerId", spaceSamplerId, 1);
 
-            ROS_DEBUG_STREAM("sampleSizeRandomSpaceSampler: " << sampleSizeRandomSpaceSampler);
-            ROS_DEBUG_STREAM("samplerId: " << samplerId);
+            ROS_DEBUG_STREAM("sampleSizeMapBasedRandomSpaceSampler: " << sampleSizeMapBasedRandomSpaceSampler);
+            ROS_DEBUG_STREAM("spaceSamplerId: " << spaceSamplerId);
 
             SpaceSamplerPtr spaceSamplerPtr;
-            RandomSpaceSamplerPtr randomSpaceSampler;
+            MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler;
             MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler;
-            switch (samplerId)
+            switch (spaceSamplerId)
             {
             case 1:
                  /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
@@ -263,12 +263,12 @@ namespace next_best_view {
                 spaceSamplerPtr = mapBasedHexagonSpaceSampler;
                 break;
             case 2:
-                randomSpaceSampler = RandomSpaceSamplerPtr(new RandomSpaceSampler(mapHelperPtr, sampleSizeRandomSpaceSampler));
-                spaceSamplerPtr = randomSpaceSampler;
+                mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mapHelperPtr, sampleSizeMapBasedRandomSpaceSampler));
+                spaceSamplerPtr = mapBasedRandomSpaceSampler;
                 break;
             default:
                 std::stringstream ss;
-                ss << samplerId << " is not a valid sampler ID";
+                ss << spaceSamplerId << " is not a valid sampler ID";
                 ROS_ERROR_STREAM(ss.str());
                 throw std::runtime_error(ss.str());
                 break;

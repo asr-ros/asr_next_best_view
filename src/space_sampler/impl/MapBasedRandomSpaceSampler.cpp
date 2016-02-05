@@ -1,8 +1,8 @@
-#include "next_best_view/space_sampler/impl/RandomSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/MapBasedRandomSpaceSampler.hpp"
 
 namespace next_best_view {
 
-    SamplePointCloudPtr RandomSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor)
+    SamplePointCloudPtr MapBasedRandomSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor)
     {
         SamplePointCloudPtr pointCloud = SamplePointCloudPtr(new SamplePointCloud());
         pointCloud->push_back(currentSpacePosition);

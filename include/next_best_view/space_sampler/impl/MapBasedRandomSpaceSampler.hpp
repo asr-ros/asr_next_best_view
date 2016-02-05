@@ -5,7 +5,7 @@
 
 namespace next_best_view {
 
-    class RandomSpaceSampler : public SpaceSampler {
+    class MapBasedRandomSpaceSampler : public SpaceSampler {
     private:
         MapHelperPtr mMapHelperPtr;
         unsigned int mSampleSize;
@@ -13,7 +13,7 @@ namespace next_best_view {
         /*!
          * \brief constructor for RandomSpaceSampler object
          */
-        RandomSpaceSampler(const MapHelperPtr &mapHelperPtr, unsigned int sampleSize) : mMapHelperPtr(mapHelperPtr), mSampleSize(sampleSize) {}
+        MapBasedRandomSpaceSampler(const MapHelperPtr &mapHelperPtr, unsigned int sampleSize) : mMapHelperPtr(mapHelperPtr), mSampleSize(sampleSize) {}
 
         SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
     };
@@ -21,7 +21,7 @@ namespace next_best_view {
     /*!
      * \brief Definition for the shared pointer type of the class.
      */
-    typedef boost::shared_ptr<RandomSpaceSampler> RandomSpaceSamplerPtr;
+    typedef boost::shared_ptr<MapBasedRandomSpaceSampler> MapBasedRandomSpaceSamplerPtr;
 }
 
 
