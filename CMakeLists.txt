@@ -149,6 +149,7 @@ add_dependencies(
 	${PROJECT_NAME}
 	${PROJECT_NAME}_generate_messages_cpp
 	object_database
+	world_model
 )
 
 target_link_libraries(
