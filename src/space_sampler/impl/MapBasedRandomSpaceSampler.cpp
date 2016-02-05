@@ -10,24 +10,15 @@ namespace next_best_view {
         double width = mMapHelperPtr->getMetricWidth() * contractor;
         double height = mMapHelperPtr->getMetricHeight() * contractor;
 
-        double xStart = std::max(0., currentSpacePosition[0] - (0.5 * width));
-        double xEnd = std::min((double) mMapHelperPtr->getMetricWidth(), currentSpacePosition[0] + (0.5 * width));
-
-        double yStart = std::max(0., currentSpacePosition[1] - (0.5 * height));
-        double yEnd = std::min((double) mMapHelperPtr->getMetricHeight(), currentSpacePosition[1] + (0.5 * height));
-
-        double xDist = xEnd - xStart;
-        double yDist = yEnd - yStart;
-
         while (pointCloud->size() < mSampleSize)
         {
-            //random numbers between 0 and 1;
-            double xRandom = ((double) std::rand() / (RAND_MAX));
-            double yRandom = ((double) std::rand() / (RAND_MAX));
+            //random numbers between -1 and 1;
+            double xRandom = ((double) std::rand() / (RAND_MAX)) * 2 - 1;
+            double yRandom = ((double) std::rand() / (RAND_MAX)) * 2 - 1;
 
-            SimpleVector3 randomPoint(xStart + xRandom * xDist, yStart + yRandom * yDist, 0.);
+            SimpleVector3 randomPoint(currentSpacePosition[0] + xRandom * width, currentSpacePosition[1] + yRandom * height, 0.);
 
-            //make sure randomPoint does not intersect with an obstacle
+            //make sure randomPoint does not intersect with an obstacle and is inside the map
             int8_t occupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(randomPoint);
             if (mMapHelperPtr->isOccupancyValueAcceptable(occupancyValue))
             {
