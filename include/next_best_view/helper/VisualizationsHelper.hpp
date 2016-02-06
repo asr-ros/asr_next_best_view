@@ -57,11 +57,32 @@ public:
 
     VisualizationHelper():m_i(0),m_j(0),mIterationStep(0) {
         // initialize publishers
-        mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>( "/nbv/iteration_visualization", 1000);
+        mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/iteration_visualization", 1000);
         mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_marker_array", 1000);
         mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_meshes", 100, false);
         mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_normals", 100, false);
         mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_object_meshes", 100, false);
+
+        if (!mIterationMarkerArrayPublisher) {
+            ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
+            throw "Publisher invalid";
+        }
+        if (!mFrustumMarkerArrayPublisher) {
+            ROS_ERROR("mFrustumMarkerArrayPublisher is invalid.");
+            throw "Publisher invalid";
+        }
+        if (!mObjectMeshMarkerPublisher) {
+            ROS_ERROR("mObjectMeshMarkerPublisher is invalid.");
+            throw "Publisher invalid";
+        }
+        if (!mPointObjectNormalPublisher) {
+            ROS_ERROR("mPointObjectNormalPublisher is invalid.");
+            throw "Publisher invalid";;
+        }
+        if (!mFrustumObjectMeshMarkerPublisher) {
+            ROS_ERROR("mFrustumObjectMeshMarkerPublisher is invalid.");
+            throw "Publisher invalid";;
+        }
 
         // initalize data
         mNodeHandle.getParam("/nbv/boolClearBetweenIterations", mBoolClearBetweenIterations);
@@ -600,8 +621,8 @@ private:
     
     static void deleteMarkerArray(visualization_msgs::MarkerArray::Ptr &array, ros::Publisher &publisher)
     {
-      if(!array)
-	return;
+      if(!array || !publisher)
+        return;
 
         if (array->markers.size() == 0) {
             return;
