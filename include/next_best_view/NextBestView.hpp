@@ -364,6 +364,7 @@ namespace next_best_view {
             //Set the max amout of iterations
             int maxIterationSteps;
             mNodeHandle.param("maxIterationSteps", maxIterationSteps, 20);
+            ROS_DEBUG_STREAM("maxIterationSteps: " << maxIterationSteps);
             mCalculator.setMaxIterationSteps(maxIterationSteps);
         }
 

@@ -155,7 +155,7 @@ namespace next_best_view {
                             iterationStep);
 
                 if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep <= mMaxIterationSteps) {
+                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
 					resultViewport = intermediateResultViewport;
                     ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
 					return true;
