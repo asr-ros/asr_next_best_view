@@ -360,6 +360,11 @@ namespace next_best_view {
             mCalculator.setCameraModelFilter(cameraModelFilterPtr);
             mCalculator.setRobotModel(robotModelPtr);
             mCalculator.setRatingModule(ratingModulePtr);
+
+            //Set the max amout of iterations
+            int maxIterationSteps;
+            mNodeHandle.param("maxIterationSteps", maxIterationSteps, 20);
+            mCalculator.setMaxIterationSteps(maxIterationSteps);
         }
 
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {

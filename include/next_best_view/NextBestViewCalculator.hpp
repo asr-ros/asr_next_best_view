@@ -46,6 +46,8 @@ namespace next_best_view {
 		ObjectNameSetPtr mObjectNameSetPtr;
                 VisualizationHelper mVisHelper;
 
+        int mMaxIterationSteps;
+
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
 				const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
@@ -153,7 +155,7 @@ namespace next_best_view {
                             iterationStep);
 
                 if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
+                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep <= mMaxIterationSteps) {
 					resultViewport = intermediateResultViewport;
                     ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
 					return true;
@@ -510,6 +512,14 @@ namespace next_best_view {
 		float getEpsilon() {
 			return mEpsilon;
 		}
+
+        /**
+         * @param maxIterationSteps  - max number of iteration steps
+         */
+        void setMaxIterationSteps(int maxIterationSteps)
+        {
+            mMaxIterationSteps  = maxIterationSteps;
+        }
 	};
 }
 

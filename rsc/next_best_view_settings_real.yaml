@@ -31,3 +31,5 @@ panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 sampleSizeMapBasedRandomSpaceSampler: 100
 spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
+maxIterationSteps: 20
+
