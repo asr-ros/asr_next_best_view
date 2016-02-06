@@ -33,4 +33,4 @@ colThresh: 45
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
 sampleSizeMapBasedRandomSpaceSampler: 100
-spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => RandomSpaceSampler
+spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
