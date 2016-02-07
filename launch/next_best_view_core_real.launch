@@ -4,6 +4,6 @@
 	<node pkg="next_best_view" type="next_best_view" name="nbv" output="screen">
 	  <rosparam file="$(find next_best_view)/rsc/next_best_view_settings_real.yaml"/>
 	  <rosparam file="$(find next_best_view)/rsc/VisualizationConfig.yaml"/>
-<param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxList.xml"/>
+	  <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxListManual.xml"/>
 	</node>
 </launch>

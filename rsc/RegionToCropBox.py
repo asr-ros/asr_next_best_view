@@ -1,4 +1,5 @@
 import csv
+import sys
 
 def get_max_point(point):
     return [(point[3]-point[0]),(point[4]-point[1]),(point[5]-point[2])]
@@ -11,7 +12,10 @@ def main():
     Regions = []
     i = 0
 
-    with open('regions.csv', 'rb') as csvfile:
+    print "Reading from .csv input file: " + sys.argv[1]
+    print "Writing to .xml output file: " + sys.argv[2]
+
+    with open(sys.argv[1], 'rb') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             region = []
@@ -25,6 +29,9 @@ def main():
         returnString += '<CropBox name="Region_'+str(i)+'">'
         returnString += '<min_pt x="0" y="0" z="0"/>'
         max_point = get_max_point(t)
+        if max_point[0] < 0.0 or max_point[1] < 0.0 or max_point[2] < 0.0:
+            print "ABORTING: Max values must be positive for PCL crop box filtering."
+            return
         returnString += '<max_pt x="'+str(max_point[0])+'" y="'+str(max_point[1])+'" z="'+str(max_point[2])+'"/>'
         returnString += '<rotation x="0" y="0" z="0"/>'
         translation = get_translation(t)
@@ -34,7 +41,7 @@ def main():
 
     returnString += '</CropBoxList>'
 
-    f = open('./CropBoxList.xml', 'r+')
+    f = open(argv[2], 'r+')
     f.truncate()
     f.write(returnString)
     f.close()

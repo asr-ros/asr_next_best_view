@@ -84,46 +84,46 @@ namespace next_best_view {
 	 */
 	class NextBestView {
 	private:
-		// The Calculator Instance
-		NextBestViewCalculator mCalculator;
+	  // The Calculator Instance
+	  NextBestViewCalculator mCalculator;
 
-		// Node Handles
-		ros::NodeHandle mGlobalNodeHandle;
-		ros::NodeHandle mNodeHandle;
+	  // Node Handles
+	  ros::NodeHandle mGlobalNodeHandle;
+	  ros::NodeHandle mNodeHandle;
 
-		// ServiceServer and Publisher
-        ros::ServiceServer mGetPointCloud2ServiceServer;
-        ros::ServiceServer mGetPointCloudServiceServer;
-		ros::ServiceServer mSetPointCloudServiceServer;
-		ros::ServiceServer mGetNextBestViewServiceServer;
-		ros::ServiceServer mGetSpaceSamplingServiceServer;
-		ros::ServiceServer mUpdatePointCloudServiceServer;
-		ros::ServiceServer mSetupVisualizationServiceServer;
-        ros::ServiceServer mTriggerFrustumVisualizationServer;
-        ros::ServiceServer mTriggerOldFrustumVisualizationServer;
-        ros::ServiceServer mResetCalculatorServer;
+	  // ServiceServer and Publisher
+	  ros::ServiceServer mGetPointCloud2ServiceServer;
+	  ros::ServiceServer mGetPointCloudServiceServer;
+	  ros::ServiceServer mSetPointCloudServiceServer;
+	  ros::ServiceServer mGetNextBestViewServiceServer;
+	  ros::ServiceServer mGetSpaceSamplingServiceServer;
+	  ros::ServiceServer mUpdatePointCloudServiceServer;
+	  ros::ServiceServer mSetupVisualizationServiceServer;
+	  ros::ServiceServer mTriggerFrustumVisualizationServer;
+	  ros::ServiceServer mTriggerOldFrustumVisualizationServer;
+	  ros::ServiceServer mResetCalculatorServer;
 
-        ros::Publisher mInitialPosePublisher;
+	  ros::Publisher mInitialPosePublisher;
 
-		// Action Clients
-		MoveBaseActionClientPtr mMoveBaseActionClient;
+	  // Action Clients
+	  MoveBaseActionClientPtr mMoveBaseActionClient;
 
-		// ServiceClients and Subscriber
-        ros::ServiceClient mPushViewportServiceClient;
-		ros::ServiceClient mGetViewportListServiceClient;
+	  // ServiceClients and Subscriber
+	  ros::ServiceClient mPushViewportServiceClient;
+	  ros::ServiceClient mGetViewportListServiceClient;
 
-		// Etcetera
-		ViewportPoint mCurrentCameraViewport;
-		ObjectPointCloudPtr mPointCloudPtr;
-		KdTreePtr mKdTreePtr;
-        VisualizationHelper mVisHelper;
-		SetupVisualizationRequest mVisualizationSettings;
-        bool mCurrentlyPublishingVisualization;
-        unsigned int numberSearchedObjects;
+	  // Etcetera
+	  ViewportPoint mCurrentCameraViewport;
+	  ObjectPointCloudPtr mPointCloudPtr;
+	  KdTreePtr mKdTreePtr;
+	  VisualizationHelper mVisHelper;
+	  SetupVisualizationRequest mVisualizationSettings;
+	  bool mCurrentlyPublishingVisualization;
+	  unsigned int numberSearchedObjects;
 
-        // Bool for set point cloud flags
-        bool mEnableIntermediateObjectWeighting;
-        bool mEnableCropBoxFiltering;
+	  // Bool for set point cloud flags
+	  bool mEnableIntermediateObjectWeighting;
+	  bool mEnableCropBoxFiltering;
 
 	public:
 		/*!
