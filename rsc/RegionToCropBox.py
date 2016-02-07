@@ -1,5 +1,7 @@
+#!/usr/bin/python
+
 import csv
-import sys
+import sys, getopt
 
 def get_max_point(point):
     return [(point[3]-point[0]),(point[4]-point[1]),(point[5]-point[2])]
@@ -12,10 +14,25 @@ def main():
     Regions = []
     i = 0
 
-    print "Reading from .csv input file: " + sys.argv[1]
-    print "Writing to .xml output file: " + sys.argv[2]
+    inputfile = ''
+    outputfile = ''
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"hi:o:",["ifile=","ofile="])
+    except getopt.error:
+        print 'RegionToCropBox.py -i <inputfile>.csv -o <outputfile>.xml'
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print 'RegionToCropBox.py -i <inputfile>.csv -o <outputfile>.xml'
+            sys.exit()
+        elif opt in ("-i", "--ifile"):
+            inputfile = arg
+        elif opt in ("-o", "--ofile"):
+            outputfile = arg
+    print 'Input file is "', inputfile
+    print 'Output file is "', outputfile
 
-    with open(sys.argv[1], 'rb') as csvfile:
+    with open(inputfile, 'rb') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             region = []
@@ -41,7 +58,7 @@ def main():
 
     returnString += '</CropBoxList>'
 
-    f = open(argv[2], 'r+')
+    f = open(outputfile, 'r+')
     f.truncate()
     f.write(returnString)
     f.close()
