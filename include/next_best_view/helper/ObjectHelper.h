@@ -10,6 +10,8 @@
 namespace next_best_view {
     typedef object_database::ObjectMetaData::Response ObjectMetaDataResponse;
     typedef ObjectMetaDataResponse::Ptr ObjectMetaDataResponsePtr;
+    typedef world_model::GetIntermediateObjectWeight::Response IntermediateObjectWeightResponse;
+    typedef IntermediateObjectWeightResponse::Ptr IntermediateObjectWeightResponsePtr;
 
     /**
      * The ObjectManager class delivers a possibility to handle request to the object_database and cache their responses in a map.
@@ -25,7 +27,7 @@ namespace next_best_view {
             ros::ServiceClient intermediate_object_weight_service_client;
 
             std::map<std::string, ObjectMetaDataResponsePtr> object_metadata_cache;
-            std::map<std::string, double> intermediate_object_cache;
+            std::map<std::string, IntermediateObjectWeightResponsePtr> intermediate_object_cache;
 
             State() : mNodeHandle() {
                 object_metadata_service_client = mNodeHandle.serviceClient
@@ -46,7 +48,7 @@ namespace next_best_view {
     public:
         ObjectHelper() {}
 
-        ObjectMetaDataResponsePtr get(std::string objectTypeName) {
+        ObjectMetaDataResponsePtr getObjectMetaData(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
 
             if (!statePtr->object_metadata_service_client.exists()) {
@@ -70,38 +72,33 @@ namespace next_best_view {
                     return ObjectMetaDataResponsePtr();
                 }
 
-                responsePtr = ObjectMetaDataResponsePtr(new object_database::ObjectMetaData::Response(objectMetaData.response));
+                responsePtr = ObjectMetaDataResponsePtr(new ObjectMetaDataResponse(objectMetaData.response));
                 statePtr->object_metadata_cache[objectTypeName] = responsePtr;
             }
             return responsePtr;
         }
 
-        double getIntermediateObjectValue(std::string objectTypeName) {
+        //Comment !
+        IntermediateObjectWeightResponsePtr getIntermediateObjectValue(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
-            double weight;
 
             if (!statePtr->intermediate_object_weight_service_client.exists()) {
-                return 0;
+                return IntermediateObjectWeightResponsePtr();
             }
 
-            std::map<std::string, double>::iterator response_it = statePtr->
-                    intermediate_object_cache.find(objectTypeName);
+            IntermediateObjectWeightResponsePtr responsePtr = statePtr->intermediate_object_cache[objectTypeName];
 
-            if (response_it == statePtr->intermediate_object_cache.end()) {
+            if (!responsePtr) {
                 world_model::GetIntermediateObjectWeight getIntermediateObjectWeight;
                 getIntermediateObjectWeight.request.object_type = objectTypeName;
                 statePtr->intermediate_object_weight_service_client.call(getIntermediateObjectWeight);
 
-                weight = getIntermediateObjectWeight.response.value;
+                responsePtr = IntermediateObjectWeightResponsePtr(new IntermediateObjectWeightResponse(getIntermediateObjectWeight.response));
 
-                statePtr->intermediate_object_cache[objectTypeName] = weight;
-            }
-            else
-            {
-                weight = response_it->second;
+                statePtr->intermediate_object_cache[objectTypeName] = responsePtr;
             }
 
-            return weight;
+            return responsePtr;
         }
     };
 }

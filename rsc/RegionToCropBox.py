@@ -1,10 +1,10 @@
 import csv
 
 def get_max_point(point):
-    return [(point[2]-point[0]),(point[3]-point[1]),0.5]
+    return [(point[3]-point[0]),(point[4]-point[1]),(point[5]-point[2])]
 
 def get_translation(point):
-    return [point[0],point[1],0.7]
+    return [point[0],point[1],point[2]]
 
 def main():
 
@@ -18,7 +18,6 @@ def main():
             for elt in row:
                 region.append(float(elt))
             Regions.append(region)
-            print Regions
 
     returnString = '<CropBoxList name="Map">'
     for t in Regions:
@@ -36,6 +35,7 @@ def main():
     returnString += '</CropBoxList>'
 
     f = open('./CropBoxList.xml', 'r+')
+    f.truncate()
     f.write(returnString)
     f.close()
 

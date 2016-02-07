@@ -264,7 +264,7 @@ namespace next_best_view {
 
         // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
         BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
-            ObjectPoint &objectPoint = this->getInputCloud()->at(index);
+            ObjectPoint& objectPoint = this->getInputCloud()->at(index);
 
             if (objectPoint.type != objectType) {
                 continue;
@@ -278,7 +278,7 @@ namespace next_best_view {
             float positionUtility = this->getFrustumPositionUtility(candidateViewport, objectPoint);
 
             // calculate utility
-            utility += orientationUtility * positionUtility;
+            utility += orientationUtility * positionUtility * objectPoint.intermediate_object_weight;
         }
 
         // normalize utility

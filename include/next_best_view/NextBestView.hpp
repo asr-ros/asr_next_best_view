@@ -118,6 +118,11 @@ namespace next_best_view {
 		SetupVisualizationRequest mVisualizationSettings;
         bool mCurrentlyPublishingVisualization;
         unsigned int numberSearchedObjects;
+
+        // Bool for set point cloud flags
+        bool mEnableIntermediateObjectWeighting;
+        bool mEnableCropBoxFiltering;
+
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -164,6 +169,10 @@ namespace next_best_view {
             //get XML path
             std::string mCropBoxListFilePath;
             mNodeHandle.param("mCropBoxListFilePath", mCropBoxListFilePath,std::string());
+
+            //Set point cloud parameters flags
+            mNodeHandle.param("enableCropBoxFiltering", mEnableCropBoxFiltering, false);
+            mNodeHandle.param("enableIntermediateObjectWeighting", mEnableIntermediateObjectWeighting, false);
 
             // assign the values to the settings struct
             mVisualizationSettings.space_sampling = show_space_sampling;
@@ -320,7 +329,9 @@ namespace next_best_view {
             mCalculator.setCameraModelFilter(cameraModelFilterPtr);
             mCalculator.setRobotModel(robotModelPtr);
             mCalculator.setRatingModule(ratingModulePtr);
-            mCalculator.setCropBoxListFilePath(mCropBoxListFilePath);
+            mCalculator.loadCropBoxListFromFile(mCropBoxListFilePath);
+            mCalculator.setEnableCropBoxFiltering(mEnableCropBoxFiltering);
+            mCalculator.setEnableIntermediateObjectWeighting(mEnableIntermediateObjectWeighting);
         }
 
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {

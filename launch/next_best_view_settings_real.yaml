@@ -28,3 +28,5 @@ samples: 128
 colThresh: 45
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
+enableCropBoxFiltering : false
+enableIntermediateObjectWeighting : false

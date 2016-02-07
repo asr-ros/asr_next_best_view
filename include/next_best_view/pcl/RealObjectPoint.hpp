@@ -56,6 +56,7 @@ namespace next_best_view {
 		SimpleVector3CollectionPtr normal_vectors;
 		IndicesPtr active_normal_vectors;
         std_msgs::ColorRGBA color;
+        double intermediate_object_weight;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		RealObjectPoint(const gm::Pose &pose = gm::Pose()) : normal_vectors(new SimpleVector3Collection()), active_normal_vectors(new Indices()) {

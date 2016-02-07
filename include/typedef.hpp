@@ -108,6 +108,7 @@ namespace next_best_view {
 	typedef boost::shared_ptr<ObjectNameSet> ObjectNameSetPtr;
 	typedef std::set<ObjectNameSetPtr> ObjectNamePowerSet;
 	typedef boost::shared_ptr<ObjectNamePowerSet> ObjectNamePowerSetPtr;
+
 }
 
 #include "next_best_view/pcl/RealObjectPoint.hpp"

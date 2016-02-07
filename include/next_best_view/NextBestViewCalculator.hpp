@@ -50,8 +50,9 @@ namespace next_best_view {
 		float mEpsilon;
 		ObjectNameSetPtr mObjectNameSetPtr;
         VisualizationHelper mVisHelper;
-        std::string mCropBoxListFilePath;
         std::vector<CropBoxPtr> mCropBoxPtrList;
+        bool mEnableCropBoxFiltering;
+        bool mEnableIntermediateObjectWeighting;
 
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -67,9 +68,7 @@ namespace next_best_view {
               mRatingModulePtr(ratingModulePtr),
               mEpsilon(10E-3),
               mVisHelper()
-        {
-            readCropBoxDataFromXMLFile();
-        }
+        {}
 	public:
 
         /**
@@ -130,9 +129,9 @@ namespace next_best_view {
 	private:
 
         //TODO : REFACTOR
-        void readCropBoxDataFromXMLFile()
+        void readCropBoxDataFromXMLFile(std::string mCropBoxListFilePath)
         {
-            std::string xml_path = this->mCropBoxListFilePath;
+            std::string xml_path = mCropBoxListFilePath;
             ROS_DEBUG_STREAM("Path to CropBoxList xml file: " << xml_path);
             try {
                 rapidxml::file<> xmlFile(xml_path.c_str());
@@ -406,12 +405,12 @@ namespace next_best_view {
 				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
 				// get object type information
-                ObjectMetaDataResponsePtr responsePtr = objectHelper.get(pointCloudPoint.type);
+                ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
 
-				if (responsePtr) {
+                if (responsePtr_ObjectData) {
 					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
 					int normalVectorCount = 0;
-					BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
+                    BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
 						SimpleVector3 normal(point.x, point.y, point.z);
                         normal = rotationMatrix * normal;
 						pointCloudPoint.normal_vectors->push_back(normal);
@@ -419,41 +418,70 @@ namespace next_best_view {
 						++normalVectorCount;
 					}
 				} else {
-                    ROS_ERROR("InvabufferCropBoxPtrlid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
+                    ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
 					return false;
 				}
 
                 //Insert the meshpath
-                objectsResources[pointCloudPoint.type] = responsePtr->object_mesh_resource;
+                objectsResources[pointCloudPoint.type] = responsePtr_ObjectData->object_mesh_resource;
 
                 //Insert color
                 std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
                 pointCloudPoint.color = colorByID;
                 ROS_DEBUG_STREAM("Got color (" << colorByID.r << ", " << colorByID.g << ", " << colorByID.b << ", " << colorByID.a << ") for id " << element.identifier);
 
+                if(mEnableIntermediateObjectWeighting)
+                {
+                    //get the weight for the object from world model
+                    IntermediateObjectWeightResponsePtr responsePtr_Intermediate = objectHelper.getIntermediateObjectValue(pointCloudPoint.type);
+
+                    if(responsePtr_Intermediate)
+                    {
+                        pointCloudPoint.intermediate_object_weight = responsePtr_Intermediate->value;
+                    }
+                    else
+                    {
+                        ROS_ERROR("Invalid object name %s or world model service call failed. Point Cloud not set!", pointCloudPoint.type.c_str());
+                        return false;
+                    }
+                }
+                else
+                {
+                    pointCloudPoint.intermediate_object_weight = 1;
+                }
 
 				// add point to array
                 originalPointCloudPtr->push_back(pointCloudPoint);
 			}
 
-            //Filter the point cloud
-            for(std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+            ObjectPointCloudPtr outputPointCloudPtr;
+            if(mEnableCropBoxFiltering)
             {
-                ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
-                (*it)->setInputCloud(originalPointCloudPtr);
-                (*it)->filter(*outputTempPointCloudPtr);
-                (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
+                //Filter the point cloud
+                for(std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+                {
+                    ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
+                    (*it)->setInputCloud(originalPointCloudPtr);
+                    (*it)->filter(*outputTempPointCloudPtr);
+                    (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
+                }
+
+                ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
+
+                mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
+
+                outputPointCloudPtr = croppedPointCloudPtr;
+            }
+            else
+            {
+                outputPointCloudPtr = originalPointCloudPtr;
             }
 
-            ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
-
-            mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
-
             //If point cloud is empty, getting the indices lead to an Error.
-            if(croppedPointCloudPtr->size() > 0)
+            if(outputPointCloudPtr->size() > 0)
             {
                 // the active indices.
-                IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(croppedPointCloudPtr->size()));
+                IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(outputPointCloudPtr->size()));
                 boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
 
 
@@ -462,10 +490,10 @@ namespace next_best_view {
             }
             else
             {
-                ROS_DEBUG_STREAM("setPointCloudFromMessage::Cropped point cloud is empty.");
+                ROS_DEBUG_STREAM("setPointCloudFromMessage::output point cloud is empty.");
             }
 
-            this->setPointCloudPtr(croppedPointCloudPtr);
+            this->setPointCloudPtr(outputPointCloudPtr);
 			return true;
 		}
 
@@ -498,11 +526,20 @@ namespace next_best_view {
 			mSpaceSamplerPtr->setInputCloud(mPointCloudPtr);
 		}
 
-        void setCropBoxListFilePath(const std::string mCropBoxListFilePath)
+        void loadCropBoxListFromFile(const std::string mCropBoxListFilePath)
         {
-            this->mCropBoxListFilePath = mCropBoxListFilePath;
+            readCropBoxDataFromXMLFile(mCropBoxListFilePath);
         }
 
+        void setEnableCropBoxFiltering(const bool mEnableCropBoxFiltering)
+        {
+            this->mEnableCropBoxFiltering = mEnableCropBoxFiltering;
+        }
+
+        void setEnableIntermediateObjectWeighting(const bool mEnableIntermediateObjectWeighting)
+        {
+            this->mEnableIntermediateObjectWeighting = mEnableIntermediateObjectWeighting;
+        }
 
          /**
 		 * @return the point cloud pointer
