@@ -59,12 +59,33 @@ public:
 
     VisualizationHelper():m_i(0),m_j(0),mIterationStep(0) {
         // initialize publishers
-        mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>( "/nbv/iteration_visualization", 1000);
+        mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/iteration_visualization", 1000);
         mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_marker_array", 1000);
         mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_meshes", 100, false);
         mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_normals", 100, false);
         mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_object_meshes", 100, false);
         mCropBoxMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/crop_box", 100, false);
+
+        if (!mIterationMarkerArrayPublisher) {
+            ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
+            throw "Publisher invalid";
+        }
+        if (!mFrustumMarkerArrayPublisher) {
+            ROS_ERROR("mFrustumMarkerArrayPublisher is invalid.");
+            throw "Publisher invalid";
+        }
+        if (!mObjectMeshMarkerPublisher) {
+            ROS_ERROR("mObjectMeshMarkerPublisher is invalid.");
+            throw "Publisher invalid";
+        }
+        if (!mPointObjectNormalPublisher) {
+            ROS_ERROR("mPointObjectNormalPublisher is invalid.");
+            throw "Publisher invalid";;
+        }
+        if (!mFrustumObjectMeshMarkerPublisher) {
+            ROS_ERROR("mFrustumObjectMeshMarkerPublisher is invalid.");
+            throw "Publisher invalid";;
+        }
 
         // initalize data
         mNodeHandle.getParam("/nbv/boolClearBetweenIterations", mBoolClearBetweenIterations);
@@ -95,6 +116,27 @@ public:
                                SpaceSamplerPtr spaceSamplerPtr) {
 
         ROS_DEBUG_STREAM("iteration visualization");
+
+	if(!sampledOrientationsPtr){
+	  ROS_ERROR("triggerIterationVisualizations call with pointer sampledOrientationsPtr being null.");
+	    return;
+	}
+	if(!feasibleIndices){
+	  ROS_ERROR("triggerIterationVisualizations call with pointer feasibleIndices being null.");
+	    return;
+	}
+	if(!pointcloud){
+	  ROS_ERROR("triggerIterationVisualizations call with pointer pointcloud being null.");
+	    return;
+	}
+	if(!spaceSamplerPtr){
+	  ROS_ERROR("triggerIterationVisualizations call with pointer spaceSamplerPtr being null.");	
+	    return;
+	}
+	if(!mIterationMarkerArrayPtr){
+	  ROS_ERROR("triggerIterationVisualizations call with pointer mIterationMarkerArrayPtr being null.");	
+	    return;
+	}
 
         if (iterationStep == 0 && mBoolClearBetweenIterations == true) {
             // clear iteration visualization
@@ -127,7 +169,17 @@ public:
     }
 
     void triggerNewFrustumVisualization(CameraModelFilterPtr newCamera, int numberSearchedObjects = -1) {
+
         ROS_DEBUG("Publish new frustum");
+
+	if(!newCamera){
+	  ROS_ERROR("triggerNewFrustumVisualization call with pointer newCamera being null.");
+	    return;
+	}
+	if(!mNewFrustumMarkerArrayPtr){
+	  ROS_ERROR("triggerNewFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+	    return;
+	}
 
         this->deleteMarkerArray(mNewFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
 
@@ -169,6 +221,11 @@ public:
     void triggerOldFrustumVisualization(CameraModelFilterPtr camera = NULL) {
         ROS_DEBUG("Publish old frustum");
 
+	if(!mOldFrustumMarkerArrayPtr){
+	  ROS_ERROR("triggerOldFrustumVisualization call with pointer mOldFrustumMarkerArrayPtr being null.");
+	    return;
+	}
+
         this->deleteMarkerArray(mOldFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
 
         std::string ns = "old_nbv_frustum";
@@ -186,6 +243,12 @@ public:
             }
         }
         else {
+
+	  if(!mNewFrustumMarkerArrayPtr){
+	    ROS_ERROR("triggerOldFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+	      return;
+	  }
+
             // use old data in mNewFrustumMarkerArrayPtr if no camera is given
             if (mNewFrustumMarkerArrayPtr->markers.size() != 0)
             {
@@ -212,6 +275,12 @@ public:
 
     void clearFrustumVisualization()
     {
+
+	if(!mNewFrustumMarkerArrayPtr){
+	  ROS_ERROR("clearFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+	    return;
+	}
+
         ROS_DEBUG("Deleting last frustum visualization");
         if (mNewFrustumMarkerArrayPtr->markers.size() == 0) {
             return;
@@ -225,6 +294,16 @@ public:
         ROS_DEBUG("Publishing Point Cloud");
 
         ROS_DEBUG("Deleting old object point cloud visualization...");
+
+	if(!mObjectMeshMarkerArrayPtr){
+	  ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectMeshMarkerArrayPtr being null.");
+	    return;
+	}
+	if(!mObjectNormalsMarkerArrayPtr){
+	  ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectNormalsMarkerArrayPtr being null.");
+	    return;
+	}
+
         this->deleteMarkerArray(mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
 
         unsigned int index = 0;
@@ -277,6 +356,12 @@ public:
 
     void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud frustumObjectPointCloud, std::map<std::string, std::string> typeToMeshResource) {
         ROS_DEBUG("Publishing Frustum Marker Array");
+
+	if(!mFrustumObjectMeshMarkerArrayPtr){
+	  ROS_ERROR("triggerFrustumObjectPointCloudVisualization call with pointer mFrustumObjectMeshMarkerArrayPtr being null.");
+	    return;
+	}
+
         std_msgs::ColorRGBA colorFrustumMeshMarker = this->createColorRGBA(0, 0, 1, 0.8);
 
         ROS_DEBUG("Deleting old frustum object point cloud visualization...");
@@ -388,6 +473,16 @@ private:
     void triggerCameraVis(std::string s,SimpleVector3 position,
                           const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                           ViewportPoint currentBestViewport) {
+
+	if(!sampledOrientationsPtr){
+	  ROS_ERROR("triggerCameraVis call with pointer sampledOrientationsPtr being null.");
+	    return;
+	}
+	if(!mIterationMarkerArrayPtr){
+	  ROS_ERROR("triggerCameraVis call with pointer mIterationMarkerArrayPtr being null.");
+	    return;
+	}
+
         // get parameters
         std::vector<double> ViewPortMarkerScales;
         std::vector<double> ViewPortMarkerRGBA;
@@ -497,6 +592,19 @@ private:
 
     void triggerSpaceSampling(IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud, std::string s){
 
+	if(!feasibleIndices){
+	  ROS_ERROR("triggerSpaceSampling call with pointer feasibleIndices being null.");
+	    return;
+	}
+	if(!pointcloud){
+	  ROS_ERROR("triggerSpaceSampling call with pointer pointcloud being null.");
+	    return;
+	}
+	if(!mIterationMarkerArrayPtr){
+	  ROS_ERROR("triggerSpaceSampling call with pointer mIterationMarkerArrayPtr being null.");	
+	    return;
+	}
+
         // get parameters
         double SpaceSamplingMarkerScale;
         std::vector<double> SpaceSamplingMarkerRGBA;
@@ -530,6 +638,15 @@ private:
 
     void triggerGrid(SpaceSamplerPtr spaceSamplerPtr, std::string s){
 
+	if(!spaceSamplerPtr){
+	  ROS_ERROR("triggerGrid call with pointer spaceSamplerPtr being null.");	
+	    return;
+	}
+	if(!mIterationMarkerArrayPtr){
+	  ROS_ERROR("triggerGrid call with pointer mIterationMarkerArrayPtr being null.");	
+	    return;
+	}
+
         // get parameters
         double GridMarkerScaleZ;
         std::vector<double> GridMarkerRGBA;
@@ -561,6 +678,9 @@ private:
     
     static void deleteMarkerArray(visualization_msgs::MarkerArray::Ptr &array, ros::Publisher &publisher)
     {
+      if(!array || !publisher)
+        return;
+
         if (array->markers.size() == 0) {
             return;
         }

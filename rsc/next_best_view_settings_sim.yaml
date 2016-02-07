@@ -4,19 +4,23 @@ mOmegaRot: 1.0 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 5. #Gewichtungsfaktor für die Bewegung der Basis
 mOmegaRecognizer: 0.2 
 mOmegaUseBase: 15.0 #Zusätzlicher Kostenfaktor der addiert wird, wenn die Basis bewegt wird
+speedFactorPTU: 0.05 #Zeitkosten für Drehung der PTU in Sec/Rad
+speedFactorBaseRot: 0.1 #Zeitkosten für Drehung der Basis in Sec/Rad
+speedFactorBaseMove: 5.0 #Zeitkosten für Bewegung der Basis in Sec/Meter
 speedFactorRecognizer: 3.0 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
 fovx: 30
 fovy: 20
 ncp: 0.7 #Entfernung der NearClippingPlane in meter
-fcp: 1.1 ##Entfernung der FarClippingPlane in meter
+fcp: 1.3 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
 useNewIK: true
 visualizeIK: false
+useRaytracing: false
 move_robot: true
 recognition_time: 6
 panMin: -20
@@ -26,7 +30,7 @@ tiltMax: 25
 radius: 0.2
 samples: 128
 colThresh: 45
-panAngleSamplingStepsPerIteration: 3
-inverseKinematicIterationAccuracy: 0.01
+panAngleSamplingStepsPerIteration: 20
+inverseKinematicIterationAccuracy: 0.005
 enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false

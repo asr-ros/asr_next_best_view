@@ -67,8 +67,7 @@ namespace next_best_view {
 			  mCameraModelFilterPtr(cameraModelFilterPtr),
               mRatingModulePtr(ratingModulePtr),
               mEpsilon(10E-3),
-              mVisHelper()
-        {}
+              mVisHelper(){}
 	public:
 
         /**
