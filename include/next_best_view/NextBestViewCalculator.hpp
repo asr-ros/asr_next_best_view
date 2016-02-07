@@ -62,17 +62,19 @@ namespace next_best_view {
               mVisHelper(){}
 	public:
 
-        /**
-		 * Calculates the next best view.
+                 /**
+		 * Calculates the next best view. Starting point of iterative calculations for getNextBestView() service call.
 		 */
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
 			ROS_DEBUG("Starting calculation of next best view");
 
+			//Calculate robot configuration corresponding to current camera viewport of robot.
 			RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
+			//Save it.
 			mRobotModelPtr->setCurrentRobotState(currentState);
 
-			// Get the orientations.
-			ROS_DEBUG("Create and filter unit sphere");
+			ROS_DEBUG("Calculate discrete set of view orientations on unit sphere");
+			//Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
 			SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
 			SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
 
@@ -82,7 +84,7 @@ namespace next_best_view {
 				}
 			}
 
-			// create the next best view point cloud
+			//Perform iterative optimization and calculate next best view (returning it.)
 			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 		}
 
@@ -90,6 +92,7 @@ namespace next_best_view {
 			resultIndicesPtr = IndicesPtr(new Indices());
 			// get max radius by far clipping plane of camera. this marks the limit for the visible object distance.
 			double radius = mCameraModelFilterPtr->getFarClippingPlane();
+			//Go through all 
 			for(std::size_t index = 0; index < sampledSpacePointCloudPtr->size(); index++) {
 				// get the point
 				SamplePoint &spaceSamplePoint = sampledSpacePointCloudPtr->at(index);
@@ -118,102 +121,111 @@ namespace next_best_view {
 		}
 
 	private:
+
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
+		  ROS_DEBUG("Start iterating for Next-Best-View calculation.");
+		  int iterationStep = 0;
+		  //Best viewport at the end of each iteration step and starting point for optimization (grid alignment) for each following step.
+		  ViewportPoint currentBestViewport = currentCameraViewport;
 
-            int iterationStep = 0;
+		  //Enables to interrupt iterating if it takes too long.
+		  while (ros::ok()) {
+		    ViewportPoint intermediateResultViewport;
+		    ROS_DEBUG("Prepare iteration step");
+		    //Contractor is always divided by two.
+		    if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
+					       sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
+					       intermediateResultViewport, iterationStep)) {
+		      //Happens, when no valid viewport is found in that iteration step (including current viewport). E.g. when all normals are invalidated.
+		      return false;
+		    }
 
-			ViewportPoint currentBestViewport = currentCameraViewport;
-			while (ros::ok()) {
-				ViewportPoint intermediateResultViewport;
-				ROS_DEBUG("Prepare iteration step");
+		    DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
+		    ROS_INFO("x: %f, y: %f, z: %f, Utility: %f, Costs: %f, Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f, IterationStep: %i",
+			      intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
+			      drPtr->getUtility(), drPtr->getInverseCosts(),
+			      drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
+			      drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts(),
+			      iterationStep);
+		    //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
+		    if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
+		     (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() ) {
+		    //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
+		      resultViewport = intermediateResultViewport;
+		      ROS_INFO_STREAM ("NBV calculation succeeded. Took " << iterationStep << " iterations");
+		      return true;
+		    }
 
-                if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
-                                           sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
-                                           intermediateResultViewport)) {
-					return false;
-				}
+		    currentBestViewport = intermediateResultViewport;
 
-                SimpleVector3 intermediateResultPosition =intermediateResultViewport.getPosition();
-
-                SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
-                SamplePointCloudPtr pointcloud =
-                        spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,iterationStep));
-                IndicesPtr feasibleIndices(new Indices());
-                this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
-
-                mVisHelper.triggerIterationVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
-                                      intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
-
-                DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
-                ROS_DEBUG("x: %f, y: %f, z: %f, Utility: %f, Costs: %f, Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f, IterationStep: %i",
-                            intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
-                            drPtr->getUtility(), drPtr->getInverseCosts(),
-                            drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
-                            drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts(),
-                            iterationStep);
-
-                if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
-					resultViewport = intermediateResultViewport;
-                    ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
-					return true;
-				}
-
-				currentBestViewport = intermediateResultViewport;
-
-                iterationStep ++;
-			}
-
-			return false;
+		  }
+		  //Only reached when iteration fails or is interrupted.
+		  return false;
 		}
 
 
         bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
-                                const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
-                                ViewportPoint &resultViewport) {
+			     const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
+			     ViewportPoint &resultViewport, int& iterationStep) {
+	  ROS_DEBUG_STREAM("Starting iteration nr. " << iterationStep << " in current search for NBV.");
+	                //New iteration started.
+	                iterationStep ++;
+
 			// current camera position
 			SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
 			//Calculate hex grid for resolution given in this iteration step.
 			SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
 
-			// do a prefiltering for interesting space sample points
 			IndicesPtr feasibleIndicesPtr;
+			//Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
 			this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
 
+			//Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
 			if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
-				return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport);
+			  ROS_DEBUG("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.");
+			  return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep), resultViewport, iterationStep);
 			}
 
 			//Create list of all view ports that are checked during this iteration step.
 			ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
-            //Go through all interesting space sample points for one iteration step to create candidate viewports.
+			//Go through all interesting space sample points for one iteration step to create candidate viewports.
 			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
 				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
 				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
 				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
 				//For each space sample point: Go through all interesting orientations.
-                BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-                    // get the corresponding viewport
-					ViewportPoint fullViewportPoint;
-                    if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
-						continue;
-					}
-
-                    // get the best combination of objects to search for and the corresponding score
-                    if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
-                        continue;
-                    }
-
-                    nextBestViewports->push_back(fullViewportPoint);
+				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+				  // get the corresponding viewport
+				  ViewportPoint fullViewportPoint;
+				  //Calculate which object points lie within frustum for given viewport.
+				  if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
+				    //Skip viewport if no object point is within frustum.
+				    continue;
+				  }
+				  //For given viewport(combination of robot position and camera viewing direction)
+				  // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
+				  if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
+				    continue;
+				  }
+				  //Keep viewport with optimal subset of objects within frustum to search for.
+				  nextBestViewports->push_back(fullViewportPoint);
 				}
 			}
 
-            if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
-                return false;
-            }
+			//Extracts best viewport from set of rated next-best-view candidates (including current viewport)
+			if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
+			  return false;
+			}
+
+			//Visualize iteration step and its result.
+			SimpleVector3 resultPosition = resultViewport.getPosition();
+			SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
+
+			mVisHelper.triggerIterationVisualizations(iterationStep - 1, resultPosition, sampledOrientationsPtr,
+								  resultViewport, feasibleIndicesPtr, sampledSpacePointCloudPtr, spaceSamplerPtr);
 
 			return true;
 		}
@@ -230,8 +242,8 @@ namespace next_best_view {
 			mCameraModelFilterPtr->setIndices(indices);
             mCameraModelFilterPtr->setPivotPointPose(position, orientation);
 
-			// do the frustum culling
 			IndicesPtr frustumIndicesPtr;
+			//Call wrapper (with next-best-view data structures) for PCL frustum culling call.
 			mCameraModelFilterPtr->filter(frustumIndicesPtr);
 
 			if (frustumIndicesPtr->size() == 0) {

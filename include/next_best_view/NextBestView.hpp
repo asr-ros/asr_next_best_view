@@ -67,7 +67,7 @@
 
 namespace next_best_view {
 	// Defining namespace shorthandles
-    namespace viz = visualization_msgs;
+        namespace viz = visualization_msgs;
 	namespace odb = object_database;
 
 	// Defining shorthandle for action client.
@@ -391,12 +391,14 @@ namespace next_best_view {
 		}
 
 		bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
+		  ROS_DEBUG_STREAM("Called service processSetPointCloudServiceCall");
+		  
 			if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
-                ROS_ERROR("Could not set point cloud from message.");
+			  ROS_ERROR("Could not set point cloud from message.");
 				return false;
 			}
 
-            mCurrentCameraViewport = ViewportPoint(request.pose);
+			mCurrentCameraViewport = ViewportPoint(request.pose);
 			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
 			mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getPosition());
 
@@ -408,43 +410,48 @@ namespace next_best_view {
 			currentRobotStatePtr->x = mCurrentCameraViewport.x;
 			currentRobotStatePtr->y = mCurrentCameraViewport.y;
 			mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
-            // Let's get the viewports and update the point cloud.
+			// Let's get the viewports and update the point cloud.
 			world_model::GetViewportList getViewportListServiceCall;
 			mGetViewportListServiceClient.call(getViewportListServiceCall);
 
 			// convert to viewportPointCloud
 			std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
 			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
-            {
-				ViewportPoint viewportConversionPoint(point.pose);
-				viewportConversionPoint.object_type_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
-                viewportConversionPoint.object_type_name_set->insert(point.type);
-				viewportPointList.push_back(viewportConversionPoint);
-			}
+			  {
+			    ViewportPoint viewportConversionPoint(point.pose);
+			    viewportConversionPoint.object_type_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
+			    viewportConversionPoint.object_type_name_set->insert(point.type);
+			    viewportPointList.push_back(viewportConversionPoint);
+			  }
 
 			mCalculator.updateFromExternalObjectPointList(viewportPointList);
 
 			response.is_valid = true;
-            ROS_DEBUG_STREAM("processSetPointCloudServiceCall3: " << mCalculator.getCameraModelFilter()->getPivotPointPosition());
+			ROS_DEBUG_STREAM("processSetPointCloudServiceCall3: " << mCalculator.getCameraModelFilter()->getPivotPointPosition());
 			// publish the visualization
-            this->publishVisualization(request.pose, true, false);
+			this->publishVisualization(request.pose, true, false);
 			return true;
 		}
 
 	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
+		  ROS_DEBUG("We are in the method: processGetNextBestViewServiceCall");
+		  // Current camera view (frame of camera) of the robot.
 			ViewportPoint currentCameraViewport(request.current_pose);
-
+			//Contains Next best view.
 			ViewportPoint resultingViewport;
+			//Estimate the Next best view.
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
-				ROS_DEBUG("No more found");
-                if (mVisualizationSettings.frustum_marker_array)
-                {
-                    mVisHelper.clearFrustumVisualization();
-                }
-				response.found = false;
-				return true;
+			  //No points from input cloud in any nbv candidate or iterative search aborted (by user).
+			  ROS_DEBUG("No more next best view found.");
+			  if (mVisualizationSettings.frustum_marker_array)
+			    {
+			      mVisHelper.clearFrustumVisualization();
+			    }
+			  response.found = false;
+			  return true;
 			}
+			//Return the optimization result including its parameters.
 			response.found = true;
 			response.resulting_pose = resultingViewport.getPose();
 
@@ -452,7 +459,7 @@ namespace next_best_view {
 			response.object_type_name_list = ObjectNameList(resultingViewport.object_type_name_set->size());
 			std::copy(resultingViewport.object_type_name_set->begin(), resultingViewport.object_type_name_set->end(), response.object_type_name_list.begin());
 
-			// robot state.
+			//Reconstruct robot configuration for next best camera viewport (once known when estimating its costs) for outpout purposes.
 			// TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
 			RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
 			MILDRobotStatePtr mildState = boost::static_pointer_cast<MILDRobotState>(state);
@@ -467,13 +474,13 @@ namespace next_best_view {
 			// set it to the response
 			response.robot_state = robotStateMsg;
 
-            // set utility and costs
-            response.utility = resultingViewport.score->getUtility();
-            response.inverse_costs = resultingViewport.score->getInverseCosts();
-            response.base_translation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseTranslation();
-            response.base_rotation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseRotation();
-            response.ptu_movement_inverse_costs = resultingViewport.score->getInverseMovementCostsPTU();
-            response.recognition_inverse_costs = resultingViewport.score->getInverseRecognitionCosts();
+			// set utility and inverse cost terms in rating for the given next best view.
+			response.utility = resultingViewport.score->getUtility();
+			response.inverse_costs = resultingViewport.score->getInverseCosts();
+			response.base_translation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseTranslation();
+			response.base_rotation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseRotation();
+			response.ptu_movement_inverse_costs = resultingViewport.score->getInverseMovementCostsPTU();
+			response.recognition_inverse_costs = resultingViewport.score->getInverseRecognitionCosts();
 
 			mCurrentCameraViewport = resultingViewport;
 
@@ -481,23 +488,23 @@ namespace next_best_view {
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
 			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-			ROS_DEBUG("Trigger Visualization");
+			ROS_DEBUG("Trigger Visualization of estimated Next Best View");
 			this->triggerVisualization(resultingViewport);
 			ROS_DEBUG("Visualization triggered");
 
-			// push to the viewport list.
+			//Save next best view in world model to present points within it to be considered in future next best view estimation runs.
 			world_model::PushViewport pushViewportServiceCall;
 			pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
 			BOOST_FOREACH(std::string objectName, *resultingViewport.object_type_name_set) {
-                pushViewportServiceCall.request.viewport.type = objectName;
-				mPushViewportServiceClient.call(pushViewportServiceCall);
+			  pushViewportServiceCall.request.viewport.type = objectName;
+			  mPushViewportServiceClient.call(pushViewportServiceCall);
 			}
 
 			return true;
 		}
 
 		bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
-            ROS_DEBUG_STREAM("Called service processUpdatePointCloudServiceCall");
+		  ROS_DEBUG_STREAM("Called service processUpdatePointCloudServiceCall");
 			SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
 			ViewportPoint viewportPoint;
