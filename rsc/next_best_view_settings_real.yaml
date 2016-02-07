@@ -25,9 +25,13 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 radius: 0.2
-samples: 128
+sampleSizeUnitSphereSampler: 128
 colThresh: 45
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false
+sampleSizeMapBasedRandomSpaceSampler: 100
+spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
+maxIterationSteps: 20
+

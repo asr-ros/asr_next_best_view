@@ -54,6 +54,8 @@ namespace next_best_view {
         bool mEnableCropBoxFiltering;
         bool mEnableIntermediateObjectWeighting;
 
+        int mMaxIterationSteps;
+
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
 				const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
@@ -207,7 +209,7 @@ namespace next_best_view {
 
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
 
-            int iterationStep = 0;
+            int iterationStep = 1;
 
 			ViewportPoint currentBestViewport = currentCameraViewport;
 			while (ros::ok()) {
@@ -215,7 +217,7 @@ namespace next_best_view {
 				ROS_DEBUG("Prepare iteration step");
 
                 if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
-                                           sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
+                                           sampledOrientationsPtr, 1.0 / pow(2.0, (iterationStep - 1)),
                                            intermediateResultViewport)) {
 					return false;
 				}
@@ -224,11 +226,11 @@ namespace next_best_view {
 
                 SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
                 SamplePointCloudPtr pointcloud =
-                        spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,iterationStep));
+                        spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,(iterationStep - 1)));
                 IndicesPtr feasibleIndices(new Indices());
                 this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
-                mVisHelper.triggerIterationVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
+                mVisHelper.triggerIterationVisualizations(iterationStep - 1, intermediateResultPosition, sampledOrientationsPtr,
                                       intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
 
                 DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
@@ -240,7 +242,7 @@ namespace next_best_view {
                             iterationStep);
 
                 if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon()) {
+                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
 					resultViewport = intermediateResultViewport;
                     ROS_INFO_STREAM ("Suceeded. Took " << iterationStep << " iterations");
 					return true;
@@ -664,6 +666,14 @@ namespace next_best_view {
 		float getEpsilon() {
 			return mEpsilon;
 		}
+
+        /**
+         * @param maxIterationSteps  - max number of iteration steps
+         */
+        void setMaxIterationSteps(int maxIterationSteps)
+        {
+            mMaxIterationSteps  = maxIterationSteps;
+        }
 	};
 }
 
