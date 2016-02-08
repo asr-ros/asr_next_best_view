@@ -452,6 +452,12 @@ namespace next_best_view {
                 ROS_ERROR("Could not set point cloud from message.");
 				return false;
 			}
+            if(mCalculator.getPointCloudPtr()->size() == 0)
+            {
+                response.is_empty = true;
+                response.is_valid = false;
+                return true;
+            }
 
             mCurrentCameraViewport = ViewportPoint(request.pose);
 			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
@@ -482,14 +488,8 @@ namespace next_best_view {
 			mCalculator.updateFromExternalObjectPointList(viewportPointList);
 
 			response.is_valid = true;
-            if(mCalculator.getPointCloudPtr()->size() == 0)
-            {
-                response.is_empty = true;
-            }
-            else
-            {
-                response.is_empty = false;
-            }
+            response.is_empty = false;
+
             ROS_DEBUG_STREAM("processSetPointCloudServiceCall3: " << mCalculator.getCameraModelFilter()->getPivotPointPosition());
 			// publish the visualization
             this->publishVisualization(request.pose, true, false);

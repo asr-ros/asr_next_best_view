@@ -279,6 +279,7 @@ namespace next_best_view {
 
             // calculate utility
             utility += orientationUtility * positionUtility * objectPoint.intermediate_object_weight;
+            //ROS_ERROR_STREAM("DefaultRatingModule::setObjectUtilities weight "<< objectPoint.intermediate_object_weight);
         }
 
         // normalize utility

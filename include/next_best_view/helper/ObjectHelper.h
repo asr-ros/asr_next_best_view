@@ -35,7 +35,7 @@ namespace next_best_view {
                 recognizer_name_service_client = mNodeHandle.serviceClient
                         <world_model::GetRecognizerName>("/env/world_model/get_recognizer_name");
                 intermediate_object_weight_service_client = mNodeHandle.serviceClient
-                        <world_model::GetRecognizerName>("/env/world_model/get_intermediate_object_weight");
+                        <world_model::GetIntermediateObjectWeight>("/env/world_model/get_intermediate_object_weight");
             }
         };
 
@@ -92,6 +92,7 @@ namespace next_best_view {
                 world_model::GetIntermediateObjectWeight getIntermediateObjectWeight;
                 getIntermediateObjectWeight.request.object_type = objectTypeName;
                 statePtr->intermediate_object_weight_service_client.call(getIntermediateObjectWeight);
+                ROS_ERROR_STREAM("GOT WEIGHT FROM WORLD MODEL " << getIntermediateObjectWeight.response.value);
 
                 responsePtr = IntermediateObjectWeightResponsePtr(new IntermediateObjectWeightResponse(getIntermediateObjectWeight.response));
 

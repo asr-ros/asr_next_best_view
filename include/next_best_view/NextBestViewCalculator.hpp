@@ -362,6 +362,7 @@ namespace next_best_view {
                     if(responsePtr_Intermediate)
                     {
                         pointCloudPoint.intermediate_object_weight = responsePtr_Intermediate->value;
+                        //ROS_ERROR_STREAM("Set input cloud " << responsePtr_Intermediate->value);
                     }
                     else
                     {

@@ -415,7 +415,7 @@ public:
             position_map_frame = rotationMatrix * position_cb_frame + translation;
 
             //TODO : IN PARAM EXTERN STORE
-            SimpleVector4 color = SimpleVector4(0,0.5,0,0.4);
+            SimpleVector4 color = SimpleVector4(1,1,0,0.3);
 
             SimpleQuaternion orientation(rotationMatrix);
 
