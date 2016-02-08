@@ -81,14 +81,13 @@ public:
         ROS_INFO_STREAM("Initializing...");
 
         //Initialize robot model
-        //MILDRobotModelWithIK *myRobotModel = new MILDRobotModelWithIK();
-        //MILDRobotModelWithIKPtr myRobotModelPtr(myRobotModel);
-        MILDRobotModel *myRobotModel = new MILDRobotModel();
-        MILDRobotModelPtr myRobotModelPtr(myRobotModel);
+        MILDRobotModelWithIK *myRobotModel = new MILDRobotModelWithIK();
+        MILDRobotModelWithIKPtr myRobotModelPtr(myRobotModel);
         MILDRobotState * startState = new MILDRobotState(0,0,0,-1.59984135628,-0.908775866032);
         MILDRobotStatePtr startStatePtr(startState);
 
         myRobotModelPtr->setPanAngleLimits(-80, 80);
+        myRobotModelPtr->setTiltAngleLimits(-90, 90);
         ROS_INFO_STREAM("Running test...");
         ros::spinOnce();
         for (unsigned int i = 0; i < targetCameraPositions.size(); i++)
