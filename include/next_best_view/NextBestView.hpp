@@ -288,8 +288,6 @@ namespace next_best_view {
 
             }
 
-
-
             /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
              * The camera model filter takes account for the fact, that there are different cameras around in the real world.
              * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
