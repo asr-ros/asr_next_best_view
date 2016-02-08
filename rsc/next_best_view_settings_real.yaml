@@ -16,7 +16,7 @@ show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
 useNewIK: true
-visualizeIK: false
+visualizeIK: true
 useRaytracing: false
 move_robot: true
 recognition_time: 6

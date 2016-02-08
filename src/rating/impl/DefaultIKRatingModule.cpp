@@ -8,7 +8,10 @@
 #include <ros/ros.h>
 
 namespace next_best_view {
-    DefaultIKRatingModule::DefaultIKRatingModule() : IKRatingModule() { }
+    DefaultIKRatingModule::DefaultIKRatingModule(RobotModelPtr robotModel) : IKRatingModule()
+    {
+        mRobotModel = robotModel;
+    }
     DefaultIKRatingModule::~DefaultIKRatingModule() { }
 
     double DefaultIKRatingModule::getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle, nav_msgs::Path &navigationPath)
@@ -48,6 +51,10 @@ namespace next_best_view {
         {
             return 0.0;
         }
+    }
+    double DefaultIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
+    {
+        return 0.0;
     }
 }
 

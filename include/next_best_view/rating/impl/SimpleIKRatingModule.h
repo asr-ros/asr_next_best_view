@@ -5,32 +5,33 @@
  *      Author: florianaumann
  */
 
-#ifndef IKRATINGMODULE_H
-#define IKRATINGMODULE_H
+#ifndef SIMPLEIKRATINGMODULE_H
+#define SIMPLEIKRATINGMODULE_H
 
-#include "next_best_view/common/CommonClass.hpp"
-#include "nav_msgs/Path.h"
+#include "next_best_view/rating/IKRatingModule.h"
+
+
 
 namespace next_best_view {
     /*!
-     * \brief IKRatingModule is a generalization for the rating of the inverse kinematic parameters
+     * \brief SimpleIKRatingModule implements the functionlities offered by IKRatingModule.
      * \author Florian Aumann
-     * \date 2015
+     * \date 2016
      * \version 1.0
      * \copyright GNU Public License
      * \sa DefaultIKRatingModule
      */
-    class IKRatingModule : public CommonClass {
+    class SimpleIKRatingModule : public IKRatingModule {
     public:
         /*!
-         * \brief constructor of the IKRatingModule object
+         * \brief constructor of the SimpleDefaultIKRatingModule object
          */
-        IKRatingModule();
+        SimpleIKRatingModule();
 
         /*!
-         * \brief destructor of the IKRatingModule object.
+         * \brief destructor of the SimpleDefaultIKRatingModule object.
          */
-        virtual ~IKRatingModule();
+        virtual ~SimpleIKRatingModule();
 
         /*!
          * \brief
@@ -39,8 +40,7 @@ namespace next_best_view {
          * \param navigationPath [in] the path to the robot base frame with respect to the current panAngle
          * \return the rating angle (between 0.0 and 1.0)
          */
-        virtual double getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle, nav_msgs::Path &navigationPath) = 0;
-
+        double getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle, nav_msgs::Path &navigationPath);
         /*!
          * \brief
          * \param sourcePosition [in] the MILD's current position
@@ -49,13 +49,13 @@ namespace next_best_view {
          * \param targetRotationBase [in] the MILD's target rotation
          * \return the rating angle (between 0.0 and 1.0)
          */
-        virtual double getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase) = 0;
+        double getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
     };
 
     /*!
      * \brief Definition for the shared pointer type of the class.
      */
-    typedef boost::shared_ptr<IKRatingModule> IKRatingModulePtr;
+    typedef boost::shared_ptr<SimpleIKRatingModule> SimpleIKRatingModulePtr;
 }
 
-#endif /* IKRATINGMODULE_H */
+#endif /* SIMPLEIKRATINGMODULE_H */

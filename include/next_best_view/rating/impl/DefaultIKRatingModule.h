@@ -9,6 +9,7 @@
 #define DEFFAULTIKRATINGMODULE_H
 
 #include "next_best_view/rating/IKRatingModule.h"
+#include "next_best_view/robot_model/RobotModel.hpp"
 
 
 
@@ -26,7 +27,7 @@ namespace next_best_view {
         /*!
          * \brief constructor of the DefaultIKRatingModule object
          */
-        DefaultIKRatingModule();
+        DefaultIKRatingModule(RobotModelPtr robotModel);
 
         /*!
          * \brief destructor of the DefaultIKRatingModule object.
@@ -41,6 +42,17 @@ namespace next_best_view {
          * \return the rating angle (between 0.0 and 1.0)
          */
         double getPanAngleRating(Eigen::Affine3d &panJointFrame, double panAngle, nav_msgs::Path &navigationPath);
+        /*!
+         * \brief
+         * \param sourcePosition [in] the MILD's current position
+         * \param targetPosition [in] the MILD's target position
+         * \param sourceRotationBase [in] the MILD's current rotation
+         * \param targetRotationBase [in] the MILD's target rotation
+         * \return the rating angle (between 0.0 and 1.0)
+         */
+        double getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
+    private:
+        RobotModelPtr mRobotModel;
     };
 
     /*!

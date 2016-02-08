@@ -51,19 +51,19 @@ namespace next_best_view {
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
-            ROS_DEBUG("Use of global planner ENABLED");
+            ROS_INFO("Use of global planner ENABLED");
         }
         else
         {
-            ROS_DEBUG("Use of global planner DISABLED. Using simplified calculation instead...");
+            ROS_INFO("Use of global planner DISABLED. Using simplified calculation instead...");
         }
         if (visualizeIK_)
         {
-            ROS_DEBUG("IK Visualization ENABLED");
+            ROS_INFO("IK Visualization ENABLED");
         }
         else
         {
-            ROS_DEBUG("IK Visualization DISABLED");
+            ROS_INFO("IK Visualization DISABLED");
         }
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
@@ -87,7 +87,8 @@ namespace next_best_view {
         //Temporary Visualization Publisher
         vis_pub = n.advertise<visualization_msgs::Marker>( "/nbv/IK_Visualization", 1000);
         tfParametersInitialized = setUpTFParameters();
-        ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule());
+        RobotModelPtr modelPtr(this);
+        ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));
 	}
 
     MILDRobotModelWithIK::~MILDRobotModelWithIK() {}
