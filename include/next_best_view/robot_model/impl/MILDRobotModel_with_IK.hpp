@@ -13,7 +13,6 @@
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "typedef.hpp"
 #include "geometry_msgs/Pose.h"
-#include "nav_msgs/Path.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include "next_best_view/rating/impl/DefaultIKRatingModule.h"
@@ -60,12 +59,7 @@ namespace next_best_view {
 		 * Client used for communication with the global_planner to calculate movement costs
 		 */
 		ros::ServiceClient navigationCostClient;
-		
-		/*!
-		 * Client used for communication with the global_planner to calculate movement costs
-		 */
-         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
-         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
+
 
          /*!
           * The rating module for the inverse kinematic sampling
@@ -163,6 +157,7 @@ namespace next_best_view {
          void visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters, int id);
 
     public:
+
 		/*!
 		 * \brief constructor of the PTURobotModel
 		 */
@@ -172,6 +167,12 @@ namespace next_best_view {
 		 * \brief destructor of the MILDRobotModel
 		 */
         virtual ~MILDRobotModelWithIK();
+
+        /*!
+         * Client used for communication with the global_planner to calculate movement costs
+         */
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
 		/*!
 		 * \brief sets the angle limits of the pan angle.

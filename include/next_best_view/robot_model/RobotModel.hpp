@@ -11,6 +11,7 @@
 #include "next_best_view/common/CommonClass.hpp"
 #include "next_best_view/robot_model/RobotState.hpp"
 #include "typedef.hpp"
+#include "nav_msgs/Path.h"
 
 namespace next_best_view {
 
@@ -44,6 +45,11 @@ namespace next_best_view {
 
         virtual bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition) = 0;
 
+        /*!
+         * Client used for communication with the global_planner to calculate movement costs
+         */
+         virtual nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase) = 0;
+         virtual nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition) = 0;
 
 		/*!
 		 * \brief calculates the target robot state by assuming the saved current state of the roboter as source state

@@ -363,11 +363,30 @@ namespace next_best_view {
 
     nav_msgs::Path MILDRobotModel::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
+        return getNavigationPath(sourcePosition, targetPosition, 0, 0);
+    }
+
+    nav_msgs::Path MILDRobotModel::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
+    {
         nav_msgs::GetPlan srv;
         srv.request.start.header.frame_id = "map";
         srv.request.goal.header.frame_id = "map";
         srv.request.start.pose.position = sourcePosition;
         srv.request.goal.pose.position = targetPosition;
+        Eigen::Quaterniond sourceRotationEigen(Eigen::AngleAxisd(sourceRotationBase,Eigen::Vector3d::UnitZ()));
+        Eigen::Quaterniond targetRotationEigen(Eigen::AngleAxisd(targetRotationBase,Eigen::Vector3d::UnitZ()));
+        geometry_msgs::Quaternion sourceRotation;
+        sourceRotation.w = sourceRotationEigen.w();
+        sourceRotation.x = sourceRotationEigen.x();
+        sourceRotation.y = sourceRotationEigen.y();
+        sourceRotation.z = sourceRotationEigen.z();
+        geometry_msgs::Quaternion targetRotation;
+        targetRotation.w = targetRotationEigen.w();
+        targetRotation.x = targetRotationEigen.x();
+        targetRotation.y = targetRotationEigen.y();
+        targetRotation.z = targetRotationEigen.z();
+        srv.request.start.pose.orientation = sourceRotation;
+        srv.request.goal.pose.orientation = targetRotation;
         srv.request.tolerance = tolerance;
 
         nav_msgs::Path path;

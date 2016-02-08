@@ -12,7 +12,6 @@
 #include "next_best_view/robot_model/RobotModel.hpp"
 #include "typedef.hpp"
 #include "geometry_msgs/Pose.h"
-#include "nav_msgs/Path.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 
@@ -59,10 +58,6 @@ namespace next_best_view {
 		 */
 		ros::ServiceClient navigationCostClient;
 		
-		/*!
-		 * Client used for communication with the global_planner to calculate movement costs
-		 */
-		 nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 	public:
 		/*!
 		 * \brief constructor of the PTURobotModel
@@ -73,6 +68,12 @@ namespace next_best_view {
 		 * \brief destructor of the MILDRobotModel
 		 */
 		virtual ~MILDRobotModel();
+
+        /*!
+         * Client used for communication with the global_planner to calculate movement costs
+         */
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
+         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
 		/*!
 		 * \brief sets the angle limits of the pan angle.

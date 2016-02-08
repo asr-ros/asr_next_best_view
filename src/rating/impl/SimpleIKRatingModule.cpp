@@ -51,7 +51,9 @@ namespace next_best_view {
     }
     double SimpleIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
-        return 0.0;
+        double absolutAngleChange = fabs(sourceRotationBase - targetRotationBase);
+        double rating = pow(0.6, absolutAngleChange);
+        return rating;
     }
 }
 

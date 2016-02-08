@@ -385,31 +385,21 @@ namespace next_best_view {
                     basePoint2 = basePoint+baseOrientation*0.15;
                     targetRobotPosition.x = baseFrame(0,3);
                     targetRobotPosition.y = baseFrame(1,3);
-                    if (true) //isPositionReachable(actualRobotPosition, targetRobotPosition))
+                    //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
+                    //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
+                    currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
+                    currentRating = 1.0;
+                    ROS_DEBUG_STREAM("Angle: " << currentIterationAngle << " with rating: " << currentRating);
+                    if (currentRating > newBestRating)
                     {
-                        //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                        //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
-                        currentRating = 1.0;
-                        ROS_DEBUG_STREAM("Angle: " << currentIterationAngle << " with rating: " << currentRating);
-                        if (currentRating > newBestRating)
-                        {
-                            newBestRating = currentRating;
-                            currentBestAngle = currentIterationAngle;
-                        }
-                        if (mVisualizeIK)
-                        {
-                            Eigen::Vector4d color_succeeded(1.0-currentRating,currentRating, 0.0, 1.0);
-                            visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 2*i);
-                            visualizeIKArrowSmall(basePoint, basePoint2, color_succeeded, nsIterationVector, 2*i+1);
-                        }
+                        newBestRating = currentRating;
+                        currentBestAngle = currentIterationAngle;
                     }
-                    else
+                    if (mVisualizeIK)
                     {
-                        if (mVisualizeIK)
-                        {
-                            visualizeIKPoint(basePoint, color_failed, nsIterationVector, 2*i);
-                            visualizeIKArrowSmall(basePoint, basePoint2, color_failed, nsIterationVector, 2*i+1);
-                        }
+                        Eigen::Vector4d color_succeeded(1.0-currentRating,currentRating, 0.0, 1.0);
+                        visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 2*i);
+                        visualizeIKArrowSmall(basePoint, basePoint2, color_succeeded, nsIterationVector, 2*i+1);
                     }
                 }
             }
