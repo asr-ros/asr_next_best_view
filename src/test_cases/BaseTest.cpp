@@ -74,7 +74,7 @@ using namespace next_best_view;
 
         visualization_msgs::MarkerArray markerArray;
         ObjectHelper objectHelper;
-        ObjectMetaDataResponsePtr objectMetaDataResPtr = objectHelper.get("Smacks");
+        ObjectMetaDataResponsePtr objectMetaDataResPtr = objectHelper.getObjectMetaData("Smacks");
 
         ros::Duration(5).sleep();
 
