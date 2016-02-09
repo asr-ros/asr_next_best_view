@@ -59,7 +59,7 @@ namespace next_best_view {
          * \param bestViewport [out] the best viewport
          * \return whether a best viewport was found
          */
-        virtual bool getBestViewport(const ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) = 0;
+        virtual bool getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) = 0;
 
         /*!
          * \brief compares two viewports
@@ -67,16 +67,16 @@ namespace next_best_view {
          * \param b [in] viewport b
          * \return whether a < b is true
          */
-        virtual bool compareViewports(ViewportPoint &a, ViewportPoint &b) = 0;
+        virtual bool compareViewports(const ViewportPoint &a, const ViewportPoint &b) = 0;
 
         /*!
-		 * \brief compares two ratings.
-		 * \param a [in] comparison object A
-		 * \param b [in] comparison object B
+         * \brief compares two ratings.
+         * \param a [in] comparison object A
+         * \param b [in] comparison object B
          * \return whether A is smaller than B
-		 */
-		virtual bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) = 0;
-	};
+         */
+        virtual bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) = 0;
+    };
 
 	/*!
 	 * \brief Definition for the shared pointer type of the class.
