@@ -16,6 +16,7 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include "next_best_view/rating/impl/DefaultIKRatingModule.h"
+#include "next_best_view/rating/impl/SimpleIKRatingModule.h"
 
 namespace next_best_view {
 	/*!

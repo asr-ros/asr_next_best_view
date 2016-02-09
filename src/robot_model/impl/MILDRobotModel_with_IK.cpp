@@ -87,8 +87,9 @@ namespace next_best_view {
         //Temporary Visualization Publisher
         vis_pub = n.advertise<visualization_msgs::Marker>( "/nbv/IK_Visualization", 1000);
         tfParametersInitialized = setUpTFParameters();
-        RobotModelPtr modelPtr(this);
-        ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));
+        //RobotModelPtr modelPtr(this);
+        //ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));
+        ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
 	}
 
     MILDRobotModelWithIK::~MILDRobotModelWithIK() {}
@@ -358,7 +359,8 @@ namespace next_best_view {
         actualRobotPosition.z = targetRobotPosition.z = 0.0;
         Eigen::Affine3d baseFrame;
         ROS_DEBUG_STREAM("phiMin: " << phiMin << " phiMax: " << phiMax);
-        Eigen::Vector4d color_failed(1.0,0.0,0.0,1.0);
+        ROS_DEBUG_STREAM("currentAngleRange: " << currentAngleRange << " currentBestAngle: " << currentBestAngle);
+        ROS_DEBUG_STREAM("mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration);
         Eigen::Vector3d basePoint, basePoint2;
         Eigen::Vector3d baseOrientation;
         //do sampling
@@ -378,7 +380,7 @@ namespace next_best_view {
                 if (phiMax>currentIterationAngle && phiMin<currentIterationAngle)
                 {
                     //Calculate the base frame with respect to the current angle
-                    baseFrame = panJointFrame * Eigen::AngleAxisd(-currentIterationAngle, Eigen::Vector3d::UnitZ()) * baseToPanEigen.inverse();
+                    baseFrame = panJointFrame * Eigen::AngleAxisd(-currentIterationAngle, Eigen::Vector3d::UnitZ()) * panToBaseEigen;
                     basePoint = Eigen::Vector3d(baseFrame(0,3),baseFrame(1,3),baseFrame(2,3));
                     baseOrientation = Eigen::Vector3d(baseFrame(0,0),baseFrame(1,0),baseFrame(2,0));
                     baseOrientation.normalize();
@@ -388,7 +390,6 @@ namespace next_best_view {
                     //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
                     //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
                     currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                    currentRating = 1.0;
                     ROS_DEBUG_STREAM("Angle: " << currentIterationAngle << " with rating: " << currentRating);
                     if (currentRating > newBestRating)
                     {
@@ -403,13 +404,13 @@ namespace next_best_view {
                     }
                 }
             }
-            ROS_INFO_STREAM("Best angle: " << currentBestAngle << " with rating: " << newBestRating);
+            ROS_INFO_STREAM("Best angle: " << currentBestAngle << " with rating: " << newBestRating << " and angle range " << currentAngleRange);
             currentAngleRange = currentAngleRange / 2.0;
             iterationCount++;
         } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy);
         mIKVisualizationLastMarkerCount = iterationCount;
         if (currentBestRating < 0.0) {ROS_ERROR_STREAM("No valid solution found for this pan frame.");}
-        return currentBestAngle;
+        return -currentBestAngle;
     }
 
 
