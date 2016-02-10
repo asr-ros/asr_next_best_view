@@ -21,7 +21,8 @@ namespace next_best_view {
     }
 
     bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport) {
-        // reset the cached data
+      ROS_DEBUG("STARTING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD");
+      // reset the cached data
         this->resetCache();
 
         // get the power set of the object name set
@@ -51,46 +52,48 @@ namespace next_best_view {
         }
 
         if (!this->getBestViewport(viewports, candidateViewport)) {
-            return false;
+	  ROS_DEBUG("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD");
+	  return false;
         }
-
-        return true;
+	ROS_DEBUG("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD");
+	return true;
     }
 
     bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
+      ROS_DEBUG("STARTING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD");
+
         // if there aren't any viewports, the search failed.
-        //ROS_DEBUG_STREAM("Viewport Point size : " << viewports->size());
         if (viewports->size() == 0) {
             return false;
         }
 
-        ROS_DEBUG_STREAM("Getting best viewport.");
-
         std::sort(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
 
         for (unsigned int i = 0; i < viewports->size(); i++) {
+	  ROS_DEBUG_STREAM("\nTHIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.");
             ViewportPoint viewport = viewports->at(i);
             ROS_DEBUG_STREAM("Viewport position: (" << viewport.getPosition()(0,0) << ","
-                                << viewport.getPosition()(1,0) << "," << viewport.getPosition()(2,0) << ")"
-                                << " utility: " << viewport.score->getUtility() << " inverse costs: " << viewport.score->getInverseCosts()
-                                << " inverse costs base translation: " << viewport.score->getInverseMovementCostsBaseTranslation()
-                                << " inverse costs base rotation: " << viewport.score->getInverseMovementCostsBaseRotation()
-                                << " inverse costs PTU movement: " << viewport.score->getInverseMovementCostsPTU()
-                                << " inverse costs recognition: " << viewport.score->getInverseRecognitionCosts()
-                                << " rating: " << this->getRating(viewport.score));
+			     << viewport.getPosition()(1,0) << "," << viewport.getPosition()(2,0) << ")");
+	    ROS_DEBUG_STREAM("utility: " << viewport.score->getUtility() << " inverse costs: " << viewport.score->getInverseCosts());
+	    ROS_DEBUG_STREAM("inverse costs base translation: " << viewport.score->getInverseMovementCostsBaseTranslation()
+			     << " inverse costs base rotation: " << viewport.score->getInverseMovementCostsBaseRotation()
+			     << " inverse costs PTU movement: " << viewport.score->getInverseMovementCostsPTU()
+			     << " inverse costs recognition: " << viewport.score->getInverseRecognitionCosts());
+	    ROS_DEBUG_STREAM("rating: " << this->getRating(viewport.score));
         }
 
         bestViewport = viewports->at(viewports->size() - 1);
-
+	ROS_DEBUG_STREAM("\nTHIS IS THE BEST VIEWPORT IN THE SORTED LIST.");
         ROS_DEBUG_STREAM("Best viewport position: (" << bestViewport.getPosition()(0,0) << ","
-                            << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")"
-                            << " utility: " << bestViewport.score->getUtility() << " inverse costs: " << bestViewport.score->getInverseCosts()
-                            << " inverse costs base translation: " << bestViewport.score->getInverseMovementCostsBaseTranslation()
-                            << " inverse costs base rotation: " << bestViewport.score->getInverseMovementCostsBaseRotation()
-                            << " inverse costs PTU movement: " << bestViewport.score->getInverseMovementCostsPTU()
-                            << " inverse costs recognition: " << bestViewport.score->getInverseRecognitionCosts()
-                            << " rating: " << this->getRating(bestViewport.score));
+			 << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")");
+	ROS_DEBUG_STREAM("utility: " << bestViewport.score->getUtility() << " inverse costs: " << bestViewport.score->getInverseCosts());
+	ROS_DEBUG_STREAM(" inverse costs base translation: " << bestViewport.score->getInverseMovementCostsBaseTranslation()
+			 << "inverse costs base rotation: " << bestViewport.score->getInverseMovementCostsBaseRotation()
+			 << "inverse costs PTU movement: " << bestViewport.score->getInverseMovementCostsPTU()
+			 << " inverse costs recognition: " << bestViewport.score->getInverseRecognitionCosts());
+	ROS_DEBUG_STREAM(" rating: " << this->getRating(bestViewport.score));
 
+	ROS_DEBUG("STARTING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD");
         return true;
     }
 

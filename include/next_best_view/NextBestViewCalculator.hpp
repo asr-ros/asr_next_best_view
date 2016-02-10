@@ -76,7 +76,7 @@ namespace next_best_view {
 		 * Calculates the next best view.
 		 */
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
-			ROS_DEBUG("Starting calculation of next best view");
+			ROS_DEBUG("STARTING CALCULATE-NEXT-BEST-VIEW METHOD");
 
 			RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
 			mRobotModelPtr->setCurrentRobotState(currentState);
@@ -91,7 +91,7 @@ namespace next_best_view {
 					feasibleOrientationsCollectionPtr->push_back(q);
 				}
 			}
-
+			ROS_DEBUG("ENDING CALCULATE-NEXT-BEST-VIEW METHOD");
 			// create the next best view point cloud
 			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 		}
@@ -130,13 +130,13 @@ namespace next_best_view {
 	private:
 
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-
+		  ROS_DEBUG("STARTING DOITERATION METHOD");
+		  
 		  int iterationStep = 0;
 
 		  ViewportPoint currentBestViewport = currentCameraViewport;
 		  while (ros::ok()) {
 		    ViewportPoint intermediateResultViewport;
-		    ROS_DEBUG("Prepare iteration step");
 
 		    if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
 					       sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
@@ -144,91 +144,108 @@ namespace next_best_view {
 		      return false;
 		    }
 
-                SimpleVector3 intermediateResultPosition =intermediateResultViewport.getPosition();
+		    SimpleVector3 intermediateResultPosition =intermediateResultViewport.getPosition();
 
-                SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
-                SamplePointCloudPtr pointcloud =
-                        spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,iterationStep));
-                IndicesPtr feasibleIndices(new Indices());
-                this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
+		    //VIZ STUFF
+		    SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
+		    SamplePointCloudPtr pointcloud =
+		      spaceSamplerPtr->getSampledSpacePointCloud(intermediateResultPosition, 1.0/pow(2.0,iterationStep));
+		    IndicesPtr feasibleIndices(new Indices());
+		    this->getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
-                mVisHelper.triggerIterationVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
-                                      intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
+		    mVisHelper.triggerIterationVisualizations(iterationStep, intermediateResultPosition, sampledOrientationsPtr,
+							      intermediateResultViewport, feasibleIndices, pointcloud, spaceSamplerPtr);
+		    //VIZ STUFF
+		    DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
+		    ROS_DEBUG("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.");
+		    ROS_DEBUG("x: %f, y: %f, z: %f",intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z);
+		    ROS_DEBUG("Utility: %f, Costs: %f, Rating: %f",drPtr->getUtility(), drPtr->getInverseCosts(), mRatingModulePtr->getRating(drPtr));
+		    ROS_DEBUG("Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f",
+			      drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
+			      drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts());
+		    ROS_DEBUG("IterationStep: %i",iterationStep+1);
 
-                DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
-                ROS_DEBUG("x: %f, y: %f, z: %f, Utility: %f, Costs: %f, Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f, IterationStep: %i",
-                            intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
-                            drPtr->getUtility(), drPtr->getInverseCosts(),
-                            drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
-                            drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts(),
-                            iterationStep+1);
-		//Iteration step must be increased before the following check.
-		iterationStep ++;
+		    //Iteration step must be increased before the following check.
+		    iterationStep ++;
 
-                if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
+		    if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
                         (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
-					resultViewport = intermediateResultViewport;
-                    ROS_INFO_STREAM ("Next-best-view estimation succeeded. Took " << iterationStep << " iterations");
-					return true;
-				}
+		      resultViewport = intermediateResultViewport;
+		      ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
+		      ROS_DEBUG("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.");
+		      ROS_DEBUG("x: %f, y: %f, z: %f",intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z);
+		      ROS_DEBUG("Utility: %f, Costs: %f, Rating: %f",drPtr->getUtility(), drPtr->getInverseCosts(), mRatingModulePtr->getRating(drPtr));
+		      ROS_DEBUG("Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f",
+				drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
+				drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts());
+		      ROS_DEBUG("IterationStep: %i",iterationStep+1);
+		      return true;
+		    }
 
-				currentBestViewport = intermediateResultViewport;
+		    currentBestViewport = intermediateResultViewport;
 
-			}
-
-			return false;
+		  }
+		  ROS_DEBUG("ENDING DOITERATION METHOD");
+		  return false;
 		}
 
 
-        bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
-                                const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
-                                ViewportPoint &resultViewport) {
-			// current camera position
-			SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
+      bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
+			   const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
+			   ViewportPoint &resultViewport) {
+	ROS_DEBUG("STARTING DOITERATIONSTEP METHOD");
 
-			//Calculate hex grid for resolution given in this iteration step.
-			SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
+	// current camera position
+	SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
-			// do a prefiltering for interesting space sample points
-			IndicesPtr feasibleIndicesPtr;
-			this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
+	//Calculate hex grid for resolution given in this iteration step.
+	SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
 
-			if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
-				return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport);
-			}
+	// do a prefiltering for interesting space sample points
+	IndicesPtr feasibleIndicesPtr;
+	this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
 
-			//Create list of all view ports that are checked during this iteration step.
-			ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
+	if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
+	  return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport);
+	}
 
-            //Go through all interesting space sample points for one iteration step to create candidate viewports.
-			BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
-				SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
-				SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
-				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
+	//Create list of all view ports that are checked during this iteration step.
+	ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
-				//For each space sample point: Go through all interesting orientations.
-                BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-                    // get the corresponding viewport
-					ViewportPoint fullViewportPoint;
-                    if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
-						continue;
-					}
+	//Go through all interesting space sample points for one iteration step to create candidate viewports.
+	BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
+	  SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
+	  SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
+	  IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
-                    // get the best combination of objects to search for and the corresponding score
-                    if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
-                        continue;
-                    }
+	  ROS_DEBUG("Iterating over all orientations for a given robot position.");
+	  //For each space sample point: Go through all interesting orientations.
+	  BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+	    // get the corresponding viewport
+	    ViewportPoint fullViewportPoint;
+	    if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
+	      continue;
+	    }
 
-                    nextBestViewports->push_back(fullViewportPoint);
-				}
-			}
+	    // get the best combination of objects to search for and the corresponding score
+	    ROS_DEBUG("Getting viewport with optimal object constellation for given position & orientation combination.");
+	    if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
+	      continue;
+	    }
 
-            if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
-                return false;
-            }
+	    nextBestViewports->push_back(fullViewportPoint);
+	  }
+	}
+	ROS_DEBUG("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.");
+	if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
+	  ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");
+	  return false;
+	}
 
-			return true;
-		}
+	ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");
+	return true;
+
+      }
 	public:
         /*!
          * \brief creates a new camera viewport with the given data
@@ -303,124 +320,123 @@ namespace next_best_view {
 		 * @param message - message containing the point cloud
 		 */
       bool setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg) {
-			// create a new point cloud
-            ObjectPointCloudPtr originalPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
-            ObjectPointCloudPtr croppedPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+	// create a new point cloud
+	ObjectPointCloudPtr originalPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+	ObjectPointCloudPtr croppedPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
-            ObjectHelper objectHelper;
+	ObjectHelper objectHelper;
 
-			// empty object name set
-			mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
+	// empty object name set
+	mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
 
-			// put each element into the point cloud
-			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
-				// Create a new point with pose and set object type
-				ObjectPoint pointCloudPoint(element.pose);
-				pointCloudPoint.r = 0;
-				pointCloudPoint.g = 255;
-				pointCloudPoint.b = 0;
-                pointCloudPoint.type = element.type;
+	// put each element into the point cloud
+	BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
+	  // Create a new point with pose and set object type
+	  ObjectPoint pointCloudPoint(element.pose);
+	  pointCloudPoint.r = 0;
+	  pointCloudPoint.g = 255;
+	  pointCloudPoint.b = 0;
+	  pointCloudPoint.type = element.type;
 
-                // add type name to list if not already inserted
-                if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
-                    mObjectNameSetPtr->insert(element.type);
+	  // add type name to list if not already inserted
+	  if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
+	    mObjectNameSetPtr->insert(element.type);
 
-				// Get the rotation matrix to translate the normal vectors of the object.
-				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
+	  // Get the rotation matrix to translate the normal vectors of the object.
+	  SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
-				// get object type information
-                ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
+	  // get object type information
+	  ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
 
-                if (responsePtr_ObjectData) {
-					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
-					int normalVectorCount = 0;
-                    BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
-						SimpleVector3 normal(point.x, point.y, point.z);
-                        normal = rotationMatrix * normal;
-						pointCloudPoint.normal_vectors->push_back(normal);
-						pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-						++normalVectorCount;
-					}
-				} else {
-                    ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
-					return false;
-				}
+	  if (responsePtr_ObjectData) {
+	    // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
+	    int normalVectorCount = 0;
+	    BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
+	      SimpleVector3 normal(point.x, point.y, point.z);
+	      normal = rotationMatrix * normal;
+	      pointCloudPoint.normal_vectors->push_back(normal);
+	      pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+	      ++normalVectorCount;
+	    }
+	  } else {
+	    ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
+	    return false;
+	  }
 
-                //Insert the meshpath
-                objectsResources[pointCloudPoint.type] = responsePtr_ObjectData->object_mesh_resource;
+	  //Insert the meshpath
+	  objectsResources[pointCloudPoint.type] = responsePtr_ObjectData->object_mesh_resource;
 
-                //Insert color
-                std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
-                pointCloudPoint.color = colorByID;
-                ROS_DEBUG_STREAM("Got color (" << colorByID.r << ", " << colorByID.g << ", " << colorByID.b << ", " << colorByID.a << ") for id " << element.identifier);
+	  //Insert color
+	  std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
+	  pointCloudPoint.color = colorByID;
 
-                if(mEnableIntermediateObjectWeighting)
-                {
-                    //get the weight for the object from world model
-                    IntermediateObjectWeightResponsePtr responsePtr_Intermediate = objectHelper.getIntermediateObjectValue(pointCloudPoint.type);
+	  if(mEnableIntermediateObjectWeighting)
+	    {
+	      //get the weight for the object from world model
+	      IntermediateObjectWeightResponsePtr responsePtr_Intermediate = objectHelper.getIntermediateObjectValue(pointCloudPoint.type);
 
-                    if(responsePtr_Intermediate)
-                    {
-                        pointCloudPoint.intermediate_object_weight = responsePtr_Intermediate->value;
-                        //ROS_ERROR_STREAM("Set input cloud " << responsePtr_Intermediate->value);
-                    }
-                    else
-                    {
-                        ROS_ERROR("Invalid object name %s or world model service call failed. Point Cloud not set!", pointCloudPoint.type.c_str());
-                        return false;
-                    }
-                }
-                else
-                {
-                    pointCloudPoint.intermediate_object_weight = 1;
-                }
-
-				// add point to array
-                originalPointCloudPtr->push_back(pointCloudPoint);
-			}
-
-            ObjectPointCloudPtr outputPointCloudPtr;
-            if(mEnableCropBoxFiltering)
-            {
-                //Filter the point cloud
-                for(std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
-                {
-                    ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
-                    (*it)->setInputCloud(originalPointCloudPtr);
-                    (*it)->filter(*outputTempPointCloudPtr);
-                    (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
-                }
-
-                ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
-
-                mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
-
-                outputPointCloudPtr = croppedPointCloudPtr;
-            }
-            else
-            {
-                outputPointCloudPtr = originalPointCloudPtr;
-            }
-
-            //If point cloud is empty, getting the indices lead to an Error.
-            if(outputPointCloudPtr->size() > 0)
-            {
-                // the active indices.
-                IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(outputPointCloudPtr->size()));
-                boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
-
-
-                // set the point cloud
-                this->setActiveIndices(activeIndicesPtr);
-            }
-            else
-            {
-                ROS_DEBUG_STREAM("setPointCloudFromMessage::output point cloud is empty.");
-            }
-
-            this->setPointCloudPtr(outputPointCloudPtr);
-			return true;
+	      if(responsePtr_Intermediate)
+		{
+		  pointCloudPoint.intermediate_object_weight = responsePtr_Intermediate->value;
+		  //ROS_ERROR_STREAM("Set input cloud " << responsePtr_Intermediate->value);
 		}
+	      else
+		{
+		  ROS_ERROR("Invalid object name %s or world model service call failed. Point Cloud not set!", pointCloudPoint.type.c_str());
+		  return false;
+		}
+	    }
+	  else
+	    {
+	      pointCloudPoint.intermediate_object_weight = 1;
+	    }
+
+	  // add point to array
+	  originalPointCloudPtr->push_back(pointCloudPoint);
+	}
+
+	ObjectPointCloudPtr outputPointCloudPtr;
+	if(mEnableCropBoxFiltering)
+	  {
+	    //Filter the point cloud
+	    for(std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+	      {
+		ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
+		(*it)->setInputCloud(originalPointCloudPtr);
+		(*it)->filter(*outputTempPointCloudPtr);
+		(*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
+	      }
+
+	    ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
+
+	    mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
+
+	    outputPointCloudPtr = croppedPointCloudPtr;
+	  }
+	else
+	  {
+	    outputPointCloudPtr = originalPointCloudPtr;
+	  }
+
+	//If point cloud is empty, getting the indices lead to an Error.
+	if(outputPointCloudPtr->size() > 0)
+	  {
+	    // the active indices.
+	    IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(outputPointCloudPtr->size()));
+	    boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
+
+
+	    // set the point cloud
+	    this->setActiveIndices(activeIndicesPtr);
+	  }
+	else
+	  {
+	    ROS_DEBUG_STREAM("setPointCloudFromMessage::output point cloud is empty.");
+	  }
+
+	this->setPointCloudPtr(outputPointCloudPtr);
+	return true;
+      }
 
         /**
          * Returns the path to a meshs resource file

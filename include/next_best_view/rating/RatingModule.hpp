@@ -76,6 +76,14 @@ namespace next_best_view {
          * \return whether A is smaller than B
          */
         virtual bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b) = 0;
+
+	/*!
+         * \brief returns the weighted rating of a rating object.
+	 * \param a [in] the rating object.
+         * \return the weighted rating
+	 */
+        virtual float getRating(const BaseScoreContainerPtr &a) = 0;
+
     };
 
 	/*!
