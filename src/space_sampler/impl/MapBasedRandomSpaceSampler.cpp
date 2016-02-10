@@ -16,7 +16,7 @@ namespace next_best_view {
             double xRandom = ((double) std::rand() / (RAND_MAX)) * 2 - 1;
             double yRandom = ((double) std::rand() / (RAND_MAX)) * 2 - 1;
 
-            SimpleVector3 randomPoint(currentSpacePosition[0] + xRandom * width, currentSpacePosition[1] + yRandom * height, 0.);
+            SimpleVector3 randomPoint(currentSpacePosition[0] + xRandom * width, currentSpacePosition[1] + yRandom * height, currentSpacePosition[2]);
 
             //make sure randomPoint does not intersect with an obstacle and is inside the map
             int8_t occupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(randomPoint);
