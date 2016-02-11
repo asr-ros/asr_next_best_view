@@ -107,6 +107,10 @@ namespace next_best_view {
           */
          bool tfParametersInitialized;
 
+         //For Tests only
+         int mNumberIKCalls;
+         double mnTotalIKTime;
+
          /*!
           * Trys to calculate parameters needed for the inverse kinematic using tf transformations
           */

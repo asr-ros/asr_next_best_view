@@ -90,6 +90,8 @@ namespace next_best_view {
         //RobotModelPtr modelPtr(this);
         //ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));
         ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+        mNumberIKCalls = 0;
+        mnTotalIKTime = 0.0;
 	}
 
     MILDRobotModelWithIK::~MILDRobotModelWithIK() {}
@@ -166,6 +168,8 @@ namespace next_best_view {
     //Solves the inverse kinematical problem for an given robot state and a pose for the camera
     RobotStatePtr MILDRobotModelWithIK::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
+        std::clock_t begin = std::clock();
+
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());
         double tiltMin = mTiltLimits.get<0>();
@@ -239,12 +243,7 @@ namespace next_best_view {
         Eigen::Affine3d pan_rotated_Frame = tiltFrame * tiltToPanEigen;
 
         //Calculate PAN and base rotation
-        using namespace std;
-        clock_t begin = clock();
         double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
-        clock_t end = clock();
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        ROS_INFO_STREAM("IK Iteration time: " << elapsed_secs);
         ROS_INFO_STREAM("Pan: " << pan*(180.0/M_PI));
 
         Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
@@ -279,7 +278,15 @@ namespace next_best_view {
         targetMILDRobotState->x = base_Frame(0,3);
         targetMILDRobotState->y = base_Frame(1,3);
         ROS_DEBUG_STREAM("Targetstate: (Pan: " << targetMILDRobotState->pan << ", Tilt: " << targetMILDRobotState->tilt << ", Rotation " << targetMILDRobotState->rotation << ", X:" << targetMILDRobotState->x << ", Y:" << targetMILDRobotState->y << ")");
-		return targetMILDRobotState;
+
+
+        std::clock_t end = std::clock();
+        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+        mNumberIKCalls++;
+        mnTotalIKTime += elapsed_secs;
+        ROS_INFO_STREAM("IK Calculation took " << elapsed_secs << " seconds. Total calculation time: " << mnTotalIKTime << " over " << mNumberIKCalls << " calculations.");
+
+        return targetMILDRobotState;
 	}
 
     Eigen::Affine3d MILDRobotModelWithIK::getTiltJointFrame(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &tilt_base_point)

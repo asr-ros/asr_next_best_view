@@ -76,7 +76,8 @@ public:
          * Calculates the next best view. Starting point of iterative calculations for getNextBestView() service call.
          */
     bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
-        ROS_DEBUG("STARTING CALCULATE-NEXT-BEST-VIEW METHOD");
+        std::clock_t begin = std::clock();
+		ROS_DEBUG("STARTING CALCULATE-NEXT-BEST-VIEW METHOD");
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
         RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
@@ -132,13 +133,14 @@ public:
 
 private:
 
-    bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-        ROS_DEBUG("STARTING DOITERATION METHOD");
+	bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
+		ROS_DEBUG("STARTING DOITERATION METHOD");  
 
         int iterationStep = 0;
         //Best viewport at the end of each iteration step and starting point for optimization (grid alignment) for each following step.
         ViewportPoint currentBestViewport = currentCameraViewport;
-        //Enables to interrupt iterating if it takes too long.
+        
+		//Enables to interrupt iterating if it takes too long.
         while (ros::ok()) {
             ViewportPoint intermediateResultViewport;
 
