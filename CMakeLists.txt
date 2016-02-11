@@ -88,6 +88,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+
 ## Declare a cpp library
 
 add_library(
@@ -129,6 +130,7 @@ add_library(
 	src/space_sampler/impl/PlaneSubSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
+        src/space_sampler/impl/MapBasedRandomSpaceSampler.cpp
 	src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
 )
 target_link_libraries(
@@ -290,6 +292,7 @@ target_link_libraries(
         glpk
         ${catkin_LIBRARIES}
 )
+
 
 
 

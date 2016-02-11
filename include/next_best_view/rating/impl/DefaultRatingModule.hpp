@@ -92,9 +92,9 @@ namespace next_best_view {
 
         bool setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport);
 
-        bool getBestViewport(const ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport);
+        bool getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport);
 
-        bool compareViewports(ViewportPoint &a, ViewportPoint &b);
+        bool compareViewports(const ViewportPoint &a, const ViewportPoint &b);
 
         bool compareScoreContainer(const BaseScoreContainerPtr &a, const BaseScoreContainerPtr &b);
 
