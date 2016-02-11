@@ -66,6 +66,7 @@ namespace next_best_view {
 		 * Calculates the next best view. Starting point of iterative calculations for getNextBestView() service call.
 		 */
 		bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
+            std::clock_t begin = std::clock();
 			ROS_DEBUG("Starting calculation of next best view");
 
 			//Calculate robot configuration corresponding to current camera viewport of robot.
@@ -85,7 +86,11 @@ namespace next_best_view {
 			}
 
 			//Perform iterative optimization and calculate next best view (returning it.)
-			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+            bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+            std::clock_t end = std::clock();
+            double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+            ROS_INFO_STREAM("NBV took " << elapsed_secs << " seconds.");
+            return success;
 		}
 
 		void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &resultIndicesPtr) {
