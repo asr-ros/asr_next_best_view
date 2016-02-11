@@ -38,6 +38,7 @@ private:
     ros::Publisher mObjectMeshMarkerPublisher;
     ros::Publisher mPointObjectNormalPublisher;
     ros::Publisher mFrustumObjectMeshMarkerPublisher;
+    ros::Publisher mCropBoxMarkerPublisher;
 
     ros::NodeHandle mNodeHandle;
 
@@ -47,6 +48,7 @@ private:
     visualization_msgs::MarkerArray::Ptr mObjectMeshMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mObjectNormalsMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mFrustumObjectMeshMarkerArrayPtr;
+    visualization_msgs::MarkerArray::Ptr mCropBoxMarkerArrayPtr;
 
     int m_i;
     float m_j;
@@ -62,6 +64,7 @@ public:
         mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_meshes", 100, false);
         mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_normals", 100, false);
         mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_object_meshes", 100, false);
+        mCropBoxMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/crop_box", 100, false);
 
         if (!mIterationMarkerArrayPublisher) {
             ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
@@ -95,6 +98,8 @@ public:
         visualization_msgs::MarkerArray* objectMeshMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* frustumObjectMeshMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* objectNormalsMarkerArray = new visualization_msgs::MarkerArray();
+        visualization_msgs::MarkerArray* mCropBoxMarkerArray = new visualization_msgs::MarkerArray();
+
 
         mIterationMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*iterationMarkerArray);
         mNewFrustumMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*newFrustumMarkerArray);
@@ -102,6 +107,7 @@ public:
         mObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*objectMeshMarkerArray);
         mObjectNormalsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*objectNormalsMarkerArray);
         mFrustumObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*frustumObjectMeshMarkerArray);
+        mCropBoxMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*mCropBoxMarkerArray);
     }
 
     void triggerIterationVisualizations(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr
@@ -375,6 +381,57 @@ public:
             index++;
         }
         mFrustumObjectMeshMarkerPublisher.publish(*mFrustumObjectMeshMarkerArrayPtr);
+    }
+
+    void triggerCropBoxVisualization(const std::vector<CropBoxPtr> cropBoxListPtr)
+    {
+        if(!mCropBoxMarkerArrayPtr)
+        {
+            ROS_ERROR_STREAM("triggerCropBoxVisualization::mCropBoxMarkerArrayPtr is empty.");
+            return;
+        }
+        int id = 0;
+        for(std::vector<CropBoxPtr>::const_iterator it = cropBoxListPtr.begin(); it != cropBoxListPtr.end(); ++it)
+        {
+            Eigen::Vector4f ptMin,ptMax;
+            ptMin = (*it)->getMin();
+            ptMax = (*it)->getMax();
+            Eigen::Vector3f rotation, translation;
+            rotation = (*it)->getRotation();
+            translation = (*it)->getTranslation();
+
+            Eigen::Matrix3f rotationMatrix;
+            rotationMatrix = Eigen::AngleAxisf(rotation[0], Eigen::Vector3f::UnitX())
+            * Eigen::AngleAxisf(rotation[1], Eigen::Vector3f::UnitY())
+            * Eigen::AngleAxisf(rotation[2], Eigen::Vector3f::UnitZ());
+
+
+            SimpleVector3 position_cb_frame;
+            position_cb_frame[0] = (ptMax[0] + ptMin[0])/2;
+            position_cb_frame[1] = (ptMax[1] + ptMin[1])/2;
+            position_cb_frame[2] = (ptMax[2] + ptMin[2])/2;
+
+            SimpleVector3 position_map_frame;
+            position_map_frame = rotationMatrix * position_cb_frame + translation;
+
+            //TODO : IN PARAM EXTERN STORE
+            SimpleVector4 color = SimpleVector4(1,1,0,0.3);
+
+            SimpleQuaternion orientation(rotationMatrix);
+
+            SimpleVector3 scale;
+            scale[0] = std::abs(ptMax[0] - ptMin[0]);
+            scale[1] = std::abs(ptMax[1] - ptMin[1]);
+            scale[2] = std::abs(ptMax[2] - ptMin[2]);
+
+            std::stringstream ns;
+            ns << "cropbox_ns" << id;
+
+            mCropBoxMarkerArrayPtr->markers.push_back(MarkerHelper::getCubeMarker(id,
+                                    position_map_frame, orientation, scale,  color, ns.str()));
+            id++;
+        }
+        mCropBoxMarkerPublisher.publish(*mCropBoxMarkerArrayPtr);
     }
 
     /* only working because the shape-based recognizer sets the observedId with the object color */

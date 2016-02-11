@@ -12,6 +12,7 @@
 #include <pcl-1.7/pcl/point_cloud.h>
 #include <pcl-1.7/pcl/kdtree/kdtree_flann.h>
 #include <pcl-1.7/pcl/filters/frustum_culling.h>
+#include <pcl-1.7/pcl/filters/crop_box.h>
 #include <set>
 #include <vector>
 
@@ -83,6 +84,10 @@ namespace next_best_view {
 	typedef pcl::FrustumCulling<ObjectPoint> FrustumCulling;
 	typedef FrustumCulling::Ptr FrustumCullingPtr;
 
+    // defining the cropbox filtering
+    typedef pcl::CropBox<ObjectPoint> CropBox;
+    typedef CropBox::Ptr CropBoxPtr;
+
 	// defining kdtree types
 	typedef pcl::KdTreeFLANN<ObjectPoint> KdTree;
 	typedef KdTree::Ptr KdTreePtr;
@@ -103,6 +108,7 @@ namespace next_best_view {
 	typedef boost::shared_ptr<ObjectNameSet> ObjectNameSetPtr;
 	typedef std::set<ObjectNameSetPtr> ObjectNamePowerSet;
 	typedef boost::shared_ptr<ObjectNamePowerSet> ObjectNamePowerSetPtr;
+
 }
 
 #include "next_best_view/pcl/RealObjectPoint.hpp"

@@ -25,8 +25,6 @@
 #include <pcl/segmentation/impl/conditional_euclidean_clustering.hpp>
 #include <pcl/pcl_base.h>
 #include <pcl/impl/pcl_base.hpp>
-#include <pcl/filters/frustum_culling.h>
-#include <pcl/filters/impl/frustum_culling.hpp>
 #include <std_msgs/ColorRGBA.h>
 
 namespace next_best_view {
@@ -58,6 +56,7 @@ namespace next_best_view {
 		SimpleVector3CollectionPtr normal_vectors;
 		IndicesPtr active_normal_vectors;
         std_msgs::ColorRGBA color;
+        double intermediate_object_weight;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		RealObjectPoint(const gm::Pose &pose = gm::Pose()) : normal_vectors(new SimpleVector3Collection()), active_normal_vectors(new Indices()) {

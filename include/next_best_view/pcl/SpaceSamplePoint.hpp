@@ -25,8 +25,6 @@
 #include <pcl/segmentation/impl/conditional_euclidean_clustering.hpp>
 #include <pcl/pcl_base.h>
 #include <pcl/impl/pcl_base.hpp>
-#include <pcl/filters/frustum_culling.h>
-#include <pcl/filters/impl/frustum_culling.hpp>
 
 namespace next_best_view {
 	namespace gm = geometry_msgs;

@@ -21,7 +21,8 @@ namespace next_best_view {
     }
 
     bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport) {
-        // reset the cached data
+      ROS_DEBUG("STARTING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD");
+      // reset the cached data
         this->resetCache();
 
         // get the power set of the object name set
@@ -51,36 +52,52 @@ namespace next_best_view {
         }
 
         if (!this->getBestViewport(viewports, candidateViewport)) {
-            return false;
+	  ROS_DEBUG("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD");
+	  return false;
         }
-
-        return true;
+	ROS_DEBUG("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD");
+	return true;
     }
 
-    bool DefaultRatingModule::getBestViewport(const ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
+    bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
+      ROS_DEBUG("STARTING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD");
+
         // if there aren't any viewports, the search failed.
-        ROS_DEBUG_STREAM("Viewport Point size : " << viewports->size());
         if (viewports->size() == 0) {
             return false;
         }
 
-        ViewportPointCloud::iterator maxElement = std::max_element(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
+        std::sort(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
 
-        if (maxElement == viewports->end()) {
-            ROS_DEBUG_STREAM("No maximum element found.");
-            return false;
+        for (unsigned int i = 0; i < viewports->size(); i++) {
+	  ROS_DEBUG_STREAM("\nTHIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.");
+            ViewportPoint viewport = viewports->at(i);
+            ROS_DEBUG_STREAM("Viewport position: (" << viewport.getPosition()(0,0) << ","
+			     << viewport.getPosition()(1,0) << "," << viewport.getPosition()(2,0) << ")");
+	    ROS_DEBUG_STREAM("utility: " << viewport.score->getUtility() << " inverse costs: " << viewport.score->getInverseCosts());
+	    ROS_DEBUG_STREAM("inverse costs base translation: " << viewport.score->getInverseMovementCostsBaseTranslation()
+			     << " inverse costs base rotation: " << viewport.score->getInverseMovementCostsBaseRotation()
+			     << " inverse costs PTU movement: " << viewport.score->getInverseMovementCostsPTU()
+			     << " inverse costs recognition: " << viewport.score->getInverseRecognitionCosts());
+	    ROS_DEBUG_STREAM("rating: " << this->getRating(viewport.score));
         }
 
-        bestViewport = *maxElement;
+        bestViewport = viewports->at(viewports->size() - 1);
+	ROS_DEBUG_STREAM("\nTHIS IS THE BEST VIEWPORT IN THE SORTED LIST.");
+        ROS_DEBUG_STREAM("Best viewport position: (" << bestViewport.getPosition()(0,0) << ","
+			 << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")");
+	ROS_DEBUG_STREAM("utility: " << bestViewport.score->getUtility() << " inverse costs: " << bestViewport.score->getInverseCosts());
+	ROS_DEBUG_STREAM(" inverse costs base translation: " << bestViewport.score->getInverseMovementCostsBaseTranslation()
+			 << "inverse costs base rotation: " << bestViewport.score->getInverseMovementCostsBaseRotation()
+			 << "inverse costs PTU movement: " << bestViewport.score->getInverseMovementCostsPTU()
+			 << " inverse costs recognition: " << bestViewport.score->getInverseRecognitionCosts());
+	ROS_DEBUG_STREAM(" rating: " << this->getRating(bestViewport.score));
 
-        ROS_DEBUG_STREAM("bestViewport position: (" << bestViewport.getPosition()(0,0) << ","
-                            << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")"
-                            << " rating: " << this->getRating(bestViewport.score));
-
+	ROS_DEBUG("STARTING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD");
         return true;
     }
 
-    bool DefaultRatingModule::compareViewports(ViewportPoint &a, ViewportPoint &b) {
+    bool DefaultRatingModule::compareViewports(const ViewportPoint &a, const ViewportPoint &b) {
         return this->compareScoreContainer(a.score, b.score);
     }
 
@@ -137,12 +154,12 @@ namespace next_best_view {
 
         // project the object to the camera orientation vector in order to determine the distance to the mid
         float projection = MathHelper::getDotProduct(-cameraOrientationVector, objectToCameraVector);
-        ROS_DEBUG_STREAM("projection value" << projection << " fcp " << fcp << " ncp " << ncp);
+//        ROS_DEBUG_STREAM("projection value" << projection << " fcp " << fcp << " ncp " << ncp);
 
         // determine the distance of the object to the mid of the frustum
         float distanceToMid = abs(projection-(fcp+ncp)/2.0);
         float distanceThreshold = (fcp-ncp)/2.0;
-        ROS_DEBUG_STREAM("distance to mid " << distanceToMid << " thresh "  << distanceThreshold );
+//        ROS_DEBUG_STREAM("distance to mid " << distanceToMid << " thresh "  << distanceThreshold );
 
         float utility = this->getNormalizedRating(distanceToMid, distanceThreshold);
 
@@ -171,8 +188,8 @@ namespace next_best_view {
         // the complete frumstum position utility
         float utility = sideUtility * proximityUtility;
 
-        ROS_DEBUG_STREAM("Frustum side utility "<< sideUtility);
-        ROS_DEBUG_STREAM("Frustum proximity utility  " << proximityUtility);
+//        ROS_DEBUG_STREAM("Frustum side utility "<< sideUtility);
+//        ROS_DEBUG_STREAM("Frustum proximity utility  " << proximityUtility);
         return utility;
     }
 
@@ -183,7 +200,7 @@ namespace next_best_view {
 
         float result = a->getUtility() * a->getInverseCosts();
 
-        ROS_DEBUG_STREAM("rating: " << result << " utility: " << a->getUtility() << " costs: " << a->getInverseCosts());
+//        ROS_DEBUG_STREAM("rating: " << result << " utility: " << a->getUtility() << " costs: " << a->getInverseCosts());
 
         return result;
 	}
@@ -211,11 +228,11 @@ namespace next_best_view {
         defRatingPtr->setInverseRecognitionCosts(mInverseRecognitionCosts);
 
         candidateViewport.score = defRatingPtr;
-        ROS_DEBUG_STREAM("Utility: " << utility << " Costs: " << costs
-                    << " Costs base translation: " << mInverseMovementCostsBaseTranslation
-                    << " Costs base rotation: " << mInverseMovementCostsBaseRotation
-                    << " Costs PTU movement: " << mInverseMovementCostsPTU
-                    << " Costs recognition: " << mInverseRecognitionCosts);
+//        ROS_DEBUG_STREAM("Utility: " << utility << " Costs: " << costs
+//                    << " Costs base translation: " << mInverseMovementCostsBaseTranslation
+//                    << " Costs base rotation: " << mInverseMovementCostsBaseRotation
+//                    << " Costs PTU movement: " << mInverseMovementCostsPTU
+//                    << " Costs recognition: " << mInverseRecognitionCosts);
         return true;
     }
 
@@ -264,7 +281,7 @@ namespace next_best_view {
 
         // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
         BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
-            ObjectPoint &objectPoint = this->getInputCloud()->at(index);
+            ObjectPoint& objectPoint = this->getInputCloud()->at(index);
 
             if (objectPoint.type != objectType) {
                 continue;
@@ -278,7 +295,8 @@ namespace next_best_view {
             float positionUtility = this->getFrustumPositionUtility(candidateViewport, objectPoint);
 
             // calculate utility
-            utility += orientationUtility * positionUtility;
+            utility += orientationUtility * positionUtility * objectPoint.intermediate_object_weight;
+            //ROS_ERROR_STREAM("DefaultRatingModule::setObjectUtilities weight "<< objectPoint.intermediate_object_weight);
         }
 
         // normalize utility
@@ -333,7 +351,7 @@ namespace next_best_view {
         }
         double normalizedRecognitionCosts = 1.0 - recognitionCosts / mMaxRecognitionCosts;
 
-        ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts);
+//        ROS_DEBUG_STREAM("Recognitioncosts: " << recognitionCosts);
 
         return normalizedRecognitionCosts;
     }
@@ -374,13 +392,13 @@ namespace next_best_view {
             mInverseMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
         }
 
-        ROS_DEBUG_STREAM("PTU Costs Tilt: " << mInverseMovementCostsPTU);
+//        ROS_DEBUG_STREAM("PTU Costs Tilt: " << mInverseMovementCostsPTU);
 
         // set the movement costs
         mInverseMovementCosts = mInverseMovementCostsBaseTranslation * mOmegaBase + mInverseMovementCostsPTU * mOmegaPTU
                             + mInverseMovementCostsBaseRotation * mOmegaRot;
 
-        ROS_DEBUG_STREAM("Movement; " << mInverseMovementCostsBaseTranslation << ", rotation " << mInverseMovementCostsBaseRotation << ", movement PTU: " << mInverseMovementCostsPTU);
+//        ROS_DEBUG_STREAM("Movement; " << mInverseMovementCostsBaseTranslation << ", rotation " << mInverseMovementCostsBaseRotation << ", movement PTU: " << mInverseMovementCostsPTU);
     }
 
     void DefaultRatingModule::setCostsNormalization() {
@@ -404,7 +422,7 @@ namespace next_best_view {
         mMaxRecognitionCosts = maxRecognitionCosts;
         mInputCloudChanged = false;
 
-        ROS_DEBUG_STREAM("maxRecognitionCosts: " << mMaxRecognitionCosts);
+//        ROS_DEBUG_STREAM("maxRecognitionCosts: " << mMaxRecognitionCosts);
     }
 
     void DefaultRatingModule::resetCache() {

@@ -29,6 +29,11 @@
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 
+#include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
+
+#include <rapid_xml/rapidxml.hpp>
+#include <rapid_xml/rapidxml_utils.hpp>
+
 namespace next_best_view {
     class NextBestViewCalculator {
 	private:
@@ -37,14 +42,19 @@ namespace next_best_view {
 		KdTreePtr mKdTreePtr;
         std::map<std::string, std::string> objectsResources;
 		UnitSphereSamplerPtr mUnitSphereSamplerPtr;
-                SpaceSamplerPtr mSpaceSamplerPtr;
+        SpaceSamplerPtr mSpaceSamplerPtr;
 		RobotModelPtr mRobotModelPtr;
 		CameraModelFilterPtr mCameraModelFilterPtr;
 		RatingModulePtr mRatingModulePtr;
 		HypothesisUpdaterPtr mHypothesisUpdaterPtr;
 		float mEpsilon;
 		ObjectNameSetPtr mObjectNameSetPtr;
-                VisualizationHelper mVisHelper;
+        VisualizationHelper mVisHelper;
+        std::vector<CropBoxPtr> mCropBoxPtrList;
+        bool mEnableCropBoxFiltering;
+        bool mEnableIntermediateObjectWeighting;
+
+        int mMaxIterationSteps;
 
 	public:
 		NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -84,13 +94,9 @@ namespace next_best_view {
 					feasibleOrientationsCollectionPtr->push_back(q);
 				}
 			}
-
-			//Perform iterative optimization and calculate next best view (returning it.)
-            bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
-            std::clock_t end = std::clock();
-            double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-            ROS_INFO_STREAM("NBV took " << elapsed_secs << " seconds.");
-            return success;
+			ROS_DEBUG("ENDING CALCULATE-NEXT-BEST-VIEW METHOD");
+			// create the next best view point cloud
+			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 		}
 
 		void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &resultIndicesPtr) {
@@ -128,7 +134,8 @@ namespace next_best_view {
 	private:
 
 		bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-		  ROS_DEBUG("Start iterating for Next-Best-View calculation.");
+		  ROS_DEBUG("STARTING DOITERATION METHOD");
+		  
 		  int iterationStep = 0;
 		  //Best viewport at the end of each iteration step and starting point for optimization (grid alignment) for each following step.
 		  ViewportPoint currentBestViewport = currentCameraViewport;
@@ -136,45 +143,54 @@ namespace next_best_view {
 		  //Enables to interrupt iterating if it takes too long.
 		  while (ros::ok()) {
 		    ViewportPoint intermediateResultViewport;
-		    ROS_DEBUG("Prepare iteration step");
+		    
 		    //Contractor is always divided by two.
 		    if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
 					       sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
-					       intermediateResultViewport, iterationStep)) {
+					       intermediateResultViewport)) {
 		      //Happens, when no valid viewport is found in that iteration step (including current viewport). E.g. when all normals are invalidated.
 		      return false;
 		    }
-
+			//Iteration step must be increased before the following check.
+		    iterationStep ++;
 		    DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
-		    ROS_INFO("x: %f, y: %f, z: %f, Utility: %f, Costs: %f, Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f, IterationStep: %i",
-			      intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z,
-			      drPtr->getUtility(), drPtr->getInverseCosts(),
+		    ROS_DEBUG("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.");
+		    ROS_DEBUG("x: %f, y: %f, z: %f",intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z);
+		    ROS_DEBUG("Utility: %f, Costs: %f, Rating: %f",drPtr->getUtility(), drPtr->getInverseCosts(), mRatingModulePtr->getRating(drPtr));
+		    ROS_DEBUG("Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f",
 			      drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
-			      drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts(),
-			      iterationStep);
-		    //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
+			      drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts());
+		    ROS_DEBUG("IterationStep: %i",iterationStep);
+		    
+			//First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
 		    if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-		     (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() ) {
-		    //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
-		      resultViewport = intermediateResultViewport;
-		      ROS_INFO_STREAM ("NBV calculation succeeded. Took " << iterationStep << " iterations");
+                        (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
+		      //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
+			  resultViewport = intermediateResultViewport;
+		      ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
+		      ROS_DEBUG("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.");
+		      ROS_DEBUG("x: %f, y: %f, z: %f",intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z);
+		      ROS_DEBUG("Utility: %f, Costs: %f, Rating: %f",drPtr->getUtility(), drPtr->getInverseCosts(), mRatingModulePtr->getRating(drPtr));
+		      ROS_DEBUG("Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f",
+				drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
+				drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts());
+		      ROS_DEBUG("IterationStep: %i",iterationStep);
 		      return true;
 		    }
 
 		    currentBestViewport = intermediateResultViewport;
 
 		  }
+		  ROS_DEBUG("ENDING DOITERATION METHOD");
 		  //Only reached when iteration fails or is interrupted.
 		  return false;
 		}
 
 
-        bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
-			     const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
-			     ViewportPoint &resultViewport, int& iterationStep) {
-	  ROS_DEBUG_STREAM("Starting iteration nr. " << iterationStep << " in current search for NBV.");
-	                //New iteration started.
-	                iterationStep ++;
+      bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
+			   const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
+			   ViewportPoint &resultViewport) {
+		    ROS_DEBUG("STARTING DOITERATIONSTEP METHOD");
 
 			// current camera position
 			SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
@@ -186,10 +202,10 @@ namespace next_best_view {
 			//Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
 			this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
 
-			//Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
+			//Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution			
 			if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
-			  ROS_DEBUG("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.");
-			  return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep), resultViewport, iterationStep);
+				ROS_DEBUG("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.");				
+				return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport);
 			}
 
 			//Create list of all view ports that are checked during this iteration step.
@@ -202,6 +218,7 @@ namespace next_best_view {
 				IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
 				//For each space sample point: Go through all interesting orientations.
+				ROS_DEBUG("Iterating over all orientations for a given robot position.");
 				BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
 				  // get the corresponding viewport
 				  ViewportPoint fullViewportPoint;
@@ -212,26 +229,20 @@ namespace next_best_view {
 				  }
 				  //For given viewport(combination of robot position and camera viewing direction)
 				  // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
-				  if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
+				 ROS_DEBUG("Getting viewport with optimal object constellation for given position & orientation combination."); 
+				 if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
 				    continue;
 				  }
 				  //Keep viewport with optimal subset of objects within frustum to search for.
 				  nextBestViewports->push_back(fullViewportPoint);
 				}
 			}
-
-			//Extracts best viewport from set of rated next-best-view candidates (including current viewport)
+			ROS_DEBUG("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.");
 			if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
+			  ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");               
 			  return false;
 			}
-
-			//Visualize iteration step and its result.
-			SimpleVector3 resultPosition = resultViewport.getPosition();
-			SpaceSamplerPtr spaceSamplerPtr = this->getSpaceSampler();
-
-			mVisHelper.triggerIterationVisualizations(iterationStep - 1, resultPosition, sampledOrientationsPtr,
-								  resultViewport, feasibleIndicesPtr, sampledSpacePointCloudPtr, spaceSamplerPtr);
-
+			ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");
 			return true;
 		}
 	public:
@@ -247,6 +258,7 @@ namespace next_best_view {
 			mCameraModelFilterPtr->setIndices(indices);
             mCameraModelFilterPtr->setPivotPointPose(position, orientation);
 
+			// do the frustum culling
 			IndicesPtr frustumIndicesPtr;
 			//Call wrapper (with next-best-view data structures) for PCL frustum culling call.
 			mCameraModelFilterPtr->filter(frustumIndicesPtr);
@@ -308,71 +320,123 @@ namespace next_best_view {
 		 * @param message - message containing the point cloud
 		 */
       bool setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg) {
-			// create a new point cloud
-			ObjectPointCloudPtr pointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+	// create a new point cloud
+	ObjectPointCloudPtr originalPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
+	ObjectPointCloudPtr croppedPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
-            ObjectHelper objectHelper;
+	ObjectHelper objectHelper;
 
-			// empty object name set
-			mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
+	// empty object name set
+	mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
 
-			// put each element into the point cloud
-			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
-				// Create a new point with pose and set object type
-				ObjectPoint pointCloudPoint(element.pose);
-				pointCloudPoint.r = 0;
-				pointCloudPoint.g = 255;
-				pointCloudPoint.b = 0;
-                pointCloudPoint.type = element.type;
+	// put each element into the point cloud
+	BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
+	  // Create a new point with pose and set object type
+	  ObjectPoint pointCloudPoint(element.pose);
+	  pointCloudPoint.r = 0;
+	  pointCloudPoint.g = 255;
+	  pointCloudPoint.b = 0;
+	  pointCloudPoint.type = element.type;
 
-                // add type name to list if not already inserted
-                if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
-                    mObjectNameSetPtr->insert(element.type);
+	  // add type name to list if not already inserted
+	  if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
+	    mObjectNameSetPtr->insert(element.type);
 
-				// Get the rotation matrix to translate the normal vectors of the object.
-				SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
+	  // Get the rotation matrix to translate the normal vectors of the object.
+	  SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
-				// get object type information
-                ObjectMetaDataResponsePtr responsePtr = objectHelper.get(pointCloudPoint.type);
+	  // get object type information
+	  ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
 
-				if (responsePtr) {
-					// translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
-					int normalVectorCount = 0;
-					BOOST_FOREACH(geometry_msgs::Point point, responsePtr->normal_vectors) {
-						SimpleVector3 normal(point.x, point.y, point.z);
-                        normal = rotationMatrix * normal;
-						pointCloudPoint.normal_vectors->push_back(normal);
-						pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-						++normalVectorCount;
-					}
-				} else {
-					ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
-					return false;
-				}
+	  if (responsePtr_ObjectData) {
+	    // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
+	    int normalVectorCount = 0;
+	    BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
+	      SimpleVector3 normal(point.x, point.y, point.z);
+	      normal = rotationMatrix * normal;
+	      pointCloudPoint.normal_vectors->push_back(normal);
+	      pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+	      ++normalVectorCount;
+	    }
+	  } else {
+	    ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
+	    return false;
+	  }
 
-                //Insert the meshpath
-                objectsResources[pointCloudPoint.type] = responsePtr->object_mesh_resource;
+	  //Insert the meshpath
+	  objectsResources[pointCloudPoint.type] = responsePtr_ObjectData->object_mesh_resource;
 
-                //Insert color
-                std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
-                pointCloudPoint.color = colorByID;
-                ROS_DEBUG_STREAM("Got color (" << colorByID.r << ", " << colorByID.g << ", " << colorByID.b << ", " << colorByID.a << ") for id " << element.identifier);
+	  //Insert color
+	  std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
+	  pointCloudPoint.color = colorByID;
 
+	  if(mEnableIntermediateObjectWeighting)
+	    {
+	      //get the weight for the object from world model
+	      IntermediateObjectWeightResponsePtr responsePtr_Intermediate = objectHelper.getIntermediateObjectValue(pointCloudPoint.type);
 
-				// add point to array
-				pointCloudPtr->push_back(pointCloudPoint);
-			}
-
-			// the active indices.
-			IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(msg.elements.size()));
-			boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
-
-
-			// set the point cloud
-			this->setActiveIndices(activeIndicesPtr);
-			this->setPointCloudPtr(pointCloudPtr);
-			return true;
+	      if(responsePtr_Intermediate)
+		{
+		  pointCloudPoint.intermediate_object_weight = responsePtr_Intermediate->value;
+		  //ROS_ERROR_STREAM("Set input cloud " << responsePtr_Intermediate->value);
 		}
+	      else
+		{
+		  ROS_ERROR("Invalid object name %s or world model service call failed. Point Cloud not set!", pointCloudPoint.type.c_str());
+		  return false;
+		}
+	    }
+	  else
+	    {
+	      pointCloudPoint.intermediate_object_weight = 1;
+	    }
+
+	  // add point to array
+	  originalPointCloudPtr->push_back(pointCloudPoint);
+	}
+
+	ObjectPointCloudPtr outputPointCloudPtr;
+	if(mEnableCropBoxFiltering)
+	  {
+	    //Filter the point cloud
+	    for(std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+	      {
+		ObjectPointCloudPtr outputTempPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud);
+		(*it)->setInputCloud(originalPointCloudPtr);
+		(*it)->filter(*outputTempPointCloudPtr);
+		(*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
+	      }
+
+	    ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
+
+	    mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
+
+	    outputPointCloudPtr = croppedPointCloudPtr;
+	  }
+	else
+	  {
+	    outputPointCloudPtr = originalPointCloudPtr;
+	  }
+
+	//If point cloud is empty, getting the indices lead to an Error.
+	if(outputPointCloudPtr->size() > 0)
+	  {
+	    // the active indices.
+	    IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(outputPointCloudPtr->size()));
+	    boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
+
+
+	    // set the point cloud
+	    this->setActiveIndices(activeIndicesPtr);
+	  }
+	else
+	  {
+	    ROS_DEBUG_STREAM("setPointCloudFromMessage::output point cloud is empty.");
+	  }
+
+	this->setPointCloudPtr(outputPointCloudPtr);
+	return true;
+      }
 
         /**
          * Returns the path to a meshs resource file
@@ -403,7 +467,22 @@ namespace next_best_view {
 			mSpaceSamplerPtr->setInputCloud(mPointCloudPtr);
 		}
 
-		/**
+        void loadCropBoxListFromFile(const std::string mCropBoxListFilePath)
+        {
+            readCropBoxDataFromXMLFile(mCropBoxListFilePath);
+        }
+
+        void setEnableCropBoxFiltering(const bool mEnableCropBoxFiltering)
+        {
+            this->mEnableCropBoxFiltering = mEnableCropBoxFiltering;
+        }
+
+        void setEnableIntermediateObjectWeighting(const bool mEnableIntermediateObjectWeighting)
+        {
+            this->mEnableIntermediateObjectWeighting = mEnableIntermediateObjectWeighting;
+        }
+
+         /**
 		 * @return the point cloud pointer
 		 */
 		ObjectPointCloudPtr getPointCloudPtr() {
@@ -527,6 +606,94 @@ namespace next_best_view {
 		float getEpsilon() {
 			return mEpsilon;
 		}
+
+       /**
+	 * Max number of hierarchical iterations when calculating a next-best-view.
+         * @param maxIterationSteps  - max number of iteration steps
+         */
+        void setMaxIterationSteps(int maxIterationSteps)
+        {
+            mMaxIterationSteps  = maxIterationSteps;
+        }
+
+        //TODO : REFACTOR
+        void readCropBoxDataFromXMLFile(std::string mCropBoxListFilePath)
+        {
+            std::string xml_path = mCropBoxListFilePath;
+            ROS_DEBUG_STREAM("Path to CropBoxList xml file: " << xml_path);
+            try {
+                rapidxml::file<> xmlFile(xml_path.c_str());
+                rapidxml::xml_document<> doc;
+                doc.parse<0>(xmlFile.data());
+
+                rapidxml::xml_node<> *root_node = doc.first_node();
+                if (root_node) {
+                    rapidxml::xml_node<> *child_node = root_node->first_node();
+                    while (child_node)
+                    {
+                        CropBoxPtr bufferCropBoxPtr = CropBoxPtr(new CropBox);
+                        rapidxml::xml_node<> * min_pt = child_node->first_node("min_pt");
+                        rapidxml::xml_attribute<> *x = min_pt->first_attribute("x");
+                        rapidxml::xml_attribute<> *y = min_pt->first_attribute("y");
+                        rapidxml::xml_attribute<> *z = min_pt->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector4f pt_min(x_,y_,z_,1);
+                            bufferCropBoxPtr->setMin(pt_min);
+                        }
+
+                        rapidxml::xml_node<> * max_pt = child_node->first_node("max_pt");
+                        x = max_pt->first_attribute("x");
+                        y = max_pt->first_attribute("y");
+                        z = max_pt->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector4f pt_max(x_,y_,z_,1);
+                            bufferCropBoxPtr->setMax(pt_max);
+                        }
+
+                        rapidxml::xml_node<> * rotation = child_node->first_node("rotation");
+                        x = rotation->first_attribute("x");
+                        y = rotation->first_attribute("y");
+                        z = rotation->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector3f rotation(x_,y_,z_);
+                            bufferCropBoxPtr->setRotation(rotation);
+                        }
+
+                        rapidxml::xml_node<> * translation = child_node->first_node("translation");
+                        x = translation->first_attribute("x");
+                        y = translation->first_attribute("y");
+                        z = translation->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            Eigen::Vector3f translation(x_,y_,z_);
+                            bufferCropBoxPtr->setTranslation(translation);
+                        }
+                        mCropBoxPtrList.push_back(bufferCropBoxPtr);
+                        child_node = child_node->next_sibling();
+                    }
+                }
+            } catch(std::runtime_error err) {
+                ROS_ERROR_STREAM("Can't parse xml-file. Runtime error: " << err.what());
+            } catch (rapidxml::parse_error err) {
+                ROS_ERROR_STREAM("Can't parse xml-file Parse error: " << err.what());
+            }
+        }
+
 	};
 }
 

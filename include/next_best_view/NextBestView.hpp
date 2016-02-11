@@ -63,11 +63,13 @@
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/MapBasedRandomSpaceSampler.hpp"
+
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 
 namespace next_best_view {
 	// Defining namespace shorthandles
-        namespace viz = visualization_msgs;
+    namespace viz = visualization_msgs;
 	namespace odb = object_database;
 
 	// Defining shorthandle for action client.
@@ -110,14 +112,19 @@ namespace next_best_view {
         ros::ServiceClient mPushViewportServiceClient;
 		ros::ServiceClient mGetViewportListServiceClient;
 
-		// Etcetera
-		ViewportPoint mCurrentCameraViewport;
-		ObjectPointCloudPtr mPointCloudPtr;
-		KdTreePtr mKdTreePtr;
-        VisualizationHelper mVisHelper;
-		SetupVisualizationRequest mVisualizationSettings;
-        bool mCurrentlyPublishingVisualization;
-        unsigned int numberSearchedObjects;
+	  // Etcetera
+	  ViewportPoint mCurrentCameraViewport;
+	  ObjectPointCloudPtr mPointCloudPtr;
+	  KdTreePtr mKdTreePtr;
+	  VisualizationHelper mVisHelper;
+	  SetupVisualizationRequest mVisualizationSettings;
+	  bool mCurrentlyPublishingVisualization;
+	  unsigned int numberSearchedObjects;
+
+	  // Bool for set point cloud flags
+	  bool mEnableIntermediateObjectWeighting;
+	  bool mEnableCropBoxFiltering;
+
 	public:
 		/*!
 		 * \brief Creates an instance of the NextBestView class.
@@ -150,6 +157,7 @@ namespace next_best_view {
 
         void initialize()
         {
+	  ROS_DEBUG_STREAM("STARTING NBV PARAMETER OUTPUT");
             mPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
             mCurrentlyPublishingVisualization = false;
 
@@ -160,6 +168,14 @@ namespace next_best_view {
             mNodeHandle.param("show_frustum_point_cloud", show_frustum_point_cloud, false);
             mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
             mNodeHandle.param("move_robot", move_robot, false);
+
+            //get XML path
+            std::string mCropBoxListFilePath;
+            mNodeHandle.param("mCropBoxListFilePath", mCropBoxListFilePath,std::string());
+
+            //Set point cloud parameters flags
+            mNodeHandle.param("enableCropBoxFiltering", mEnableCropBoxFiltering, false);
+            mNodeHandle.param("enableIntermediateObjectWeighting", mEnableIntermediateObjectWeighting, false);
 
             // assign the values to the settings struct
             mVisualizationSettings.space_sampling = show_space_sampling;
@@ -176,14 +192,14 @@ namespace next_best_view {
             */
             numberSearchedObjects = 0;
             double fovx, fovy, ncp, fcp, speedFactorRecognizer;
-            double radius,samples,colThresh;
+            double radius,sampleSizeUnitSphereSampler,colThresh;
             mNodeHandle.param("fovx", fovx, 62.5);
             mNodeHandle.param("fovy", fovy, 48.9);
             mNodeHandle.param("ncp", ncp, .5);
             mNodeHandle.param("fcp", fcp, 5.0);
             mNodeHandle.param("radius", radius, 0.75);
             mNodeHandle.param("colThresh", colThresh, 45.0);
-            mNodeHandle.param("samples", samples, 128.0);
+            mNodeHandle.param("sampleSizeUnitSphereSampler", sampleSizeUnitSphereSampler, 128.0);
             mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
             ROS_DEBUG_STREAM("fovx: " << fovx);
             ROS_DEBUG_STREAM("fovy: " << fovy);
@@ -191,7 +207,7 @@ namespace next_best_view {
             ROS_DEBUG_STREAM("fcp: " << fcp);
             ROS_DEBUG_STREAM("radius: " << radius);
             ROS_DEBUG_STREAM("colThresh: " << colThresh);
-            ROS_DEBUG_STREAM("samples: " << samples);
+            ROS_DEBUG_STREAM("samples: " << sampleSizeUnitSphereSampler);
             ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
 
             //////////////////////////////////////////////////////////////////
@@ -220,7 +236,7 @@ namespace next_best_view {
              * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
              */
             SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
-            unitSphereSamplerPtr->setSamples(samples);
+            unitSphereSamplerPtr->setSamples(sampleSizeUnitSphereSampler);
 
             /* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
              * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
@@ -230,14 +246,48 @@ namespace next_best_view {
             MapHelperPtr mapHelperPtr(new MapHelper());
             mapHelperPtr->setCollisionThreshold(colThresh);
 
-            /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
-             * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
-             * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
-             * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
-             * the map and calculate the points which are contained in the feasible map space.
+
+            /*
+             * Intializes SpaceSampler spaceSampler with the SpaceSampler sublcass specified by the parameter samplerId :
+             * - samplerId == 1 => MapBasedHexagonSpaceSampler
+             * - smaplerId == 2 => MapBasedRandomSpaceSampler
              */
-            MapBasedHexagonSpaceSamplerPtr spaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
-            spaceSamplerPtr->setHexagonRadius(radius);
+
+            int sampleSizeMapBasedRandomSpaceSampler, spaceSamplerId;
+            mNodeHandle.param("sampleSizeMapBasedRandomSpaceSampler", sampleSizeMapBasedRandomSpaceSampler, 100);
+            mNodeHandle.param("spaceSamplerId", spaceSamplerId, 1);
+
+            ROS_DEBUG_STREAM("sampleSizeMapBasedRandomSpaceSampler: " << sampleSizeMapBasedRandomSpaceSampler);
+            ROS_DEBUG_STREAM("spaceSamplerId: " << spaceSamplerId);
+
+            SpaceSamplerPtr spaceSamplerPtr;
+            MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler;
+            MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler;
+            switch (spaceSamplerId)
+            {
+            case 1:
+                 /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
+                 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
+                 * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
+                 * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
+                 * the map and calculate the points which are contained in the feasible map space.
+                 */
+                mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
+                mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
+                spaceSamplerPtr = mapBasedHexagonSpaceSampler;
+                break;
+            case 2:
+                mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mapHelperPtr, sampleSizeMapBasedRandomSpaceSampler));
+                spaceSamplerPtr = mapBasedRandomSpaceSampler;
+                break;
+            default:
+                std::stringstream ss;
+                ss << spaceSamplerId << " is not a valid sampler ID";
+                ROS_ERROR_STREAM(ss.str());
+                throw std::runtime_error(ss.str());
+                break;
+
+            }
 
             /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
              * The camera model filter takes account for the fact, that there are different cameras around in the real world.
@@ -322,6 +372,15 @@ namespace next_best_view {
             mCalculator.setCameraModelFilter(cameraModelFilterPtr);
             mCalculator.setRobotModel(robotModelPtr);
             mCalculator.setRatingModule(ratingModulePtr);
+            mCalculator.loadCropBoxListFromFile(mCropBoxListFilePath);
+            mCalculator.setEnableCropBoxFiltering(mEnableCropBoxFiltering);
+            mCalculator.setEnableIntermediateObjectWeighting(mEnableIntermediateObjectWeighting);
+            //Set the max amout of iterations
+            int maxIterationSteps;
+            mNodeHandle.param("maxIterationSteps", maxIterationSteps, 20);
+            ROS_DEBUG_STREAM("maxIterationSteps: " << maxIterationSteps);
+            mCalculator.setMaxIterationSteps(maxIterationSteps);
+	    ROS_DEBUG_STREAM("ENDING NBV PARAMETER OUTPUT");
         }
 
 		bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
@@ -342,7 +401,7 @@ namespace next_best_view {
 			double contractor = request.contractor;
 			SimpleVector3 position = TypeHelper::getSimpleVector3(request.position);
 
-			SamplePointCloudPtr pointcloud = mCalculator.getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
+            SamplePointCloudPtr pointcloud = mCalculator.getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
 			IndicesPtr feasibleIndices(new Indices());
 			mCalculator.getFeasibleSamplePoints(pointcloud, feasibleIndices);
 
@@ -391,88 +450,105 @@ namespace next_best_view {
 		}
 
 		bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
-		  ROS_DEBUG_STREAM("Called service processSetPointCloudServiceCall");
 		  
-			if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
-			  ROS_ERROR("Could not set point cloud from message.");
-				return false;
-			}
+		  ROS_DEBUG_STREAM("STARTING NBV SETPOINTCLOUD SERVICE CALL");
 
-			mCurrentCameraViewport = ViewportPoint(request.pose);
-			mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
-			mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getPosition());
+		  if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
+		    ROS_ERROR("Could not set point cloud from message.");
+		    return false;
+		  }
 
+		  if(mCalculator.getPointCloudPtr()->size() == 0)
+		    {
+		      response.is_empty = true;
+		      response.is_valid = false;
+		      ROS_DEBUG_STREAM("ENDING NBV SETPOINTCLOUD SERVICE CALL");
+		      return true;
+		    }
 
-			MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
-			currentRobotStatePtr->pan = 0;
-			currentRobotStatePtr->tilt = 0;
-			currentRobotStatePtr->rotation = 0;
-			currentRobotStatePtr->x = mCurrentCameraViewport.x;
-			currentRobotStatePtr->y = mCurrentCameraViewport.y;
-			mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
-			// Let's get the viewports and update the point cloud.
-			world_model::GetViewportList getViewportListServiceCall;
-			mGetViewportListServiceClient.call(getViewportListServiceCall);
+            mCurrentCameraViewport = ViewportPoint(request.pose);
+		    mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
+		    mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getPosition());
 
-			// convert to viewportPointCloud
-			std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
-			BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
-			  {
-			    ViewportPoint viewportConversionPoint(point.pose);
-			    viewportConversionPoint.object_type_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
-			    viewportConversionPoint.object_type_name_set->insert(point.type);
-			    viewportPointList.push_back(viewportConversionPoint);
-			  }
+		  MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
+		  currentRobotStatePtr->pan = 0;
+		  currentRobotStatePtr->tilt = 0;
+		  currentRobotStatePtr->rotation = 0;
+		  currentRobotStatePtr->x = mCurrentCameraViewport.x;
+		  currentRobotStatePtr->y = mCurrentCameraViewport.y;
+		  mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
+		  // Let's get the viewports and update the point cloud.
+		  world_model::GetViewportList getViewportListServiceCall;
+		  mGetViewportListServiceClient.call(getViewportListServiceCall);
 
-			mCalculator.updateFromExternalObjectPointList(viewportPointList);
+		  // convert to viewportPointCloud
+		  std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
+		  BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
+		    {
+		      ViewportPoint viewportConversionPoint(point.pose);
+		      viewportConversionPoint.object_type_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
+		      viewportConversionPoint.object_type_name_set->insert(point.type);
+		      viewportPointList.push_back(viewportConversionPoint);
+		    }
 
-			response.is_valid = true;
-			ROS_DEBUG_STREAM("processSetPointCloudServiceCall3: " << mCalculator.getCameraModelFilter()->getPivotPointPosition());
-			// publish the visualization
-			this->publishVisualization(request.pose, true, false);
-			return true;
+		  mCalculator.updateFromExternalObjectPointList(viewportPointList);
+
+		  response.is_valid = true;
+		  response.is_empty = false;
+
+		  ROS_DEBUG_STREAM("Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0] <<
+				   " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
+				   << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2]);
+
+		  // publish the visualization
+		  this->publishVisualization(request.pose, true, false);
+		  ROS_DEBUG_STREAM("ENDING NBV SETPOINTCLOUD SERVICE CALL");
+		  return true;
+
 		}
 
 	  //COMMENT?
 		bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-		  ROS_DEBUG("We are in the method: processGetNextBestViewServiceCall");
-		  // Current camera view (frame of camera) of the robot.
+		  ROS_DEBUG_STREAM("STARTING NBV GETNEXTBESTVIEW SERVICE CALL");
+		 // Current camera view (frame of camera) of the robot.
 			ViewportPoint currentCameraViewport(request.current_pose);
 			//Contains Next best view.
+
 			ViewportPoint resultingViewport;
 			//Estimate the Next best view.
 			if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
-			  //No points from input cloud in any nbv candidate or iterative search aborted (by user).
-			  ROS_DEBUG("No more next best view found.");
-			  if (mVisualizationSettings.frustum_marker_array)
-			    {
-			      mVisHelper.clearFrustumVisualization();
-			    }
-			  response.found = false;
-			  return true;
+				//No points from input cloud in any nbv candidate or iterative search aborted (by user).				
+				ROS_DEBUG("No more next best view found.");
+                if (mVisualizationSettings.frustum_marker_array)
+                {
+                    mVisHelper.clearFrustumVisualization();
+                }
+				response.found = false;
+				ROS_DEBUG_STREAM("ENDING NBV GETNEXTBESTVIEW SERVICE CALL");
+				return true;
 			}
 			//Return the optimization result including its parameters.
 			response.found = true;
 			response.resulting_pose = resultingViewport.getPose();
 
-			// copying the objects to be searched for into a list
-			response.object_type_name_list = ObjectNameList(resultingViewport.object_type_name_set->size());
-			std::copy(resultingViewport.object_type_name_set->begin(), resultingViewport.object_type_name_set->end(), response.object_type_name_list.begin());
+		  // copying the objects to be searched for into a list
+		  response.object_type_name_list = ObjectNameList(resultingViewport.object_type_name_set->size());
+		  std::copy(resultingViewport.object_type_name_set->begin(), resultingViewport.object_type_name_set->end(), response.object_type_name_list.begin());
 
 			//Reconstruct robot configuration for next best camera viewport (once known when estimating its costs) for outpout purposes.
 			// TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
 			RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
 			MILDRobotStatePtr mildState = boost::static_pointer_cast<MILDRobotState>(state);
 
-			RobotStateMessage robotStateMsg;
-			robotStateMsg.pan = mildState->pan;
-			robotStateMsg.tilt = mildState->tilt;
-			robotStateMsg.rotation = mildState->rotation;
-			robotStateMsg.x = mildState->x;
-			robotStateMsg.y = mildState->y;
+		  RobotStateMessage robotStateMsg;
+		  robotStateMsg.pan = mildState->pan;
+		  robotStateMsg.tilt = mildState->tilt;
+		  robotStateMsg.rotation = mildState->rotation;
+		  robotStateMsg.x = mildState->x;
+		  robotStateMsg.y = mildState->y;
 
-			// set it to the response
-			response.robot_state = robotStateMsg;
+		  // set it to the response
+		  response.robot_state = robotStateMsg;
 
 			// set utility and inverse cost terms in rating for the given next best view.
 			response.utility = resultingViewport.score->getUtility();
@@ -482,11 +558,11 @@ namespace next_best_view {
 			response.ptu_movement_inverse_costs = resultingViewport.score->getInverseMovementCostsPTU();
 			response.recognition_inverse_costs = resultingViewport.score->getInverseRecognitionCosts();
 
-			mCurrentCameraViewport = resultingViewport;
+		  mCurrentCameraViewport = resultingViewport;
 
-			SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);
-			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
-			mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
+		  SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);
+		  SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
+		  mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
 			ROS_DEBUG("Trigger Visualization of estimated Next Best View");
 			this->triggerVisualization(resultingViewport);
@@ -499,12 +575,12 @@ namespace next_best_view {
 			  pushViewportServiceCall.request.viewport.type = objectName;
 			  mPushViewportServiceClient.call(pushViewportServiceCall);
 			}
-
+			ROS_DEBUG_STREAM("ENDING NBV GETNEXTBESTVIEW SERVICE CALL");
 			return true;
 		}
 
 		bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
-		  ROS_DEBUG_STREAM("Called service processUpdatePointCloudServiceCall");
+            ROS_DEBUG_STREAM("Called service processUpdatePointCloudServiceCall");
 			SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
 			SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
 			ViewportPoint viewportPoint;
