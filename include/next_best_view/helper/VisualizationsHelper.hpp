@@ -110,33 +110,33 @@ public:
         mCropBoxMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*mCropBoxMarkerArray);
     }
 
-    void triggerIterationVisualizations(int iterationStep, SimpleVector3 position, const SimpleQuaternionCollectionPtr
-                               &sampledOrientationsPtr, ViewportPoint currentBestViewport,
-                               IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
-                               SpaceSamplerPtr spaceSamplerPtr) {
+    void triggerIterationVisualizations(int iterationStep, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
+                                            ViewportPoint currentBestViewport,
+                                            IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
+                                            SpaceSamplerPtr spaceSamplerPtr) {
 
         ROS_DEBUG_STREAM("iteration visualization");
 
-	if(!sampledOrientationsPtr){
-	  ROS_ERROR("triggerIterationVisualizations call with pointer sampledOrientationsPtr being null.");
-	    return;
-	}
-	if(!feasibleIndices){
-	  ROS_ERROR("triggerIterationVisualizations call with pointer feasibleIndices being null.");
-	    return;
-	}
-	if(!pointcloud){
-	  ROS_ERROR("triggerIterationVisualizations call with pointer pointcloud being null.");
-	    return;
-	}
-	if(!spaceSamplerPtr){
-	  ROS_ERROR("triggerIterationVisualizations call with pointer spaceSamplerPtr being null.");	
-	    return;
-	}
-	if(!mIterationMarkerArrayPtr){
-	  ROS_ERROR("triggerIterationVisualizations call with pointer mIterationMarkerArrayPtr being null.");	
-	    return;
-	}
+        if(!sampledOrientationsPtr){
+            ROS_ERROR("triggerIterationVisualizations call with pointer sampledOrientationsPtr being null.");
+            return;
+        }
+        if(!feasibleIndices){
+            ROS_ERROR("triggerIterationVisualizations call with pointer feasibleIndices being null.");
+            return;
+        }
+        if(!pointcloud){
+            ROS_ERROR("triggerIterationVisualizations call with pointer pointcloud being null.");
+            return;
+        }
+        if(!spaceSamplerPtr){
+            ROS_ERROR("triggerIterationVisualizations call with pointer spaceSamplerPtr being null.");
+            return;
+        }
+        if(!mIterationMarkerArrayPtr){
+            ROS_ERROR("triggerIterationVisualizations call with pointer mIterationMarkerArrayPtr being null.");
+            return;
+        }
 
         if (iterationStep == 0 && mBoolClearBetweenIterations == true) {
             // clear iteration visualization
@@ -151,7 +151,7 @@ public:
 
         triggerSpaceSampling(feasibleIndices, pointcloud,s);
         triggerGrid(spaceSamplerPtr, s);
-        triggerCameraVis(s, position, sampledOrientationsPtr, currentBestViewport);
+        triggerCameraVis(s, sampledOrientationsPtr, currentBestViewport);
 
         ROS_DEBUG_STREAM("publish markers");
 
@@ -172,14 +172,14 @@ public:
 
         ROS_DEBUG("Publish new frustum");
 
-	if(!newCamera){
-	  ROS_ERROR("triggerNewFrustumVisualization call with pointer newCamera being null.");
-	    return;
-	}
-	if(!mNewFrustumMarkerArrayPtr){
-	  ROS_ERROR("triggerNewFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
-	    return;
-	}
+        if(!newCamera){
+            ROS_ERROR("triggerNewFrustumVisualization call with pointer newCamera being null.");
+            return;
+        }
+        if(!mNewFrustumMarkerArrayPtr){
+            ROS_ERROR("triggerNewFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+            return;
+        }
 
         this->deleteMarkerArray(mNewFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
 
@@ -187,17 +187,17 @@ public:
         mNewFrustumMarkerArrayPtr = newCamera->getVisualizationMarkerArray(sequence, 0.0);
 
         ROS_DEBUG_STREAM("Frustum Pivot Point : " << newCamera->getPivotPointPosition()[0] <<
-                         " , " <<  newCamera->getPivotPointPosition()[1]
-                         << " , " << newCamera->getPivotPointPosition()[2]);
+                                                                                              " , " <<  newCamera->getPivotPointPosition()[1]
+                                                                                           << " , " << newCamera->getPivotPointPosition()[2]);
 
         std::string ns = "new_nbv_frustum";
 
         for (unsigned int i = 0; i < mNewFrustumMarkerArrayPtr->markers.size(); i++)
         {
-                mNewFrustumMarkerArrayPtr->markers.at(i).color.r = 0;
-                mNewFrustumMarkerArrayPtr->markers.at(i).color.g = 1;
-                mNewFrustumMarkerArrayPtr->markers.at(i).color.b = 1;
-                mNewFrustumMarkerArrayPtr->markers.at(i).ns = ns;
+            mNewFrustumMarkerArrayPtr->markers.at(i).color.r = 0;
+            mNewFrustumMarkerArrayPtr->markers.at(i).color.g = 1;
+            mNewFrustumMarkerArrayPtr->markers.at(i).color.b = 1;
+            mNewFrustumMarkerArrayPtr->markers.at(i).ns = ns;
         }
 
         if (numberSearchedObjects != -1) {
@@ -221,10 +221,10 @@ public:
     void triggerOldFrustumVisualization(CameraModelFilterPtr camera = NULL) {
         ROS_DEBUG("Publish old frustum");
 
-	if(!mOldFrustumMarkerArrayPtr){
-	  ROS_ERROR("triggerOldFrustumVisualization call with pointer mOldFrustumMarkerArrayPtr being null.");
-	    return;
-	}
+        if(!mOldFrustumMarkerArrayPtr){
+            ROS_ERROR("triggerOldFrustumVisualization call with pointer mOldFrustumMarkerArrayPtr being null.");
+            return;
+        }
 
         this->deleteMarkerArray(mOldFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
 
@@ -244,17 +244,17 @@ public:
         }
         else {
 
-	  if(!mNewFrustumMarkerArrayPtr){
-	    ROS_ERROR("triggerOldFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
-	      return;
-	  }
+            if(!mNewFrustumMarkerArrayPtr){
+                ROS_ERROR("triggerOldFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+                return;
+            }
 
             // use old data in mNewFrustumMarkerArrayPtr if no camera is given
             if (mNewFrustumMarkerArrayPtr->markers.size() != 0)
             {
                 ROS_DEBUG("Copying old frustum marker array...");
                 std::copy(mNewFrustumMarkerArrayPtr->markers.begin(), mNewFrustumMarkerArrayPtr->markers.end(),
-                            back_inserter(mOldFrustumMarkerArrayPtr->markers));
+                          back_inserter(mOldFrustumMarkerArrayPtr->markers));
                 ROS_DEBUG("Old frustum marker array copied.");
 
                 for (unsigned int i = 0; i < mOldFrustumMarkerArrayPtr->markers.size(); i++)
@@ -276,10 +276,10 @@ public:
     void clearFrustumVisualization()
     {
 
-	if(!mNewFrustumMarkerArrayPtr){
-	  ROS_ERROR("clearFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
-	    return;
-	}
+        if(!mNewFrustumMarkerArrayPtr){
+            ROS_ERROR("clearFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+            return;
+        }
 
         ROS_DEBUG("Deleting last frustum visualization");
         if (mNewFrustumMarkerArrayPtr->markers.size() == 0) {
@@ -295,14 +295,14 @@ public:
 
         ROS_DEBUG("Deleting old object point cloud visualization...");
 
-	if(!mObjectMeshMarkerArrayPtr){
-	  ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectMeshMarkerArrayPtr being null.");
-	    return;
-	}
-	if(!mObjectNormalsMarkerArrayPtr){
-	  ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectNormalsMarkerArrayPtr being null.");
-	    return;
-	}
+        if(!mObjectMeshMarkerArrayPtr){
+            ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectMeshMarkerArrayPtr being null.");
+            return;
+        }
+        if(!mObjectNormalsMarkerArrayPtr){
+            ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectNormalsMarkerArrayPtr being null.");
+            return;
+        }
 
         this->deleteMarkerArray(mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
 
@@ -344,7 +344,7 @@ public:
 
 
                 visualization_msgs::Marker objectNormalMarker = MarkerHelper::getArrowMarker(index, start, end,
-                                                                                                scale, color, ns);
+                                                                                             scale, color, ns);
                 mObjectNormalsMarkerArrayPtr->markers.push_back(objectNormalMarker);
 
                 index++;
@@ -357,10 +357,10 @@ public:
     void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud frustumObjectPointCloud, std::map<std::string, std::string> typeToMeshResource) {
         ROS_DEBUG("Publishing Frustum Marker Array");
 
-	if(!mFrustumObjectMeshMarkerArrayPtr){
-	  ROS_ERROR("triggerFrustumObjectPointCloudVisualization call with pointer mFrustumObjectMeshMarkerArrayPtr being null.");
-	    return;
-	}
+        if(!mFrustumObjectMeshMarkerArrayPtr){
+            ROS_ERROR("triggerFrustumObjectPointCloudVisualization call with pointer mFrustumObjectMeshMarkerArrayPtr being null.");
+            return;
+        }
 
         std_msgs::ColorRGBA colorFrustumMeshMarker = this->createColorRGBA(0, 0, 1, 0.8);
 
@@ -402,8 +402,8 @@ public:
 
             Eigen::Matrix3f rotationMatrix;
             rotationMatrix = Eigen::AngleAxisf(rotation[0], Eigen::Vector3f::UnitX())
-            * Eigen::AngleAxisf(rotation[1], Eigen::Vector3f::UnitY())
-            * Eigen::AngleAxisf(rotation[2], Eigen::Vector3f::UnitZ());
+                    * Eigen::AngleAxisf(rotation[1], Eigen::Vector3f::UnitY())
+                    * Eigen::AngleAxisf(rotation[2], Eigen::Vector3f::UnitZ());
 
 
             SimpleVector3 position_cb_frame;
@@ -428,7 +428,7 @@ public:
             ns << "cropbox_ns" << id;
 
             mCropBoxMarkerArrayPtr->markers.push_back(MarkerHelper::getCubeMarker(id,
-                                    position_map_frame, orientation, scale,  color, ns.str()));
+                                                                                  position_map_frame, orientation, scale,  color, ns.str()));
             id++;
         }
         mCropBoxMarkerPublisher.publish(*mCropBoxMarkerArrayPtr);
@@ -470,18 +470,17 @@ public:
 
 private:
 
-    void triggerCameraVis(std::string s,SimpleVector3 position,
-                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
+    void triggerCameraVis(std::string s, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                           ViewportPoint currentBestViewport) {
 
-	if(!sampledOrientationsPtr){
-	  ROS_ERROR("triggerCameraVis call with pointer sampledOrientationsPtr being null.");
-	    return;
-	}
-	if(!mIterationMarkerArrayPtr){
-	  ROS_ERROR("triggerCameraVis call with pointer mIterationMarkerArrayPtr being null.");
-	    return;
-	}
+        if(!sampledOrientationsPtr){
+            ROS_ERROR("triggerCameraVis call with pointer sampledOrientationsPtr being null.");
+            return;
+        }
+        if(!mIterationMarkerArrayPtr){
+            ROS_ERROR("triggerCameraVis call with pointer mIterationMarkerArrayPtr being null.");
+            return;
+        }
 
         // get parameters
         std::vector<double> ViewPortMarkerScales;
@@ -502,6 +501,8 @@ private:
         mNodeHandle.getParam("/nbv/ColumnPositionMarker_Width", ColumnPositionMarkerWidth);
         mNodeHandle.getParam("/nbv/ColumnPositionMarker_RGBA", ColumnPositionMarkerRGBA);
 
+        SimpleVector3 position = currentBestViewport.getPosition();
+
         SimpleVector3 scaleViewPortDirection = TypeHelper::getSimpleVector3(ViewPortDirectionsScales);
         SimpleVector4 colorViewPortDirection = TypeHelper::getSimpleVector4(ViewPortDirectionsRGBA);
         colorViewPortDirection[0] -= m_j;
@@ -519,7 +520,7 @@ private:
             visualAxis[0] = visualAxis[0]/ViewPortMarkerShrinkFactor + position[0];
             visualAxis[1] = visualAxis[1]/ViewPortMarkerShrinkFactor + position[1];
             visualAxis[2] = visualAxis[2]/ViewPortMarkerShrinkFactor + position[2]
-                                + mIterationStep * ViewPortMarkerHeightFactor;
+                    + mIterationStep * ViewPortMarkerHeightFactor;
 
             // get viewport direction marker
             m_i++;
@@ -570,7 +571,7 @@ private:
         m_i++;
 
         visualization_msgs::Marker ColumnPositionMarker = MarkerHelper::getLineListMarker(m_i, points, ColumnPositionMarkerWidth,
-                                                                                            color, ns);
+                                                                                          color, ns);
         mIterationMarkerArrayPtr->markers.push_back(ColumnPositionMarker);
 
         // get nbv camera direction
@@ -585,25 +586,25 @@ private:
         m_i++;
 
         visualization_msgs::Marker NextBestViewCameraDirectionMarker = MarkerHelper::getArrowMarker(m_i, position,
-                                                                                                        currentBestViewport.getSimpleQuaternion(),
-                                                                                                        scale, color, ns);
+                                                                                                    currentBestViewport.getSimpleQuaternion(),
+                                                                                                    scale, color, ns);
         mIterationMarkerArrayPtr->markers.push_back(NextBestViewCameraDirectionMarker);
     }
 
     void triggerSpaceSampling(IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud, std::string s){
 
-	if(!feasibleIndices){
-	  ROS_ERROR("triggerSpaceSampling call with pointer feasibleIndices being null.");
-	    return;
-	}
-	if(!pointcloud){
-	  ROS_ERROR("triggerSpaceSampling call with pointer pointcloud being null.");
-	    return;
-	}
-	if(!mIterationMarkerArrayPtr){
-	  ROS_ERROR("triggerSpaceSampling call with pointer mIterationMarkerArrayPtr being null.");	
-	    return;
-	}
+        if(!feasibleIndices){
+            ROS_ERROR("triggerSpaceSampling call with pointer feasibleIndices being null.");
+            return;
+        }
+        if(!pointcloud){
+            ROS_ERROR("triggerSpaceSampling call with pointer pointcloud being null.");
+            return;
+        }
+        if(!mIterationMarkerArrayPtr){
+            ROS_ERROR("triggerSpaceSampling call with pointer mIterationMarkerArrayPtr being null.");
+            return;
+        }
 
         // get parameters
         double SpaceSamplingMarkerScale;
@@ -638,14 +639,14 @@ private:
 
     void triggerGrid(SpaceSamplerPtr spaceSamplerPtr, std::string s){
 
-	if(!spaceSamplerPtr){
-	  ROS_ERROR("triggerGrid call with pointer spaceSamplerPtr being null.");	
-	    return;
-	}
-	if(!mIterationMarkerArrayPtr){
-	  ROS_ERROR("triggerGrid call with pointer mIterationMarkerArrayPtr being null.");	
-	    return;
-	}
+        if(!spaceSamplerPtr){
+            ROS_ERROR("triggerGrid call with pointer spaceSamplerPtr being null.");
+            return;
+        }
+        if(!mIterationMarkerArrayPtr){
+            ROS_ERROR("triggerGrid call with pointer mIterationMarkerArrayPtr being null.");
+            return;
+        }
 
         // get parameters
         double GridMarkerScaleZ;
@@ -678,8 +679,8 @@ private:
     
     static void deleteMarkerArray(visualization_msgs::MarkerArray::Ptr &array, ros::Publisher &publisher)
     {
-      if(!array || !publisher)
-        return;
+        if(!array || !publisher)
+            return;
 
         if (array->markers.size() == 0) {
             return;
@@ -695,7 +696,7 @@ private:
     }
 
     static visualization_msgs::Marker getObjectMarker(geometry_msgs::Pose pose, std::string type, std_msgs::ColorRGBA color,
-                                                        std::map<std::string, std::string> typeToMeshResource, int id, std::string ns) {
+                                                      std::map<std::string, std::string> typeToMeshResource, int id, std::string ns) {
         visualization_msgs::Marker objectMarker;
 
         SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
