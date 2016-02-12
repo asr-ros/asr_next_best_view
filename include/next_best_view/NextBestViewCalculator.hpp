@@ -96,7 +96,14 @@ namespace next_best_view {
 			}
 			ROS_DEBUG("ENDING CALCULATE-NEXT-BEST-VIEW METHOD");
 			// create the next best view point cloud
-			return this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+            bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+
+
+
+            std::clock_t end = std::clock();
+            double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+            ROS_INFO_STREAM("Iteration took " << elapsed_secs << " seconds.");
+            return success;
 		}
 
 		void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &resultIndicesPtr) {
