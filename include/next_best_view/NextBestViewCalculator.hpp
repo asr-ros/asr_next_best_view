@@ -194,9 +194,6 @@ private:
         return false;
     }
 
-			//Calculate hex grid for resolution given in this iteration step.
-			SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
-
     bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                          ViewportPoint &resultViewport, int iterationStep) {
@@ -701,10 +698,6 @@ public:
                     mCropBoxPtrList.push_back(bufferCropBoxPtr);
                     child_node = child_node->next_sibling();
                 }
-            } catch(std::runtime_error err) {
-                ROS_ERROR_STREAM("Can't parse xml-file. Runtime error: " << err.what());
-            } catch (rapidxml::parse_error err) {
-                ROS_ERROR_STREAM("Can't parse xml-file Parse error: " << err.what());
             }
         } catch(std::runtime_error err) {
             ROS_ERROR_STREAM("Can't parse xml-file. Runtime error: " << err.what());

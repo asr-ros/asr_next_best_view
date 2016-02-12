@@ -20,8 +20,10 @@
 
 #include "urdf/model.h"
 #include "urdf_model/joint.h"
-#include "tf/tf.h"
-#include "tf/transform_datatypes.h"
+#include <tf/tf.h>
+#include <tf_conversions/tf_eigen.h>
+#include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
 //#include <robot_state_publisher/robot_state_publisher.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chain.hpp>
