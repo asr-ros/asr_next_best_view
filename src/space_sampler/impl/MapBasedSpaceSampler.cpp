@@ -8,12 +8,12 @@
 #include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
 
 namespace next_best_view {
-	MapBasedSpaceSampler::MapBasedSpaceSampler(const MapHelperPtr &mapUtilityPtr) : mMapHelperPtr(mapUtilityPtr) {
+    Raytracing2DBasedSpaceSampler::Raytracing2DBasedSpaceSampler(const MapHelperPtr &mapUtilityPtr) : mMapHelperPtr(mapUtilityPtr) {
 	}
 
-	MapBasedSpaceSampler::~MapBasedSpaceSampler() { }
+    Raytracing2DBasedSpaceSampler::~Raytracing2DBasedSpaceSampler() { }
 
-	SamplePointCloudPtr MapBasedSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
+    SamplePointCloudPtr Raytracing2DBasedSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
 		SamplePointCloudPtr sampledSpacePointCloudPtr = SamplePointCloudPtr(new SamplePointCloud());
 
 		// Calculate maximum span

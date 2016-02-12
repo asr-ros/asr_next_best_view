@@ -9,11 +9,11 @@
 #include <boost/foreach.hpp>
 
 namespace next_best_view {
-	MapBasedStereoCameraModelFilter::MapBasedStereoCameraModelFilter(const MapHelperPtr &mapUtilPtr, const SimpleVector3 &leftCameraPivotPointOffset, const SimpleVector3 &rightCameraPivotPointOffset) :
+    Raytracing2DBasedStereoCameraModelFilter::Raytracing2DBasedStereoCameraModelFilter(const MapHelperPtr &mapUtilPtr, const SimpleVector3 &leftCameraPivotPointOffset, const SimpleVector3 &rightCameraPivotPointOffset) :
 		StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset), mMapHelperPtr(mapUtilPtr) {
 	}
 
-	void MapBasedStereoCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
+    void Raytracing2DBasedStereoCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		this->copySettings();
 
 		// create the result.
@@ -39,7 +39,7 @@ namespace next_best_view {
 		}
 	}
 
-	viz::MarkerArrayPtr MapBasedStereoCameraModelFilter::getVisualizationMarkerArray(uint32_t &sequence, double lifetime) {
+    viz::MarkerArrayPtr Raytracing2DBasedStereoCameraModelFilter::getVisualizationMarkerArray(uint32_t &sequence, double lifetime) {
 		this->copySettings();
 		return StereoCameraModelFilter::getVisualizationMarkerArray(sequence, lifetime);
 	}

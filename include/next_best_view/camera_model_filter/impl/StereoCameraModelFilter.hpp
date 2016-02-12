@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef STEREOCAMERAMODELFILTER_HPP_
-#define STEREOCAMERAMODELFILTER_HPP_
+#pragma once
 
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
@@ -103,6 +102,3 @@ namespace next_best_view {
 	 */
 	typedef boost::shared_ptr<StereoCameraModelFilter> StereoCameraModelFilterPtr;
 }
-
-
-#endif /* STEREOCAMERAMODELFILTER_HPP_ */

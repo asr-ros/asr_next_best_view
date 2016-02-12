@@ -9,11 +9,11 @@
 #include <boost/foreach.hpp>
 
 namespace next_best_view {
-	MapBasedSingleCameraModelFilter::MapBasedSingleCameraModelFilter(const MapHelperPtr &mapUtilPtr, const SimpleVector3 &pivotPointOffset) :
+    Raytracing2DBasedSingleCameraModelFilter::Raytracing2DBasedSingleCameraModelFilter(const MapHelperPtr &mapUtilPtr, const SimpleVector3 &pivotPointOffset) :
 		SingleCameraModelFilter(pivotPointOffset), mMapHelperPtr(mapUtilPtr) {
 	}
 
-	void MapBasedSingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
+    void Raytracing2DBasedSingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
 		// create the result.
 		IndicesPtr intermediateIndicesPtr = IndicesPtr(new Indices());
 		SingleCameraModelFilter::doFiltering(intermediateIndicesPtr);
@@ -32,7 +32,7 @@ namespace next_best_view {
 		}
 	}
 
-	viz::MarkerArrayPtr MapBasedSingleCameraModelFilter::getVisualizationMarkerArray(uint32_t &sequence, double lifetime) {
+    viz::MarkerArrayPtr Raytracing2DBasedSingleCameraModelFilter::getVisualizationMarkerArray(uint32_t &sequence, double lifetime) {
 		return SingleCameraModelFilter::getVisualizationMarkerArray(sequence, lifetime);
 	}
 }

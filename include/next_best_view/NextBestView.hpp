@@ -300,7 +300,7 @@ public:
         mNodeHandle.param("useRaytracing", useRaytracing, false);
         CameraModelFilterPtr cameraModelFilterPtr;
         if (useRaytracing)
-            cameraModelFilterPtr = CameraModelFilterPtr(new MapBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
+            cameraModelFilterPtr = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
         else
             cameraModelFilterPtr = CameraModelFilterPtr(new StereoCameraModelFilter(SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
 

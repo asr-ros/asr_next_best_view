@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MAPBASEDHEXAGONSPACESAMPLER_HPP_
-#define MAPBASEDHEXAGONSPACESAMPLER_HPP_
+#pragma once
 
 #include <boost/foreach.hpp>
 #include "next_best_view/helper/MapHelper.hpp"
@@ -14,7 +13,7 @@
 
 namespace next_best_view {
 	/*!
-	 * \brief PlaneSubSpaceSampler implements the space sampling in a plane.
+     * \brief MapBasedHexagonSpaceSampler implements the space sampling with a hexagon pattern.
 	 * \author Ralf Schleicher
 	 * \date 2014
 	 * \version 1.0
@@ -47,6 +46,3 @@ namespace next_best_view {
 	 */
 	typedef boost::shared_ptr<MapBasedHexagonSpaceSampler> MapBasedHexagonSpaceSamplerPtr;
 }
-
-
-#endif /* MAPBASEDHEXAGONSPACESAMPLER_HPP_ */

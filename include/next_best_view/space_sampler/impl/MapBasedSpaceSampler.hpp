@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MAPBASEDSPACESAMPLER_HPP_
-#define MAPBASEDSPACESAMPLER_HPP_
+#pragma once
 
 #include <boost/foreach.hpp>
 #include "next_best_view/helper/MapHelper.hpp"
@@ -14,25 +13,25 @@
 
 namespace next_best_view {
 	/*!
-	 * \brief PlaneSubSpaceSampler implements the space sampling in a plane.
+     * \brief Raytracing2DBasedSpaceSampler
 	 * \author Ralf Schleicher
 	 * \date 2014
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class MapBasedSpaceSampler : public SpaceSampler {
+	class Raytracing2DBasedSpaceSampler : public SpaceSampler {
 	private:
 		MapHelperPtr mMapHelperPtr;
 	public:
 		/*!
 		 * \brief constructor for CostmapBasedSpaceSampler object
 		 */
-		MapBasedSpaceSampler(const MapHelperPtr &mapHelperPtr);
+		Raytracing2DBasedSpaceSampler(const MapHelperPtr &mapHelperPtr);
 
 		/*!
 		 * \brief destructor for CostmapBasedSpaceSampler object
 		 */
-		virtual ~MapBasedSpaceSampler();
+		virtual ~Raytracing2DBasedSpaceSampler();
 
 		SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
 	};
@@ -40,8 +39,5 @@ namespace next_best_view {
 	/*!
 	 * \brief Definition for the shared pointer type of the class.
 	 */
-	typedef boost::shared_ptr<MapBasedSpaceSampler> MapBasedSpaceSamplerPtr;
+	typedef boost::shared_ptr<Raytracing2DBasedSpaceSampler> MapBasedSpaceSamplerPtr;
 }
-
-
-#endif /* MAPBASEDSPACESAMPLER_HPP_ */

@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef SINGLECAMERAMODELFILTER_HPP_
-#define SINGLECAMERAMODELFILTER_HPP_
+#pragma once
 
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 #include <pcl/filters/impl/frustum_culling.hpp>
@@ -65,6 +64,3 @@ namespace next_best_view {
 	 */
 	typedef boost::shared_ptr<SingleCameraModelFilter> SingleCameraModelFilterPtr;
 }
-
-
-#endif /* SINGLECAMERAMODELFILTER_HPP_ */

@@ -5,22 +5,20 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MAPBASEDSINGLECAMERAMODELFILTER_HPP_
-#define MAPBASEDSINGLECAMERAMODELFILTER_HPP_
+#pragma once
 
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 	/*!
-	 * \brief StereoCameraModelFilter class implements the frustum filtering for stereo cameras.
-	 * \details The stereo camera model makes actually twice the use of the SingleCameraModelFilter. Therefore it may be possible to implement different camera orientations in here either.
+     * \brief Raytracing2DBasedSingleCameraModelFilter class implements the frustum filtering for a single camera with 2D raytracing.
 	 * \author Ralf Schleicher
 	 * \date 2014
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class MapBasedSingleCameraModelFilter : public SingleCameraModelFilter {
+    class Raytracing2DBasedSingleCameraModelFilter : public SingleCameraModelFilter {
 	private:
 		/*!
 		 *
@@ -28,11 +26,11 @@ namespace next_best_view {
 		MapHelperPtr mMapHelperPtr;
 	public:
 		/*!
-		 * \brief constructor for the StereoCameraModelFilter object
+         * \brief constructor for the Raytracing2DBasedSingleCameraModelFilter object
 		 * \param leftCameraPivotPointOffset [in] the offset to the pivot point for the left camera
 		 * \param rightCameraPivotPointOffset [in] the offset to the pivot point for the right camera
 		 */
-		MapBasedSingleCameraModelFilter(const MapHelperPtr &mapHelperPtr, const SimpleVector3 &pivotPointOffset = SimpleVector3());
+        Raytracing2DBasedSingleCameraModelFilter(const MapHelperPtr &mapHelperPtr, const SimpleVector3 &pivotPointOffset = SimpleVector3());
 	public:
 		void doFiltering(IndicesPtr &indicesPtr);
 
@@ -42,8 +40,5 @@ namespace next_best_view {
 	/*!
 	 * \brief the type definition for the corresponding shared pointer of the class.
 	 */
-	typedef boost::shared_ptr<MapBasedSingleCameraModelFilter> MapBasedSingleCameraModelFilterPtr;
+    typedef boost::shared_ptr<Raytracing2DBasedSingleCameraModelFilter> MapBasedSingleCameraModelFilterPtr;
 }
-
-
-#endif /* MAPBASEDSINGLECAMERAMODELFILTER_HPP_ */
