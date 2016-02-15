@@ -118,8 +118,8 @@ add_library(
 	src/hypothesis_updater/impl/PerspectiveHypothesisUpdater.cpp
 	src/camera_model_filter/impl/SingleCameraModelFilter.cpp
 	src/camera_model_filter/impl/StereoCameraModelFilter.cpp
-	src/camera_model_filter/impl/MapBasedSingleCameraModelFilter.cpp
-	src/camera_model_filter/impl/MapBasedStereoCameraModelFilter.cpp
+        src/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.cpp
+        src/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.cpp
 	src/rating/impl/DefaultRatingModule.cpp
         src/rating/impl/DefaultIKRatingModule.cpp
         src/rating/impl/SimpleIKRatingModule.cpp
@@ -128,7 +128,7 @@ add_library(
         src/robot_model/impl/MILDRobotModel_with_IK.cpp
 	src/robot_model/impl/MILDRobotState.cpp
 	src/space_sampler/impl/PlaneSubSpaceSampler.cpp
-	src/space_sampler/impl/MapBasedSpaceSampler.cpp
+        src/space_sampler/impl/Raytracing2DBasedSpaceSampler.cpp
 	src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
         src/space_sampler/impl/MapBasedRandomSpaceSampler.cpp
 	src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
@@ -166,18 +166,18 @@ target_link_libraries(
 )
 
 ##add_library(
-#	${PROJECT_NAME}_test_core
-#	src/test_cases/BaseTest.cpp
+#        ${PROJECT_NAME}_test_core
+#        src/test_cases/BaseTest.cpp
 #)
 
 ##target_link_libraries(
-#	${PROJECT_NAME}_test_core
-#	${PROJECT_NAME}_helper
-#	${PROJECT_NAME}_packages
-#	${PROJECT_NAME}_packages_impl
-#	${PCL_LIBRARIES}
-#	glpk
-#	${catkin_LIBRARIES}
+#        ${PROJECT_NAME}_test_core
+#        ${PROJECT_NAME}_helper
+#        ${PROJECT_NAME}_packages
+#        ${PROJECT_NAME}_packages_impl
+#        ${PCL_LIBRARIES}
+#        glpk
+#        ${catkin_LIBRARIES}
 #)
 
 ##add_executable(
@@ -190,7 +190,7 @@ target_link_libraries(
 #        src/test_cases/PerformanceTest.cpp
 #)
 
-#add_executable(
+##add_executable(
 #        ${PROJECT_NAME}_single_scene_test
 #        src/test_cases/SingleSceneTest.cpp
 #)
@@ -202,8 +202,8 @@ target_link_libraries(
 #)
 
 ##add_executable(
-#	${PROJECT_NAME}_multi_id_scene_test
-#	src/test_cases/MultiIdSceneTest.cpp
+#        ${PROJECT_NAME}_multi_id_scene_test
+#        src/test_cases/MultiIdSceneTest.cpp
 #)
 
 ##add_executable(
@@ -259,14 +259,14 @@ target_link_libraries(
 #)
 
 ##target_link_libraries(
-#	${PROJECT_NAME}_multi_id_scene_test
-#	${PROJECT_NAME}_helper
-#	${PROJECT_NAME}_packages
-#	${PROJECT_NAME}_packages_impl
-#	${PROJECT_NAME}_test_core
-#	${PCL_LIBRARIES}
-#	glpk
-#	${catkin_LIBRARIES}
+#        ${PROJECT_NAME}_multi_id_scene_test
+#        ${PROJECT_NAME}_helper
+#        ${PROJECT_NAME}_packages
+#        ${PROJECT_NAME}_packages_impl
+#        ${PROJECT_NAME}_test_core
+#        ${PCL_LIBRARIES}
+#        glpk
+#        ${catkin_LIBRARIES}
 #)
 
 ##target_link_libraries(

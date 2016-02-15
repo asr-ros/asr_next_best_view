@@ -5,7 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#include "next_best_view/space_sampler/impl/MapBasedSpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/Raytracing2DBasedSpaceSampler.hpp"
 
 namespace next_best_view {
     Raytracing2DBasedSpaceSampler::Raytracing2DBasedSpaceSampler(const MapHelperPtr &mapUtilityPtr) : mMapHelperPtr(mapUtilityPtr) {

@@ -5,7 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#include "next_best_view/camera_model_filter/impl/MapBasedSingleCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.hpp"
 #include <boost/foreach.hpp>
 
 namespace next_best_view {
