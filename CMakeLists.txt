@@ -206,6 +206,11 @@ target_link_libraries(
 #        src/test_cases/MultiIdSceneTest.cpp
 #)
 
+#add_executable(
+#        ${PROJECT_NAME}_parameters_test
+#        src/test_cases/ParametersTest.cpp
+#)
+
 ##add_executable(
 #        ${PROJECT_NAME}_ik_test
 #        src/test_cases/IKTest.cpp
@@ -260,6 +265,17 @@ target_link_libraries(
 
 ##target_link_libraries(
 #        ${PROJECT_NAME}_multi_id_scene_test
+#        ${PROJECT_NAME}_helper
+#        ${PROJECT_NAME}_packages
+#        ${PROJECT_NAME}_packages_impl
+#        ${PROJECT_NAME}_test_core
+#        ${PCL_LIBRARIES}
+#        glpk
+#        ${catkin_LIBRARIES}
+#)
+
+#target_link_libraries(
+#        ${PROJECT_NAME}_parameters_test
 #        ${PROJECT_NAME}_helper
 #        ${PROJECT_NAME}_packages
 #        ${PROJECT_NAME}_packages_impl
