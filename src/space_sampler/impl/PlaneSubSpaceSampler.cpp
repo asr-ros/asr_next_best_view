@@ -17,7 +17,7 @@ namespace next_best_view {
 
 	}
 
-	SamplePointCloudPtr PlaneSubSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
+    SamplePointCloudPtr PlaneSubSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
 		SamplePointCloudPtr sampledSpacePointCloudPtr = SamplePointCloudPtr(new SamplePointCloud());
 
 		// Calculate maximum span
@@ -33,21 +33,22 @@ namespace next_best_view {
 		// add current viewport
 		SamplePoint currentSamplePoint;
 		currentSamplePoint.x = currentSpacePosition[0];
-		currentSamplePoint.y = currentSpacePosition[1];
-		currentSamplePoint.z = currentSpacePosition[2];
+        currentSamplePoint.y = currentSpacePosition[1];
 		sampledSpacePointCloudPtr->push_back(currentSamplePoint);
 
 		SimpleQuaternionCollectionPtr spherePointsPtr = MathHelper::getOrientationsOnUnitSphere(samples);
 		BOOST_FOREACH(SimpleQuaternion orientation, *spherePointsPtr) {
-			SimpleVector3 vector = maximumSpan * (orientation.toRotationMatrix() * SimpleVector3::UnitX());
-			vector[2] = 0.0;
-			vector += currentSpacePosition;
+            SimpleVector3 vector3 = orientation.toRotationMatrix() * SimpleVector3::UnitX();
 
-			SamplePoint samplePoint;
-			samplePoint.x = vector[0];
-			samplePoint.y = vector[1];
-			samplePoint.z = vector[2];
-			sampledSpacePointCloudPtr->push_back(samplePoint);
+            SimpleVector2 vector2(vector3[0], vector3[1]);
+            vector2 *= maximumSpan;
+            vector2[0] += currentSpacePosition[0];
+            vector2[1] += currentSpacePosition[1];
+
+            SamplePoint samplePoint;
+            samplePoint.x = vector2[0];
+            samplePoint.y = vector2[1];
+            sampledSpacePointCloudPtr->push_back(samplePoint);
 		}
 
 		return sampledSpacePointCloudPtr;

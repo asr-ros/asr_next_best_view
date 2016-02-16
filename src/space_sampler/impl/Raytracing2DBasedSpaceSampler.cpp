@@ -27,18 +27,20 @@ namespace next_best_view {
 		uint32_t samples = this->getSamples();
 
 		// add current viewport
-		SamplePoint currentSamplePoint(currentSpacePosition);
+        SamplePoint currentSamplePoint(currentSpacePosition);
+        currentSamplePoint.x = currentSpacePosition[0];
+        currentSamplePoint.y = currentSpacePosition[1];
 		sampledSpacePointCloudPtr->push_back(currentSamplePoint);
 
 		SimpleQuaternionCollectionPtr spherePointsPtr = MathHelper::getOrientationsOnUnitSphere(samples);
 		BOOST_FOREACH(SimpleQuaternion orientation, *spherePointsPtr) {
-			SimpleVector3 vector = maximumSpan * (orientation.toRotationMatrix() * SimpleVector3::UnitX());
-			vector[2] = 0.0;
-			vector += currentSpacePosition;
+            SimpleVector3 vector = maximumSpan * (orientation.toRotationMatrix() * SimpleVector3::UnitX());
+            vector[2] = 0.0;
+            vector += currentSpacePosition;
 
 
 			Ray ray;
-			if (!mMapHelperPtr->doRaytracing(currentSpacePosition, vector, ray)) {
+            if (!mMapHelperPtr->doRaytracing(currentSpacePosition, vector, ray)) {
 				SimpleVector3 obstacle;
 				for (Ray::reverse_iterator iter = ray.rbegin(); iter != ray.rend(); iter++) {
 					if (mMapHelperPtr->isOccupancyValueAcceptable(iter->occupancy)) {
@@ -46,12 +48,14 @@ namespace next_best_view {
 						break;
 					}
 				}
-				vector = obstacle;
-				vector[2] = currentSpacePosition[2];
+                vector = obstacle;
+                vector[2] = currentSpacePosition[2];
 			}
 
-			SamplePoint samplePoint(vector);
-			sampledSpacePointCloudPtr->push_back(samplePoint);
+            SamplePoint samplePoint;
+            samplePoint.x = vector[0];
+            samplePoint.y = vector[1];
+            sampledSpacePointCloudPtr->push_back(samplePoint);
 		}
 
 		return sampledSpacePointCloudPtr;

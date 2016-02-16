@@ -402,6 +402,7 @@ public:
         SimpleVector3 position = TypeHelper::getSimpleVector3(request.position);
 
         SamplePointCloudPtr pointcloud = mCalculator.getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
+        mCalculator.setHeight(pointcloud, position[2]);
         IndicesPtr feasibleIndices(new Indices());
         mCalculator.getFeasibleSamplePoints(pointcloud, feasibleIndices);
 

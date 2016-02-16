@@ -5,7 +5,11 @@ namespace next_best_view {
     SamplePointCloudPtr MapBasedRandomSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor)
     {
         SamplePointCloudPtr pointCloud = SamplePointCloudPtr(new SamplePointCloud());
-        pointCloud->push_back(currentSpacePosition);
+
+        SamplePoint currentSamplePoint;
+        currentSamplePoint.x = currentSpacePosition[0];
+        currentSamplePoint.y = currentSpacePosition[1];
+        pointCloud->push_back(currentSamplePoint);
 
         double width = mMapHelperPtr->getMetricWidth() * contractor;
         double height = mMapHelperPtr->getMetricHeight() * contractor;
@@ -22,7 +26,10 @@ namespace next_best_view {
             int8_t occupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(randomPoint);
             if (mMapHelperPtr->isOccupancyValueAcceptable(occupancyValue))
             {
-                pointCloud->push_back(randomPoint);
+                SamplePoint samplePoint;
+                samplePoint.x = randomPoint[0];
+                samplePoint.y = randomPoint[1];
+                pointCloud->push_back(samplePoint);
             }
         }
 

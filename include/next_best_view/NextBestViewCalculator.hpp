@@ -202,8 +202,11 @@ private:
         // current camera position
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
-        //Calculate hex grid for resolution given in this iteration step.
+        //Calculate grid for resolution given in this iteration step.
         SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
+
+        //Set height of sample points as it is set to zero by space sampler
+        this->setHeight(sampledSpacePointCloudPtr, currentBestPosition[2]);
 
         IndicesPtr feasibleIndicesPtr;
         //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
@@ -257,7 +260,14 @@ private:
         ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");
         return true;
     }
+
 public:
+    void setHeight(SamplePointCloudPtr pointCloudPtr, double height) {
+        for (unsigned int i = 0; i < pointCloudPtr->size(); i++) {
+            pointCloudPtr->at(i).z = height;
+        }
+    }
+
     /*!
          * \brief creates a new camera viewport with the given data
          * \param position [in] the position of the camera

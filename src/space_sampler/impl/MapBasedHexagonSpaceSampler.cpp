@@ -14,9 +14,13 @@ namespace next_best_view {
 
 	MapBasedHexagonSpaceSampler::~MapBasedHexagonSpaceSampler() { }
 
-	SamplePointCloudPtr MapBasedHexagonSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
-		SamplePointCloudPtr pointCloud = SamplePointCloudPtr(new SamplePointCloud());
-		pointCloud->push_back(currentSpacePosition);
+    SamplePointCloudPtr MapBasedHexagonSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
+        SamplePointCloudPtr pointCloud = SamplePointCloudPtr(new SamplePointCloud());
+
+        SamplePoint currentSamplePoint;
+        currentSamplePoint.x = currentSpacePosition[0];
+        currentSamplePoint.y = currentSpacePosition[1];
+        pointCloud->push_back(currentSamplePoint);
 
 		double width = mMapHelperPtr->getMetricWidth();
 		double height = mMapHelperPtr->getMetricHeight();
@@ -39,9 +43,12 @@ namespace next_best_view {
 			for (int y = -span; y <= span; y++) {
 				double offsetting = abs(y) % 2 == 0 ? horizontalSpacing : 0.0;
                 SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * radius, 0);
-				upperPoint += currentSpacePosition;
-				SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * radius, 0);
-				lowerPoint += currentSpacePosition;
+                upperPoint[0] += currentSpacePosition[0];
+                upperPoint[1] += currentSpacePosition[1];
+
+                SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * radius, 0);
+                lowerPoint[0] += currentSpacePosition[0];
+                lowerPoint[1] += currentSpacePosition[1];
 
 				int8_t upperOccupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(upperPoint);
 				int8_t lowerOccupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(lowerPoint);
@@ -66,11 +73,17 @@ namespace next_best_view {
 
 
                 if (mMapHelperPtr->isOccupancyValueAcceptable(upperOccupancyValue)) {
-					pointCloud->push_back(upperPoint);
+                    SamplePoint samplePoint;
+                    samplePoint.x = upperPoint[0];
+                    samplePoint.y = upperPoint[1];
+                    pointCloud->push_back(samplePoint);
 				}
 
                 if (mMapHelperPtr->isOccupancyValueAcceptable(lowerOccupancyValue)) {
-					pointCloud->push_back(lowerPoint);
+                    SamplePoint samplePoint;
+                    samplePoint.x = lowerPoint[0];
+                    samplePoint.y = lowerPoint[1];
+                    pointCloud->push_back(samplePoint);
 				}
 			}
 		}
