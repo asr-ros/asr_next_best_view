@@ -230,7 +230,7 @@ namespace next_best_view {
             ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI));
             tilt = tiltMax;
         }
-        ROS_INFO_STREAM("Tilt: " << tilt*(180.0/M_PI));
+        ROS_DEBUG_STREAM("Tilt: " << tilt*(180.0/M_PI));
 
         Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
         ROS_DEBUG_STREAM("tilt_base_point: " << tilt_base_point[0] << ", " << tilt_base_point[1] << ", " << tilt_base_point[2]);
@@ -246,7 +246,7 @@ namespace next_best_view {
 
         //Calculate PAN and base rotation
         double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
-        ROS_INFO_STREAM("Pan: " << pan*(180.0/M_PI));
+        ROS_DEBUG_STREAM("Pan: " << pan*(180.0/M_PI));
 
         Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d base_Frame = pan_Frame * panToBaseEigen;
@@ -286,7 +286,7 @@ namespace next_best_view {
         double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
         mNumberIKCalls++;
         mnTotalIKTime += elapsed_secs;
-        ROS_INFO_STREAM("IK Calculation took " << elapsed_secs << " seconds. Total calculation time: " << mnTotalIKTime << " over " << mNumberIKCalls << " calculations.");
+        ROS_DEBUG_STREAM("IK Calculation took " << elapsed_secs << " seconds. Total calculation time: " << mnTotalIKTime << " over " << mNumberIKCalls << " calculations.");
 
         return targetMILDRobotState;
 	}
@@ -413,7 +413,7 @@ namespace next_best_view {
                     }
                 }
             }
-            ROS_INFO_STREAM("Best angle: " << currentBestAngle << " with rating: " << newBestRating << " and angle range " << currentAngleRange);
+            ROS_DEBUG_STREAM("Best angle: " << currentBestAngle << " with rating: " << newBestRating << " and angle range " << currentAngleRange);
             currentAngleRange = currentAngleRange / 2.0;
             iterationCount++;
         } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy);
