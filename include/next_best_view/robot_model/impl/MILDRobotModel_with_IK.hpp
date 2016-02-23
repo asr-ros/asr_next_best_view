@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MILDROBOTMODELWITHIK_HPP_
-#define MILDROBOTMODELWITHIK_HPP_
+#pragma once
 
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -17,6 +16,7 @@
 #include <tf/transform_listener.h>
 #include "next_best_view/rating/impl/DefaultIKRatingModule.h"
 #include "next_best_view/rating/impl/SimpleIKRatingModule.h"
+#include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
 	/*!
@@ -28,6 +28,9 @@ namespace next_best_view {
 	 */
     class MILDRobotModelWithIK : public RobotModel {
 	private:
+
+        DebugHelperPtr mDebugHelperPtr;
+
 		// weighting values
 		float mOmegaPan;
 		float mOmegaTilt;
@@ -240,6 +243,3 @@ namespace next_best_view {
 
     typedef boost::shared_ptr<MILDRobotModelWithIK> MILDRobotModelWithIKPtr;
 }
-
-
-#endif /* MILDROBOTMODELWITHIK_HPP_ */

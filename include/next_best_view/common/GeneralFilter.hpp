@@ -5,14 +5,14 @@
  *      Author: sxleixer
  */
 
-#ifndef SRC_CONTROL_EXPLORATION_NEXT_BEST_VIEW_INCLUDE_NEXT_BEST_VIEW_COMMON_GENERALFILTER_HPP_
-#define SRC_CONTROL_EXPLORATION_NEXT_BEST_VIEW_INCLUDE_NEXT_BEST_VIEW_COMMON_GENERALFILTER_HPP_
+#pragma once
 
 #include <boost/foreach.hpp>
 #include <ros/ros.h>
 #include <vector>
 
 #include "next_best_view/common/CommonClass.hpp"
+#include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
 	class GeneralFilter;
@@ -22,11 +22,13 @@ namespace next_best_view {
 	private:
 		GeneralFilterPtr mPreFilter;
 		GeneralFilterPtr mPostFilter;
+        DebugHelperPtr mDebugHelperPtr;
 	public:
 		/*!
 		 * Constructor.
 		 */
 		GeneralFilter() : mPreFilter(), mPostFilter() {
+            mDebugHelperPtr = DebugHelper::getInstance();
 		}
 
 		/*!
@@ -61,7 +63,7 @@ namespace next_best_view {
 
 			// apply pre filter
 			if (mPreFilter != GeneralFilterPtr()) {
-				ROS_DEBUG("Start pre filtering");
+                mDebugHelperPtr->write("Start pre filtering", DebugHelper::FILTER);
 				// set the working input cloud and the relevant indices to work on.
 				mPreFilter->setInputCloud(this->getInputCloud());
 				mPreFilter->setIndices(this->getIndices());
@@ -72,7 +74,7 @@ namespace next_best_view {
 				// set the indices of the filter to the already filtered indices and reset the return indices pointer.
 				this->setIndices(indicesPtr);
 				indicesPtr = IndicesPtr(new Indices());
-				ROS_DEBUG("Ended pre filtering");
+                mDebugHelperPtr->write("Ended pre filtering", DebugHelper::FILTER);
 			}
 
 			// apply this filter
@@ -80,17 +82,15 @@ namespace next_best_view {
 
 			// apply post filter
 			if (mPostFilter != GeneralFilterPtr()) {
-				ROS_DEBUG("Start post filtering");
+                mDebugHelperPtr->write("Start post filtering", DebugHelper::FILTER);
 				// set the working input cloud and the relevant indices to work on.
 				mPostFilter->setInputCloud(this->getInputCloud());
 				mPostFilter->setIndices(indicesPtr);
 
 				indicesPtr = IndicesPtr(new Indices());
 				mPostFilter->doFiltering(indicesPtr);
-				ROS_DEBUG("Ended post filtering");
+                mDebugHelperPtr->write("Ended post filtering", DebugHelper::FILTER);
 			}
 		}
 	};
 }
-
-#endif /* SRC_CONTROL_EXPLORATION_NEXT_BEST_VIEW_INCLUDE_NEXT_BEST_VIEW_COMMON_GENERALFILTER_HPP_ */

@@ -37,6 +37,7 @@ namespace next_best_view {
     MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
+        mDebugHelperPtr = DebugHelper::getInstance();
         double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
         bool useGlobalPlanner_, visualizeIK_;
@@ -75,13 +76,13 @@ namespace next_best_view {
         mViewPointDistance = (ncp_ + fcp_)/2.0;
         mInverseKinematicIterationAccuracy = inverseKinematicIterationAccuracy_;
         mVisualizeIK = visualizeIK_;
-        ROS_DEBUG_STREAM("mOmegaUseBase: " << mOmegaPan);
-        ROS_DEBUG_STREAM("tolerance: " << tolerance);
-        ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan);
-        ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt);
-        ROS_DEBUG_STREAM("mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration);
-        ROS_DEBUG_STREAM("mInverseKinematicIterationAccuracy: " << mInverseKinematicIterationAccuracy);
-        ROS_DEBUG_STREAM("mViewPointDistance: " << mViewPointDistance);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaUseBase: " << mOmegaPan, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mInverseKinematicIterationAccuracy: " << mInverseKinematicIterationAccuracy, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mViewPointDistance: " << mViewPointDistance, DebugHelper::ROBOT_MODEL);
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
@@ -161,8 +162,10 @@ namespace next_best_view {
         {
             int lastPose = path.poses.size()-1;
             float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
-            ROS_DEBUG_STREAM("Target: " << targetPosition.x << ", " << targetPosition.y);
-            ROS_DEBUG_STREAM("Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y);
+            mDebugHelperPtr->write(std::stringstream() << "Target: " << targetPosition.x << ", " << targetPosition.y,
+                        DebugHelper::ROBOT_MODEL);
+            mDebugHelperPtr->write(std::stringstream() << "Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y,
+                        DebugHelper::ROBOT_MODEL);
             return distanceToLastPoint < 0.01f;
         }
     }
@@ -200,9 +203,16 @@ namespace next_best_view {
         }
         planeNormal.normalize(); targetViewVector.normalize();
 
-        ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
-        ROS_DEBUG_STREAM("Target Position: " << position[0] << ", " << position[1] << ", " << position[2]);
-        ROS_DEBUG_STREAM("Target Orientation: " << targetOrientation.w() << ", " << targetOrientation.x() << ", " << targetOrientation.y()<< ", " << targetOrientation.z());
+        mDebugHelperPtr->write(std::stringstream() << "Calculate state for: (Pan: " << sourceMILDRobotState->pan
+                                << ", Tilt: " << sourceMILDRobotState->tilt
+                                << ", Rotation " << sourceMILDRobotState->rotation
+                                << ", X:" << sourceMILDRobotState->x
+                                << ", Y:" << sourceMILDRobotState->y << ")",
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Target Position: " << position[0] << ", " << position[1] << ", " << position[2],
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Target Orientation: " << targetOrientation.w() << ", " << targetOrientation.x() << ", " << targetOrientation.y()<< ", " << targetOrientation.z(),
+                    DebugHelper::ROBOT_MODEL);
 
         //Visualize target camera pose & target viewcenter
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
@@ -219,7 +229,8 @@ namespace next_best_view {
              ROS_ERROR_STREAM("No solution found.");
              return targetMILDRobotState;
         }
-        ROS_DEBUG_STREAM("tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2]);
+        mDebugHelperPtr->write(std::stringstream() << "tilt_base_point_projected: " << tilt_base_point_projected[0] << ", " << tilt_base_point_projected[1] << ", " << tilt_base_point_projected[2],
+                    DebugHelper::ROBOT_MODEL);
         if (tilt < tiltMin)
         {
             ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tilt*(180.0/M_PI));
@@ -230,10 +241,12 @@ namespace next_best_view {
             ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI));
             tilt = tiltMax;
         }
-        ROS_DEBUG_STREAM("Tilt: " << tilt*(180.0/M_PI));
+        mDebugHelperPtr->write(std::stringstream() << "Tilt: " << tilt*(180.0/M_PI),
+                    DebugHelper::ROBOT_MODEL);
 
         Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
-        ROS_DEBUG_STREAM("tilt_base_point: " << tilt_base_point[0] << ", " << tilt_base_point[1] << ", " << tilt_base_point[2]);
+        mDebugHelperPtr->write(std::stringstream() << "tilt_base_point: " << tilt_base_point[0] << ", " << tilt_base_point[1] << ", " << tilt_base_point[2],
+                    DebugHelper::ROBOT_MODEL);
 
         // Get pose of PAN joint
         Eigen::Affine3d tiltFrame = getTiltJointFrame(planeNormal, targetViewVector,  tilt_base_point);
@@ -246,7 +259,7 @@ namespace next_best_view {
 
         //Calculate PAN and base rotation
         double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
-        ROS_DEBUG_STREAM("Pan: " << pan*(180.0/M_PI));
+        mDebugHelperPtr->write(std::stringstream() << "Pan: " << pan*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
 
         Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d base_Frame = pan_Frame * panToBaseEigen;
@@ -279,14 +292,21 @@ namespace next_best_view {
 		// set x, y
         targetMILDRobotState->x = base_Frame(0,3);
         targetMILDRobotState->y = base_Frame(1,3);
-        ROS_DEBUG_STREAM("Targetstate: (Pan: " << targetMILDRobotState->pan << ", Tilt: " << targetMILDRobotState->tilt << ", Rotation " << targetMILDRobotState->rotation << ", X:" << targetMILDRobotState->x << ", Y:" << targetMILDRobotState->y << ")");
+        mDebugHelperPtr->write(std::stringstream() << "Targetstate: (Pan: " << targetMILDRobotState->pan
+                                << ", Tilt: " << targetMILDRobotState->tilt
+                                << ", Rotation " << targetMILDRobotState->rotation
+                                << ", X:" << targetMILDRobotState->x
+                                << ", Y:" << targetMILDRobotState->y << ")",
+                    DebugHelper::ROBOT_MODEL);
 
 
         std::clock_t end = std::clock();
         double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
         mNumberIKCalls++;
         mnTotalIKTime += elapsed_secs;
-        ROS_DEBUG_STREAM("IK Calculation took " << elapsed_secs << " seconds. Total calculation time: " << mnTotalIKTime << " over " << mNumberIKCalls << " calculations.");
+        mDebugHelperPtr->write(std::stringstream() << "IK Calculation took " << elapsed_secs << " seconds. Total calculation time: "
+                                << mnTotalIKTime << " over " << mNumberIKCalls << " calculations.",
+                    DebugHelper::ROBOT_MODEL);
 
         return targetMILDRobotState;
 	}
@@ -347,7 +367,7 @@ namespace next_best_view {
         Eigen::Vector3d targetToBase(tilt_base_point_projected[0]-target_view_center_point[0], tilt_base_point_projected[1]-target_view_center_point[1], tilt_base_point_projected[2]-target_view_center_point[2]);
         targetToBase.normalize();
         double targetToBase_Angle = acos(targetToBase[2]);
-        ROS_DEBUG_STREAM("targetToBase_Angle: " << targetToBase_Angle);
+        mDebugHelperPtr->write(std::stringstream() << "targetToBase_Angle: " << targetToBase_Angle, DebugHelper::ROBOT_MODEL);
         tilt = targetToBase_Angle+mTiltAngleOffset;
         return true;
     }
@@ -367,9 +387,11 @@ namespace next_best_view {
         actualRobotPosition.y = robotState->y;
         actualRobotPosition.z = targetRobotPosition.z = 0.0;
         Eigen::Affine3d baseFrame;
-        ROS_DEBUG_STREAM("phiMin: " << phiMin << " phiMax: " << phiMax);
-        ROS_DEBUG_STREAM("currentAngleRange: " << currentAngleRange << " currentBestAngle: " << currentBestAngle);
-        ROS_DEBUG_STREAM("mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration);
+        mDebugHelperPtr->write(std::stringstream() << "phiMin: " << phiMin << " phiMax: " << phiMax, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "currentAngleRange: " << currentAngleRange << " currentBestAngle: " << currentBestAngle,
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration,
+                    DebugHelper::ROBOT_MODEL);
         Eigen::Vector3d basePoint, basePoint2;
         Eigen::Vector3d baseOrientation;
         //do sampling
@@ -399,7 +421,8 @@ namespace next_best_view {
                     //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
                     //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
                     currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                    ROS_DEBUG_STREAM("Angle: " << currentIterationAngle << " with rating: " << currentRating);
+                    mDebugHelperPtr->write(std::stringstream() << "Angle: " << currentIterationAngle << " with rating: " << currentRating,
+                                DebugHelper::ROBOT_MODEL);
                     if (currentRating > newBestRating)
                     {
                         newBestRating = currentRating;
@@ -413,7 +436,9 @@ namespace next_best_view {
                     }
                 }
             }
-            ROS_DEBUG_STREAM("Best angle: " << currentBestAngle << " with rating: " << newBestRating << " and angle range " << currentAngleRange);
+            mDebugHelperPtr->write(std::stringstream() << "Best angle: " << currentBestAngle << " with rating: " << newBestRating
+                                    << " and angle range " << currentAngleRange,
+                        DebugHelper::ROBOT_MODEL);
             currentAngleRange = currentAngleRange / 2.0;
             iterationCount++;
         } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy);
@@ -732,7 +757,9 @@ namespace next_best_view {
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;
-            ROS_DEBUG_STREAM("Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")");
+            mDebugHelperPtr->write(std::stringstream() << "Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y
+                                    << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")",
+                        DebugHelper::ROBOT_MODEL);
 
             path = getNavigationPath(sourcePosition, targetPosition);
 
@@ -742,7 +769,8 @@ namespace next_best_view {
                 distance = 0;
                 for (unsigned int i = 0; i < size ; i++)
                 {
-                    ROS_DEBUG_STREAM("Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")");
+                    mDebugHelperPtr->write(std::stringstream() << "Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")",
+                                DebugHelper::ROBOT_MODEL);
                 }
                 //Calculate distance from source point to first point in path
                 distance += sqrt(pow(sourcePosition.x - path.poses[0].pose.position.x, 2) + pow(sourcePosition.y - path.poses[0].pose.position.y, 2));
@@ -762,8 +790,10 @@ namespace next_best_view {
         {
             distance = sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2));
         }
-        ROS_DEBUG_STREAM("Global planner distance: " << distance);
-        ROS_DEBUG_STREAM("Euclidian distance: " << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)));
+        mDebugHelperPtr->write(std::stringstream() << "Global planner distance: " << distance, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Euclidian distance: "
+                                << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)),
+                    DebugHelper::ROBOT_MODEL);
         return distance;
     }
 
@@ -799,7 +829,7 @@ namespace next_best_view {
         if (navigationCostClient.call(srv))
         {
             path = srv.response.plan;
-            ROS_DEBUG_STREAM("Path size:" << path.poses.size());
+            mDebugHelperPtr->write(std::stringstream() << "Path size:" << path.poses.size(), DebugHelper::ROBOT_MODEL);
         }
         else
         {
@@ -855,7 +885,7 @@ namespace next_best_view {
                     std::string name = it->first;
                     urdf::Joint* joint = it->second.get();
                     //joint->dynamics.
-                    ROS_DEBUG_STREAM(name);
+                    mDebugHelperPtr->write(name, DebugHelper::ROBOT_MODEL);
                     if(joint->type==urdf::Joint::REVOLUTE || joint->type==urdf::Joint::CONTINUOUS || joint->type==urdf::Joint::PRISMATIC) positions[name] = 0;
                  }
                  while (ros::ok())

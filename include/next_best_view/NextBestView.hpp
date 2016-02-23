@@ -54,6 +54,7 @@
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
+#include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
@@ -116,6 +117,7 @@ private:
     ViewportPoint mCurrentCameraViewport;
     ObjectPointCloudPtr mPointCloudPtr;
     KdTreePtr mKdTreePtr;
+    DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
     SetupVisualizationRequest mVisualizationSettings;
     bool mCurrentlyPublishingVisualization;
@@ -149,6 +151,8 @@ public:
         mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
         mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
 
+        mDebugHelperPtr = DebugHelper::getInstance();
+
         initialize();
     }
 
@@ -157,7 +161,10 @@ public:
 
     void initialize()
     {
-        ROS_DEBUG_STREAM("STARTING NBV PARAMETER OUTPUT");
+        mDebugHelperPtr->write("STARTING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
+
+        mDebugHelperPtr->write(std::stringstream() << "debugLevels: " << mDebugHelperPtr->getLevelString(), DebugHelper::PARAMETERS);
+
         mPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
         mCurrentlyPublishingVisualization = false;
 
@@ -201,14 +208,14 @@ public:
         mNodeHandle.param("colThresh", colThresh, 45.0);
         mNodeHandle.param("sampleSizeUnitSphereSampler", sampleSizeUnitSphereSampler, 128.0);
         mNodeHandle.param("speedFactorRecognizer", speedFactorRecognizer, 5.0);
-        ROS_DEBUG_STREAM("fovx: " << fovx);
-        ROS_DEBUG_STREAM("fovy: " << fovy);
-        ROS_DEBUG_STREAM("ncp: " << ncp);
-        ROS_DEBUG_STREAM("fcp: " << fcp);
-        ROS_DEBUG_STREAM("radius: " << radius);
-        ROS_DEBUG_STREAM("colThresh: " << colThresh);
-        ROS_DEBUG_STREAM("samples: " << sampleSizeUnitSphereSampler);
-        ROS_DEBUG_STREAM("speedFactorRecognizer: " << speedFactorRecognizer);
+        mDebugHelperPtr->write(std::stringstream() << "fovx: " << fovx, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "fovy: " << fovy, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "ncp: " << ncp, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "fcp: " << fcp, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "radius: " << radius, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "colThresh: " << colThresh, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "samples: " << sampleSizeUnitSphereSampler, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorRecognizer: " << speedFactorRecognizer, DebugHelper::PARAMETERS);
 
         //////////////////////////////////////////////////////////////////
         // HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
@@ -257,8 +264,8 @@ public:
         mNodeHandle.param("sampleSizeMapBasedRandomSpaceSampler", sampleSizeMapBasedRandomSpaceSampler, 100);
         mNodeHandle.param("spaceSamplerId", spaceSamplerId, 1);
 
-        ROS_DEBUG_STREAM("sampleSizeMapBasedRandomSpaceSampler: " << sampleSizeMapBasedRandomSpaceSampler);
-        ROS_DEBUG_STREAM("spaceSamplerId: " << spaceSamplerId);
+        mDebugHelperPtr->write(std::stringstream() << "sampleSizeMapBasedRandomSpaceSampler: " << sampleSizeMapBasedRandomSpaceSampler, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "spaceSamplerId: " << spaceSamplerId, DebugHelper::PARAMETERS);
 
         SpaceSamplerPtr spaceSamplerPtr;
         MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler;
@@ -315,10 +322,10 @@ public:
         mNodeHandle.param("panMax", panMax, 60.);
         mNodeHandle.param("tiltMin", tiltMin, -45.);
         mNodeHandle.param("tiltMax", tiltMax, 45.);
-        ROS_DEBUG_STREAM("panMin: " << panMin);
-        ROS_DEBUG_STREAM("panMax: " << panMax);
-        ROS_DEBUG_STREAM("tiltMin: " << tiltMin);
-        ROS_DEBUG_STREAM("tiltMax: " << tiltMax);
+        mDebugHelperPtr->write(std::stringstream() << "panMin: " << panMin, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "panMax: " << panMax, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "tiltMin: " << tiltMin, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "tiltMax: " << tiltMax, DebugHelper::PARAMETERS);
 
         /* MILDRobotModel is a specialization of the abstract RobotModel class.
              * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
@@ -378,26 +385,34 @@ public:
         //Set the max amout of iterations
         int maxIterationSteps;
         mNodeHandle.param("maxIterationSteps", maxIterationSteps, 20);
-        ROS_DEBUG_STREAM("maxIterationSteps: " << maxIterationSteps);
+        mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << maxIterationSteps, DebugHelper::PARAMETERS);
         mCalculator.setMaxIterationSteps(maxIterationSteps);
-        ROS_DEBUG_STREAM("ENDING NBV PARAMETER OUTPUT");
+
+        mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
+
+        mDebugHelperPtr->write("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
     }
 
     bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
+        mDebugHelperPtr->write("STARTING NBV SETUPVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         mVisualizationSettings = SetupVisualizationRequest(request);
 
         this->triggerVisualization(mCurrentCameraViewport);
 
+        mDebugHelperPtr->write("ENDING NBV SETUPVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
+        mDebugHelperPtr->write("STARTING NBV RESETCALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
         initialize();
 
+        mDebugHelperPtr->write("ENDING NBV SETUPVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processGetSpaceSamplingServiceCall(GetSpaceSampling::Request &request, GetSpaceSampling::Response &response) {
+        mDebugHelperPtr->write("STARTING NBV GETSPACESAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
         double contractor = request.contractor;
         SimpleVector3 position = TypeHelper::getSimpleVector3(request.position);
 
@@ -415,6 +430,7 @@ public:
         rgb.offset = offsetof(ObjectPoint, rgb);
         response.point_cloud.fields.push_back(rgb);
 
+        mDebugHelperPtr->write("ENDING NBV GETSPACESAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
@@ -432,6 +448,7 @@ public:
     }
 
     bool processGetPointCloud2ServiceCall(GetPointCloud2::Request &request, GetPointCloud2::Response &response) {
+        mDebugHelperPtr->write("STARTING NBV GETPOINTCLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
         pcl::toROSMsg(*mCalculator.getPointCloudPtr(), response.point_cloud);
         response.point_cloud.header.frame_id = "/map";
 
@@ -441,18 +458,21 @@ public:
         rgb.offset = offsetof(ObjectPoint, rgb);
         response.point_cloud.fields.push_back(rgb);
 
+        mDebugHelperPtr->write("ENDING NBV GETPOINTCLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processGetPointCloudServiceCall(GetAttributedPointCloud::Request &request, GetAttributedPointCloud::Response &response) {
+        mDebugHelperPtr->write("STARTING NBV GETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         convertObjectPointCloudToAttributedPointCloud(*mCalculator.getPointCloudPtr(), response.point_cloud);
 
+        mDebugHelperPtr->write("ENDING NBV GETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
 
-        ROS_DEBUG_STREAM("STARTING NBV SETPOINTCLOUD SERVICE CALL");
+        mDebugHelperPtr->write("STARTING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
         if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
             ROS_ERROR("Could not set point cloud from message.");
@@ -463,7 +483,7 @@ public:
         {
             response.is_empty = true;
             response.is_valid = false;
-            ROS_DEBUG_STREAM("ENDING NBV SETPOINTCLOUD SERVICE CALL");
+            mDebugHelperPtr->write("ENDING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
         }
 
@@ -497,20 +517,16 @@ public:
         response.is_valid = true;
         response.is_empty = false;
 
-        ROS_DEBUG_STREAM("Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0] <<
-                                                                                                                             " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
-                                                                                                                          << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2]);
-
         // publish the visualization
         this->publishVisualization(request.pose, true, false);
-        ROS_DEBUG_STREAM("ENDING NBV SETPOINTCLOUD SERVICE CALL");
+        mDebugHelperPtr->write("ENDING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
 
     }
 
     //COMMENT?
     bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-        ROS_DEBUG_STREAM("STARTING NBV GETNEXTBESTVIEW SERVICE CALL");
+        mDebugHelperPtr->write("STARTING NBV GETNEXTBESTVIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         // Current camera view (frame of camera) of the robot.
         ViewportPoint currentCameraViewport(request.current_pose);
         //Contains Next best view.
@@ -519,13 +535,13 @@ public:
         //Estimate the Next best view.
         if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
             //No points from input cloud in any nbv candidate or iterative search aborted (by user).
-            ROS_DEBUG("No more next best view found.");
+            mDebugHelperPtr->write("No more next best view found.", DebugHelper::SERVICE_CALLS);
             if (mVisualizationSettings.frustum_marker_array)
             {
                 mVisHelper.clearFrustumVisualization();
             }
             response.found = false;
-            ROS_DEBUG_STREAM("ENDING NBV GETNEXTBESTVIEW SERVICE CALL");
+            mDebugHelperPtr->write("ENDING NBV GETNEXTBESTVIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
         }
         //Return the optimization result including its parameters.
@@ -565,9 +581,7 @@ public:
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
         mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-        ROS_DEBUG("Trigger Visualization of estimated Next Best View");
         this->triggerVisualization(resultingViewport);
-        ROS_DEBUG("Visualization triggered");
 
         //Save next best view in world model to present points within it to be considered in future next best view estimation runs.
         world_model::PushViewport pushViewportServiceCall;
@@ -576,29 +590,32 @@ public:
             pushViewportServiceCall.request.viewport.type = objectName;
             mPushViewportServiceClient.call(pushViewportServiceCall);
         }
-        ROS_DEBUG_STREAM("ENDING NBV GETNEXTBESTVIEW SERVICE CALL");
+        mDebugHelperPtr->write("ENDING NBV GETNEXTBESTVIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
-        ROS_DEBUG_STREAM("Called service processUpdatePointCloudServiceCall");
+        mDebugHelperPtr->write("STARTING NBV UPDATEPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
         ViewportPoint viewportPoint;
-        ROS_DEBUG_STREAM("Do frustum culling: ActiveIndices="<< mCalculator.getActiveIndices()->size());
+        mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
+                                        << mCalculator.getActiveIndices()->size(),
+                                    DebugHelper::SERVICE_CALLS);
         mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
-        ROS_DEBUG_STREAM("Do update object point cloud");
+        mDebugHelperPtr->write("Do update object point cloud", DebugHelper::SERVICE_CALLS);
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(viewportPoint);
 
         response.deactivated_object_normals = deactivatedNormals;
 
+        mDebugHelperPtr->write("ENDING NBV UPDATEPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processTriggerFrustumVisualization(TriggerFrustumVisualization::Request &request,
                                             TriggerFrustumVisualization::Response &response)
     {
-        ROS_DEBUG("trigger frustum visualization");
+        mDebugHelperPtr->write("STARTING NBV TRIGGERFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         geometry_msgs::Pose pose = request.current_pose;
         SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
@@ -606,13 +623,14 @@ public:
 
         mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter(), numberSearchedObjects);
 
+        mDebugHelperPtr->write("ENDING NBV TRIGGERFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processTriggerOldFrustumVisualization(TriggerFrustumVisualization::Request &request,
                                                TriggerFrustumVisualization::Response &response)
     {
-        ROS_DEBUG("trigger old frustum visualization");
+        mDebugHelperPtr->write("STARTING NBV TRIGGEROLDFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         geometry_msgs::Pose pose = request.current_pose;
         SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
@@ -620,6 +638,7 @@ public:
 
         mVisHelper.triggerOldFrustumVisualization(this->mCalculator.getCameraModelFilter());
 
+        mDebugHelperPtr->write("ENDING NBV TRIGGEROLDFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
@@ -633,7 +652,7 @@ public:
 
     bool triggerVisualization(ViewportPoint viewport, bool is_initial) {
         if (mCurrentlyPublishingVisualization) {
-            ROS_DEBUG("Currently generating visualization data.");
+            mDebugHelperPtr->write("Already generating visualization data.", DebugHelper::VISUALIZATION);
             return false;
         }
 
@@ -649,21 +668,26 @@ public:
          * \param publishFrustum whether the frustum should be published
          */
     void publishVisualization(ViewportPoint viewport, bool is_initial, bool publishFrustum) {
-        ROS_DEBUG("Publishing Visualization");
-        ROS_DEBUG_STREAM("Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0] <<
-                                                                                                                             " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
-                                                                                                                          << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2]);
+        mDebugHelperPtr->write("Publishing Visualization", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->write(std::stringstream() << "Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0]
+                                        << " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
+                                        << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2],
+                                    DebugHelper::VISUALIZATION);
 
         if (mVisualizationSettings.point_cloud)
         {
             Indices pointCloudIndices;
             if (mVisualizationSettings.frustum_point_cloud) {
                 this->getIndicesOutsideFrustum(viewport, pointCloudIndices);
-                ROS_DEBUG_STREAM("viewport.child_indices Size: " << viewport.child_indices->size());
+                mDebugHelperPtr->write(std::stringstream() << "viewport.child_indices Size: "
+                                                << viewport.child_indices->size(),
+                                            DebugHelper::VISUALIZATION);
             } else {
                 pointCloudIndices = *mCalculator.getActiveIndices();
             }
-            ROS_DEBUG_STREAM("Publishing "<< pointCloudIndices.size() <<" points");
+            mDebugHelperPtr->write(std::stringstream() << "Publishing "
+                                            << pointCloudIndices.size() <<" points",
+                                        DebugHelper::VISUALIZATION);
 
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
@@ -672,10 +696,14 @@ public:
         }
         if (mVisualizationSettings.frustum_point_cloud)
         {
-            ROS_DEBUG("Creating frustumObjectPointCloud");
-            ROS_DEBUG_STREAM("viewport.child_indices Size bis: " << viewport.child_indices->size());
+            mDebugHelperPtr->write("Creating frustumObjectPointCloud", DebugHelper::VISUALIZATION);
+            mDebugHelperPtr->write(std::stringstream() << "viewport.child_indices Size bis: "
+                                            << viewport.child_indices->size(),
+                                        DebugHelper::VISUALIZATION);
             ObjectPointCloud frustumObjectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices);
-            ROS_DEBUG_STREAM("viewport.child_indices Size bis : " << viewport.child_indices->size());
+            mDebugHelperPtr->write(std::stringstream() << "viewport.child_indices Size is : "
+                                            << viewport.child_indices->size(),
+                                        DebugHelper::VISUALIZATION);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(frustumObjectPointCloud);
 
             mVisHelper.triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);

@@ -5,12 +5,12 @@
  *      Author: ralfschleicher
  */
 
-#ifndef DEFAULTRATINGMODULE_HPP_
-#define DEFAULTRATINGMODULE_HPP_
+#pragma once
 
 #include <ros/ros.h>
 #include <boost/foreach.hpp>
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
+#include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
@@ -31,8 +31,8 @@ namespace next_best_view {
          */
         // the threshold for the angle between the orientation of an object and the camera orientation
         double mNormalAngleThreshold;
-        double fovV,fovH;
-        double fcp,ncp;
+        double mFovV,mFovH;
+        double mFcp,mNcp;
         double mOmegaPan;
         double mOmegaTilt;
         double mOmegaRot;
@@ -44,6 +44,7 @@ namespace next_best_view {
          */
         RobotModelPtr mRobotModelPtr;
         CameraModelFilterPtr mCameraModelFilterPtr;
+        DebugHelperPtr mDebugHelperPtr;
 
         /*
          * members to cache the calculated data for one call of setBaseScoreContainer
@@ -79,12 +80,9 @@ namespace next_best_view {
 	public:
 		DefaultRatingModule();
 
-        DefaultRatingModule(double fovV, double fovH, double fcp, double ncp,
+        DefaultRatingModule(double mFovV, double mFovH, double mFcp, double mNcp,
                                 const RobotModelPtr &robotModelPtr = RobotModelPtr(),
-                                const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr()) :
-                            fovV(fovV),fovH(fovH),fcp(fcp),ncp(ncp),
-                            mRobotModelPtr(robotModelPtr),
-                            mCameraModelFilterPtr(cameraModelFilterPtr){}
+                                const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr());
 
         virtual ~DefaultRatingModule();
 
@@ -247,6 +245,3 @@ namespace next_best_view {
      */
     typedef boost::shared_ptr<DefaultRatingModule> DefaultRatingModulePtr;
 }
-
-
-#endif /* DEFAULTRATINGMODULE_HPP_ */

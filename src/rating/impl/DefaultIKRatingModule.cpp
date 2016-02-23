@@ -11,6 +11,7 @@ namespace next_best_view {
     DefaultIKRatingModule::DefaultIKRatingModule(RobotModelPtr robotModel) : IKRatingModule()
     {
         mRobotModel = robotModel;
+        mDebugHelperPtr = DebugHelper::getInstance();
     }
     DefaultIKRatingModule::~DefaultIKRatingModule() { }
 
@@ -46,7 +47,10 @@ namespace next_best_view {
 
             } while(poseIterator > navigationPath.poses.begin() && length < 1.0);  //consider only the last 1 meter of the path
             double rating = pow(0.6, absolutAngleChange);
-            ROS_DEBUG_STREAM("Rating: " << rating << " (absolutAngleChange: " << absolutAngleChange << ", length: " << length << ")");
+            mDebugHelperPtr->write(std::stringstream() << "Rating: " << rating
+                                    << " (absolutAngleChange: " << absolutAngleChange
+                                    << ", length: " << length << ")",
+                        DebugHelper::IK_RATING);
             return rating;
         }
         else

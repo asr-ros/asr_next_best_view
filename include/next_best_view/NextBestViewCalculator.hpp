@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef NEXTBESTVIEWCALCULATOR_HPP_
-#define NEXTBESTVIEWCALCULATOR_HPP_
+#pragma once
 
 #include "typedef.hpp"
 #include <vector>
@@ -25,6 +24,7 @@
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
+#include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
@@ -49,6 +49,7 @@ private:
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
     float mEpsilon;
     ObjectNameSetPtr mObjectNameSetPtr;
+    DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
     std::vector<CropBoxPtr> mCropBoxPtrList;
     bool mEnableCropBoxFiltering;
@@ -57,6 +58,7 @@ private:
     int mMaxIterationSteps;
 
 public:
+
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
                            const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
                            const RobotModelPtr &robotModelPtr = RobotModelPtr(),
@@ -69,22 +71,25 @@ public:
           mCameraModelFilterPtr(cameraModelFilterPtr),
           mRatingModulePtr(ratingModulePtr),
           mEpsilon(10E-3),
-          mVisHelper(){}
-public:
+          mVisHelper() {
+
+        mDebugHelperPtr = DebugHelper::getInstance();
+    }
 
     /**
-         * Calculates the next best view. Starting point of iterative calculations for getNextBestView() service call.
-         */
+     * Calculates the next best view. Starting point of iterative calculations for getNextBestView() service call.
+     */
     bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
         std::clock_t begin = std::clock();
-		ROS_DEBUG("STARTING CALCULATE-NEXT-BEST-VIEW METHOD");
+        mDebugHelperPtr->write("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
         RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
 
-        ROS_DEBUG("Calculate discrete set of view orientations on unit sphere");
+        mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
+                        DebugHelper::CALCULATION);
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
         SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
@@ -94,7 +99,7 @@ public:
 					feasibleOrientationsCollectionPtr->push_back(q);
 				}
 			}
-			ROS_DEBUG("ENDING CALCULATE-NEXT-BEST-VIEW METHOD");
+            mDebugHelperPtr->write("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 			// create the next best view point cloud
             bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 
@@ -141,7 +146,7 @@ public:
 private:
 
 	bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-		ROS_DEBUG("STARTING DOITERATION METHOD");  
+        mDebugHelperPtr->write("STARTING DOITERATION METHOD", DebugHelper::CALCULATION);
 
         int iterationStep = 0;
         //Best viewport at the end of each iteration step and starting point for optimization (grid alignment) for each following step.
@@ -162,13 +167,22 @@ private:
             //Iteration step must be increased before the following check.
             iterationStep ++;
             DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
-            ROS_DEBUG("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.");
-            ROS_DEBUG("x: %f, y: %f, z: %f",intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z);
-            ROS_DEBUG("Utility: %f, Costs: %f, Rating: %f",drPtr->getUtility(), drPtr->getInverseCosts(), mRatingModulePtr->getRating(drPtr));
-            ROS_DEBUG("Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f",
-                      drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
-                      drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts());
-            ROS_DEBUG("IterationStep: %i",iterationStep);
+            mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
+                            DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << "x: " << intermediateResultViewport.x
+                                    << ", y: " << intermediateResultViewport.y
+                                    << ", z: " << intermediateResultViewport.z,
+                            DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << "Utility: " << drPtr->getUtility()
+                                    << ", Costs: " << drPtr->getInverseCosts()
+                                    << ", Rating: " << mRatingModulePtr->getRating(drPtr),
+                            DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << "Translation costs: " << drPtr->getInverseMovementCostsBaseTranslation()
+                                    << ", Rotation costs: " << drPtr->getInverseMovementCostsBaseRotation()
+                                    << ", PTU movement costs: " << drPtr->getInverseMovementCostsPTU()
+                                    << ", Recognition costs: " << drPtr->getInverseRecognitionCosts(),
+                        DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep, DebugHelper::CALCULATION);
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
             if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
@@ -176,20 +190,30 @@ private:
                 //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
                 resultViewport = intermediateResultViewport;
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
-                ROS_DEBUG("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.");
-                ROS_DEBUG("x: %f, y: %f, z: %f",intermediateResultViewport.x, intermediateResultViewport.y, intermediateResultViewport.z);
-                ROS_DEBUG("Utility: %f, Costs: %f, Rating: %f",drPtr->getUtility(), drPtr->getInverseCosts(), mRatingModulePtr->getRating(drPtr));
-                ROS_DEBUG("Translation costs: %f, Rotation costs: %f, PTU movement costs: %f, Recognition costs: %f",
-                          drPtr->getInverseMovementCostsBaseTranslation(), drPtr->getInverseMovementCostsBaseRotation(),
-                          drPtr->getInverseMovementCostsPTU(), drPtr->getInverseRecognitionCosts());
-                ROS_DEBUG("IterationStep: %i",iterationStep);
+                mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.",
+                            DebugHelper::CALCULATION);
+                mDebugHelperPtr->write(std::stringstream() << "x: " << intermediateResultViewport.x
+                                        << ", y: " << intermediateResultViewport.y
+                                        << ", z: " << intermediateResultViewport.z,
+                            DebugHelper::CALCULATION);
+                mDebugHelperPtr->write(std::stringstream() << "Utility: " << drPtr->getUtility()
+                                        << ", Costs: " << drPtr->getInverseCosts()
+                                        << ", Rating: " << mRatingModulePtr->getRating(drPtr),
+                            DebugHelper::CALCULATION);
+                mDebugHelperPtr->write(std::stringstream() << "Translation costs: " << drPtr->getInverseMovementCostsBaseTranslation()
+                                        << ", Rotation costs: " << drPtr->getInverseMovementCostsBaseRotation()
+                                        << ", PTU movement costs: " << drPtr->getInverseMovementCostsPTU()
+                                        << ", Recognition costs: " << drPtr->getInverseRecognitionCosts(),
+                            DebugHelper::CALCULATION);
+                mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
+                            DebugHelper::CALCULATION);
                 return true;
             }
 
             currentBestViewport = intermediateResultViewport;
 
         }
-        ROS_DEBUG("ENDING DOITERATION METHOD");
+        mDebugHelperPtr->write("ENDING DOITERATION METHOD", DebugHelper::CALCULATION);
         //Only reached when iteration fails or is interrupted.
         return false;
     }
@@ -197,7 +221,7 @@ private:
     bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                          ViewportPoint &resultViewport, int iterationStep) {
-        ROS_DEBUG("STARTING DOITERATIONSTEP METHOD");
+        mDebugHelperPtr->write("STARTING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
 
         // current camera position
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
@@ -214,7 +238,8 @@ private:
 
         //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
         if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
-            ROS_DEBUG("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.");
+            mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
+                            DebugHelper::VISUALIZATION);
             return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
         }
 
@@ -228,7 +253,8 @@ private:
             IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
             //For each space sample point: Go through all interesting orientations.
-            ROS_DEBUG("Iterating over all orientations for a given robot position.");
+            mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
+                            DebugHelper::CALCULATION);
             BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
                 // get the corresponding viewport
                 ViewportPoint fullViewportPoint;
@@ -239,7 +265,8 @@ private:
                 }
                 //For given viewport(combination of robot position and camera viewing direction)
                 // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
-                ROS_DEBUG("Getting viewport with optimal object constellation for given position & orientation combination.");
+                mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
+                            DebugHelper::RATING);
                 if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
                     continue;
                 }
@@ -247,9 +274,10 @@ private:
                 nextBestViewports->push_back(fullViewportPoint);
             }
         }
-        ROS_DEBUG("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.");
+        mDebugHelperPtr->write("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.",
+                    DebugHelper::RATING);
         if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
-            ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");
+            mDebugHelperPtr->write("ENDING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
             return false;
         }
 
@@ -257,7 +285,7 @@ private:
         mVisHelper.triggerIterationVisualizations(iterationStep, sampledOrientationsPtr, resultViewport,
                                                     feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
 
-        ROS_DEBUG("ENDING DOITERATIONSTEP METHOD");
+        mDebugHelperPtr->write("ENDING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
         return true;
     }
 
@@ -302,20 +330,23 @@ public:
         BOOST_FOREACH(ViewportPoint viewportPoint, viewportPointList) {
             ViewportPoint culledViewportPoint;
             if (!this->doFrustumCulling(viewportPoint.getPosition(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
-                ROS_DEBUG_STREAM("Viewpoint SKIPPED by Culling: " << viewportPoint.getPosition());
+                mDebugHelperPtr->write(std::stringstream() << "Viewpoint SKIPPED by Culling: " << viewportPoint.getPosition(),
+                                DebugHelper::CALCULATION);
                 continue;
             }
 
             ViewportPoint resultingViewportPoint;
             if (!culledViewportPoint.filterObjectNames(viewportPoint.object_type_name_set, resultingViewportPoint)) {
-                ROS_DEBUG_STREAM("Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getPosition());
+                mDebugHelperPtr->write(std::stringstream() << "Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getPosition(),
+                                DebugHelper::CALCULATION);
                 continue;
             }
 
-            ROS_DEBUG_STREAM("Viewpoint TAKEN: " << resultingViewportPoint.getPosition());
+            mDebugHelperPtr->write(std::stringstream() << "Viewpoint TAKEN: " << resultingViewportPoint.getPosition(),
+                                DebugHelper::CALCULATION);
             for (std::set<std::string>::iterator it=resultingViewportPoint.object_type_name_set->begin(); it!=resultingViewportPoint.object_type_name_set->end(); ++it)
             {
-                ROS_DEBUG_STREAM("Object: " << *it);
+                mDebugHelperPtr->write(std::stringstream() << "Object: " << *it, DebugHelper::CALCULATION);
             }
             this->updateObjectPointCloud(resultingViewportPoint);
             break;
@@ -429,7 +460,8 @@ public:
                 (*croppedPointCloudPtr) += (*outputTempPointCloudPtr);
             }
 
-            ROS_DEBUG_STREAM("setPointCloudFromMessage::Filtering point cloud finished.");
+            mDebugHelperPtr->write("setPointCloudFromMessage::Filtering point cloud finished.",
+                        DebugHelper::CALCULATION);
 
             mVisHelper.triggerCropBoxVisualization(mCropBoxPtrList);
 
@@ -453,7 +485,8 @@ public:
         }
         else
         {
-            ROS_DEBUG_STREAM("setPointCloudFromMessage::output point cloud is empty.");
+            mDebugHelperPtr->write("setPointCloudFromMessage::output point cloud is empty.",
+                        DebugHelper::CALCULATION);
         }
 
         this->setPointCloudPtr(outputPointCloudPtr);
@@ -642,7 +675,8 @@ public:
     void readCropBoxDataFromXMLFile(std::string mCropBoxListFilePath)
     {
         std::string xml_path = mCropBoxListFilePath;
-        ROS_DEBUG_STREAM("Path to CropBoxList xml file: " << xml_path);
+        mDebugHelperPtr->write(std::stringstream() << "Path to CropBoxList xml file: " << xml_path,
+                    DebugHelper::CALCULATION);
         try {
             rapidxml::file<> xmlFile(xml_path.c_str());
             rapidxml::xml_document<> doc;
@@ -718,6 +752,3 @@ public:
 
 };
 }
-
-
-#endif /* NEXTBESTVIEWCALCULATOR_HPP_ */

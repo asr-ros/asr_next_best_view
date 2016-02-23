@@ -32,6 +32,7 @@ namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
+        mDebugHelperPtr = DebugHelper::getInstance();
         double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
@@ -45,20 +46,20 @@ namespace next_best_view {
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
-            ROS_DEBUG("Use of global planner ENABLED");
+            mDebugHelperPtr->write("Use of global planner ENABLED", DebugHelper::ROBOT_MODEL);
         }
         else
         {
-            ROS_DEBUG("Use of global planner DISABLED. Using simplified calculation instead...");
+            mDebugHelperPtr->write("Use of global planner DISABLED. Using simplified calculation instead...", DebugHelper::ROBOT_MODEL);
         }
 
-        ROS_DEBUG_STREAM("mOmegaUseBase: " << mOmegaUseBase_);
-        ROS_DEBUG_STREAM("speedFactorPTU: " << speedFactorPTU_);
-        ROS_DEBUG_STREAM("speedFactorBaseMove: " << speedFactorBaseMove_);
-        ROS_DEBUG_STREAM("speedFactorBaseRot: " << speedFactorBaseRot_);
-        ROS_DEBUG_STREAM("tolerance: " << tolerance_);
-        ROS_DEBUG_STREAM("mOmegaPan: " << mOmegaPan_);
-        ROS_DEBUG_STREAM("mOmegaTilt: " << mOmegaTilt_);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaUseBase: " << mOmegaUseBase_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorPTU: " << speedFactorPTU_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseMove: " << speedFactorBaseMove_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseRot: " << speedFactorBaseRot_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::ROBOT_MODEL);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaUseBase = mOmegaUseBase_;
@@ -132,8 +133,9 @@ namespace next_best_view {
         {
             int lastPose = path.poses.size()-1;
             float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
-            ROS_DEBUG_STREAM("Target: " << targetPosition.x << ", " << targetPosition.y);
-            ROS_DEBUG_STREAM("Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y);
+            mDebugHelperPtr->write(std::stringstream() << "Target: " << targetPosition.x << ", " << targetPosition.y, DebugHelper::ROBOT_MODEL);
+            mDebugHelperPtr->write(std::stringstream() << "Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y,
+                        DebugHelper::ROBOT_MODEL);
             return distanceToLastPoint < 0.01f;
         }
     }
@@ -156,8 +158,14 @@ namespace next_best_view {
 		double currentPhi = sourceMILDRobotState->pan;
 		double currentRho = sourceMILDRobotState->rotation;
 
-        ROS_DEBUG_STREAM("Calculate state for: (Pan: " << sourceMILDRobotState->pan << ", Tilt: " << sourceMILDRobotState->tilt << ", Rotation " << sourceMILDRobotState->rotation << ", X:" << sourceMILDRobotState->x << ", Y:" << sourceMILDRobotState->y << ")");
-        ROS_DEBUG_STREAM("Position: " << position[0] << ", " << position[1] << ", " << position[2]);
+        mDebugHelperPtr->write(std::stringstream() << "Calculate state for: (Pan: " << sourceMILDRobotState->pan
+                                << ", Tilt: " << sourceMILDRobotState->tilt
+                                << ", Rotation " << sourceMILDRobotState->rotation
+                                << ", X:" << sourceMILDRobotState->x
+                                << ", Y:" << sourceMILDRobotState->y << ")",
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Position: " << position[0] << ", " << position[1] << ", " << position[2],
+                    DebugHelper::ROBOT_MODEL);
 
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
@@ -247,7 +255,12 @@ namespace next_best_view {
 		// set x, y
 		targetMILDRobotState->x = position[0];
 		targetMILDRobotState->y = position[1];
-        ROS_DEBUG_STREAM("Targetstate: (Pan: " << targetMILDRobotState->pan << ", Tilt: " << targetMILDRobotState->tilt << ", Rotation " << targetMILDRobotState->rotation << ", X:" << targetMILDRobotState->x << ", Y:" << targetMILDRobotState->y << ")");
+        mDebugHelperPtr->write(std::stringstream() << "Targetstate: (Pan: " << targetMILDRobotState->pan
+                                << ", Tilt: " << targetMILDRobotState->tilt
+                                << ", Rotation " << targetMILDRobotState->rotation
+                                << ", X:" << targetMILDRobotState->x
+                                << ", Y:" << targetMILDRobotState->y << ")",
+                    DebugHelper::ROBOT_MODEL);
 		return targetMILDRobotState;
 	}
 
@@ -326,7 +339,9 @@ namespace next_best_view {
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;
-            ROS_DEBUG_STREAM("Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")");
+            mDebugHelperPtr->write(std::stringstream() << "Calculate path from (" << sourcePosition.x << ", "
+                                    << sourcePosition.y << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")",
+                        DebugHelper::ROBOT_MODEL);
 
             path = getNavigationPath(sourcePosition, targetPosition);
 
@@ -336,7 +351,8 @@ namespace next_best_view {
                 distance = 0;
                 for (unsigned int i = 0; i < size ; i++)
                 {
-                    ROS_DEBUG_STREAM("Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")");
+                    mDebugHelperPtr->write(std::stringstream() << "Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")",
+                                DebugHelper::ROBOT_MODEL);
                 }
                 //Calculate distance from source point to first point in path
                 distance += sqrt(pow(sourcePosition.x - path.poses[0].pose.position.x, 2) + pow(sourcePosition.y - path.poses[0].pose.position.y, 2));
@@ -356,8 +372,10 @@ namespace next_best_view {
         {
             distance = sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2));
         }
-        ROS_DEBUG_STREAM("Global planner distance: " << distance);
-        ROS_DEBUG_STREAM("Euclidian distance: " << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)));
+        mDebugHelperPtr->write(std::stringstream() << "Global planner distance: " << distance, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Euclidian distance: "
+                                << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)),
+                    DebugHelper::ROBOT_MODEL);
         return distance;
     }
 
@@ -393,7 +411,7 @@ namespace next_best_view {
         if (navigationCostClient.call(srv))
         {
             path = srv.response.plan;
-            ROS_DEBUG_STREAM("Path size:" << path.poses.size());
+            mDebugHelperPtr->write(std::stringstream() << "Path size:" << path.poses.size(), DebugHelper::ROBOT_MODEL);
         }
         else
         {
@@ -449,7 +467,7 @@ namespace next_best_view {
                     std::string name = it->first;
                     urdf::Joint* joint = it->second.get();
                     //joint->dynamics.
-                    ROS_DEBUG_STREAM(name);
+                    mDebugHelperPtr->write(name, DebugHelper::ROBOT_MODEL);
                     if(joint->type==urdf::Joint::REVOLUTE || joint->type==urdf::Joint::CONTINUOUS || joint->type==urdf::Joint::PRISMATIC) positions[name] = 0;
                  }
                  while (ros::ok())

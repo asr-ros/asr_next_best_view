@@ -5,8 +5,8 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MAPHELPER_HPP_
-#define MAPHELPER_HPP_
+#pragma once
+
 #include <ros/ros.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -16,6 +16,7 @@
 #include <cmath>
 #include <vector>
 #include <boost/tuple/tuple.hpp>
+#include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "typedef.hpp"
@@ -46,6 +47,8 @@ namespace next_best_view {
 
 	class MapHelper {
 	private:
+        DebugHelperPtr mDebugHelperPtr;
+
 		bool mMapReceived;
 		bool mCostmapReceived;
 		int8_t mCollisionThreshold;
@@ -56,10 +59,13 @@ namespace next_best_view {
 		nav_msgs::OccupancyGrid mRaytracingMap;
 	public:
 		MapHelper(const std::string &mapTopicName = "map", const std::string &costmapTopicName = "move_base/global_costmap/costmap", const std::string &getPlanServiceName = "move_base/make_plan") : mMapReceived(false), mCostmapReceived(false), mCollisionThreshold(45) {
-			ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapHelper::mapReceived, this);
+            mDebugHelperPtr = DebugHelper::getInstance();
+
+            ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapHelper::mapReceived, this);
 			ros::Subscriber costmapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(costmapTopicName, 1, &MapHelper::costmapReceived, this);
 			while(ros::ok() && !this->hasReceivedMaps()) {
-                ROS_DEBUG("Waiting for maps to arrive on topics '%s' and '%s'", mapSubscriber.getTopic().c_str(), costmapSubscriber.getTopic().c_str());
+                mDebugHelperPtr->write(std::stringstream() << "Waiting for maps to arrive on topics '" << mapSubscriber.getTopic()
+                                        << "' and '" << costmapSubscriber.getTopic() << "'", DebugHelper::MAP);
 
 				ros::spinOnce();
 				ros::Duration(0.5).sleep();
@@ -67,7 +73,8 @@ namespace next_best_view {
 
 			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName, true);
 			while(ros::ok() && !mGetPlanServiceClient.exists()) {
-				ROS_DEBUG("Waiting for planning server to start on service '%s'...", mGetPlanServiceClient.getService().c_str());
+                mDebugHelperPtr->write(std::stringstream() << "Waiting for planning server to start on service '"
+                                        << mGetPlanServiceClient.getService() << "'...", DebugHelper::MAP);
 				ros::spinOnce();
 				ros::Duration(0.5).sleep();
 			}
@@ -78,19 +85,19 @@ namespace next_best_view {
 		virtual ~MapHelper() { }
 	private:
 		void mapReceived(nav_msgs::OccupancyGrid map) {
-			ROS_DEBUG("Map received");
+            mDebugHelperPtr->write("Map received", DebugHelper::MAP);
 			mMap = map;
 			mMapReceived = true;
 		}
 
 		void costmapReceived(nav_msgs::OccupancyGrid map) {
-			ROS_DEBUG("Costmap received");
+            mDebugHelperPtr->write("Costmap received", DebugHelper::MAP);
 			mCostmap = map;
 			mCostmapReceived = true;
 		}
 
 		void aggregateRaytracingMap(const nav_msgs::OccupancyGrid &map, const nav_msgs::OccupancyGrid &costmap) {
-			ROS_DEBUG("Aggregating raytracing map.");
+            mDebugHelperPtr->write("Aggregating raytracing map.", DebugHelper::MAP);
 			if (map.info.width != costmap.info.width || map.info.height != costmap.info.height) {
 				ROS_ERROR("Cannot aggregate raytracing map. Dimensions of map and costmap do not match!");
 				assert(map.info.width == costmap.info.width && map.info.height == costmap.info.height);
@@ -105,7 +112,7 @@ namespace next_best_view {
 
 				mRaytracingMap.data[index] = aggregatedOccupancyValue;
 			}
-			ROS_DEBUG("Aggregation done.");
+            mDebugHelperPtr->write("Aggregation done.", DebugHelper::MAP);
 		}
 	public:
 		bool hasReceivedMaps() {
@@ -314,7 +321,3 @@ namespace next_best_view {
 
 	typedef boost::shared_ptr<MapHelper> MapHelperPtr;
 }
-
-
-
-#endif /* MAPHELPER_HPP_ */

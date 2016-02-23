@@ -96,6 +96,7 @@ add_library(
 	src/helper/MathHelper.cpp
 	src/helper/MarkerHelper.cpp
 	src/helper/TypeHelper.cpp
+        src/helper/DebugHelper.cpp
 )
 
 add_library(
@@ -165,12 +166,12 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
-##add_library(
+#add_library(
 #        ${PROJECT_NAME}_test_core
 #        src/test_cases/BaseTest.cpp
 #)
 
-##target_link_libraries(
+#target_link_libraries(
 #        ${PROJECT_NAME}_test_core
 #        ${PROJECT_NAME}_helper
 #        ${PROJECT_NAME}_packages
@@ -190,7 +191,7 @@ target_link_libraries(
 #        src/test_cases/PerformanceTest.cpp
 #)
 
-##add_executable(
+#add_executable(
 #        ${PROJECT_NAME}_single_scene_test
 #        src/test_cases/SingleSceneTest.cpp
 #)
@@ -230,7 +231,7 @@ target_link_libraries(
 #	${catkin_LIBRARIES}
 #)
 
-##target_link_libraries(
+#target_link_libraries(
 #        ${PROJECT_NAME}_single_scene_test
 #        ${PROJECT_NAME}_helper
 #        ${PROJECT_NAME}_packages

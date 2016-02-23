@@ -37,3 +37,4 @@ enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
 maxIterationSteps: 20
+debugLevels: [ALL] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, FILTER, IK_RATING

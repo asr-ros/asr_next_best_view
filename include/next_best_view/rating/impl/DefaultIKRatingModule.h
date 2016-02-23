@@ -5,13 +5,11 @@
  *      Author: florianaumann
  */
 
-#ifndef DEFFAULTIKRATINGMODULE_H
-#define DEFFAULTIKRATINGMODULE_H
+#pragma once
 
 #include "next_best_view/rating/IKRatingModule.h"
 #include "next_best_view/robot_model/RobotModel.hpp"
-
-
+#include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
     /*!
@@ -45,6 +43,7 @@ namespace next_best_view {
         double getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
     private:
         RobotModelPtr mRobotModel;
+        DebugHelperPtr mDebugHelperPtr;
     };
 
     /*!
@@ -52,5 +51,3 @@ namespace next_best_view {
      */
     typedef boost::shared_ptr<DefaultIKRatingModule> DefaultIKRatingModulePtr;
 }
-
-#endif /* DEFFAULTIKRATINGMODULE_H */

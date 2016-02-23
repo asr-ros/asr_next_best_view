@@ -5,8 +5,7 @@
  *      Author: ralfschleicher
  */
 
-#ifndef MILDROBOTMODEL_HPP_
-#define MILDROBOTMODEL_HPP_
+#pragma once
 
 #include <boost/tuple/tuple.hpp>
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -14,6 +13,7 @@
 #include "geometry_msgs/Pose.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
 	/*!
@@ -25,6 +25,9 @@ namespace next_best_view {
 	 */
 	class MILDRobotModel : public RobotModel {
 	private:
+
+        DebugHelperPtr mDebugHelperPtr;
+
 		// weighting values
 		float mOmegaPan;
 		float mOmegaTilt;
@@ -129,6 +132,3 @@ namespace next_best_view {
 
 	typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;
 }
-
-
-#endif /* MILDROBOTMODEL_HPP_ */
