@@ -50,7 +50,7 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     ViewportPointCloudPtr viewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
     // do the filtering for each combination of object types
-    for (std::set<ObjectNameSetPtr>::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
+    for (ObjectNamePowerSet::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
         ViewportPoint viewport;
         if (!candidateViewport.filterObjectNames(*subSetIter, viewport)) {
             continue;
@@ -68,14 +68,10 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
         viewports->push_back(viewport);
     }
 
-    if (!this->getBestViewport(viewports, candidateViewport)) {
-        mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD",
-                    DebugHelper::RATING);
-        return false;
-    }
+    bool success = this->getBestViewport(viewports, candidateViewport);
     mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD",
                 DebugHelper::RATING);
-    return true;
+    return success;
 }
 
 bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
@@ -84,6 +80,8 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
 
     // if there aren't any viewports, the search failed.
     if (viewports->size() == 0) {
+        mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD",
+                    DebugHelper::RATING);
         return false;
     }
 
@@ -95,20 +93,7 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
         mDebugHelperPtr->write(std::stringstream() << "\nTHIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.",
                     DebugHelper::RATING);
         ViewportPoint viewport = viewports->at(i);
-        mDebugHelperPtr->write(std::stringstream() << "Viewport position: (" << viewport.getPosition()(0,0)
-                                << "," << viewport.getPosition()(1,0) << ","
-                                << viewport.getPosition()(2,0) << ")",
-                    DebugHelper::RATING);
-        mDebugHelperPtr->write(std::stringstream() << "utility: " << viewport.score->getUtility()
-                                << " inverse costs: " << viewport.score->getInverseCosts(),
-                    DebugHelper::RATING);
-        mDebugHelperPtr->write(std::stringstream() << "inverse costs base translation: " << viewport.score->getInverseMovementCostsBaseTranslation()
-                                << " inverse costs base rotation: " << viewport.score->getInverseMovementCostsBaseRotation()
-                                << " inverse costs PTU movement: " << viewport.score->getInverseMovementCostsPTU()
-                                << " inverse costs recognition: " << viewport.score->getInverseRecognitionCosts(),
-                    DebugHelper::RATING);
-        mDebugHelperPtr->write(std::stringstream() << "rating: " << this->getRating(viewport.score),
-                    DebugHelper::RATING);
+        viewport.print(this->getRating(viewport.score), DebugHelper::RATING);
     }
 
     // set best viewport
@@ -116,21 +101,9 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
 
     // output best viewport
     mDebugHelperPtr->write("\nTHIS IS THE BEST VIEWPORT IN THE SORTED LIST.", DebugHelper::RATING);
-    mDebugHelperPtr->write(std::stringstream() << "Best viewport position: (" << bestViewport.getPosition()(0,0) << ","
-                            << bestViewport.getPosition()(1,0) << "," << bestViewport.getPosition()(2,0) << ")",
-                DebugHelper::RATING);
-    mDebugHelperPtr->write(std::stringstream() << "utility: " << bestViewport.score->getUtility()
-                            << " inverse costs: " << bestViewport.score->getInverseCosts(),
-                DebugHelper::RATING);
-    mDebugHelperPtr->write(std::stringstream() << " inverse costs base translation: " << bestViewport.score->getInverseMovementCostsBaseTranslation()
-                            << "inverse costs base rotation: " << bestViewport.score->getInverseMovementCostsBaseRotation()
-                            << "inverse costs PTU movement: " << bestViewport.score->getInverseMovementCostsPTU()
-                            << " inverse costs recognition: " << bestViewport.score->getInverseRecognitionCosts(),
-                DebugHelper::RATING);
-    mDebugHelperPtr->write(std::stringstream() << " rating: " << this->getRating(bestViewport.score),
-                DebugHelper::RATING);
+    bestViewport.print(this->getRating(bestViewport.score), DebugHelper::RATING);
 
-    mDebugHelperPtr->write("STARTING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD",
+    mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD",
                 DebugHelper::RATING);
     return true;
 }

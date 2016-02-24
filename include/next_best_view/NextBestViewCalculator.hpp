@@ -99,15 +99,13 @@ public:
 					feasibleOrientationsCollectionPtr->push_back(q);
 				}
 			}
-            mDebugHelperPtr->write("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 			// create the next best view point cloud
             bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
-
-
 
             std::clock_t end = std::clock();
             double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
             ROS_INFO_STREAM("Iteration took " << elapsed_secs << " seconds.");
+            mDebugHelperPtr->write("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
             return success;
 		}
 
@@ -161,27 +159,16 @@ private:
                                        sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
                                        intermediateResultViewport, iterationStep)) {
                 //Happens, when no valid viewport is found in that iteration step (including current viewport). E.g. when all normals are invalidated.
+                mDebugHelperPtr->write("ENDING DOITERATION METHOD", DebugHelper::CALCULATION);
                 return false;
             }
 
             //Iteration step must be increased before the following check.
             iterationStep ++;
-            DefaultScoreContainerPtr drPtr = intermediateResultViewport.score;
+            float rating = mRatingModulePtr->getRating(intermediateResultViewport.score);
             mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
                             DebugHelper::CALCULATION);
-            mDebugHelperPtr->write(std::stringstream() << "x: " << intermediateResultViewport.x
-                                    << ", y: " << intermediateResultViewport.y
-                                    << ", z: " << intermediateResultViewport.z,
-                            DebugHelper::CALCULATION);
-            mDebugHelperPtr->write(std::stringstream() << "Utility: " << drPtr->getUtility()
-                                    << ", Costs: " << drPtr->getInverseCosts()
-                                    << ", Rating: " << mRatingModulePtr->getRating(drPtr),
-                            DebugHelper::CALCULATION);
-            mDebugHelperPtr->write(std::stringstream() << "Translation costs: " << drPtr->getInverseMovementCostsBaseTranslation()
-                                    << ", Rotation costs: " << drPtr->getInverseMovementCostsBaseRotation()
-                                    << ", PTU movement costs: " << drPtr->getInverseMovementCostsPTU()
-                                    << ", Recognition costs: " << drPtr->getInverseRecognitionCosts(),
-                        DebugHelper::CALCULATION);
+            intermediateResultViewport.print(rating, DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep, DebugHelper::CALCULATION);
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
@@ -192,21 +179,10 @@ private:
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
                 mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.",
                             DebugHelper::CALCULATION);
-                mDebugHelperPtr->write(std::stringstream() << "x: " << intermediateResultViewport.x
-                                        << ", y: " << intermediateResultViewport.y
-                                        << ", z: " << intermediateResultViewport.z,
-                            DebugHelper::CALCULATION);
-                mDebugHelperPtr->write(std::stringstream() << "Utility: " << drPtr->getUtility()
-                                        << ", Costs: " << drPtr->getInverseCosts()
-                                        << ", Rating: " << mRatingModulePtr->getRating(drPtr),
-                            DebugHelper::CALCULATION);
-                mDebugHelperPtr->write(std::stringstream() << "Translation costs: " << drPtr->getInverseMovementCostsBaseTranslation()
-                                        << ", Rotation costs: " << drPtr->getInverseMovementCostsBaseRotation()
-                                        << ", PTU movement costs: " << drPtr->getInverseMovementCostsPTU()
-                                        << ", Recognition costs: " << drPtr->getInverseRecognitionCosts(),
-                            DebugHelper::CALCULATION);
+                resultViewport.print(rating, DebugHelper::CALCULATION);
                 mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
                             DebugHelper::CALCULATION);
+                mDebugHelperPtr->write("ENDING DOITERATION METHOD", DebugHelper::CALCULATION);
                 return true;
             }
 
@@ -240,7 +216,9 @@ private:
         if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
             mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
                             DebugHelper::VISUALIZATION);
-            return doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
+            bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
+            mDebugHelperPtr->write("ENDING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
+            return success;
         }
 
         //Create list of all view ports that are checked during this iteration step.

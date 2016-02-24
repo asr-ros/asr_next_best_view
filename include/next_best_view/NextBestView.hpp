@@ -476,6 +476,7 @@ public:
 
         if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
             ROS_ERROR("Could not set point cloud from message.");
+            mDebugHelperPtr->write("ENDING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return false;
         }
 

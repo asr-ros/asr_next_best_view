@@ -26,6 +26,7 @@
 #include <pcl/segmentation/impl/conditional_euclidean_clustering.hpp>
 #include <pcl/pcl_base.h>
 #include <pcl/impl/pcl_base.hpp>
+#include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
 	namespace gm = geometry_msgs;
@@ -52,6 +53,8 @@ namespace next_best_view {
 			};
 		};
 
+        DebugHelperPtr mDebugHelperPtr;
+
 		ObjectPointCloudPtr child_point_cloud;
         // the whole point cloud
         ObjectPointCloudPtr point_cloud;
@@ -60,10 +63,8 @@ namespace next_best_view {
         DefaultScoreContainerPtr score;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-		DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) : child_indices(new Indices()) {
-			x = pose.position.x;
-			y = pose.position.y;
-			z = pose.position.z;
+        DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) : DefaultViewportPoint(SimpleVector3(pose.position.x, pose.position.y, pose.position.z)) {
+            child_indices = IndicesPtr(new Indices());
 
 			qw = pose.orientation.w;
 			qx = pose.orientation.x;
@@ -75,6 +76,8 @@ namespace next_best_view {
 			x = vector[0];
 			y = vector[1];
 			z = vector[2];
+
+            mDebugHelperPtr = DebugHelper::getInstance();
 		}
 
 		gm::Point getPoint() const {
@@ -115,6 +118,42 @@ namespace next_best_view {
 			qy = orientation.y();
 			qz = orientation.z();
 		}
+
+        /*!
+         * \brief prints the viewport point as debug output
+         * \param rating of this viewport
+         * \param level the debug level of the output
+         */
+        void print(float rating, DebugHelper::DebugLevel level) {
+            // viewport position
+            mDebugHelperPtr->write(std::stringstream() << "Viewport position: (x = " << x << ", y = " << y << ", z = " << z << ")",
+                        level);
+            // viewport orientation
+            mDebugHelperPtr->write(std::stringstream() << "Viewport orienation: (qw = " << qw << ", qx = " << qx << ", qy = " << qy << ", qz = " << qz << ")",
+                        level);
+            // viewport object types
+            std::string types = "";
+            for (ObjectNameSet::iterator objectIter = object_type_name_set->begin(); objectIter != object_type_name_set->end(); objectIter++) {
+                if (types.size() > 0) {
+                    types += ", ";
+                }
+                types += *objectIter;
+            }
+            mDebugHelperPtr->write(std::stringstream() << "Viewport object types: " << types, level);
+            // viewport utility and costs
+            mDebugHelperPtr->write(std::stringstream() << "Viewport utility: " << score->getUtility()
+                                    << " inverse costs: " << score->getInverseCosts(),
+                        level);
+            mDebugHelperPtr->write(std::stringstream() << "Viewport inverse costs base translation: " << score->getInverseMovementCostsBaseTranslation()
+                                    << " inverse costs base rotation: " << score->getInverseMovementCostsBaseRotation(),
+                        level);
+            mDebugHelperPtr->write(std::stringstream() << "Viewport inverse costs PTU movement: " << score->getInverseMovementCostsPTU()
+                                   << " inverse costs recognition: " << score->getInverseRecognitionCosts(),
+                        level);
+            // viewport rating
+            mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating,
+                        level);
+        }
 
         /*!
          * \brief filters all the objects in this viewport with one of the given types and puts them in a new viewport.
