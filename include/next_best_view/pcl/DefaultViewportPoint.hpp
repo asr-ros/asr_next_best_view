@@ -151,7 +151,7 @@ namespace next_best_view {
                                    << " inverse costs recognition: " << score->getInverseRecognitionCosts(),
                         level);
             // viewport rating
-            mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating,
+            mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating << "\n",
                         level);
         }
 
