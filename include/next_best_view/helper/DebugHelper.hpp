@@ -62,6 +62,27 @@ public:
     void write(const std::ostream &text, DebugLevel level);
 
     /*!
+     * \brief writes the text noticeably to the console if it has a level that allows it
+     * \param text the text
+     * \param level the debug level of the text
+     */
+    void writeNoticeably(const char * text, DebugLevel level);
+
+    /*!
+     * \brief writes the text noticeably to the console if it has a level that allows it
+     * \param text the text
+     * \param level the debug level of the text
+     */
+    void writeNoticeably(const std::string &text, DebugLevel level);
+
+    /*!
+     * \brief writes the text noticeably to the console if it has a level that allows it
+     * \param text the text
+     * \param level the debug level of the text
+     */
+    void writeNoticeably(const std::ostream &text, DebugLevel level);
+
+    /*!
      * \brief returns the debug level that is set
      * \return the debug level that is set.
      */

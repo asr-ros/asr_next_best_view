@@ -36,6 +36,31 @@ void DebugHelper::write(const std::ostream& text, DebugLevel level) {
     this->write(s, level);
 }
 
+void DebugHelper::writeNoticeably(const char *text, DebugHelper::DebugLevel level)
+{
+    if (this->checkLevel(level)) {
+        ROS_DEBUG("");
+        ROS_DEBUG(text);
+        ROS_DEBUG("");
+    }
+}
+
+void DebugHelper::writeNoticeably(const std::string &text, DebugHelper::DebugLevel level)
+{
+    const char* cText = text.c_str();
+
+    this->writeNoticeably(cText, level);
+}
+
+void DebugHelper::writeNoticeably(const std::ostream &text, DebugHelper::DebugLevel level)
+{
+    std::stringstream ss;
+    ss << text.rdbuf();
+    std::string s = ss.str();
+
+    this->writeNoticeably(s, level);
+}
+
 unsigned int DebugHelper::getLevel()
 {
     return mLevels;
