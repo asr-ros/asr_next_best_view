@@ -46,20 +46,20 @@ namespace next_best_view {
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
-            mDebugHelperPtr->write("Use of global planner ENABLED", DebugHelper::ROBOT_MODEL);
+            mDebugHelperPtr->write("Use of global planner ENABLED", DebugHelper::PARAMETERS);
         }
         else
         {
-            mDebugHelperPtr->write("Use of global planner DISABLED. Using simplified calculation instead...", DebugHelper::ROBOT_MODEL);
+            mDebugHelperPtr->write("Use of global planner DISABLED. Using simplified calculation instead", DebugHelper::PARAMETERS);
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaUseBase: " << mOmegaUseBase_, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "speedFactorPTU: " << speedFactorPTU_, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseMove: " << speedFactorBaseMove_, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseRot: " << speedFactorBaseRot_, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance_, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan_, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaUseBase: " << mOmegaUseBase_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorPTU: " << speedFactorPTU_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseMove: " << speedFactorBaseMove_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseRot: " << speedFactorBaseRot_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::PARAMETERS);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaUseBase = mOmegaUseBase_;
@@ -123,21 +123,23 @@ namespace next_best_view {
 
     bool MILDRobotModel::isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
+        mDebugHelperPtr->writeNoticeably("STARTING IS-POSITION-REACHABLE METHOD", DebugHelper::ROBOT_MODEL);
+
         nav_msgs::Path path = getNavigationPath(sourcePosition, targetPosition);
 
         if (path.poses.empty())
         {
+            mDebugHelperPtr->writeNoticeably("ENDING IS-POSITION-REACHABLE METHOD", DebugHelper::ROBOT_MODEL);
             return false;
         }
-        else
-        {
-            int lastPose = path.poses.size()-1;
-            float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
-            mDebugHelperPtr->write(std::stringstream() << "Target: " << targetPosition.x << ", " << targetPosition.y, DebugHelper::ROBOT_MODEL);
-            mDebugHelperPtr->write(std::stringstream() << "Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y,
-                        DebugHelper::ROBOT_MODEL);
-            return distanceToLastPoint < 0.01f;
-        }
+
+        int lastPose = path.poses.size()-1;
+        float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
+        mDebugHelperPtr->write(std::stringstream() << "Target: " << targetPosition.x << ", " << targetPosition.y, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y,
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->writeNoticeably("ENDING IS-POSITION-REACHABLE METHOD", DebugHelper::ROBOT_MODEL);
+        return distanceToLastPoint < 0.01f;
     }
 
   //Comment?
@@ -145,6 +147,7 @@ namespace next_best_view {
 
     RobotStatePtr MILDRobotModel::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
+        mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-ROBOT-STATE METHOD", DebugHelper::ROBOT_MODEL);
 		MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
 		MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());
 
@@ -158,13 +161,15 @@ namespace next_best_view {
 		double currentPhi = sourceMILDRobotState->pan;
 		double currentRho = sourceMILDRobotState->rotation;
 
-        mDebugHelperPtr->write(std::stringstream() << "Calculate state for: (Pan: " << sourceMILDRobotState->pan
+        mDebugHelperPtr->write(std::stringstream() << "Source state: (Pan: " << sourceMILDRobotState->pan
                                 << ", Tilt: " << sourceMILDRobotState->tilt
                                 << ", Rotation " << sourceMILDRobotState->rotation
                                 << ", X:" << sourceMILDRobotState->x
                                 << ", Y:" << sourceMILDRobotState->y << ")",
                     DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "Position: " << position[0] << ", " << position[1] << ", " << position[2],
+        mDebugHelperPtr->write(std::stringstream() << "Target Position: " << position[0] << ", " << position[1] << ", " << position[2],
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Target Orientation: " << orientation.w() << ", " << orientation.x() << ", " << orientation.y()<< ", " << orientation.z(),
                     DebugHelper::ROBOT_MODEL);
 
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
@@ -255,12 +260,13 @@ namespace next_best_view {
 		// set x, y
 		targetMILDRobotState->x = position[0];
 		targetMILDRobotState->y = position[1];
-        mDebugHelperPtr->write(std::stringstream() << "Targetstate: (Pan: " << targetMILDRobotState->pan
+        mDebugHelperPtr->write(std::stringstream() << "Target state: (Pan: " << targetMILDRobotState->pan
                                 << ", Tilt: " << targetMILDRobotState->tilt
                                 << ", Rotation " << targetMILDRobotState->rotation
                                 << ", X:" << targetMILDRobotState->x
                                 << ", Y:" << targetMILDRobotState->y << ")",
                     DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-ROBOT-STATE METHOD", DebugHelper::ROBOT_MODEL);
 		return targetMILDRobotState;
 	}
 
@@ -335,6 +341,7 @@ namespace next_best_view {
 
     float MILDRobotModel::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
+        mDebugHelperPtr->writeNoticeably("STARTING GET-DISTANCE METHOD", DebugHelper::ROBOT_MODEL);
         double distance, costs;
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
@@ -372,10 +379,11 @@ namespace next_best_view {
         {
             distance = sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2));
         }
-        mDebugHelperPtr->write(std::stringstream() << "Global planner distance: " << distance, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Calculated distance: " << distance, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "Euclidian distance: "
                                 << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)),
                     DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->writeNoticeably("ENDING GET-DISTANCE METHOD", DebugHelper::ROBOT_MODEL);
         return distance;
     }
 
@@ -386,6 +394,8 @@ namespace next_best_view {
 
     nav_msgs::Path MILDRobotModel::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
+        mDebugHelperPtr->writeNoticeably("STARTING GET-NAVIGATION-PATH METHOD", DebugHelper::ROBOT_MODEL);
+
         nav_msgs::GetPlan srv;
         srv.request.start.header.frame_id = "map";
         srv.request.goal.header.frame_id = "map";
@@ -417,6 +427,8 @@ namespace next_best_view {
         {
             ROS_ERROR("Failed to call the global planner.");
         }
+
+        mDebugHelperPtr->writeNoticeably("ENDING GET-NAVIGATION-PATH METHOD", DebugHelper::ROBOT_MODEL);
         return path;
     }
 

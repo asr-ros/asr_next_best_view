@@ -161,7 +161,7 @@ public:
 
     void initialize()
     {
-        mDebugHelperPtr->write("STARTING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
 
         mDebugHelperPtr->write(std::stringstream() << "debugLevels: " << mDebugHelperPtr->getLevelString(), DebugHelper::PARAMETERS);
 
@@ -329,14 +329,14 @@ public:
 
         /* MILDRobotModel is a specialization of the abstract RobotModel class.
              * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
-             * non-reachable conros::Publishefigurations of the robot which can therefore be ignored during calculation.
+             * non-reachable configurations of the robot which can therefore be ignored during calculation.
              */
         bool useNewIK;
         mNodeHandle.param("useNewIK", useNewIK, false);
         RobotModelPtr robotModelPtr;
         if (useNewIK)
         {
-            ROS_INFO_STREAM("NBV: Using new IK model.");
+            mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
             MILDRobotModelWithIK *tempRobotModel = new MILDRobotModelWithIK();
             tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
             tempRobotModel->setPanAngleLimits(panMin, panMax);
@@ -344,7 +344,7 @@ public:
         }
         else
         {
-            ROS_INFO_STREAM("NBV: Using old IK model.");
+            mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
             MILDRobotModel *tempRobotModel = new MILDRobotModel();
             tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
             tempRobotModel->setPanAngleLimits(panMin, panMax);
@@ -390,29 +390,29 @@ public:
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
 
-        mDebugHelperPtr->write("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
     }
 
     bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
-        mDebugHelperPtr->write("STARTING NBV SETUPVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV SETUP-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         mVisualizationSettings = SetupVisualizationRequest(request);
 
         this->triggerVisualization(mCurrentCameraViewport);
 
-        mDebugHelperPtr->write("ENDING NBV SETUPVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV SETUP-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
-        mDebugHelperPtr->write("STARTING NBV RESETCALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
         initialize();
 
-        mDebugHelperPtr->write("ENDING NBV SETUPVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processGetSpaceSamplingServiceCall(GetSpaceSampling::Request &request, GetSpaceSampling::Response &response) {
-        mDebugHelperPtr->write("STARTING NBV GETSPACESAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-SPACE-SAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
         double contractor = request.contractor;
         SimpleVector3 position = TypeHelper::getSimpleVector3(request.position);
 
@@ -430,7 +430,7 @@ public:
         rgb.offset = offsetof(ObjectPoint, rgb);
         response.point_cloud.fields.push_back(rgb);
 
-        mDebugHelperPtr->write("ENDING NBV GETSPACESAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV GET-SPACE-SAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
@@ -448,7 +448,7 @@ public:
     }
 
     bool processGetPointCloud2ServiceCall(GetPointCloud2::Request &request, GetPointCloud2::Response &response) {
-        mDebugHelperPtr->write("STARTING NBV GETPOINTCLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
         pcl::toROSMsg(*mCalculator.getPointCloudPtr(), response.point_cloud);
         response.point_cloud.header.frame_id = "/map";
 
@@ -458,25 +458,25 @@ public:
         rgb.offset = offsetof(ObjectPoint, rgb);
         response.point_cloud.fields.push_back(rgb);
 
-        mDebugHelperPtr->write("ENDING NBV GETPOINTCLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV GET-POINT-CLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processGetPointCloudServiceCall(GetAttributedPointCloud::Request &request, GetAttributedPointCloud::Response &response) {
-        mDebugHelperPtr->write("STARTING NBV GETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         convertObjectPointCloudToAttributedPointCloud(*mCalculator.getPointCloudPtr(), response.point_cloud);
 
-        mDebugHelperPtr->write("ENDING NBV GETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
 
-        mDebugHelperPtr->write("STARTING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
         if (!mCalculator.setPointCloudFromMessage(request.point_cloud)) {
             ROS_ERROR("Could not set point cloud from message.");
-            mDebugHelperPtr->write("ENDING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+            mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return false;
         }
 
@@ -484,7 +484,7 @@ public:
         {
             response.is_empty = true;
             response.is_valid = false;
-            mDebugHelperPtr->write("ENDING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+            mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
         }
 
@@ -520,14 +520,14 @@ public:
 
         // publish the visualization
         this->publishVisualization(request.pose, true, false);
-        mDebugHelperPtr->write("ENDING NBV SETPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
 
     }
 
     //COMMENT?
     bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
-        mDebugHelperPtr->write("STARTING NBV GETNEXTBESTVIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         // Current camera view (frame of camera) of the robot.
         ViewportPoint currentCameraViewport(request.current_pose);
         //Contains Next best view.
@@ -542,7 +542,7 @@ public:
                 mVisHelper.clearFrustumVisualization();
             }
             response.found = false;
-            mDebugHelperPtr->write("ENDING NBV GETNEXTBESTVIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
+            mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
         }
         //Return the optimization result including its parameters.
@@ -591,12 +591,12 @@ public:
             pushViewportServiceCall.request.viewport.type = objectName;
             mPushViewportServiceClient.call(pushViewportServiceCall);
         }
-        mDebugHelperPtr->write("ENDING NBV GETNEXTBESTVIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
-        mDebugHelperPtr->write("STARTING NBV UPDATEPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
         ViewportPoint viewportPoint;
@@ -609,14 +609,14 @@ public:
 
         response.deactivated_object_normals = deactivatedNormals;
 
-        mDebugHelperPtr->write("ENDING NBV UPDATEPOINTCLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processTriggerFrustumVisualization(TriggerFrustumVisualization::Request &request,
                                             TriggerFrustumVisualization::Response &response)
     {
-        mDebugHelperPtr->write("STARTING NBV TRIGGERFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV TRIGGER-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         geometry_msgs::Pose pose = request.current_pose;
         SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
@@ -624,14 +624,14 @@ public:
 
         mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter(), numberSearchedObjects);
 
-        mDebugHelperPtr->write("ENDING NBV TRIGGERFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
     bool processTriggerOldFrustumVisualization(TriggerFrustumVisualization::Request &request,
                                                TriggerFrustumVisualization::Response &response)
     {
-        mDebugHelperPtr->write("STARTING NBV TRIGGEROLDFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("STARTING NBV TRIGGER-OLD-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         geometry_msgs::Pose pose = request.current_pose;
         SimpleVector3 position = TypeHelper::getSimpleVector3(pose);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
@@ -639,7 +639,7 @@ public:
 
         mVisHelper.triggerOldFrustumVisualization(this->mCalculator.getCameraModelFilter());
 
-        mDebugHelperPtr->write("ENDING NBV TRIGGEROLDFRUSTUMVISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-OLD-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
@@ -675,20 +675,19 @@ public:
                                         << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2],
                                     DebugHelper::VISUALIZATION);
 
+        mDebugHelperPtr->write(std::stringstream() << "Object points in the viewport: " << viewport.child_indices->size(),
+                    DebugHelper::VISUALIZATION);
+
         if (mVisualizationSettings.point_cloud)
         {
+            // publish object point cloud
             Indices pointCloudIndices;
             if (mVisualizationSettings.frustum_point_cloud) {
+                // if the frustum point cloud is published seperately only publish points outside frustum
                 this->getIndicesOutsideFrustum(viewport, pointCloudIndices);
-                mDebugHelperPtr->write(std::stringstream() << "viewport.child_indices Size: "
-                                                << viewport.child_indices->size(),
-                                            DebugHelper::VISUALIZATION);
             } else {
                 pointCloudIndices = *mCalculator.getActiveIndices();
             }
-            mDebugHelperPtr->write(std::stringstream() << "Publishing "
-                                            << pointCloudIndices.size() <<" points",
-                                        DebugHelper::VISUALIZATION);
 
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
@@ -697,20 +696,15 @@ public:
         }
         if (mVisualizationSettings.frustum_point_cloud)
         {
-            mDebugHelperPtr->write("Creating frustumObjectPointCloud", DebugHelper::VISUALIZATION);
-            mDebugHelperPtr->write(std::stringstream() << "viewport.child_indices Size bis: "
-                                            << viewport.child_indices->size(),
-                                        DebugHelper::VISUALIZATION);
+            // publish frustum object point cloud
             ObjectPointCloud frustumObjectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices);
-            mDebugHelperPtr->write(std::stringstream() << "viewport.child_indices Size is : "
-                                            << viewport.child_indices->size(),
-                                        DebugHelper::VISUALIZATION);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(frustumObjectPointCloud);
 
             mVisHelper.triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);
         }
         if (mVisualizationSettings.frustum_marker_array && publishFrustum)
         {
+            // publish furstums visualization
             if (is_initial) {
                 mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
             }

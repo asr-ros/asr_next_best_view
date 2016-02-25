@@ -55,10 +55,12 @@ namespace next_best_view {
 
         DebugHelperPtr mDebugHelperPtr;
 
+        // point cloud containing the object points in the viewport
 		ObjectPointCloudPtr child_point_cloud;
         // the whole point cloud
         ObjectPointCloudPtr point_cloud;
-		IndicesPtr child_indices;
+        // indices of the object points in the viewport
+        IndicesPtr child_indices;
 		ObjectNameSetPtr object_type_name_set;
         DefaultScoreContainerPtr score;
 	public:
@@ -151,8 +153,9 @@ namespace next_best_view {
                                    << " inverse costs recognition: " << score->getInverseRecognitionCosts(),
                         level);
             // viewport rating
-            mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating << "\n",
+            mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating,
                         level);
+            mDebugHelperPtr->write("", level);
         }
 
         /*!

@@ -74,7 +74,7 @@ namespace next_best_view {
 			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName, true);
 			while(ros::ok() && !mGetPlanServiceClient.exists()) {
                 mDebugHelperPtr->write(std::stringstream() << "Waiting for planning server to start on service '"
-                                        << mGetPlanServiceClient.getService() << "'...", DebugHelper::MAP);
+                                        << mGetPlanServiceClient.getService(), DebugHelper::MAP);
 				ros::spinOnce();
 				ros::Duration(0.5).sleep();
 			}

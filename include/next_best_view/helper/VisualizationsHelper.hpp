@@ -118,36 +118,42 @@ public:
         return mBoolClearBetweenIterations;
     }
 
-    void triggerIterationVisualizations(int iterationStep, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
+    void triggerIterationVisualization(int iterationStep, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                                             ViewportPoint currentBestViewport,
                                             IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
                                             SpaceSamplerPtr spaceSamplerPtr) {
 
-        mDebugHelperPtr->write("iteration visualization", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->writeNoticeably("STARTING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!sampledOrientationsPtr){
             ROS_ERROR("triggerIterationVisualizations call with pointer sampledOrientationsPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
         if(!feasibleIndices){
             ROS_ERROR("triggerIterationVisualizations call with pointer feasibleIndices being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
         if(!pointcloud){
             ROS_ERROR("triggerIterationVisualizations call with pointer pointcloud being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
         if(!spaceSamplerPtr){
             ROS_ERROR("triggerIterationVisualizations call with pointer spaceSamplerPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
         if(!mIterationMarkerArrayPtr){
             ROS_ERROR("triggerIterationVisualizations call with pointer mIterationMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
 
         if (iterationStep == 0 && mBoolClearBetweenIterations == true) {
             // clear iteration visualization
+            mDebugHelperPtr->write("Deleting last iteration visualization", DebugHelper::VISUALIZATION);
             this->deleteMarkerArray(mIterationMarkerArrayPtr, mIterationMarkerArrayPublisher);
             m_i = 0;
         }
@@ -161,9 +167,10 @@ public:
         triggerGrid(spaceSamplerPtr, s);
         triggerCameraVis(s, sampledOrientationsPtr, currentBestViewport);
 
-        mDebugHelperPtr->write("publish markers", DebugHelper::VISUALIZATION);
-
+        mDebugHelperPtr->write("Publishing markers", DebugHelper::VISUALIZATION);
         mIterationMarkerArrayPublisher.publish(mIterationMarkerArrayPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     /*!
@@ -178,17 +185,20 @@ public:
 
     void triggerNewFrustumVisualization(CameraModelFilterPtr newCamera, int numberSearchedObjects = -1) {
 
-        mDebugHelperPtr->write("Publish new frustum", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->writeNoticeably("STARTING NEW FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!newCamera){
             ROS_ERROR("triggerNewFrustumVisualization call with pointer newCamera being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING NEW FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
         if(!mNewFrustumMarkerArrayPtr){
             ROS_ERROR("triggerNewFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING NEW FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
 
+        mDebugHelperPtr->write("Deleting last frustum visualization", DebugHelper::VISUALIZATION);
         this->deleteMarkerArray(mNewFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
 
         uint32_t sequence = 0;
@@ -224,20 +234,22 @@ public:
             mNewFrustumMarkerArrayPtr->markers.push_back(textMarker);
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "Marker array size:"
-                                        << mNewFrustumMarkerArrayPtr->markers.size(),
-                                    DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->write("Publishing markers", DebugHelper::VISUALIZATION);
         mFrustumMarkerArrayPublisher.publish(*mNewFrustumMarkerArrayPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING NEW FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     void triggerOldFrustumVisualization(CameraModelFilterPtr camera = NULL) {
-        mDebugHelperPtr->write("Publish old frustum", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->writeNoticeably("STARTING OLD FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mOldFrustumMarkerArrayPtr){
             ROS_ERROR("triggerOldFrustumVisualization call with pointer mOldFrustumMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING OLD FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
 
+        mDebugHelperPtr->write("Deleting last frustum visualization", DebugHelper::VISUALIZATION);
         this->deleteMarkerArray(mOldFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
 
         std::string ns = "old_nbv_frustum";
@@ -258,13 +270,14 @@ public:
 
             if(!mNewFrustumMarkerArrayPtr){
                 ROS_ERROR("triggerOldFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
+                mDebugHelperPtr->writeNoticeably("ENDING OLD FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
                 return;
             }
 
             // use old data in mNewFrustumMarkerArrayPtr if no camera is given
             if (mNewFrustumMarkerArrayPtr->markers.size() != 0)
             {
-                mDebugHelperPtr->write("Copying old frustum marker array...", DebugHelper::VISUALIZATION);
+                mDebugHelperPtr->write("Copying old frustum marker array", DebugHelper::VISUALIZATION);
                 std::copy(mNewFrustumMarkerArrayPtr->markers.begin(), mNewFrustumMarkerArrayPtr->markers.end(),
                           back_inserter(mOldFrustumMarkerArrayPtr->markers));
                 mDebugHelperPtr->write("Old frustum marker array copied.", DebugHelper::VISUALIZATION);
@@ -281,8 +294,10 @@ public:
         }
 
         if (mOldFrustumMarkerArrayPtr->markers.size() != 0) {
+            mDebugHelperPtr->write("Publishing markers", DebugHelper::VISUALIZATION);
             mFrustumMarkerArrayPublisher.publish(mOldFrustumMarkerArrayPtr);
         }
+        mDebugHelperPtr->writeNoticeably("ENDING OLD FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     void clearFrustumVisualization()
@@ -293,29 +308,31 @@ public:
             return;
         }
 
-        mDebugHelperPtr->write("Deleting last frustum visualization", DebugHelper::VISUALIZATION);
         if (mNewFrustumMarkerArrayPtr->markers.size() == 0) {
             return;
         }
+
+        mDebugHelperPtr->write("Deleting last frustum visualization", DebugHelper::VISUALIZATION);
 
         this->deleteMarkerArray(mNewFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
         this->deleteMarkerArray(mOldFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
     }
 
     void triggerObjectPointCloudVisualization(ObjectPointCloud objectPointCloud, std::map<std::string, std::string> typeToMeshResource) {
-        mDebugHelperPtr->write("Publishing Point Cloud", DebugHelper::VISUALIZATION);
-
-        mDebugHelperPtr->write("Deleting old object point cloud visualization...", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mObjectMeshMarkerArrayPtr){
             ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectMeshMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
         if(!mObjectNormalsMarkerArrayPtr){
             ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectNormalsMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
 
+        mDebugHelperPtr->write("Deleting old object point cloud visualization", DebugHelper::VISUALIZATION);
         this->deleteMarkerArray(mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
 
         unsigned int index = 0;
@@ -332,9 +349,11 @@ public:
             index++;
         }
 
+        mDebugHelperPtr->write(std::stringstream() << "Publishing " << objectPointCloud.size() <<" object points",
+                    DebugHelper::VISUALIZATION);
         mObjectMeshMarkerPublisher.publish(*mObjectMeshMarkerArrayPtr);
 
-        mDebugHelperPtr->write("Deleting old object normals visualization...", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->write("Deleting old object normals visualization", DebugHelper::VISUALIZATION);
         this->deleteMarkerArray(mObjectNormalsMarkerArrayPtr, mPointObjectNormalPublisher);
 
         index = 0;
@@ -363,20 +382,24 @@ public:
             }
         }
 
+        mDebugHelperPtr->write("Publishing object normals", DebugHelper::VISUALIZATION);
         mPointObjectNormalPublisher.publish(*mObjectNormalsMarkerArrayPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud frustumObjectPointCloud, std::map<std::string, std::string> typeToMeshResource) {
-        mDebugHelperPtr->write("Publishing Frustum Marker Array", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->writeNoticeably("STARTING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mFrustumObjectMeshMarkerArrayPtr){
             ROS_ERROR("triggerFrustumObjectPointCloudVisualization call with pointer mFrustumObjectMeshMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
 
         std_msgs::ColorRGBA colorFrustumMeshMarker = this->createColorRGBA(0, 0, 1, 0.8);
 
-        mDebugHelperPtr->write("Deleting old frustum object point cloud visualization...", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->write("Deleting old frustum object point cloud visualization", DebugHelper::VISUALIZATION);
         this->deleteMarkerArray(mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher);
 
         unsigned int index = 0;
@@ -392,7 +415,12 @@ public:
 
             index++;
         }
+
+        mDebugHelperPtr->write(std::stringstream() << "Publishing " << frustumObjectPointCloud.size() <<" object points",
+                    DebugHelper::VISUALIZATION);
         mFrustumObjectMeshMarkerPublisher.publish(*mFrustumObjectMeshMarkerArrayPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     void triggerCropBoxVisualization(const std::vector<CropBoxPtr> cropBoxListPtr)

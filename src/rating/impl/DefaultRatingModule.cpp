@@ -37,7 +37,7 @@ void DefaultRatingModule::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr
 }
 
 bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport) {
-    mDebugHelperPtr->write("STARTING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD",
+    mDebugHelperPtr->writeNoticeably("STARTING DEFAULTRATINGMODULE::SET-BEST-SCORE-CONTAINER METHOD",
                 DebugHelper::RATING);
     // reset the cached data
     this->resetCache();
@@ -69,18 +69,18 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     }
 
     bool success = this->getBestViewport(viewports, candidateViewport);
-    mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::SETBESTSCORECONTAINER METHOD",
+    mDebugHelperPtr->writeNoticeably("ENDING DEFAULTRATINGMODULE::SET-BEST-SCORE-CONTAINER METHOD",
                 DebugHelper::RATING);
     return success;
 }
 
 bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
-    mDebugHelperPtr->write("STARTING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD",
+    mDebugHelperPtr->writeNoticeably("STARTING DEFAULTRATINGMODULE::GET-BEST-VIEWPORT METHOD",
                 DebugHelper::RATING);
 
     // if there aren't any viewports, the search failed.
     if (viewports->size() == 0) {
-        mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD",
+        mDebugHelperPtr->writeNoticeably("ENDING DEFAULTRATINGMODULE::GET-BEST-VIEWPORT METHOD",
                     DebugHelper::RATING);
         return false;
     }
@@ -103,7 +103,7 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
     mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE SORTED LIST.", DebugHelper::RATING);
     bestViewport.print(this->getRating(bestViewport.score), DebugHelper::RATING);
 
-    mDebugHelperPtr->write("ENDING DEFAULTRATINGMODULE::GETBESTVIEWPORT METHOD",
+    mDebugHelperPtr->writeNoticeably("ENDING DEFAULTRATINGMODULE::GET-BEST-VIEWPORT METHOD",
                 DebugHelper::RATING);
     return true;
 }

@@ -81,7 +81,7 @@ public:
      */
     bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
         std::clock_t begin = std::clock();
-        mDebugHelperPtr->write("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
         RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
@@ -105,7 +105,7 @@ public:
             std::clock_t end = std::clock();
             double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
             ROS_INFO_STREAM("Iteration took " << elapsed_secs << " seconds.");
-            mDebugHelperPtr->write("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
+            mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
             return success;
 		}
 
@@ -144,7 +144,7 @@ public:
 private:
 
 	bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
-        mDebugHelperPtr->write("STARTING DOITERATION METHOD", DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
 
         int iterationStep = 0;
         //Best viewport at the end of each iteration step and starting point for optimization (grid alignment) for each following step.
@@ -159,7 +159,7 @@ private:
                                        sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
                                        intermediateResultViewport, iterationStep)) {
                 //Happens, when no valid viewport is found in that iteration step (including current viewport). E.g. when all normals are invalidated.
-                mDebugHelperPtr->write("ENDING DOITERATION METHOD", DebugHelper::CALCULATION);
+                mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
                 return false;
             }
 
@@ -182,14 +182,14 @@ private:
                 resultViewport.print(rating, DebugHelper::CALCULATION);
                 mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
                             DebugHelper::CALCULATION);
-                mDebugHelperPtr->write("ENDING DOITERATION METHOD", DebugHelper::CALCULATION);
+                mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
                 return true;
             }
 
             currentBestViewport = intermediateResultViewport;
 
         }
-        mDebugHelperPtr->write("ENDING DOITERATION METHOD", DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
         //Only reached when iteration fails or is interrupted.
         return false;
     }
@@ -197,7 +197,7 @@ private:
     bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                          ViewportPoint &resultViewport, int iterationStep) {
-        mDebugHelperPtr->write("STARTING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
 
         // current camera position
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
@@ -217,7 +217,7 @@ private:
             mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
                             DebugHelper::VISUALIZATION);
             bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
-            mDebugHelperPtr->write("ENDING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
+            mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return success;
         }
 
@@ -255,15 +255,15 @@ private:
         mDebugHelperPtr->write("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.",
                     DebugHelper::RATING);
         if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
-            mDebugHelperPtr->write("ENDING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
+            mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return false;
         }
 
         //Visualize iteration step and its result.
-        mVisHelper.triggerIterationVisualizations(iterationStep, sampledOrientationsPtr, resultViewport,
+        mVisHelper.triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
                                                     feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
 
-        mDebugHelperPtr->write("ENDING DOITERATIONSTEP METHOD", DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
     }
 
