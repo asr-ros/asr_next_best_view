@@ -33,10 +33,11 @@ namespace next_best_view {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
+        n.getParam("mOmegaRot", mOmegaRot_);
         n.getParam("mOmegaUseBase", mOmegaUseBase_);
         n.getParam("speedFactorPTU", speedFactorPTU_);
         n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
@@ -60,8 +61,10 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "mOmegaRot: " << mOmegaRot_, DebugHelper::PARAMETERS);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
+        mOmegaRot = mOmegaRot_;
         mOmegaUseBase = mOmegaUseBase_;
         speedFactorPTU = speedFactorPTU_;
         speedFactorBaseMove = speedFactorBaseMove_;

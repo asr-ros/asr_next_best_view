@@ -31,8 +31,7 @@ namespace next_best_view {
 		// weighting values
 		float mOmegaPan;
 		float mOmegaTilt;
-		float mOmegaRot;
-		float mOmegaBase;
+        float mOmegaRot;
 		float mOmegaUseBase;
 		float speedFactorPTU;
 		float speedFactorBaseMove;
