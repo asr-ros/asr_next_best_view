@@ -88,7 +88,9 @@ namespace next_best_view {
         this->setRotationAngleLimits(0, 0);
         listener = new tf::TransformListener();
         //Temporary Visualization Publisher
-        vis_pub = n.advertise<visualization_msgs::Marker>( "/nbv/IK_Visualization", 1000);
+        std::string IKVisualization;
+        n.getParam("IKVisualization", IKVisualization);
+        vis_pub = n.advertise<visualization_msgs::Marker>(IKVisualization, 1000);
         tfParametersInitialized = setUpTFParameters();
         //RobotModelPtr modelPtr(this);
         //ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));

@@ -104,8 +104,6 @@ private:
     ros::ServiceServer mTriggerOldFrustumVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
 
-    ros::Publisher mInitialPosePublisher;
-
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
 
@@ -145,8 +143,6 @@ public:
         mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
         mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
         mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
-
-        mInitialPosePublisher = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
 
         mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
         mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");

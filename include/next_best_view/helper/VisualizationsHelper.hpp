@@ -63,13 +63,27 @@ public:
     VisualizationHelper():m_i(0),m_j(0),mIterationStep(0) {
         mDebugHelperPtr = DebugHelper::getInstance();
 
+        std::string iterationVisualization;
+        std::string frustumVisualization;
+        std::string objectsVisualization;
+        std::string objectNormalsVisualization;
+        std::string frustumObjectsVisualization;
+        std::string cropBoxVisualization;
+
+        mNodeHandle.getParam("/nbv/iterationVisualization", iterationVisualization);
+        mNodeHandle.getParam("/nbv/frustumVisualization", frustumVisualization);
+        mNodeHandle.getParam("/nbv/objectsVisualization", objectsVisualization);
+        mNodeHandle.getParam("/nbv/objectNormalsVisualization", objectNormalsVisualization);
+        mNodeHandle.getParam("/nbv/frustumObjectsVisualization", frustumObjectsVisualization);
+        mNodeHandle.getParam("/nbv/cropBoxVisualization", cropBoxVisualization);
+
         // initialize publishers
-        mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/iteration_visualization", 1000);
-        mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_marker_array", 1000);
-        mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_meshes", 100, false);
-        mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/object_normals", 100, false);
-        mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/frustum_object_meshes", 100, false);
-        mCropBoxMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>("/nbv/crop_box", 100, false);
+        mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(iterationVisualization, 1000);
+        mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumVisualization, 1000);
+        mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectsVisualization, 100, false);
+        mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectNormalsVisualization, 100, false);
+        mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumObjectsVisualization, 100, false);
+        mCropBoxMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(cropBoxVisualization, 100, false);
 
         if (!mIterationMarkerArrayPublisher) {
             ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
