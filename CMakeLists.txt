@@ -51,6 +51,7 @@ add_service_files(
    GetDistance.srv
    CalculateRobotState.srv
    CalculateCameraPose.srv
+   CalculateCameraPoseCorrection.srv
    IsPositionReachable.srv
    TriggerFrustumVisualization.srv
    ResetCalculator.srv
@@ -166,20 +167,20 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
-#add_library(
-#        ${PROJECT_NAME}_test_core
-#        src/test_cases/BaseTest.cpp
-#)
+add_library(
+        ${PROJECT_NAME}_test_core
+        src/test_cases/BaseTest.cpp
+)
 
-#target_link_libraries(
-#        ${PROJECT_NAME}_test_core
-#        ${PROJECT_NAME}_helper
-#        ${PROJECT_NAME}_packages
-#        ${PROJECT_NAME}_packages_impl
-#        ${PCL_LIBRARIES}
-#        glpk
-#        ${catkin_LIBRARIES}
-#)
+target_link_libraries(
+        ${PROJECT_NAME}_test_core
+        ${PROJECT_NAME}_helper
+        ${PROJECT_NAME}_packages
+        ${PROJECT_NAME}_packages_impl
+        ${PCL_LIBRARIES}
+        glpk
+        ${catkin_LIBRARIES}
+)
 
 ##add_executable(
 #	${PROJECT_NAME}_test
@@ -212,13 +213,13 @@ target_link_libraries(
 #        src/test_cases/ParametersTest.cpp
 #)
 
-##add_executable(
-#        ${PROJECT_NAME}_ik_test
-#        src/test_cases/IKTest.cpp
-#        src/robot_model/RobotModel.cpp
-#        src/robot_model/impl/MILDRobotModel_with_IK.cpp
-#        src/robot_model/impl/MILDRobotState.cpp
-#)
+add_executable(
+        ${PROJECT_NAME}_ik_test
+        src/test_cases/IKTest.cpp
+        src/robot_model/RobotModel.cpp
+        src/robot_model/impl/MILDRobotModel_with_IK.cpp
+        src/robot_model/impl/MILDRobotState.cpp
+)
 
 ##target_link_libraries(
 #	${PROJECT_NAME}_test
@@ -286,16 +287,16 @@ target_link_libraries(
 #        ${catkin_LIBRARIES}
 #)
 
-##target_link_libraries(
-#       ${PROJECT_NAME}_ik_test
-#       ${PROJECT_NAME}_helper
-#       ${PROJECT_NAME}_packages
-#       ${PROJECT_NAME}_packages_impl
-#       ${PROJECT_NAME}_test_core
-#       ${PCL_LIBRARIES}
-#        glpk
-#        ${catkin_LIBRARIES}
-#)
+target_link_libraries(
+       ${PROJECT_NAME}_ik_test
+       ${PROJECT_NAME}_helper
+       ${PROJECT_NAME}_packages
+       ${PROJECT_NAME}_packages_impl
+       ${PROJECT_NAME}_test_core
+       ${PCL_LIBRARIES}
+        glpk
+        ${catkin_LIBRARIES}
+)
 
 add_executable(
         ${PROJECT_NAME}_robotmodel_service

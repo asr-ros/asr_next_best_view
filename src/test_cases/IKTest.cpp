@@ -95,7 +95,9 @@ public:
             ROS_INFO_STREAM("Testpose " << (i+1));
             SimpleVector3 currentPosition = targetCameraPositions[i];
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
-            RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            //RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
+            ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig) << ", tilt = " << std::get<1>(ptuConfig));
             ros::spinOnce();
             waitForEnter();
             ros::Duration(2).sleep();

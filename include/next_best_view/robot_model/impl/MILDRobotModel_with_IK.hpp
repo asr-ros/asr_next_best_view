@@ -20,12 +20,13 @@
 
 namespace next_best_view {
 	/*!
-     * \brief PTURobotModel implements a model of pan tilt unit robot. This is an experimental class used to test a new concept for the inverse kinematics
+     * \brief MILDRobotModelWithIK implements a model of pan tilt unit robot.
      * \author Florian Aumann
      * \date 10.2015
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
+    typedef std::tuple<double,double> PTUConfig;    //Pan and tilt angle of the ptu
     class MILDRobotModelWithIK : public RobotModel {
 	private:
 
@@ -74,12 +75,16 @@ namespace next_best_view {
           * Height of the tilt axis above ground
           */
          double h_tilt;
-         double viewTriangle_angleAlpha;
-         double viewTriangle_angleGamma;
-         double viewTriangle_sideA;
+         double viewTriangleZPlane_angleAlpha;
+         double viewTriangleZPlane_angleGamma;
+         double viewTriangleZPlane_sideA;
+         double viewTriangleZPlane_sideB;
+         double viewTriangleXYPlane_sideC;
+         double viewTriangleXYPlane_AngleAlpha;
          unsigned int mPanAngleSamplingStepsPerIteration;
          unsigned int mIKVisualizationLastMarkerCount = 0;
          double mTiltAngleOffset;
+         double mPanAngleOffset;
 
          /*!
           * Detemines if the IK calculation should be visualized by markers. Turn this off to speed up calculation
@@ -139,6 +144,10 @@ namespace next_best_view {
           * Visualizes the output of the IK calculation
           */
          void visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point);
+         /*!
+          * Visualizes the output of the CameraPoseCorrection
+          */
+         void visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point);
          /*!
           * Visualizes the IK camera target
           */
@@ -213,7 +222,15 @@ namespace next_best_view {
 		
 		bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
+        /*!
+         * \brief Calculates the inverse kinematics for the given camera pose
+         */
 		RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
+
+        /*!
+         * \brief Calculates the best approximation for the given camera pose from the current base position
+         */
+        PTUConfig calculateCameraPoseCorrection(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
 		
 		/*!
 		 * \brief Uses a given RobotState to calculate the camera frame

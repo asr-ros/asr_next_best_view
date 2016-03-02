@@ -8,6 +8,7 @@
 #include "next_best_view/GetDistance.h"
 #include "next_best_view/CalculateRobotState.h"
 #include "next_best_view/CalculateCameraPose.h"
+#include "next_best_view/CalculateCameraPoseCorrection.h"
 #include "next_best_view/IsPositionReachable.h"
 #include "next_best_view/RobotStateMessage.h"
 #include "next_best_view/GetPose.h"
@@ -93,6 +94,14 @@ bool getCameraPose(GetPose::Request &req, GetPose::Response &res)
   return true;
 }
 
+bool calculateCameraPoseCorrection(CalculateCameraPoseCorrection::Request &req, CalculateCameraPoseCorrection::Response &res)
+{
+  //PTUConfig = tempRobotModel->
+
+
+  return true;
+}
+
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "getMovementCosts");
@@ -104,6 +113,7 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
     ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
     ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);
+    ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
 
     bool useNewIK;
     n.param("/nbv_srv/useNewIK", useNewIK, false);

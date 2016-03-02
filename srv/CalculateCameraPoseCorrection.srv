@@ -1,0 +1,6 @@
+RobotStateMessage sourceRobotState
+geometry_msgs/Quaternion orientation
+geometry_msgs/Vector3 position
+---
+float64 pan
+float64 tilt
