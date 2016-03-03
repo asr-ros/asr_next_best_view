@@ -20,7 +20,7 @@
 
 
 using namespace next_best_view;
-RobotModelPtr robotModelPtr;
+MILDRobotModelWithIKPtr robotModelPtr;
 
 bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
@@ -96,9 +96,13 @@ bool getCameraPose(GetPose::Request &req, GetPose::Response &res)
 
 bool calculateCameraPoseCorrection(CalculateCameraPoseCorrection::Request &req, CalculateCameraPoseCorrection::Response &res)
 {
-  //PTUConfig = tempRobotModel->
-
-
+  MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
+  RobotStatePtr sourceRobotStatePtr(sourceRobotState);
+  SimpleVector3 position(req.position.x, req.position.y, req.position.z);
+  SimpleQuaternion orientation(req.orientation.w, req.orientation.x, req.orientation.y, req.orientation.z);
+  PTUConfig resultConfig = robotModelPtr->calculateCameraPoseCorrection(sourceRobotStatePtr, position, orientation);
+  res.pan = std::get<0>(resultConfig);
+  res.tilt = std::get<1>(resultConfig);
   return true;
 }
 
@@ -115,25 +119,11 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);
     ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
 
-    bool useNewIK;
-    n.param("/nbv_srv/useNewIK", useNewIK, false);
-    if (useNewIK)
-    {
-        ROS_INFO_STREAM("NBV Service: Using new IK model.");
-        MILDRobotModelWithIK *tempRobotModel = new MILDRobotModelWithIK();
-        tempRobotModel->setTiltAngleLimits(-45, 45);
-        tempRobotModel->setPanAngleLimits(-60, 60);
-        robotModelPtr = MILDRobotModelWithIKPtr(tempRobotModel);
-    }
-    else
-    {
-        ROS_INFO_STREAM("NBV Service: Using old IK model.");
-        MILDRobotModel *tempRobotModel = new MILDRobotModel();
-        tempRobotModel->setTiltAngleLimits(-45, 45);
-        tempRobotModel->setPanAngleLimits(-60, 60);
-        robotModelPtr = MILDRobotModelPtr(tempRobotModel);
-    }
-
+    ROS_INFO_STREAM("NBV Service: Using new IK model.");
+    MILDRobotModelWithIK *tempRobotModel = new MILDRobotModelWithIK();
+    tempRobotModel->setTiltAngleLimits(-45, 45);
+    tempRobotModel->setPanAngleLimits(-60, 60);
+    robotModelPtr = MILDRobotModelWithIKPtr(tempRobotModel);
 
     ROS_INFO("RobotModel Service started.");
     ros::spin();

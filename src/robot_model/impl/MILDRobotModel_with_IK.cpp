@@ -204,20 +204,22 @@ namespace next_best_view {
             visualizeIKCameraTarget(target_view_center_point, target_cam_point);
         }
         //Calculate PAN
-        Eigen::Vector3d panJointToCenterPoint(target_view_center_point[0] - panJointEigen(0,3), target_view_center_point[1] - panJointEigen(1,3), target_view_center_point[2] - panJointEigen(2,3));
-        double viewTriangleXYPlane_sideA = panJointToCenterPoint.norm();
+        Eigen::Vector3d panJointToCenterPointProjected(target_view_center_point[0] - panJointEigen(0,3), target_view_center_point[1] - panJointEigen(1,3), 0.0);
+        double viewTriangleXYPlane_sideA = panJointToCenterPointProjected.norm();
         double viewTriangleXYPlane_sideB = sqrt(pow(viewTriangleXYPlane_sideA, 2.0) - pow(viewTriangleXYPlane_sideC, 2.0));
         double viewTriangleXYPlane_AngleBeta = pow(viewTriangleXYPlane_sideA, 2.0) + pow(viewTriangleXYPlane_sideC, 2.0) - pow(viewTriangleXYPlane_sideB, 2.0);
-        viewTriangleXYPlane_AngleBeta = acos(viewTriangleXYPlane_AngleBeta/(2.0*viewTriangleXYPlane_sideA*viewTriangleXYPlane_sideC));
-        panJointToCenterPoint.normalize();
+        viewTriangleXYPlane_AngleBeta = viewTriangleXYPlane_AngleBeta/(2.0*viewTriangleXYPlane_sideA*viewTriangleXYPlane_sideC);
+        viewTriangleXYPlane_AngleBeta = acos(viewTriangleXYPlane_AngleBeta);
         Eigen::Vector3d panJointXAxis(panJointEigen(0,0), panJointEigen(1,0), panJointEigen(2,0));
         panJointXAxis.normalize();
-        double panAngle = -acos(panJointToCenterPoint.dot(panJointXAxis));// - M_PI/2.0 + viewTriangleXYPlane_AngleBeta;// - viewTriangleXYPlane_AngleAlpha;
-        ROS_INFO_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
-        ROS_INFO_STREAM("viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB);
-        ROS_INFO_STREAM("viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC);
-        ROS_INFO_STREAM("viewTriangleXYPlane_AngleBeta: " << viewTriangleXYPlane_AngleBeta);
-        ROS_INFO_STREAM("acos(panJointToCenterPoint.dot(panJointXAxis)): " << acos(panJointToCenterPoint.dot(panJointXAxis)));
+        panJointToCenterPointProjected.normalize();
+        double panAngle = -acos(panJointToCenterPointProjected.dot(panJointXAxis)) + viewTriangleXYPlane_AngleBeta - mPanAngleOffset;// - viewTriangleXYPlane_AngleAlpha;
+        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
+        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
+        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB);
+        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC);
+        ROS_DEBUG_STREAM("mPanAngleOffset: " << mPanAngleOffset);
+        ROS_DEBUG_STREAM("acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << -acos(panJointToCenterPointProjected.dot(panJointXAxis)));
         //Calculate TILT
         Eigen::Affine3d panJointRotatedEigen = panJointEigen * Eigen::AngleAxisd(panAngle, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d tiltJointEigen = panJointRotatedEigen * panToTiltEigen;
@@ -226,25 +228,52 @@ namespace next_best_view {
         double aTimesCos = viewTriangleZPlane_sideB*cos(viewTriangleZPlane_angleAlpha);
         double viewTriangleZPlane_sideA = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideC,2.0));
 
-        ROS_INFO_STREAM("viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA);
-        ROS_INFO_STREAM("viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB);
-        ROS_INFO_STREAM("viewTriangleZPlane_sideC: " << viewTriangleZPlane_sideC);
+        ROS_DEBUG_STREAM("viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA);
+        ROS_DEBUG_STREAM("viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB);
+        ROS_DEBUG_STREAM("viewTriangleZPlane_sideC: " << viewTriangleZPlane_sideC);
 
         double tiltAngle = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideC, 2.0) - pow(viewTriangleZPlane_sideA, 2.0);
         tiltAngle = -acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm()) +  acos(tiltAngle / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideC));// + mTiltAngleOffset;
 
+        //Check angle angle constrains and truncate values if neccessaire
+        double tiltMin = mTiltLimits.get<0>();
+        double tiltMax = mTiltLimits.get<1>();
+        if (tiltAngle < tiltMin)
+        {
+            ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tiltAngle*(180.0/M_PI));
+            tiltAngle = tiltMin;
+        }
+        if (tiltAngle > tiltMax)
+        {
+            ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tiltAngle*(180.0/M_PI));
+            tiltAngle = tiltMax;
+        }
+
+        double panMin = mPanLimits.get<0>();
+        double panMax = mPanLimits.get<1>();
+        if (panAngle < panMin)
+        {
+            ROS_WARN_STREAM("Calculated Pan-Angle was too small: " << panAngle*(180.0/M_PI));
+            panAngle = panMin;
+        }
+        if (panAngle > panMax)
+        {
+            ROS_WARN_STREAM("Calculated Pan-Angle was too high: " << panAngle*(180.0/M_PI));
+            panAngle = panMax;
+        }
+
         //Visualization
         if (mVisualizeIK)
         {
-            Eigen::Vector3d pan_base_point(basePoseEigen(0,3), basePoseEigen(1,3), basePoseEigen(2,3));
+            Eigen::Vector3d baseOrientation(basePoseEigen(0,0), basePoseEigen(1,0), basePoseEigen(2,0));
+            Eigen::Vector3d pan_base_point(panJointEigen(0,3), panJointEigen(1,3), panJointEigen(2,3));
             Eigen::Vector3d pan_rotated_point(panJointRotatedEigen(0,3), panJointRotatedEigen(1,3), panJointRotatedEigen(2,3));
             Eigen::Vector3d tilt_base_point(tiltJointEigen(0,3), tiltJointEigen(1,3), tiltJointEigen(2,3));
             Eigen::Affine3d camFrame = tiltJointEigen * Eigen::AngleAxisd(-tiltAngle, Eigen::Vector3d::UnitY()) * tiltToCameraEigen;
             Eigen::Vector3d cam_point(camFrame(0,3), camFrame(1,3), camFrame(2,3));
             Eigen::Affine3d actualViewCenterEigen = camFrame * Eigen::Translation3d(Eigen::Vector3d(0.0, 0.0, viewTriangleZPlane_sideA));
             Eigen::Vector3d actual_view_center_point(actualViewCenterEigen(0,3), actualViewCenterEigen(1,3), actualViewCenterEigen(2,3));
-            visualizeCameraPoseCorrection(basePosition, pan_base_point, pan_rotated_point, tilt_base_point,cam_point, actual_view_center_point);
-            //visualizeIKcalculation(basePosition, base_orientation, pan_base_point, pan_rotated_point, tilt_base_point,tilt_base_point_projected, cam_point, actual_view_center_point);
+            visualizeCameraPoseCorrection(basePosition, baseOrientation, pan_base_point, pan_rotated_point, tilt_base_point,cam_point, actual_view_center_point);
         }
 
         return PTUConfig(panAngle,tiltAngle);
@@ -591,8 +620,8 @@ namespace next_best_view {
         mTiltAngleOffset = viewTriangleZPlane_angleGamma-viewTriangleZPlane_angleAlpha-M_PI/2.0;
         //Calculate additional values for the camera pose correction
         Eigen::Affine3d panToCameraEigen = panToTiltEigen * tiltToCameraEigen;
-        Eigen::Vector3d cam_axis_x_pan_coordinates(panToCameraEigen(0,0), panToCameraEigen(1,0), panToCameraEigen(2,0));
-        Eigen::Vector3d cam_axis_z_pan_coordinates(panToCameraEigen(0,2), panToCameraEigen(1,2), panToCameraEigen(2,2));
+        Eigen::Vector3d cam_axis_x_pan_coordinates(panToCameraEigen(0,2), panToCameraEigen(1,2), panToCameraEigen(2,2));
+        Eigen::Vector3d cam_axis_z_pan_coordinates(panToCameraEigen(0,1), panToCameraEigen(1,1), panToCameraEigen(2,1));
         cam_axis_x_pan_coordinates.normalize();
         cam_axis_z_pan_coordinates.normalize();
         Eigen::Vector3d panToCameraNormal(panToCameraEigen(0,3), panToCameraEigen(1,3), panToCameraEigen(2,3));
@@ -600,7 +629,7 @@ namespace next_best_view {
         viewTriangleXYPlane_sideC = panToCameraNormal.norm();
         panToCameraNormal.normalize();
         viewTriangleXYPlane_AngleAlpha = acos(panToCameraNormal.dot(Eigen::Vector3d::UnitX()));
-        mPanAngleOffset = acos(panToCameraNormal.dot(Eigen::Vector3d::UnitX())) - M_PI;
+        mPanAngleOffset = acos(panToCameraNormal.dot(Eigen::Vector3d::UnitX()));
 
         ROS_INFO_STREAM("viewTriangleZPlane_angleAlpha: " << viewTriangleZPlane_angleAlpha);
         ROS_INFO_STREAM("viewTriangleZPlane_angleGamma: " << viewTriangleZPlane_angleGamma);
@@ -703,16 +732,19 @@ namespace next_best_view {
         visualizeIKArrowLarge(base_point, base_point2, color_blue, "basePose", 1);
     }
 
-    void MILDRobotModelWithIK::visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point)
+    void MILDRobotModelWithIK::visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point)
     {
         Eigen::Vector4d color_red(1.0,0.0,0.0,1.0);
-        visualizeIKArrowLarge(cam_point, actual_view_center_point, color_red, "camToActualViewCenterVector", 0);
-        visualizeIKArrowSmall(tilt_base_point,cam_point, color_red, "tiltToCamVector", 0);
-        visualizeIKPoint(tilt_base_point, color_red, "tiltBaseVector", 0);
-        visualizeIKArrowSmall(pan_rotated_point,tilt_base_point, color_red, "panToTiltVector", 0);
-        visualizeIKPoint(pan_rotated_point, color_red, "panBaseVector", 0);
-        visualizeIKArrowSmall(base_point,pan_joint_point, color_red, "baseToPanVector", 0);
-        visualizeIKPoint(base_point, color_red, "basePose", 0);
+        base_orientation.normalize();
+        Eigen::Vector3d base_point2 = base_point + base_orientation * 0.3;
+        visualizeIKArrowLarge(cam_point, actual_view_center_point, color_red, "camToActualViewCenterVector_poseCorrection", 0);
+        visualizeIKArrowSmall(tilt_base_point,cam_point, color_red, "tiltToCamVector_poseCorrection", 0);
+        visualizeIKPoint(tilt_base_point, color_red, "tiltBaseVector_poseCorrection", 0);
+        visualizeIKArrowSmall(pan_rotated_point,tilt_base_point, color_red, "panToTiltVector_poseCorrection", 0);
+        visualizeIKPoint(pan_rotated_point, color_red, "panBaseVector_poseCorrection", 0);
+        visualizeIKArrowSmall(base_point,pan_joint_point, color_red, "baseToPanVector_poseCorrection", 0);
+        visualizeIKPoint(base_point, color_red, "basePose_poseCorrection", 0);
+        visualizeIKArrowLarge(base_point, base_point2, color_red, "basePose_poseCorrection", 1);
     }
 
     void MILDRobotModelWithIK::visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns, int id)
