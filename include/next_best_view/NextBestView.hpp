@@ -119,7 +119,6 @@ private:
     VisualizationHelper mVisHelper;
     SetupVisualizationRequest mVisualizationSettings;
     bool mCurrentlyPublishingVisualization;
-    unsigned int numberSearchedObjects;
 
     // Bool for set point cloud flags
     bool mEnableIntermediateObjectWeighting;
@@ -193,7 +192,6 @@ public:
             * keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
             * able to adjust the parameters for each camera separateley.
             */
-        numberSearchedObjects = 0;
         double fovx, fovy, ncp, fcp, speedFactorRecognizer;
         double radius,sampleSizeUnitSphereSampler,colThresh;
         mNodeHandle.param("fovx", fovx, 62.5);
@@ -515,7 +513,7 @@ public:
         response.is_empty = false;
 
         // publish the visualization
-        this->publishVisualization(request.pose, true, false);
+        this->publishVisualization(request.pose, false);
         mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
 
@@ -618,7 +616,7 @@ public:
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
         mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-        mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter(), numberSearchedObjects);
+        mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter());
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -640,14 +638,10 @@ public:
     }
 
     bool triggerVisualization() {
-        return this->triggerVisualization(mCurrentCameraViewport, false);
+        return this->triggerVisualization(mCurrentCameraViewport);
     }
 
     bool triggerVisualization(ViewportPoint viewport) {
-        return this->triggerVisualization(viewport, false);
-    }
-
-    bool triggerVisualization(ViewportPoint viewport, bool is_initial) {
         if (mCurrentlyPublishingVisualization) {
             mDebugHelperPtr->write("Already generating visualization data.", DebugHelper::VISUALIZATION);
             return false;
@@ -655,16 +649,15 @@ public:
 
         mCurrentlyPublishingVisualization = true;
 
-        boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, is_initial, true);
+        boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, true);
         return true;
     }
 
     /*!
-         * \brief Publishes the Visualization of the NextBestView
-         * \param is_initial whether the given robot pose was initial
-         * \param publishFrustum whether the frustum should be published
-         */
-    void publishVisualization(ViewportPoint viewport, bool is_initial, bool publishFrustum) {
+     * \brief Publishes the Visualization of the NextBestView
+     * \param publishFrustum whether the frustum should be published
+     */
+    void publishVisualization(ViewportPoint viewport, bool publishFrustum) {
         mDebugHelperPtr->write("Publishing Visualization", DebugHelper::VISUALIZATION);
         mDebugHelperPtr->write(std::stringstream() << "Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0]
                                         << " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
@@ -701,13 +694,7 @@ public:
         if (mVisualizationSettings.frustum_marker_array && publishFrustum)
         {
             // publish furstums visualization
-            if (is_initial) {
-                mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
-            }
-            else {
-                numberSearchedObjects = viewport.object_type_name_set->size();
-                mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter(), numberSearchedObjects);
-            }
+            mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
         }
         mCurrentlyPublishingVisualization = false;
     }

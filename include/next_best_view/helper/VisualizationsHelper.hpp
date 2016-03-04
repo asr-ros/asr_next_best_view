@@ -190,14 +190,13 @@ public:
     /*!
      * \brief visualizes the frustum of the last camera that was given and the frustum of the new given camera.
      * \param newCamera the new camera
-     * \param numberSearchedObjects the number of searched objects
      */
-    void triggerFrustumsVisualization(CameraModelFilterPtr newCamera, int numberSearchedObjects = -1) {
+    void triggerFrustumsVisualization(CameraModelFilterPtr newCamera) {
         this->triggerOldFrustumVisualization();
-        this->triggerNewFrustumVisualization(newCamera, numberSearchedObjects);
+        this->triggerNewFrustumVisualization(newCamera);
     }
 
-    void triggerNewFrustumVisualization(CameraModelFilterPtr newCamera, int numberSearchedObjects = -1) {
+    void triggerNewFrustumVisualization(CameraModelFilterPtr newCamera) {
 
         mDebugHelperPtr->writeNoticeably("STARTING NEW FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
 
@@ -232,20 +231,6 @@ public:
             mNewFrustumMarkerArrayPtr->markers.at(i).color.g = 1;
             mNewFrustumMarkerArrayPtr->markers.at(i).color.b = 1;
             mNewFrustumMarkerArrayPtr->markers.at(i).ns = ns;
-        }
-
-        if (numberSearchedObjects != -1) {
-            mDebugHelperPtr->write("Adding text", DebugHelper::VISUALIZATION);
-            ROS_INFO_STREAM("numberSearchedObjects: " <<  numberSearchedObjects);
-
-            geometry_msgs::Pose pose;
-            pose.position = TypeHelper::getPointMSG(newCamera->getPivotPointPosition());
-            pose.orientation = TypeHelper::getQuaternionMSG(newCamera->getOrientation());
-
-            ns = "new_nbv_frustum_text";
-            std::string result = "searched objects: " + boost::lexical_cast<std::string>(numberSearchedObjects);
-            visualization_msgs::Marker textMarker = MarkerHelper::getTextMarker(mNewFrustumMarkerArrayPtr->markers.size(), result, pose, ns);
-            mNewFrustumMarkerArrayPtr->markers.push_back(textMarker);
         }
 
         mDebugHelperPtr->write("Publishing markers", DebugHelper::VISUALIZATION);
