@@ -180,13 +180,14 @@ namespace next_best_view {
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         //Make sure the necessary geometry parameters are initialized
+        mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-CAMERA-POSE-CORRECTION METHOD", DebugHelper::ROBOT_MODEL);
         if (!tfParametersInitialized)
         {
             tfParametersInitialized = setUpTFParameters();
             if (!tfParametersInitialized)
             {
                 ROS_ERROR_STREAM("Could not extract parameters from tf.");
-                mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-ROBOT-STATE METHOD", DebugHelper::ROBOT_MODEL);
+                mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-CAMERA-POSE-CORRECTION METHOD", DebugHelper::ROBOT_MODEL);
                 return PTUConfig(0.0,0.0);
             }
         }
@@ -211,15 +212,25 @@ namespace next_best_view {
         viewTriangleXYPlane_AngleBeta = viewTriangleXYPlane_AngleBeta/(2.0*viewTriangleXYPlane_sideA*viewTriangleXYPlane_sideC);
         viewTriangleXYPlane_AngleBeta = acos(viewTriangleXYPlane_AngleBeta);
         Eigen::Vector3d panJointXAxis(panJointEigen(0,0), panJointEigen(1,0), panJointEigen(2,0));
+        Eigen::Vector3d panJointYAxis(panJointEigen(0,1), panJointEigen(1,1), panJointEigen(2,1));
+        panJointXAxis.normalize();
         panJointXAxis.normalize();
         panJointToCenterPointProjected.normalize();
-        double panAngle = -acos(panJointToCenterPointProjected.dot(panJointXAxis)) + viewTriangleXYPlane_AngleBeta - mPanAngleOffset;// - viewTriangleXYPlane_AngleAlpha;
+        double panAngle = acos(panJointToCenterPointProjected.dot(panJointXAxis));
+        // Flip sign if target is left of robot
+        if (panJointToCenterPointProjected.dot(panJointYAxis) < 0)
+        {
+            panAngle *= -1;
+        }
+        panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;// - viewTriangleXYPlane_AngleAlpha;
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB);
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC);
+        ROS_DEBUG_STREAM("panJointToCenterPointProjected.dot(panJointYAxis): " << panJointToCenterPointProjected.dot(panJointYAxis));
         ROS_DEBUG_STREAM("mPanAngleOffset: " << mPanAngleOffset);
-        ROS_DEBUG_STREAM("acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << -acos(panJointToCenterPointProjected.dot(panJointXAxis)));
+        ROS_DEBUG_STREAM("panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis));
+        ROS_DEBUG_STREAM("-acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << -acos(panJointToCenterPointProjected.dot(panJointXAxis)));
         //Calculate TILT
         Eigen::Affine3d panJointRotatedEigen = panJointEigen * Eigen::AngleAxisd(panAngle, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d tiltJointEigen = panJointRotatedEigen * panToTiltEigen;
@@ -276,6 +287,7 @@ namespace next_best_view {
             visualizeCameraPoseCorrection(basePosition, baseOrientation, pan_base_point, pan_rotated_point, tilt_base_point,cam_point, actual_view_center_point);
         }
 
+        mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-CAMERA-POSE-CORRECTION METHOD", DebugHelper::ROBOT_MODEL);
         return PTUConfig(panAngle,tiltAngle);
     }
 
