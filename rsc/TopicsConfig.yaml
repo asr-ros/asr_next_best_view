@@ -3,5 +3,6 @@ frustumVisualization: /nbv/frustum_marker_array
 objectsVisualization: /nbv/object_meshes
 objectNormalsVisualization: /nbv/object_normals
 frustumObjectsVisualization: /nbv/frustum_object_meshes
+frustumObjectNormalsVisualization: /nbv/frustum_object_normals
 cropBoxVisualization: /nbv/crop_box
 IKVisualization: /nbv/IK_Visualization

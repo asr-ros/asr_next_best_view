@@ -39,6 +39,7 @@ private:
     ros::Publisher mObjectMeshMarkerPublisher;
     ros::Publisher mPointObjectNormalPublisher;
     ros::Publisher mFrustumObjectMeshMarkerPublisher;
+    ros::Publisher mFrustumObjectNormalPublisher;
     ros::Publisher mCropBoxMarkerPublisher;
 
     ros::NodeHandle mNodeHandle;
@@ -49,6 +50,7 @@ private:
     visualization_msgs::MarkerArray::Ptr mObjectMeshMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mObjectNormalsMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mFrustumObjectMeshMarkerArrayPtr;
+    visualization_msgs::MarkerArray::Ptr mFrustumObjectNormalsMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mCropBoxMarkerArrayPtr;
 
     DebugHelperPtr mDebugHelperPtr;
@@ -68,6 +70,7 @@ public:
         std::string objectsVisualization;
         std::string objectNormalsVisualization;
         std::string frustumObjectsVisualization;
+        std::string frustumObjectNormalsVisualization;
         std::string cropBoxVisualization;
 
         mNodeHandle.getParam("/nbv/iterationVisualization", iterationVisualization);
@@ -75,6 +78,7 @@ public:
         mNodeHandle.getParam("/nbv/objectsVisualization", objectsVisualization);
         mNodeHandle.getParam("/nbv/objectNormalsVisualization", objectNormalsVisualization);
         mNodeHandle.getParam("/nbv/frustumObjectsVisualization", frustumObjectsVisualization);
+        mNodeHandle.getParam("/nbv/frustumObjectNormalsVisualization", frustumObjectNormalsVisualization);
         mNodeHandle.getParam("/nbv/cropBoxVisualization", cropBoxVisualization);
 
         // initialize publishers
@@ -83,6 +87,7 @@ public:
         mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectsVisualization, 100, false);
         mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectNormalsVisualization, 100, false);
         mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumObjectsVisualization, 100, false);
+        mFrustumObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumObjectNormalsVisualization, 100, false);
         mCropBoxMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(cropBoxVisualization, 100, false);
 
         if (!mIterationMarkerArrayPublisher) {
@@ -114,8 +119,9 @@ public:
         visualization_msgs::MarkerArray* newFrustumMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* oldFrustumMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* objectMeshMarkerArray = new visualization_msgs::MarkerArray();
-        visualization_msgs::MarkerArray* frustumObjectMeshMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* objectNormalsMarkerArray = new visualization_msgs::MarkerArray();
+        visualization_msgs::MarkerArray* frustumObjectMeshMarkerArray = new visualization_msgs::MarkerArray();
+        visualization_msgs::MarkerArray* frustumObjectNormalsMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* mCropBoxMarkerArray = new visualization_msgs::MarkerArray();
 
 
@@ -125,6 +131,7 @@ public:
         mObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*objectMeshMarkerArray);
         mObjectNormalsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*objectNormalsMarkerArray);
         mFrustumObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*frustumObjectMeshMarkerArray);
+        mFrustumObjectNormalsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*frustumObjectNormalsMarkerArray);
         mCropBoxMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*mCropBoxMarkerArray);
     }
 
@@ -332,7 +339,7 @@ public:
         this->deleteMarkerArray(mOldFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
     }
 
-    void triggerObjectPointCloudVisualization(ObjectPointCloud objectPointCloud, std::map<std::string, std::string> typeToMeshResource) {
+    void triggerObjectPointCloudVisualization(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource) {
         mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mObjectMeshMarkerArrayPtr){
@@ -346,63 +353,14 @@ public:
             return;
         }
 
-        mDebugHelperPtr->write("Deleting old object point cloud visualization", DebugHelper::VISUALIZATION);
-        this->deleteMarkerArray(mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
-
-        unsigned int index = 0;
-        std::string ns = "mMeshMarkerArray";
-
-        for(ObjectPointCloud::iterator it = objectPointCloud.begin(); it < objectPointCloud.end(); it++)
-        {
-            geometry_msgs::Pose pose = it->getPose();
-
-            visualization_msgs::Marker objectMarker = this->getObjectMarker(pose, it->type, it->color, typeToMeshResource, index, ns);
-
-            mObjectMeshMarkerArrayPtr->markers.push_back(objectMarker);
-
-            index++;
-        }
-
-        mDebugHelperPtr->write(std::stringstream() << "Publishing " << objectPointCloud.size() <<" object points",
-                    DebugHelper::VISUALIZATION);
-        mObjectMeshMarkerPublisher.publish(*mObjectMeshMarkerArrayPtr);
-
-        mDebugHelperPtr->write("Deleting old object normals visualization", DebugHelper::VISUALIZATION);
-        this->deleteMarkerArray(mObjectNormalsMarkerArrayPtr, mPointObjectNormalPublisher);
-
-        index = 0;
-        SimpleVector4 color = SimpleVector4(1.0, 1.0, 0.0, 1.0);
-        SimpleVector3 scale = SimpleVector3(0.005, 0.01, 0.005);
-        ns = "ObjectNormals";
-
-        for(unsigned int i = 0; i < objectPointCloud.points.size(); i++)
-        {
-            ObjectPoint point = objectPointCloud.points[i];
-
-            for(Indices::iterator it = point.active_normal_vectors->begin(); it < point.active_normal_vectors->end(); ++it)
-            {
-                SimpleVector3 start = point.getPosition();
-                SimpleVector3 end = 0.07 * point.normal_vectors->at(*it);
-                end[0] += start[0];
-                end[1] += start[1];
-                end[2] += start[2];
-
-
-                visualization_msgs::Marker objectNormalMarker = MarkerHelper::getArrowMarker(index, start, end,
-                                                                                             scale, color, ns);
-                mObjectNormalsMarkerArrayPtr->markers.push_back(objectNormalMarker);
-
-                index++;
-            }
-        }
-
-        mDebugHelperPtr->write("Publishing object normals", DebugHelper::VISUALIZATION);
-        mPointObjectNormalPublisher.publish(*mObjectNormalsMarkerArrayPtr);
+        visualizePointCloud(objectPointCloud, typeToMeshResource,
+                                mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher,
+                                mObjectNormalsMarkerArrayPtr, mPointObjectNormalPublisher);
 
         mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
-    void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud frustumObjectPointCloud, std::map<std::string, std::string> typeToMeshResource) {
+    void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud& frustumObjectPointCloud, std::map<std::string, std::string>& typeToMeshResource) {
         mDebugHelperPtr->writeNoticeably("STARTING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mFrustumObjectMeshMarkerArrayPtr){
@@ -411,28 +369,12 @@ public:
             return;
         }
 
-        std_msgs::ColorRGBA colorFrustumMeshMarker = this->createColorRGBA(0, 0, 1, 0.8);
+        std_msgs::ColorRGBA::Ptr colorFrustumMeshMarkerPtr(new std_msgs::ColorRGBA(this->createColorRGBA(0, 0, 1, 0.8)));
 
-        mDebugHelperPtr->write("Deleting old frustum object point cloud visualization", DebugHelper::VISUALIZATION);
-        this->deleteMarkerArray(mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher);
-
-        unsigned int index = 0;
-        std::string ns = "mFrustumObjectMesh";
-
-        for(ObjectPointCloud::iterator it = frustumObjectPointCloud.begin(); it < frustumObjectPointCloud.end(); it++)
-        {
-            geometry_msgs::Pose pose = it->getPose();
-
-            visualization_msgs::Marker objectMarker = this->getObjectMarker(pose, it->type, colorFrustumMeshMarker, typeToMeshResource, index, ns);
-
-            mFrustumObjectMeshMarkerArrayPtr->markers.push_back(objectMarker);
-
-            index++;
-        }
-
-        mDebugHelperPtr->write(std::stringstream() << "Publishing " << frustumObjectPointCloud.size() <<" object points",
-                    DebugHelper::VISUALIZATION);
-        mFrustumObjectMeshMarkerPublisher.publish(*mFrustumObjectMeshMarkerArrayPtr);
+        visualizePointCloud(frustumObjectPointCloud, typeToMeshResource,
+                                mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher,
+                                mFrustumObjectNormalsMarkerArrayPtr, mFrustumObjectNormalPublisher,
+                                colorFrustumMeshMarkerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
@@ -729,6 +671,74 @@ private:
 
         visualization_msgs::Marker GridMarker = MarkerHelper::getCubeMarker(m_i, position, orientation, scale, color, ns);
         mIterationMarkerArrayPtr->markers.push_back(GridMarker);
+    }
+
+    static void visualizePointCloud(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource,
+                                        visualization_msgs::MarkerArray::Ptr objectMarkerArrayPtr, ros::Publisher& objectPublisher,
+                                        visualization_msgs::MarkerArray::Ptr objectNormalsMarkerArrayPtr, ros::Publisher& objectNormalsPublisher,
+                                        std_msgs::ColorRGBA::Ptr objectColorPtr = NULL) {
+        DebugHelperPtr debugHelperPtr = DebugHelper::getInstance();
+
+        debugHelperPtr->write("Deleting old object point cloud visualization", DebugHelper::VISUALIZATION);
+        deleteMarkerArray(objectMarkerArrayPtr, objectPublisher);
+
+        unsigned int index = 0;
+        std::string ns = "ObjectMeshes";
+
+        for(ObjectPointCloud::iterator it = objectPointCloud.begin(); it < objectPointCloud.end(); it++)
+        {
+            geometry_msgs::Pose pose = it->getPose();
+            std_msgs::ColorRGBA color;
+
+            if (!objectColorPtr) {
+                color = it->color;
+            }
+            else {
+                color = *objectColorPtr;
+            }
+
+            visualization_msgs::Marker objectMarker = getObjectMarker(pose, it->type, color, typeToMeshResource, index, ns);
+
+            objectMarkerArrayPtr->markers.push_back(objectMarker);
+
+            index++;
+        }
+
+        debugHelperPtr->write(std::stringstream() << "Publishing " << objectPointCloud.size() <<" object points",
+                    DebugHelper::VISUALIZATION);
+        objectPublisher.publish(*objectMarkerArrayPtr);
+
+        debugHelperPtr->write("Deleting old object normals visualization", DebugHelper::VISUALIZATION);
+        deleteMarkerArray(objectNormalsMarkerArrayPtr, objectNormalsPublisher);
+
+        index = 0;
+        SimpleVector4 color = SimpleVector4(1.0, 1.0, 0.0, 1.0);
+        SimpleVector3 scale = SimpleVector3(0.005, 0.01, 0.005);
+        ns = "ObjectNormals";
+
+        for(unsigned int i = 0; i < objectPointCloud.points.size(); i++)
+        {
+            ObjectPoint point = objectPointCloud.points[i];
+
+            for(Indices::iterator it = point.active_normal_vectors->begin(); it < point.active_normal_vectors->end(); ++it)
+            {
+                SimpleVector3 start = point.getPosition();
+                SimpleVector3 end = 0.07 * point.normal_vectors->at(*it);
+                end[0] += start[0];
+                end[1] += start[1];
+                end[2] += start[2];
+
+
+                visualization_msgs::Marker objectNormalMarker = MarkerHelper::getArrowMarker(index, start, end,
+                                                                                             scale, color, ns);
+                objectNormalsMarkerArrayPtr->markers.push_back(objectNormalMarker);
+
+                index++;
+            }
+        }
+
+        debugHelperPtr->write("Publishing object normals", DebugHelper::VISUALIZATION);
+        objectNormalsPublisher.publish(*objectNormalsMarkerArrayPtr);
     }
     
     static void deleteMarkerArray(visualization_msgs::MarkerArray::Ptr &array, ros::Publisher &publisher)
