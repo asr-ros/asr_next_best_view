@@ -147,7 +147,7 @@ namespace next_best_view {
          /*!
           * Visualizes the output of the CameraPoseCorrection
           */
-         void visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point);
+         void visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point);
          /*!
           * Visualizes the IK camera target
           */
