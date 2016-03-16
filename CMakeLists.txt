@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   urdf
   kdl_parser
+  costmap_2d
 )
 
 find_package(PCL REQUIRED)
@@ -139,8 +140,8 @@ target_link_libraries(
 	${PROJECT_NAME}_packages_impl
 	${PROJECT_NAME}_helper
 	${PROJECT_NAME}_packages
-	${catkin_LIBRARIES}
-	${PCL_LIBRARIES}
+        ${catkin_LIBRARIES}
+        ${PCL_LIBRARIES}
 )
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
 ## Declare a cpp executable
@@ -154,7 +155,7 @@ add_dependencies(
 	${PROJECT_NAME}
 	${PROJECT_NAME}_generate_messages_cpp
 	object_database
-	world_model
+        world_model
 )
 
 target_link_libraries(
@@ -162,25 +163,25 @@ target_link_libraries(
 	${PROJECT_NAME}_helper
 	${PROJECT_NAME}_packages
 	${PROJECT_NAME}_packages_impl
-	${PCL_LIBRARIES}
+        ${PCL_LIBRARIES}
 	glpk
 	${catkin_LIBRARIES}
 )
 
-add_library(
-        ${PROJECT_NAME}_test_core
-        src/test_cases/BaseTest.cpp
-)
+#add_library(
+#        ${PROJECT_NAME}_test_core
+#        src/test_cases/BaseTest.cpp
+#)
 
-target_link_libraries(
-        ${PROJECT_NAME}_test_core
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
-)
+#target_link_libraries(
+#        ${PROJECT_NAME}_test_core
+#        ${PROJECT_NAME}_helper
+#        ${PROJECT_NAME}_packages
+#        ${PROJECT_NAME}_packages_impl
+#        ${PCL_LIBRARIES}
+#        glpk
+#        ${catkin_LIBRARIES}
+#)
 
 ##add_executable(
 #	${PROJECT_NAME}_test

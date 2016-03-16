@@ -16,6 +16,8 @@
 #include <cmath>
 #include <vector>
 #include <boost/tuple/tuple.hpp>
+#include <costmap_2d/costmap_2d_ros.h>
+#include <tf/transform_listener.h>
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
@@ -49,27 +51,39 @@ namespace next_best_view {
 	private:
         DebugHelperPtr mDebugHelperPtr;
 
-		bool mMapReceived;
-		bool mCostmapReceived;
+        bool mMapReceived;
 		int8_t mCollisionThreshold;
 		ros::NodeHandle mGlobalNodeHandle;
 		ros::ServiceClient mGetPlanServiceClient;
 		nav_msgs::OccupancyGrid mMap;
-		nav_msgs::OccupancyGrid mCostmap;
-		nav_msgs::OccupancyGrid mRaytracingMap;
+        costmap_2d::Costmap2D mCostmap;
+        nav_msgs::OccupancyGrid mRaytracingMap;
+        // table to translate from values 0-255 in Costmap2D to values -1 to 100 in OccupancyGrid
+        int8_t mCostTranslationTable[256];
 	public:
-		MapHelper(const std::string &mapTopicName = "map", const std::string &costmapTopicName = "move_base/global_costmap/costmap", const std::string &getPlanServiceName = "move_base/make_plan") : mMapReceived(false), mCostmapReceived(false), mCollisionThreshold(45) {
+        MapHelper(const std::string &mapTopicName = "map", const std::string &getPlanServiceName = "move_base/make_plan") : mMapReceived(false), mCollisionThreshold(45) {
             mDebugHelperPtr = DebugHelper::getInstance();
 
+            // set cost translation table
+            mCostTranslationTable[0] = 0;  // NO obstacle
+            mCostTranslationTable[253] = 99;  // INSCRIBED obstacle
+            mCostTranslationTable[254] = 100;  // LETHAL obstacle
+            mCostTranslationTable[255] = -1;  // UNKNOWN
+
+            for (int i = 1; i < 253; i++) {
+                mCostTranslationTable[i] = int8_t(1 + (97 * (i - 1)) / 251);
+            }
+
             ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapHelper::mapReceived, this);
-			ros::Subscriber costmapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(costmapTopicName, 1, &MapHelper::costmapReceived, this);
-			while(ros::ok() && !this->hasReceivedMaps()) {
-                mDebugHelperPtr->write(std::stringstream() << "Waiting for maps to arrive on topics '" << mapSubscriber.getTopic()
-                                        << "' and '" << costmapSubscriber.getTopic() << "'", DebugHelper::MAP);
+            while(ros::ok() && !mMapReceived) {
+                mDebugHelperPtr->write(std::stringstream() << "Waiting for map to arrive on topic '" << mapSubscriber.getTopic() << "'",
+                            DebugHelper::MAP);
 
 				ros::spinOnce();
 				ros::Duration(0.5).sleep();
 			}
+
+            this->setCostmap();
 
 			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName, true);
 			while(ros::ok() && !mGetPlanServiceClient.exists()) {
@@ -79,7 +93,7 @@ namespace next_best_view {
 				ros::Duration(0.5).sleep();
 			}
 
-			this->aggregateRaytracingMap(mMap, mCostmap);
+            this->aggregateRaytracingMap();
 		}
 
 		virtual ~MapHelper() { }
@@ -90,41 +104,59 @@ namespace next_best_view {
 			mMapReceived = true;
 		}
 
-		void costmapReceived(nav_msgs::OccupancyGrid map) {
-            mDebugHelperPtr->write("Costmap received", DebugHelper::MAP);
-			mCostmap = map;
-			mCostmapReceived = true;
-		}
+        void setCostmap() {
+            tf::TransformListener tf(ros::Duration(10));
+            std::string name = "global_costmap";
+            costmap_2d::Costmap2DROS costmapRos(name, tf);
+            costmapRos.start();
+            costmapRos.stop();
 
-		void aggregateRaytracingMap(const nav_msgs::OccupancyGrid &map, const nav_msgs::OccupancyGrid &costmap) {
+            mCostmap = *(costmapRos.getCostmap());
+
+            // get output path
+            std::string path;
+            mGlobalNodeHandle.getParam("/nbv/mMapsImagePath", path);
+
+            // output costmap
+            std::string costmapPath = path + "/costmap.pgm";
+            mDebugHelperPtr->write("Outputting calculated costmap to " + costmapPath,
+                        DebugHelper::MAP);
+            //mCostmap.saveMap(costmapPath);
+        }
+
+        void aggregateRaytracingMap() {
             mDebugHelperPtr->write("Aggregating raytracing map.", DebugHelper::MAP);
-			if (map.info.width != costmap.info.width || map.info.height != costmap.info.height) {
+            if (mMap.info.width != mCostmap.getSizeInCellsX() || mMap.info.height != mCostmap.getSizeInCellsY()) {
 				ROS_ERROR("Cannot aggregate raytracing map. Dimensions of map and costmap do not match!");
-				assert(map.info.width == costmap.info.width && map.info.height == costmap.info.height);
-			}
+                assert(mMap.info.width == mCostmap.getSizeInCellsX() && mMap.info.height == mCostmap.getSizeInCellsY());
+            }
 
-			mRaytracingMap.info = map.info;
-			mRaytracingMap.data.reserve(map.data.size());
-			for (std::size_t index = 0; index < map.data.size(); index++) {
-				int8_t mapOccupancyValue = map.data[index];
-				int8_t costmapOccupancyValue = costmap.data[index];
-				int8_t aggregatedOccupancyValue = mapOccupancyValue == -1 ? -1 : costmapOccupancyValue;
+            mRaytracingMap.info = mMap.info;
+            mRaytracingMap.data.reserve(mMap.data.size());
+            for (unsigned int y = 0; y < mMap.info.height; y++) {
+                for (unsigned int x = 0; x < mMap.info.width; x++) {
+                    unsigned int index = y * mMap.info.width + x;
+                    int8_t mapOccupancyValue = mMap.data[index];
+                    int8_t costmapOccupancyValue = mCostTranslationTable[mCostmap.getCost(x, y)];
+                    int8_t aggregatedOccupancyValue = mapOccupancyValue == -1 ? -1 : costmapOccupancyValue;
 
-				mRaytracingMap.data[index] = aggregatedOccupancyValue;
-			}
+                    mRaytracingMap.data[index] = aggregatedOccupancyValue;
+                }
+            }
             mDebugHelperPtr->write("Aggregation done.", DebugHelper::MAP);
-		}
-	public:
-		bool hasReceivedMaps() {
-			return mMapReceived && mCostmapReceived;
-		}
+        }
 
-	private:
 		int8_t getOccupancyValue(const nav_msgs::OccupancyGrid &map, const SimpleVector3 &position) {
 			int32_t mapX, mapY;
 			this->worldToMapCoordinates(position, mapX, mapY);
 			return this->getOccupancyValue(map, mapX, mapY);
 		}
+
+        int8_t getOccupancyValue(const costmap_2d::Costmap2D &costmap, const SimpleVector3 &position) {
+            int32_t mapX, mapY;
+            this->worldToMapCoordinates(position, mapX, mapY);
+            return this->getOccupancyValue(costmap, mapX, mapY);
+        }
 
 		int8_t getOccupancyValue(const nav_msgs::OccupancyGrid &map, const int32_t &mapX, const int32_t &mapY) {
 			uint32_t width = map.info.width;
@@ -136,6 +168,19 @@ namespace next_best_view {
 
 			return map.data[mapX + mapY * width];
 		}
+
+        int8_t getOccupancyValue(const costmap_2d::Costmap2D &costmap, const int32_t &mapX, const int32_t &mapY) {
+            uint32_t width = costmap.getSizeInCellsX();
+            uint32_t height = costmap.getSizeInCellsY();
+
+            if (mapX < 0 || mapY < 0 || mapX >= (int32_t)width || mapY >= (int32_t)height) {
+                return -1;
+            }
+
+            unsigned char cost = costmap.getCost(mapX, mapY);
+            return mCostTranslationTable[cost];
+        }
+
 	public:
 		int8_t getMapOccupancyValue(const SimpleVector3 &position) {
 			return this->getOccupancyValue(mMap, position);
