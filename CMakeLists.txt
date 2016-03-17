@@ -214,13 +214,13 @@ target_link_libraries(
 #        src/test_cases/ParametersTest.cpp
 #)
 
-add_executable(
-        ${PROJECT_NAME}_ik_test
-        src/test_cases/IKTest.cpp
-        src/robot_model/RobotModel.cpp
-        src/robot_model/impl/MILDRobotModel_with_IK.cpp
-        src/robot_model/impl/MILDRobotState.cpp
-)
+#add_executable(
+#        ${PROJECT_NAME}_ik_test
+#        src/test_cases/IKTest.cpp
+#        src/robot_model/RobotModel.cpp
+#        src/robot_model/impl/MILDRobotModel_with_IK.cpp
+#        src/robot_model/impl/MILDRobotState.cpp
+#)
 
 ##target_link_libraries(
 #	${PROJECT_NAME}_test
@@ -288,16 +288,16 @@ add_executable(
 #        ${catkin_LIBRARIES}
 #)
 
-target_link_libraries(
-       ${PROJECT_NAME}_ik_test
-       ${PROJECT_NAME}_helper
-       ${PROJECT_NAME}_packages
-       ${PROJECT_NAME}_packages_impl
-       ${PROJECT_NAME}_test_core
-       ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
-)
+#target_link_libraries(
+#       ${PROJECT_NAME}_ik_test
+#       ${PROJECT_NAME}_helper
+#       ${PROJECT_NAME}_packages
+#       ${PROJECT_NAME}_packages_impl
+#       ${PROJECT_NAME}_test_core
+#       ${PCL_LIBRARIES}
+#        glpk
+#        ${catkin_LIBRARIES}
+#)
 
 add_executable(
         ${PROJECT_NAME}_robotmodel_service
