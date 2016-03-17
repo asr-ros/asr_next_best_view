@@ -33,6 +33,7 @@ namespace next_best_view {
         double mNormalAngleThreshold;
         double mFovV,mFovH;
         double mFcp,mNcp;
+        double mOmegaUtility;
         double mOmegaPan;
         double mOmegaTilt;
         double mOmegaRot;
@@ -153,7 +154,7 @@ namespace next_best_view {
 		 */
         double getNormalAngleThreshold();
 
-        void setOmegaParameters(double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
+        void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
 
     private:
         /*!

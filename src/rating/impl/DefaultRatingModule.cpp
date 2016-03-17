@@ -205,7 +205,7 @@ float DefaultRatingModule::getRating(const BaseScoreContainerPtr &a) {
         ROS_ERROR("Score container is nullpointer");
     }
 
-    float result = a->getUtility() * a->getInverseCosts();
+    float result = mOmegaUtility * a->getUtility() + a->getInverseCosts();
 
     return result;
 }
@@ -244,7 +244,8 @@ double DefaultRatingModule::getNormalAngleThreshold() {
     return mNormalAngleThreshold;
 }
 
-void DefaultRatingModule::setOmegaParameters(double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition) {
+void DefaultRatingModule::setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition) {
+    this->mOmegaUtility = omegaUtility;
     this->mOmegaPan = omegaPan;
     this->mOmegaTilt = omegaTilt;
     this->mOmegaRot = omegaRot;

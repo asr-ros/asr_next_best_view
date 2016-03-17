@@ -1,3 +1,4 @@
+mOmegaUtility: 1.0 #Gewichtungsfaktor für den Nutzen-Faktor
 mOmegaPan: 0.5  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 0.5 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 1.0 #Gewichtungsfaktor für die Rotation der Basis
@@ -37,4 +38,4 @@ enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
 maxIterationSteps: 20
-debugLevels: [ALL] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, FILTER, IK_RATING
+debugLevels: [NONE] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, FILTER, IK_RATING

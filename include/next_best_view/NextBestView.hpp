@@ -352,14 +352,15 @@ public:
         DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp,robotModelPtr, cameraModelFilterPtr));
         ratingModulePtr->setNormalAngleThreshold(45 / 180.0 * M_PI);
 
-        double mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
+        double mOmegaUtility, mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
+        mNodeHandle.param("mOmegaUtility", mOmegaUtility, 1.0);
         mNodeHandle.param("mOmegaTilt", mOmegaTilt, 1.0);
         mNodeHandle.param("mOmegaPan", mOmegaPan, 1.0);
         mNodeHandle.param("mOmegaRot", mOmegaRot, 1.0);
         mNodeHandle.param("mOmegaBase", mOmegaBase, 1.0);
         mNodeHandle.param("mOmegaRecognizer", mOmegaRecognizer, 1.0);
 
-        ratingModulePtr->setOmegaParameters(mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
+        ratingModulePtr->setOmegaParameters(mOmegaUtility, mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
 
         /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
              */
