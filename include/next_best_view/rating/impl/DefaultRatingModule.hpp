@@ -63,8 +63,8 @@ namespace next_best_view {
         Precision mInverseMovementCostsPTU = -1;
         // the costs of the recognition of the objects
         double mInverseRecognitionCosts = -1;
-        // the normalization value for the costs
-        double mCostsNormalization = -1;
+        // the normalization value for the rating
+        double mRatingNormalization = -1;
         // the PTU omega parameter
         Precision mOmegaPTU = -1;
         // the target state
@@ -156,6 +156,9 @@ namespace next_best_view {
 
         void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
 
+        bool setSingleScoreContainer(const ViewportPoint &currentViewport,
+                                        ViewportPoint &candidateViewport);
+
     private:
         /*!
          * \brief returns the normalized rating for a given deviation from the optimum and a threshold for the deviation.
@@ -165,15 +168,6 @@ namespace next_best_view {
          * \return the normalized rating
          */
         float getNormalizedRating(float deviation, float threshold);
-
-        /*!
-         * \brief sets the score container for one filtered camera viewport
-         * \param currentViewport [in] the current camera viewport
-         * \param candidateViewport [in,out] the filtered candidate camera viewport
-         * \return whether the rating is feasible or not
-         */
-        bool setSingleScoreContainer(const ViewportPoint &currentViewport,
-                                        ViewportPoint &candidateViewport);
 
         /*!
          * \brief returns the utility for the given candidate camera viewport.
@@ -227,7 +221,7 @@ namespace next_best_view {
         /*!
          * \brief sets the mCostsNormalization member
          */
-        void setCostsNormalization();
+        void setRatingNormalization();
 
         /*!
          * \brief sets the mMaxRecognitionCosts member.

@@ -205,7 +205,11 @@ float DefaultRatingModule::getRating(const BaseScoreContainerPtr &a) {
         ROS_ERROR("Score container is nullpointer");
     }
 
-    float result = mOmegaUtility * a->getUtility() + a->getInverseCosts();
+    if (mRatingNormalization < 0) {
+        this->setRatingNormalization();
+    }
+
+    float result = (mOmegaUtility * a->getUtility() + a->getInverseCosts()) / mRatingNormalization;
 
     return result;
 }
@@ -251,6 +255,8 @@ void DefaultRatingModule::setOmegaParameters(double omegaUtility, double omegaPa
     this->mOmegaRot = omegaRot;
     this->mOmegaBase = omegaBase;
     this->mOmegaRecognition = omegaRecognition;
+
+    mRatingNormalization = -1;
 }
 
 float DefaultRatingModule::getNormalizedRating(float deviation, float threshold) {
@@ -322,10 +328,6 @@ double DefaultRatingModule::getInverseCosts(const ViewportPoint &sourceViewport,
         this->setInverseMovementCosts();
     }
 
-    if (mCostsNormalization < 0) {
-        this->setCostsNormalization();
-    }
-
     if (mInputCloudChanged) {
         this->setMaxRecognitionCosts();
     }
@@ -334,7 +336,7 @@ double DefaultRatingModule::getInverseCosts(const ViewportPoint &sourceViewport,
     mInverseRecognitionCosts = this->getInverseRecognitionCosts(targetViewport);
 
     // calculate the full movement costs
-    double fullCosts = (mInverseMovementCosts + mInverseRecognitionCosts * mOmegaRecognition) / mCostsNormalization;
+    double fullCosts = mInverseMovementCosts + mInverseRecognitionCosts * mOmegaRecognition;
 
     return fullCosts;
 }
@@ -396,8 +398,8 @@ void DefaultRatingModule::setInverseMovementCosts() {
             + mInverseMovementCostsBaseRotation * mOmegaRot;
 }
 
-void DefaultRatingModule::setCostsNormalization() {
-    mCostsNormalization = mOmegaBase + mOmegaPTU + mOmegaRot + mOmegaRecognition;
+void DefaultRatingModule::setRatingNormalization() {
+    mRatingNormalization = mOmegaUtility + mOmegaBase + mOmegaPTU + mOmegaRot + mOmegaRecognition;
 }
 
 void DefaultRatingModule::setMaxRecognitionCosts() {
@@ -425,7 +427,6 @@ void DefaultRatingModule::resetCache() {
     mInverseMovementCostsBaseRotation = -1;
     mInverseMovementCostsPTU = -1;
     mInverseRecognitionCosts = -1;
-    mCostsNormalization = -1;
     mOmegaPTU = -1;
     mTargetState = NULL;
 }
