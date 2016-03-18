@@ -205,11 +205,11 @@ float DefaultRatingModule::getRating(const BaseScoreContainerPtr &a) {
         ROS_ERROR("Score container is nullpointer");
     }
 
-    if (mRatingNormalization < 0) {
-        this->setRatingNormalization();
+    if (mRatingNormalization <= 0) {
+        ROS_ERROR("Omega parameters were not set correctly");
     }
 
-    float result = (mOmegaUtility * a->getUtility() + a->getInverseCosts()) / mRatingNormalization;
+    float result = (a->getUtility() + a->getInverseCosts()) / mRatingNormalization;
 
     return result;
 }
@@ -256,7 +256,7 @@ void DefaultRatingModule::setOmegaParameters(double omegaUtility, double omegaPa
     this->mOmegaBase = omegaBase;
     this->mOmegaRecognition = omegaRecognition;
 
-    mRatingNormalization = -1;
+    this->setRatingNormalization();
 }
 
 float DefaultRatingModule::getNormalizedRating(float deviation, float threshold) {
@@ -279,7 +279,7 @@ double DefaultRatingModule::getUtility(const ViewportPoint &candidateViewport) {
         utility += mObjectUtilities[objectType];
     }
 
-    return utility;
+    return mOmegaUtility * utility;
 }
 
 void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {
