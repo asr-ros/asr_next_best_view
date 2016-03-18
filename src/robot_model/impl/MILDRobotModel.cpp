@@ -33,12 +33,11 @@ namespace next_best_view {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, mOmegaUseBase_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
         n.getParam("mOmegaRot", mOmegaRot_);
-        n.getParam("mOmegaUseBase", mOmegaUseBase_);
         n.getParam("speedFactorPTU", speedFactorPTU_);
         n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
         n.getParam("speedFactorBaseRot", speedFactorBaseRot_);
@@ -54,7 +53,6 @@ namespace next_best_view {
             mDebugHelperPtr->write("Use of global planner DISABLED. Using simplified calculation instead", DebugHelper::PARAMETERS);
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaUseBase: " << mOmegaUseBase_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "speedFactorPTU: " << speedFactorPTU_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseMove: " << speedFactorBaseMove_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "speedFactorBaseRot: " << speedFactorBaseRot_, DebugHelper::PARAMETERS);
@@ -65,7 +63,6 @@ namespace next_best_view {
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
-        mOmegaUseBase = mOmegaUseBase_;
         speedFactorPTU = speedFactorPTU_;
         speedFactorBaseMove = speedFactorBaseMove_;
         speedFactorBaseRot = speedFactorBaseRot_;

@@ -3,8 +3,7 @@ mOmegaPan: 0.5  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 0.5 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 1.0 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 5. #Gewichtungsfaktor für die Bewegung der Basis
-mOmegaRecognizer: 0.2 
-mOmegaUseBase: 15.0 #Zusätzlicher Kostenfaktor der addiert wird, wenn die Basis bewegt wird
+mOmegaRecognizer: 0.2
 speedFactorPTU: 0.05 #Zeitkosten für Drehung der PTU in Sec/Rad
 speedFactorBaseRot: 0.1 #Zeitkosten für Drehung der Basis in Sec/Rad
 speedFactorBaseMove: 5.0 #Zeitkosten für Bewegung der Basis in Sec/Meter

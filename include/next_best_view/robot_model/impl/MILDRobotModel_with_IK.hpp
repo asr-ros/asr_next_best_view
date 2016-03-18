@@ -36,8 +36,7 @@ namespace next_best_view {
 		float mOmegaPan;
 		float mOmegaTilt;
 		float mOmegaRot;
-		float mOmegaBase;
-		float mOmegaUseBase;
+        float mOmegaBase;
         float mViewPointDistance;
 		float tolerance;
         float mInverseKinematicIterationAccuracy;

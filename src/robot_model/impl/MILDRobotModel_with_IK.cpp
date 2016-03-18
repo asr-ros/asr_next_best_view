@@ -38,12 +38,11 @@ namespace next_best_view {
         ros::NodeHandle n("nbv_srv");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, mOmegaUseBase_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
+        double mOmegaPan_, mOmegaTilt_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
         bool useGlobalPlanner_, visualizeIK_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
-        n.getParam("mOmegaUseBase", mOmegaUseBase_);
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         n.getParam("panAngleSamplingStepsPerIteration", panAngleSamplingStepsPerIteration_);
@@ -70,13 +69,11 @@ namespace next_best_view {
         }
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
-        mOmegaUseBase = mOmegaUseBase_;
         tolerance = tolerance_;
         mPanAngleSamplingStepsPerIteration = panAngleSamplingStepsPerIteration_;
         mViewPointDistance = (ncp_ + fcp_)/2.0;
         mInverseKinematicIterationAccuracy = inverseKinematicIterationAccuracy_;
         mVisualizeIK = visualizeIK_;
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaUseBase: " << mOmegaPan, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt, DebugHelper::PARAMETERS);
