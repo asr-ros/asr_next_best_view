@@ -700,6 +700,10 @@ public:
         mCurrentlyPublishingVisualization = false;
     }
 
+    NextBestViewCalculator& getCalculator() {
+        return mCalculator;
+    }
+
     void getIndicesOutsideFrustum(const ViewportPoint &viewport, Indices &resultIndices) {
         IndicesPtr activeIndices = mCalculator.getActiveIndices();
         IndicesPtr childIndices = viewport.child_indices;

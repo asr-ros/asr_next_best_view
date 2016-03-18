@@ -48,6 +48,15 @@ namespace next_best_view {
         virtual bool setBestScoreContainer(const ViewportPoint &currentViewport,
                                             ViewportPoint &candidateViewport) = 0;
 
+        /*!
+         * \brief sets the score container for one filtered camera viewport
+         * \param currentViewport [in] the current camera viewport
+         * \param candidateViewport [in,out] the filtered candidate camera viewport
+         * \return whether the rating is feasible or not
+         */
+        virtual bool setSingleScoreContainer(const ViewportPoint &currentViewport,
+                                        ViewportPoint &candidateViewport) = 0;
+
 		/*!
 		 * \return a shared pointer containing an empty rating object.
 		 */
