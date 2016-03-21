@@ -5,6 +5,8 @@
 	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
 	<node pkg="next_best_view" type="next_best_view_parameters_test" name="nbv" output="screen">
 
+		<param name="output_path" value="$(find next_best_view)/rsc/" />
+	
 		<rosparam file="$(find next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
           	<rosparam file="$(find next_best_view)/rsc/VisualizationConfig.yaml"/>
 		<rosparam file="$(find next_best_view)/rsc/TopicsConfig.yaml"/>

@@ -24,11 +24,12 @@ private:
     ros::NodeHandle mGlobalNodeHandle;
     NextBestView NBV;
 
-    // TODO parameter
-    const std::string PATH = "/home/SMBAD/trautman/TestData/";
+    std::string mOutputPath;
 
 public:
     ParametersTest() : BaseTest(), mNodeHandle("~") {
+        mNodeHandle.param("output_path", mOutputPath, std::string(""));
+        ROS_INFO_STREAM("output_path: " << mOutputPath);
     }
 
     virtual ~ParametersTest() {}
@@ -97,7 +98,7 @@ public:
 
         MapHelper mapHelper;
 
-        ofstream outputFile(PATH + "testPointCloudOneTypeSize.dat");
+        ofstream outputFile(mOutputPath + "testPointCloudOneTypeSize.dat");
         if(outputFile.is_open()) {
             outputFile << "#Robot stands between the point clouds with distance parameter " << distance << "\n",
             outputFile << "#Size of the cloud with 2 object types\t\tSize of the cloud with 1 object type when it is first chosen \n";
@@ -288,7 +289,7 @@ public:
 
         MapHelper mapHelper;
 
-        ofstream outputFile(PATH + "testPointCloudTwoTypesSize.dat");
+        ofstream outputFile(mOutputPath + "testPointCloudTwoTypesSize.dat");
         if(outputFile.is_open()) {
             outputFile << "#Robot stands between the point clouds with distance parameter " << distance << "\n",
             outputFile << "#Size of the cloud with 1 object type\tSize of the cloud with 2 object types when it is first chosen \n";
@@ -433,7 +434,7 @@ public:
         world_model::EmptyViewportList empty;
         ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
 
-        ofstream outputFile(PATH + "testSideObject.dat");
+        ofstream outputFile(mOutputPath + "testSideObject.dat");
         if(outputFile.is_open()) {
             outputFile << "#Objekt steht zuerst gegenüber vom Roboter und wird dann seitlich verschoben \n",
             outputFile << "#Verschiebung des Objekts\tVeränderung Pan\t\tVeränderung Rotation\tVeränderung x\tVeränderung y \n";
