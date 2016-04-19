@@ -371,6 +371,11 @@ public:
             ROS_ERROR_STREAM("triggerCropBoxVisualization::mCropBoxMarkerArrayPtr is empty.");
             return;
         }
+
+        std::vector<double> CropBoxMarkerRGBA;
+        mNodeHandle.getParam("/nbv/CropBoxMarker_RGBA", CropBoxMarkerRGBA);
+        SimpleVector4 color = TypeHelper::getSimpleVector4(CropBoxMarkerRGBA);
+
         int id = 0;
         for(std::vector<CropBoxPtr>::const_iterator it = cropBoxListPtr.begin(); it != cropBoxListPtr.end(); ++it)
         {
@@ -394,9 +399,6 @@ public:
 
             SimpleVector3 position_map_frame;
             position_map_frame = rotationMatrix * position_cb_frame + translation;
-
-            //TODO : IN PARAM EXTERN STORE
-            SimpleVector4 color = SimpleVector4(1,1,0,0.3);
 
             SimpleQuaternion orientation(rotationMatrix);
 

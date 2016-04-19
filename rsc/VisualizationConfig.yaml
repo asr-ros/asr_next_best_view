@@ -11,3 +11,4 @@ ColumnPositionMarker_Width: 0.02
 ViewPortDirections_RGBA: [1, 0, 0.5, 1]
 ViewPortDirections_Scales: [0.05, 0.005, 0.005]
 boolClearBetweenIterations: true
+CropBoxMarker_RGBA: [1, 1, 0, 0.3]
