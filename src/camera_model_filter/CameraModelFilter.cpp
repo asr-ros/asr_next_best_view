@@ -13,13 +13,13 @@ namespace next_best_view {
 
 	CameraModelFilter::~CameraModelFilter() { }
 
-    void CameraModelFilter::setRecognizerCosts(float recognizerCosts, std::string objectName)
+    void CameraModelFilter::setRecognizerCosts(float recognizerCosts, std::string objectType)
     {
         this->recognizerCosts = recognizerCosts;
     }
 
 
-	float CameraModelFilter::getRecognizerCosts(std::string objectName) {
+    float CameraModelFilter::getRecognizerCosts(std::string objectType) {
         return recognizerCosts;
 	}
 

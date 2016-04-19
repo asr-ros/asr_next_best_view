@@ -61,7 +61,7 @@ namespace next_best_view {
         ObjectPointCloudPtr point_cloud;
         // indices of the object points in the viewport
         IndicesPtr child_indices;
-		ObjectNameSetPtr object_type_name_set;
+        ObjectTypeSetPtr object_type_set;
         DefaultScoreContainerPtr score;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -135,7 +135,7 @@ namespace next_best_view {
                         level);
             // viewport object types
             std::string types = "";
-            for (ObjectNameSet::iterator objectIter = object_type_name_set->begin(); objectIter != object_type_name_set->end(); objectIter++) {
+            for (ObjectTypeSet::iterator objectIter = object_type_set->begin(); objectIter != object_type_set->end(); objectIter++) {
                 if (types.size() > 0) {
                     types += ", ";
                 }
@@ -160,31 +160,31 @@ namespace next_best_view {
 
         /*!
          * \brief filters all the objects in this viewport with one of the given types and puts them in a new viewport.
-         * \param objectNameSetPtr [in] the object type names that shall be put in the new viewport
+         * \param objectTypeSetPtr [in] the object type names that shall be put in the new viewport
          * \param viewportPoint [out] the new viewport only containing the objects with the given types
          * \return whether the result is valid
          */
-        bool filterObjectNames(const ObjectNameSetPtr &objectNameSetPtr, ViewportPoint &viewportPoint) {
-            IndicesPtr objectNameIndicesPtr(new Indices());
+        bool filterObjectTypes(const ObjectTypeSetPtr &objectTypeSetPtr, ViewportPoint &viewportPoint) {
+            IndicesPtr objectTypeIndicesPtr(new Indices());
             BOOST_FOREACH(std::size_t index, *(this->child_indices)) {
                 ObjectPoint &point = point_cloud->at(index);
 
-                // check if object type is in ObjectNameSet
-                ObjectNameSet::iterator iter = std::find(objectNameSetPtr->begin(), objectNameSetPtr->end(), point.type);
-                if (iter != objectNameSetPtr->end()) {
-                    objectNameIndicesPtr->push_back(index);
+                // check if object type is in objectTypeSet
+                ObjectTypeSet::iterator iter = std::find(objectTypeSetPtr->begin(), objectTypeSetPtr->end(), point.type);
+                if (iter != objectTypeSetPtr->end()) {
+                    objectTypeIndicesPtr->push_back(index);
                 }
             }
 
-            if (objectNameIndicesPtr->size() == 0) {
+            if (objectTypeIndicesPtr->size() == 0) {
                 return false;
             }
 
             viewportPoint = ViewportPoint(this->getPosition(), this->getSimpleQuaternion());
-            viewportPoint.child_indices = objectNameIndicesPtr;
+            viewportPoint.child_indices = objectTypeIndicesPtr;
             viewportPoint.child_point_cloud = this->child_point_cloud;
             viewportPoint.point_cloud = this->point_cloud;
-            viewportPoint.object_type_name_set = objectNameSetPtr;
+            viewportPoint.object_type_set = objectTypeSetPtr;
 
             return true;
         }

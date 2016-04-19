@@ -444,7 +444,7 @@ public:
         std::string elementType;
         if (!this->getParameter("side_objects/element_type", elementType))
             return;
-        ObjectNameSetPtr typeSet = ObjectNameSetPtr(new ObjectNameSet);
+        ObjectTypeSetPtr typeSet = ObjectTypeSetPtr(new ObjectTypeSet);
         typeSet->insert(elementType);
 
         int cloudSize;
@@ -594,7 +594,7 @@ public:
             ViewportPoint viewport;
             nbvCalc.doFrustumCulling(pos, q, nbvCalc.getActiveIndices(), viewport);
 
-            viewport.object_type_name_set = typeSet;
+            viewport.object_type_set = typeSet;
 
             ROS_INFO_STREAM("Original state: pan " << robotStatePtr->pan << " tilt " << robotStatePtr->tilt
                                         << " rotation " << robotStatePtr->rotation

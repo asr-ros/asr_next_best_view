@@ -85,15 +85,15 @@ namespace next_best_view {
 
         /*!
 		 * \param recognizerCosts the costs of the recognition of the object
-		 * \param objectName the object to recognize.
+         * \param objectType the object to recognize.
 		 */
-		virtual void setRecognizerCosts(float recognizerCosts, std::string objectName);
+        virtual void setRecognizerCosts(float recognizerCosts, std::string objectType);
 		
 		/*!
-		 * \param objectName the object to recognize.
+         * \param objectType the object to recognize.
 		 * \returns the costs of the recognition of the object
 		 */
-		virtual float getRecognizerCosts(std::string objectName);
+        virtual float getRecognizerCosts(std::string objectType);
 
 		/*!
 		 * \return if the parameters changed

@@ -43,16 +43,16 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     this->resetCache();
 
     // get the power set of the object name set
-    ObjectNameSetPtr objectNameSetPtr = candidateViewport.object_type_name_set;
-    ObjectNamePowerSetPtr powerSetPtr = MathHelper::powerSet<ObjectNameSet> (objectNameSetPtr);
+    ObjectTypeSetPtr objectTypeSetPtr = candidateViewport.object_type_set;
+    ObjectTypePowerSetPtr powerSetPtr = MathHelper::powerSet<ObjectTypeSet> (objectTypeSetPtr);
 
     //Create list of all viewports
     ViewportPointCloudPtr viewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
     // do the filtering for each combination of object types
-    for (ObjectNamePowerSet::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
+    for (ObjectTypePowerSet::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
         ViewportPoint viewport;
-        if (!candidateViewport.filterObjectNames(*subSetIter, viewport)) {
+        if (!candidateViewport.filterObjectTypes(*subSetIter, viewport)) {
             continue;
         }
 
@@ -270,7 +270,7 @@ double DefaultRatingModule::getUtility(const ViewportPoint &candidateViewport) {
     double utility = 0.0;
 
     // get the utility for each object type and sum them up
-    BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_name_set)) {
+    BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
         // set the utility for the object type if not already done
         if (mObjectUtilities.count(objectType) == 0) {
             setObjectUtilities(candidateViewport, objectType);
@@ -349,8 +349,8 @@ double DefaultRatingModule::getInverseRecognitionCosts(const ViewportPoint &targ
 
     // get the costs for the recoginition of each object type
     Precision recognitionCosts = 0;
-    BOOST_FOREACH(std::string objectName, *(targetViewport.object_type_name_set)) {
-        recognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectName);
+    BOOST_FOREACH(std::string objectType, *(targetViewport.object_type_set)) {
+        recognitionCosts += mCameraModelFilterPtr->getRecognizerCosts(objectType);
     }
     double normalizedRecognitionCosts = 1.0 - recognitionCosts / mMaxRecognitionCosts;
 

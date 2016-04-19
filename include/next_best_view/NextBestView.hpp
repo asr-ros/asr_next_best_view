@@ -503,8 +503,8 @@ public:
         BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
         {
             ViewportPoint viewportConversionPoint(point.pose);
-            viewportConversionPoint.object_type_name_set = boost::shared_ptr<ObjectNameSet>(new ObjectNameSet());
-            viewportConversionPoint.object_type_name_set->insert(point.type);
+            viewportConversionPoint.object_type_set = boost::shared_ptr<ObjectTypeSet>(new ObjectTypeSet());
+            viewportConversionPoint.object_type_set->insert(point.type);
             viewportPointList.push_back(viewportConversionPoint);
         }
 
@@ -545,8 +545,8 @@ public:
         response.resulting_pose = resultingViewport.getPose();
 
         // copying the objects to be searched for into a list
-        response.object_type_name_list = ObjectNameList(resultingViewport.object_type_name_set->size());
-        std::copy(resultingViewport.object_type_name_set->begin(), resultingViewport.object_type_name_set->end(), response.object_type_name_list.begin());
+        response.object_type_name_list = ObjectTypeList(resultingViewport.object_type_set->size());
+        std::copy(resultingViewport.object_type_set->begin(), resultingViewport.object_type_set->end(), response.object_type_name_list.begin());
 
         //Reconstruct robot configuration for next best camera viewport (once known when estimating its costs) for outpout purposes.
         // TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
@@ -582,8 +582,8 @@ public:
         //Save next best view in world model to present points within it to be considered in future next best view estimation runs.
         world_model::PushViewport pushViewportServiceCall;
         pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
-        BOOST_FOREACH(std::string objectName, *resultingViewport.object_type_name_set) {
-            pushViewportServiceCall.request.viewport.type = objectName;
+        BOOST_FOREACH(std::string objectType, *resultingViewport.object_type_set) {
+            pushViewportServiceCall.request.viewport.type = objectType;
             mPushViewportServiceClient.call(pushViewportServiceCall);
         }
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);

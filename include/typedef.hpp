@@ -101,13 +101,13 @@ namespace next_best_view {
 	typedef boost::shared_ptr<Indices> IndicesPtr;
 	typedef boost::shared_ptr<const IndicesPtr> IndicesConstPtr;
 
-	// the list of object names
-	typedef std::vector<std::string> ObjectNameList;
-	typedef boost::shared_ptr<ObjectNameList> ObjectNameListPtr;
-	typedef std::set<std::string> ObjectNameSet;
-	typedef boost::shared_ptr<ObjectNameSet> ObjectNameSetPtr;
-	typedef std::set<ObjectNameSetPtr> ObjectNamePowerSet;
-	typedef boost::shared_ptr<ObjectNamePowerSet> ObjectNamePowerSetPtr;
+    // the list of object types
+    typedef std::vector<std::string> ObjectTypeList;
+    typedef boost::shared_ptr<ObjectTypeList> ObjectTypeListPtr;
+    typedef std::set<std::string> ObjectTypeSet;
+    typedef boost::shared_ptr<ObjectTypeSet> ObjectTypeSetPtr;
+    typedef std::set<ObjectTypeSetPtr> ObjectTypePowerSet;
+    typedef boost::shared_ptr<ObjectTypePowerSet> ObjectTypePowerSetPtr;
 
 }
 

@@ -48,7 +48,7 @@ private:
     RatingModulePtr mRatingModulePtr;
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
     float mEpsilon;
-    ObjectNameSetPtr mObjectNameSetPtr;
+    ObjectTypeSetPtr mObjectTypeSetPtr;
     DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
     std::vector<CropBoxPtr> mCropBoxPtrList;
@@ -299,7 +299,7 @@ public:
         viewportPoint.child_indices = frustumIndicesPtr;
         viewportPoint.child_point_cloud = mCameraModelFilterPtr->getInputCloud();
         viewportPoint.point_cloud = mPointCloudPtr;
-        viewportPoint.object_type_name_set = mObjectNameSetPtr;
+        viewportPoint.object_type_set = mObjectTypeSetPtr;
 
         return true;
     }
@@ -314,7 +314,7 @@ public:
             }
 
             ViewportPoint resultingViewportPoint;
-            if (!culledViewportPoint.filterObjectNames(viewportPoint.object_type_name_set, resultingViewportPoint)) {
+            if (!culledViewportPoint.filterObjectTypes(viewportPoint.object_type_set, resultingViewportPoint)) {
                 mDebugHelperPtr->write(std::stringstream() << "Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getPosition(),
                                 DebugHelper::CALCULATION);
                 continue;
@@ -322,7 +322,7 @@ public:
 
             mDebugHelperPtr->write(std::stringstream() << "Viewpoint TAKEN: " << resultingViewportPoint.getPosition(),
                                 DebugHelper::CALCULATION);
-            for (std::set<std::string>::iterator it=resultingViewportPoint.object_type_name_set->begin(); it!=resultingViewportPoint.object_type_name_set->end(); ++it)
+            for (std::set<std::string>::iterator it=resultingViewportPoint.object_type_set->begin(); it!=resultingViewportPoint.object_type_set->end(); ++it)
             {
                 mDebugHelperPtr->write(std::stringstream() << "Object: " << *it, DebugHelper::CALCULATION);
             }
@@ -358,7 +358,7 @@ public:
         ObjectHelper objectHelper;
 
         // empty object name set
-        mObjectNameSetPtr = ObjectNameSetPtr(new ObjectNameSet);
+        mObjectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet);
 
         // put each element into the point cloud
         BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
@@ -370,8 +370,8 @@ public:
             pointCloudPoint.type = element.type;
 
             // add type name to list if not already inserted
-            if (mObjectNameSetPtr->find(element.type) == mObjectNameSetPtr->end())
-                mObjectNameSetPtr->insert(element.type);
+            if (mObjectTypeSetPtr->find(element.type) == mObjectTypeSetPtr->end())
+                mObjectTypeSetPtr->insert(element.type);
 
             // Get the rotation matrix to translate the normal vectors of the object.
             SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
@@ -474,11 +474,11 @@ public:
     /**
          * Returns the path to a meshs resource file
          */
-    std::string getMeshPathByName(std::string objectName)
+    std::string getMeshPathByName(std::string objectType)
     {
-        if(this->objectsResources.find(objectName) != this->objectsResources.end())
+        if(this->objectsResources.find(objectType) != this->objectsResources.end())
         {
-            return this->objectsResources[objectName];
+            return this->objectsResources[objectType];
         }
         else
         {
