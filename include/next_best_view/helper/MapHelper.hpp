@@ -121,7 +121,7 @@ namespace next_best_view {
             std::string costmapPath = path + "/costmap.pgm";
             mDebugHelperPtr->write("Outputting calculated costmap to " + costmapPath,
                         DebugHelper::MAP);
-            //mCostmap.saveMap(costmapPath);
+            mCostmap.saveMap(costmapPath);
         }
 
         void aggregateRaytracingMap() {
