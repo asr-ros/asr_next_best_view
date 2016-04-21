@@ -564,12 +564,12 @@ public:
         response.robot_state = robotStateMsg;
 
         // set utility and inverse cost terms in rating for the given next best view.
-        response.utility = resultingViewport.score->getUtility();
-        response.inverse_costs = resultingViewport.score->getInverseCosts();
-        response.base_translation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseTranslation();
-        response.base_rotation_inverse_costs = resultingViewport.score->getInverseMovementCostsBaseRotation();
-        response.ptu_movement_inverse_costs = resultingViewport.score->getInverseMovementCostsPTU();
-        response.recognition_inverse_costs = resultingViewport.score->getInverseRecognitionCosts();
+        response.utility = resultingViewport.score->getWeightedNormalizedUtility();
+        response.inverse_costs = resultingViewport.score->getWeightedInverseCosts();
+        response.base_translation_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsBaseTranslation();
+        response.base_rotation_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsBaseRotation();
+        response.ptu_movement_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsPTU();
+        response.recognition_inverse_costs = resultingViewport.score->getUnweightedInverseRecognitionCosts();
 
         mCurrentCameraViewport = resultingViewport;
 

@@ -8,6 +8,7 @@
 #ifndef DEFAULTSCORECONTAINER_HPP_
 #define DEFAULTSCORECONTAINER_HPP_
 
+#include <map>
 #include "next_best_view/rating/BaseScoreContainer.hpp"
 
 namespace next_best_view {
@@ -21,10 +22,13 @@ namespace next_best_view {
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
 
-        float mInverseMovementCostsBaseTranslation;
-        float mInverseMovementCostsBaseRotation;
-        float mInverseMovementCostsPTU;
-        float mInverseRecognitionCosts;
+        float mMovementCostsBaseTranslation;
+        float mMovementCostsBaseRotation;
+        float mMovementCostsPTU;
+        float mRecognitionCosts;
+        // the utility for each object type
+        std::map<std::string, float> mObjectUtilities;
+        float mUtilityNormalization;
 
 	public:
 
@@ -42,64 +46,101 @@ namespace next_best_view {
          * \brief sets the inverse movement costs for the base translation
          * \param value the inverse movement costs for the base translation
          */
-        void setInverseMovementCostsBaseTranslation(float value) {
-            mInverseMovementCostsBaseTranslation = value;
+        void setUnweightedInverseMovementCostsBaseTranslation(float value) {
+            mMovementCostsBaseTranslation = value;
         }
 
         /*!
          * \brief returns the inverse movement costs for the base translation
          * \return the inverse movement costs for the base translation
          */
-        float getInverseMovementCostsBaseTranslation() {
-            return mInverseMovementCostsBaseTranslation;
+        float getUnweightedInverseMovementCostsBaseTranslation() {
+            return mMovementCostsBaseTranslation;
         }
 
         /*!
          * \brief sets the inverse movement costs for the base rotation
          * \param value the inverse movement costs for the base rotation
          */
-        void setInverseMovementCostsBaseRotation(float value) {
-            mInverseMovementCostsBaseRotation = value;
+        void setUnweightedInverseMovementCostsBaseRotation(float value) {
+            mMovementCostsBaseRotation = value;
         }
 
         /*!
          * \brief returns the inverse movement costs for the base rotation
          * \return the movement inverse costs for the base rotation
          */
-        float getInverseMovementCostsBaseRotation() {
-            return mInverseMovementCostsBaseRotation;
+        float getUnweightedInverseMovementCostsBaseRotation() {
+            return mMovementCostsBaseRotation;
         }
 
         /*!
          * \brief sets the inverse costs for the PTU movement
          * \param value the inverse costs for the PTU movement
          */
-        void setInverseMovementCostsPTU(float value) {
-            mInverseMovementCostsPTU = value;
+        void setUnweightedInverseMovementCostsPTU(float value) {
+            mMovementCostsPTU = value;
         }
 
         /*!
          * \brief returns the inverse costs for the PTU movement
          * \return the inverse costs for the PTU movement
          */
-        float getInverseMovementCostsPTU() {
-            return mInverseMovementCostsPTU;
+        float getUnweightedInverseMovementCostsPTU() {
+            return mMovementCostsPTU;
         }
 
         /*!
          * \brief sets the inverse costs for the recognition of the objects
          * \param value the inverse costs for the recognition of the objects
          */
-        void setInverseRecognitionCosts(float value) {
-            mInverseRecognitionCosts = value;
+        void setUnweightedInverseRecognitionCosts(float value) {
+            mRecognitionCosts = value;
         }
 
         /*!
          * \brief returns the inverse costs for the recognition of the objects
          * \return the inverse costs for the recognition of the objects
          */
-        float getInverseRecognitionCosts() {
-            return mInverseRecognitionCosts;
+        float getUnweightedInverseRecognitionCosts() {
+            return mRecognitionCosts;
+        }
+
+        /*!
+         * \brief sets the utilitiy for an object type
+         * \param objectType the object type
+         * \param value the utility
+         */
+        void setUnweightedNormalizedObjectUtilitiy(std::string objectType, float value) {
+            mObjectUtilities[objectType] = value;
+        }
+
+        /*!
+         * \brief returns the utility for a given object type
+         * \param objectType the object type
+         * \return the utility
+         */
+        float getUnweightedNormalizedObjectUtility(std::string objectType) {
+            if (mObjectUtilities.count(objectType) == 0) {
+                return 0;
+            }
+            return mObjectUtilities[objectType];
+        }
+
+        /*!
+         * \brief sets the utility normalization
+         * \param value the utility normalization
+         */
+        void setUtilityNormalization(float value) {
+            mUtilityNormalization = value;
+        }
+
+        /*!
+         * \brief returns the utility normalization
+         * \return the utility normalization
+         */
+        float getUtilityNormalization() {
+            return mUtilityNormalization;
         }
 	};
 

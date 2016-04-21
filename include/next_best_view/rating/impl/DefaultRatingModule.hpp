@@ -52,17 +52,17 @@ namespace next_best_view {
          * must be reset everytime setBaseScoreContainer is called
          */
         // the utility for each object type
-        std::map<std::string, float> mObjectUtilities;
+        std::map<std::string, float> mUnweightedNormalizedObjectUtilities;
         // the full costs of the movement - does not contain the costs of the recognition
-        double mInverseMovementCosts = -1;
+        double mWeightedInverseMovementCosts = -1;
         // the costs of the translational movement of the base
-        Precision mInverseMovementCostsBaseTranslation = -1;
+        Precision mUnweightedInverseMovementCostsBaseTranslation = -1;
         // the costs of the rotational movement of the base
-        Precision mInverseMovementCostsBaseRotation = -1;
+        Precision mUnweightedInverseMovementCostsBaseRotation = -1;
         // the costs of the PTU movement
-        Precision mInverseMovementCostsPTU = -1;
+        Precision mUnweightedInverseMovementCostsPTU = -1;
         // the costs of the recognition of the objects
-        double mInverseRecognitionCosts = -1;
+        double mUnweightedInverseRecognitionCosts = -1;
         // the normalization value for the rating
         double mRatingNormalization = -1;
         // the PTU omega parameter
@@ -174,14 +174,14 @@ namespace next_best_view {
          * \param candidateViewport the candidate camera viewport
          * \return the utility
          */
-        double getUtility(const ViewportPoint &candidateViewport);
+        double getWeightedNormalizedUtility(const ViewportPoint &candidateViewport);
 
         /*!
          * \brief sets the mObjectUtilities member.
          * \param candidateViewport the candidate camera viewport
          * \param objectType the object type for which the utility shall be set
          */
-        void setObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType);
+        void setUnweightedNormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType);
 
         /*!
          * \brief returns the inverse costs for the movement from the source to the target viewport
@@ -190,14 +190,14 @@ namespace next_best_view {
          * \param targetViewport the target viewport
          * \return the inverse movement and recognition costs
          */
-        double getInverseCosts(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
+        double getWeightedInverseCosts(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
 
         /*!
          * \brief returns the inverse recognition costs for the objects in the target viewport
          * \param targetViewport the target viewport
          * \return the normalized inverse recognition costs
          */
-        double getInverseRecognitionCosts(const ViewportPoint &targetViewport);
+        double getUnweightedInverseRecognitionCosts(const ViewportPoint &targetViewport);
 
         /*!
          * \brief sets the robot state and the mTargetState member.
@@ -216,7 +216,7 @@ namespace next_best_view {
         /*!
          * \brief sets the mMovementCosts member
          */
-        void setInverseMovementCosts();
+        void setWeightedInverseMovementCosts();
 
         /*!
          * \brief sets the mCostsNormalization member

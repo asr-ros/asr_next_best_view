@@ -10,6 +10,7 @@
 
 #define PCL_NO_PRECOMPILE
 #include "typedef.hpp"
+#include <boost/foreach.hpp>
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include <geometry_msgs/Pose.h>
 #include <string>
@@ -143,14 +144,23 @@ namespace next_best_view {
             }
             mDebugHelperPtr->write(std::stringstream() << "Viewport object types: " << types, level);
             // viewport utility and costs
-            mDebugHelperPtr->write(std::stringstream() << "Viewport utility: " << score->getUtility()
-                                    << " inverse costs: " << score->getInverseCosts(),
+            mDebugHelperPtr->write(std::stringstream() << "Viewport weighted normalized utility: " << score->getWeightedNormalizedUtility()
+                                    << " weighted inverse costs: " << score->getWeightedInverseCosts(),
                         level);
-            mDebugHelperPtr->write(std::stringstream() << "Viewport inverse costs base translation: " << score->getInverseMovementCostsBaseTranslation()
-                                    << " inverse costs base rotation: " << score->getInverseMovementCostsBaseRotation(),
+
+            BOOST_FOREACH(std::string objectType, *object_type_set) {
+                mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted normalized utility for " << objectType << ": "
+                                    << score->getUnweightedNormalizedObjectUtility(objectType),
                         level);
-            mDebugHelperPtr->write(std::stringstream() << "Viewport inverse costs PTU movement: " << score->getInverseMovementCostsPTU()
-                                   << " inverse costs recognition: " << score->getInverseRecognitionCosts(),
+            }
+
+            mDebugHelperPtr->write(std::stringstream() << "Viewport utility normalization: " << score->getUtilityNormalization(),
+                        level);
+            mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted inverse costs base translation: " << score->getUnweightedInverseMovementCostsBaseTranslation()
+                                    << " unweighted inverse costs base rotation: " << score->getUnweightedInverseMovementCostsBaseRotation(),
+                        level);
+            mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted inverse costs PTU movement: " << score->getUnweightedInverseMovementCostsPTU()
+                                   << " unweighted inverse costs recognition: " << score->getUnweightedInverseRecognitionCosts(),
                         level);
             // viewport rating
             mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating,

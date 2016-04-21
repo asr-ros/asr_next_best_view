@@ -209,7 +209,7 @@ float DefaultRatingModule::getRating(const BaseScoreContainerPtr &a) {
         ROS_ERROR("Omega parameters were not set correctly");
     }
 
-    float result = (a->getUtility() + a->getInverseCosts()) / mRatingNormalization;
+    float result = (a->getWeightedNormalizedUtility() + a->getWeightedInverseCosts()) / mRatingNormalization;
 
     return result;
 }
@@ -219,22 +219,28 @@ bool DefaultRatingModule::setSingleScoreContainer(const ViewportPoint &currentVi
     DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
 
     // set the utility
-    float utility = this->getUtility(candidateViewport);
+    float utility = this->getWeightedNormalizedUtility(candidateViewport);
 
     if (utility <= 0) {
         return false;
     }
 
-    defRatingPtr->setUtility(utility);
+    defRatingPtr->setWeightedNormalizedUtility(utility);
+
+    BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
+        defRatingPtr->setUnweightedNormalizedObjectUtilitiy(objectType, mUnweightedNormalizedObjectUtilities[objectType]);
+    }
+
+    defRatingPtr->setUtilityNormalization(this->getInputCloud()->size());
 
     // set the costs
-    double costs = this->getInverseCosts(currentViewport, candidateViewport);
-    defRatingPtr->setInverseCosts(costs);
+    double costs = this->getWeightedInverseCosts(currentViewport, candidateViewport);
+    defRatingPtr->setWeightedInverseCosts(costs);
 
-    defRatingPtr->setInverseMovementCostsBaseTranslation(mInverseMovementCostsBaseTranslation);
-    defRatingPtr->setInverseMovementCostsBaseRotation(mInverseMovementCostsBaseRotation);
-    defRatingPtr->setInverseMovementCostsPTU(mInverseMovementCostsPTU);
-    defRatingPtr->setInverseRecognitionCosts(mInverseRecognitionCosts);
+    defRatingPtr->setUnweightedInverseMovementCostsBaseTranslation(mUnweightedInverseMovementCostsBaseTranslation);
+    defRatingPtr->setUnweightedInverseMovementCostsBaseRotation(mUnweightedInverseMovementCostsBaseRotation);
+    defRatingPtr->setUnweightedInverseMovementCostsPTU(mUnweightedInverseMovementCostsPTU);
+    defRatingPtr->setUnweightedInverseRecognitionCosts(mUnweightedInverseRecognitionCosts);
 
     candidateViewport.score = defRatingPtr;
     return true;
@@ -266,23 +272,23 @@ float DefaultRatingModule::getNormalizedRating(float deviation, float threshold)
     return 0.0;
 }
 
-double DefaultRatingModule::getUtility(const ViewportPoint &candidateViewport) {
+double DefaultRatingModule::getWeightedNormalizedUtility(const ViewportPoint &candidateViewport) {
     double utility = 0.0;
 
     // get the utility for each object type and sum them up
     BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
         // set the utility for the object type if not already done
-        if (mObjectUtilities.count(objectType) == 0) {
-            setObjectUtilities(candidateViewport, objectType);
+        if (mUnweightedNormalizedObjectUtilities.count(objectType) == 0) {
+            setUnweightedNormalizedObjectUtilities(candidateViewport, objectType);
         }
 
-        utility += mObjectUtilities[objectType];
+        utility += mUnweightedNormalizedObjectUtilities[objectType];
     }
 
     return mOmegaUtility * utility;
 }
 
-void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {
+void DefaultRatingModule::setUnweightedNormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {
     double maxElements = this->getInputCloud()->size();
     float utility = 0;
 
@@ -310,10 +316,10 @@ void DefaultRatingModule::setObjectUtilities(const ViewportPoint &candidateViewp
     utility /= maxElements;
 
     // cache the utility and the orientation and position utilities
-    mObjectUtilities[objectType] = utility;
+    mUnweightedNormalizedObjectUtilities[objectType] = utility;
 }
 
-double DefaultRatingModule::getInverseCosts(const ViewportPoint &sourceViewport,
+double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceViewport,
                                             const ViewportPoint &targetViewport) {
     // set the cache members needed for the costs if not already done
     if (!mTargetState) {
@@ -324,8 +330,8 @@ double DefaultRatingModule::getInverseCosts(const ViewportPoint &sourceViewport,
         this->setOmegaPTU();
     }
 
-    if (mInverseMovementCosts < 0) {
-        this->setInverseMovementCosts();
+    if (mWeightedInverseMovementCosts < 0) {
+        this->setWeightedInverseMovementCosts();
     }
 
     if (mInputCloudChanged) {
@@ -333,15 +339,15 @@ double DefaultRatingModule::getInverseCosts(const ViewportPoint &sourceViewport,
     }
 
     // get the costs for the recoginition of the objects
-    mInverseRecognitionCosts = this->getInverseRecognitionCosts(targetViewport);
+    mUnweightedInverseRecognitionCosts = this->getUnweightedInverseRecognitionCosts(targetViewport);
 
     // calculate the full movement costs
-    double fullCosts = mInverseMovementCosts + mInverseRecognitionCosts * mOmegaRecognition;
+    double fullCosts = mWeightedInverseMovementCosts + mUnweightedInverseRecognitionCosts * mOmegaRecognition;
 
     return fullCosts;
 }
 
-double DefaultRatingModule::getInverseRecognitionCosts(const ViewportPoint &targetViewport) {
+double DefaultRatingModule::getUnweightedInverseRecognitionCosts(const ViewportPoint &targetViewport) {
     // avoid dividing by 0
     if (mMaxRecognitionCosts == 0) {
         throw "Maximum recognition costs are 0.";
@@ -381,21 +387,21 @@ void DefaultRatingModule::setOmegaPTU() {
     }
 }
 
-void DefaultRatingModule::setInverseMovementCosts() {
+void DefaultRatingModule::setWeightedInverseMovementCosts() {
     // get the different movement costs
-    mInverseMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
-    mInverseMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
+    mUnweightedInverseMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
+    mUnweightedInverseMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
 
     if (mOmegaPTU == mOmegaPan) {
-        mInverseMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+        mUnweightedInverseMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
     }
     else {
-        mInverseMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+        mUnweightedInverseMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
     }
 
     // set the movement costs
-    mInverseMovementCosts = mInverseMovementCostsBaseTranslation * mOmegaBase + mInverseMovementCostsPTU * mOmegaPTU
-            + mInverseMovementCostsBaseRotation * mOmegaRot;
+    mWeightedInverseMovementCosts = mUnweightedInverseMovementCostsBaseTranslation * mOmegaBase + mUnweightedInverseMovementCostsPTU * mOmegaPTU
+            + mUnweightedInverseMovementCostsBaseRotation * mOmegaRot;
 }
 
 void DefaultRatingModule::setRatingNormalization() {
@@ -421,12 +427,12 @@ void DefaultRatingModule::setMaxRecognitionCosts() {
 }
 
 void DefaultRatingModule::resetCache() {
-    mObjectUtilities.clear();
-    mInverseMovementCosts = -1;
-    mInverseMovementCostsBaseTranslation = -1;
-    mInverseMovementCostsBaseRotation = -1;
-    mInverseMovementCostsPTU = -1;
-    mInverseRecognitionCosts = -1;
+    mUnweightedNormalizedObjectUtilities.clear();
+    mWeightedInverseMovementCosts = -1;
+    mUnweightedInverseMovementCostsBaseTranslation = -1;
+    mUnweightedInverseMovementCostsBaseRotation = -1;
+    mUnweightedInverseMovementCostsPTU = -1;
+    mUnweightedInverseRecognitionCosts = -1;
     mOmegaPTU = -1;
     mTargetState = NULL;
 }

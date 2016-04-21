@@ -24,19 +24,19 @@ namespace next_best_view {
 		float mUtility;
         float mInverseCosts;
 	public:
-		void setUtility(float value) {
+        void setWeightedNormalizedUtility(float value) {
 			mUtility = value;
 		}
 
-		float getUtility() {
+        float getWeightedNormalizedUtility() {
 			return mUtility;
 		}
 
-        void setInverseCosts(float value) {
+        void setWeightedInverseCosts(float value) {
             mInverseCosts = value;
 		}
 
-        float getInverseCosts() {
+        float getWeightedInverseCosts() {
             return mInverseCosts;
 		}
 	public:
