@@ -79,7 +79,6 @@ namespace next_best_view {
          double viewTriangleZPlane_sideA;
          double viewTriangleZPlane_sideB;
          double viewTriangleXYPlane_sideC;
-         double viewTriangleXYPlane_AngleAlpha;
          unsigned int mPanAngleSamplingStepsPerIteration;
          unsigned int mIKVisualizationLastMarkerCount = 0;
          double mTiltAngleOffset;
@@ -122,6 +121,10 @@ namespace next_best_view {
           * Trys to calculate parameters needed for the inverse kinematic using tf transformations
           */
          bool setUpTFParameters();
+         /*!
+          * Helper: Calculates the acos of the value. If value is not within [-1, 1], clamps the value accordingly
+          */
+         double acosClamped(double value);
          /*!
           * Calculates the rotation angle of the base from its pose frame
           */

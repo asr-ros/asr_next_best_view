@@ -83,11 +83,11 @@ public:
         //Initialize robot model
         MILDRobotModelWithIK *myRobotModel = new MILDRobotModelWithIK();
         MILDRobotModelWithIKPtr myRobotModelPtr(myRobotModel);
-        MILDRobotState * startState = new MILDRobotState(0,0,0,-1.59984135628,-0.908775866032);
+        MILDRobotState * startState = new MILDRobotState(0,0,-1.57,0.013948535919,-1.60322499275);
         MILDRobotStatePtr startStatePtr(startState);
 
-        myRobotModelPtr->setPanAngleLimits(-80, 80);
-        myRobotModelPtr->setTiltAngleLimits(-90, 90);
+        myRobotModelPtr->setPanAngleLimits(-180, 180);
+        myRobotModelPtr->setTiltAngleLimits(-180, 180);
         ROS_INFO_STREAM("Running test...");
         ros::spinOnce();
         for (unsigned int i = 0; i < targetCameraPositions.size(); i++)
@@ -95,7 +95,9 @@ public:
             ROS_INFO_STREAM("Testpose " << (i+1));
             SimpleVector3 currentPosition = targetCameraPositions[i];
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
-            //RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            ROS_INFO_STREAM("Calculating inverse kinematics...");
+            RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            ROS_INFO_STREAM("Calculating camera pose correction...");
             PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
             ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig) << ", tilt = " << std::get<1>(ptuConfig));
             ros::spinOnce();

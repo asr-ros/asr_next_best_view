@@ -171,8 +171,6 @@ namespace next_best_view {
         return distanceToLastPoint < 0.01f;
     }
 
-
-
     PTUConfig MILDRobotModelWithIK::calculateCameraPoseCorrection(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
@@ -211,7 +209,7 @@ namespace next_best_view {
         Eigen::Vector3d panJointXAxis(panJointEigen(0,0), panJointEigen(1,0), panJointEigen(2,0));
         Eigen::Vector3d panJointYAxis(panJointEigen(0,1), panJointEigen(1,1), panJointEigen(2,1));
         panJointXAxis.normalize();
-        panJointXAxis.normalize();
+        panJointYAxis.normalize();
         panJointToCenterPointProjected.normalize();
         double panAngle = acos(panJointToCenterPointProjected.dot(panJointXAxis));
         // Flip sign if target is left of robot
@@ -219,8 +217,7 @@ namespace next_best_view {
         {
             panAngle *= -1;
         }
-        panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;// - viewTriangleXYPlane_AngleAlpha;
-        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
+        panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB);
         ROS_DEBUG_STREAM("viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC);
@@ -363,7 +360,7 @@ namespace next_best_view {
             ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI));
             tilt = tiltMax;
         }
-        mDebugHelperPtr->write(std::stringstream() << "Tilt: " << tilt*(180.0/M_PI),
+        mDebugHelperPtr->write(std::stringstream() << "Tilt: " << tilt*(180.0/M_PI) << " deg",
                     DebugHelper::ROBOT_MODEL);
 
         Eigen::Vector3d tilt_base_point = tilt_base_point_projected + x_product*planeNormal;
@@ -381,7 +378,7 @@ namespace next_best_view {
 
         //Calculate PAN and base rotation
         double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
-        mDebugHelperPtr->write(std::stringstream() << "Pan: " << pan*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "Pan: " << pan*(180.0/M_PI) << " deg", DebugHelper::ROBOT_MODEL);
 
         Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d base_Frame = pan_Frame * panToBaseEigen;
@@ -414,11 +411,11 @@ namespace next_best_view {
 		// set x, y
         targetMILDRobotState->x = base_Frame(0,3);
         targetMILDRobotState->y = base_Frame(1,3);
-        mDebugHelperPtr->write(std::stringstream() << "Target state: (Pan: " << targetMILDRobotState->pan
-                                << ", Tilt: " << targetMILDRobotState->tilt
-                                << ", Rotation " << targetMILDRobotState->rotation
-                                << ", X:" << targetMILDRobotState->x
-                                << ", Y:" << targetMILDRobotState->y << ")",
+        mDebugHelperPtr->write(std::stringstream() << "Target state: (Pan: " << targetMILDRobotState->pan << " rad"
+                                << ", Tilt: " << targetMILDRobotState->tilt << " rad"
+                                << ", Rotation " << targetMILDRobotState->rotation << " rad"
+                                << ", X: " << targetMILDRobotState->x << " m"
+                                << ", Y: " << targetMILDRobotState->y << " m)",
                     DebugHelper::ROBOT_MODEL);
 
 
@@ -574,8 +571,8 @@ namespace next_best_view {
     bool MILDRobotModelWithIK::setUpTFParameters()
     {
         //Get Parameters from TF-Publishers
-        tf::StampedTransform tiltToCameraTF, panToTiltTF, baseToPanTF, tiltAxisPointTF,cameraLeftPointTF;
-        Eigen::Affine3d tiltAxisPointEigen, cameraLeftPointEigen;
+        tf::StampedTransform panToTiltTF, baseToPanTF, tiltAxisPointTF,cameraLeftPointTF, cameraRightPointTF;
+        Eigen::Affine3d tiltAxisPointEigen, cameraLeftPointEigen, cameraRightPointEigen, cameraMidPointEigen;
         ROS_INFO_STREAM("Looking up tf transforms");
         try
         {      
@@ -585,7 +582,7 @@ namespace next_best_view {
                 //Assume that tf is alive and lookups will be successful
                 listener->lookupTransform("/map", "/ptu_tilt_link", ros::Time(0), tiltAxisPointTF);
                 listener->lookupTransform("/map", "/camera_left_frame", ros::Time(0), cameraLeftPointTF);
-                listener->lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCameraTF);
+                listener->lookupTransform("/map", "/camera_right_frame", ros::Time(0), cameraRightPointTF);
                 listener->lookupTransform("/ptu_pan_link", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
                 listener->lookupTransform("/base_link", "/ptu_pan_link", ros::Time(0), baseToPanTF);
             }
@@ -600,23 +597,31 @@ namespace next_best_view {
             ROS_ERROR("An error occured during tf-lookup: %s",ex.what());
             return false;
         }
-        tf::poseTFToEigen(tiltToCameraTF, tiltToCameraEigen);
         tf::poseTFToEigen(panToTiltTF, panToTiltEigen);
         tf::poseTFToEigen(baseToPanTF, baseToPanEigen);
         tf::poseTFToEigen(tiltAxisPointTF, tiltAxisPointEigen);
         tf::poseTFToEigen(cameraLeftPointTF, cameraLeftPointEigen);
+        tf::poseTFToEigen(cameraRightPointTF, cameraRightPointEigen);
+
+        //Hacky-ish approach to get the center point between left and right camera
+        cameraMidPointEigen = cameraLeftPointEigen;
+        cameraMidPointEigen(0,3) = (cameraLeftPointEigen(0,3) + cameraRightPointEigen(0,3)) / 2.0;
+        cameraMidPointEigen(1,3) = (cameraLeftPointEigen(1,3) + cameraRightPointEigen(1,3)) / 2.0;
+        cameraMidPointEigen(2,3) = (cameraLeftPointEigen(2,3) + cameraRightPointEigen(2,3)) / 2.0;
+        tiltToCameraEigen = tiltAxisPointEigen.inverse() * cameraMidPointEigen;
+
         tiltToPanEigen = panToTiltEigen.inverse();
         panToBaseEigen = baseToPanEigen.inverse();
         h_tilt = tiltAxisPointEigen.matrix()(2,3);
         ROS_INFO_STREAM("Height above ground: " << h_tilt);
 
-        Eigen::Vector3d cam_axis_x(cameraLeftPointEigen(0,0), cameraLeftPointEigen(1,0), cameraLeftPointEigen(2,0));
-        Eigen::Vector3d cam_axis_y(cameraLeftPointEigen(0,1), cameraLeftPointEigen(1,1), cameraLeftPointEigen(2,1));
-        Eigen::Vector3d cam_axis_z(cameraLeftPointEigen(0,2), cameraLeftPointEigen(1,2), cameraLeftPointEigen(2,2));
+        Eigen::Vector3d cam_axis_x(cameraMidPointEigen(0,0), cameraMidPointEigen(1,0), cameraMidPointEigen(2,0));
+        Eigen::Vector3d cam_axis_y(cameraMidPointEigen(0,1), cameraMidPointEigen(1,1), cameraMidPointEigen(2,1));
+        Eigen::Vector3d cam_axis_z(cameraMidPointEigen(0,2), cameraMidPointEigen(1,2), cameraMidPointEigen(2,2));
         cam_axis_x.normalize();
         cam_axis_y.normalize();
         cam_axis_z.normalize();
-        Eigen::Vector3d tilt_to_cam(tiltAxisPointEigen(0,3)-cameraLeftPointEigen(0,3), tiltAxisPointEigen(1,3)-cameraLeftPointEigen(1,3), tiltAxisPointEigen(2,3)-cameraLeftPointEigen(2,3));
+        Eigen::Vector3d tilt_to_cam(tiltAxisPointEigen(0,3)-cameraMidPointEigen(0,3), tiltAxisPointEigen(1,3)-cameraMidPointEigen(1,3), tiltAxisPointEigen(2,3)-cameraMidPointEigen(2,3));
         x_product = cam_axis_x.dot(tilt_to_cam);
         tilt_to_cam -= x_product*cam_axis_x;
         viewTriangleZPlane_sideB = tilt_to_cam.norm();
@@ -637,7 +642,6 @@ namespace next_best_view {
         panToCameraNormal = panToCameraNormal - cam_axis_x_pan_coordinates * panToCameraNormal.dot(cam_axis_x_pan_coordinates) - cam_axis_z_pan_coordinates * panToCameraNormal.dot(cam_axis_z_pan_coordinates);
         viewTriangleXYPlane_sideC = panToCameraNormal.norm();
         panToCameraNormal.normalize();
-        viewTriangleXYPlane_AngleAlpha = acos(panToCameraNormal.dot(Eigen::Vector3d::UnitX()));
         mPanAngleOffset = acos(panToCameraNormal.dot(Eigen::Vector3d::UnitX()));
 
         ROS_INFO_STREAM("viewTriangleZPlane_angleAlpha: " << viewTriangleZPlane_angleAlpha);
@@ -645,7 +649,6 @@ namespace next_best_view {
         ROS_INFO_STREAM("viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA);
         ROS_INFO_STREAM("viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB);
         ROS_INFO_STREAM("viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC);
-        ROS_INFO_STREAM("viewTriangleXYPlane_AngleAlpha: " << viewTriangleXYPlane_AngleAlpha);
         ROS_INFO_STREAM("mTiltAngleOffset: " << mTiltAngleOffset);
         ROS_INFO_STREAM("mPanAngleOffset: " << mPanAngleOffset);
         ROS_INFO_STREAM("TF lookup successful.");
