@@ -574,20 +574,19 @@ namespace next_best_view {
     bool MILDRobotModelWithIK::setUpTFParameters()
     {
         //Get Parameters from TF-Publishers
-        tf::StampedTransform panToTiltTF, baseToPanTF, tiltAxisPointTF,cameraLeftPointTF, cameraRightPointTF;
-        Eigen::Affine3d tiltAxisPointEigen, cameraLeftPointEigen, cameraRightPointEigen, cameraMidPointEigen;
+        tf::StampedTransform panToTiltTF, baseToPanTF, tiltToCamLeftTF, tiltToCamRightTF;
+        Eigen::Affine3d tiltAxisPointEigen, tiltToCamLeftEigen, tiltToCamRightEigen, cameraLeftPointEigen, cameraRightPointEigen, cameraMidPointEigen;
         ROS_INFO_STREAM("Looking up tf transforms");
         try
         {      
             //Wait for first transform to be published
-            if (listener->waitForTransform("/map", "/ptu_tilted_link", ros::Time(), ros::Duration(4.0)))
+            if (listener->waitForTransform("/map", "/ptu_mount_link", ros::Time(), ros::Duration(4.0)))
             {
                 //Assume that tf is alive and lookups will be successful
-                listener->lookupTransform("/map", "/ptu_tilt_link", ros::Time(0), tiltAxisPointTF);
-                listener->lookupTransform("/map", "/camera_left_frame", ros::Time(0), cameraLeftPointTF);
-                listener->lookupTransform("/map", "/camera_right_frame", ros::Time(0), cameraRightPointTF);
                 listener->lookupTransform("/ptu_pan_link", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
                 listener->lookupTransform("/base_link", "/ptu_pan_link", ros::Time(0), baseToPanTF);
+                listener->lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCamLeftTF);
+                listener->lookupTransform("/ptu_tilted_link", "/camera_right_frame", ros::Time(0), tiltToCamRightTF);
             }
             else
             {
@@ -602,9 +601,13 @@ namespace next_best_view {
         }
         tf::poseTFToEigen(panToTiltTF, panToTiltEigen);
         tf::poseTFToEigen(baseToPanTF, baseToPanEigen);
-        tf::poseTFToEigen(tiltAxisPointTF, tiltAxisPointEigen);
-        tf::poseTFToEigen(cameraLeftPointTF, cameraLeftPointEigen);
-        tf::poseTFToEigen(cameraRightPointTF, cameraRightPointEigen);
+        tf::poseTFToEigen(tiltToCamLeftTF, tiltToCamLeftEigen);
+        tf::poseTFToEigen(tiltToCamRightTF, tiltToCamRightEigen);
+
+
+        tiltAxisPointEigen = baseToPanEigen * panToTiltEigen;
+        cameraLeftPointEigen = tiltAxisPointEigen * tiltToCamLeftEigen;
+        cameraRightPointEigen = tiltAxisPointEigen * tiltToCamRightEigen;
 
         //Hacky-ish approach to get the center point between left and right camera
         cameraMidPointEigen = cameraLeftPointEigen;
