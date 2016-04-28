@@ -164,15 +164,15 @@ namespace next_best_view {
 		double currentPhi = sourceMILDRobotState->pan;
 		double currentRho = sourceMILDRobotState->rotation;
 
-        mDebugHelperPtr->write(std::stringstream() << "Source state: (Pan: " << sourceMILDRobotState->pan
+        mDebugHelperPtr->write(std::stringstream() << "Source robot state: (Pan: " << sourceMILDRobotState->pan
                                 << ", Tilt: " << sourceMILDRobotState->tilt
                                 << ", Rotation " << sourceMILDRobotState->rotation
                                 << ", X:" << sourceMILDRobotState->x
                                 << ", Y:" << sourceMILDRobotState->y << ")",
                     DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "Target Position: " << position[0] << ", " << position[1] << ", " << position[2],
+        mDebugHelperPtr->write(std::stringstream() << "Target View Position: " << position[0] << ", " << position[1] << ", " << position[2],
                     DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "Target Orientation: " << orientation.w() << ", " << orientation.x() << ", " << orientation.y()<< ", " << orientation.z(),
+        mDebugHelperPtr->write(std::stringstream() << "Target View Orientation: " << orientation.w() << ", " << orientation.x() << ", " << orientation.y()<< ", " << orientation.z(),
                     DebugHelper::ROBOT_MODEL);
 
 		double alpha = sphereCoords[2] - currentPhi - currentRho;
