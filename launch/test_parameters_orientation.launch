@@ -23,34 +23,14 @@
 		<param name="configurable_point_clouds/elements_2" value="10"/>
 		<rosparam param="configurable_point_clouds/position_deviation_1">[0.1, 0.1, 0.1]</rosparam>
 		<rosparam param="configurable_point_clouds/position_deviation_2">[0.1, 0.1, 0.1]</rosparam>
-		<param name="configurable_point_clouds/orientation_deviation_1" value="10"/>
-		<param name="configurable_point_clouds/orientation_deviation_2" value="20"/>
+		<param name="configurable_point_clouds/orientation_deviation_1" value="30"/>
+		<param name="configurable_point_clouds/orientation_deviation_2" value="10"/>
 		<rosparam param="configurable_point_clouds/CeylonTea_orientation">[-90.0 , 90.0, 0.0]</rosparam>
 		<rosparam param="configurable_point_clouds/CoffeeFilters2_orientation">[-90.0 , 90.0, 0.0]</rosparam>
 		
 		<param name="point_cloud_one_type_size/test" value="false"/>
-		<param name="point_cloud_one_type_size/step_size" value="1"/>
-		<param name="point_cloud_one_type_size/iterations" value="5"/>
-		<param name="point_cloud_one_type_size/distance" value="0.5"/>
-		<rosparam param="point_cloud_one_type_size/CeylonTea_orientation">[-90.0 , 90.0, 0.0]</rosparam>
-		<rosparam param="point_cloud_one_type_size/CoffeeFilters2_orientation">[-90.0 , 90.0, 0.0]</rosparam>
-		<rosparam param="point_cloud_one_type_size/element_deviation">[0.1, 0.1, 0.1]</rosparam>
-
 		<param name="point_cloud_two_types_size/test" value="false"/>
-		<param name="point_cloud_two_types_size/step_size" value="1"/>
-                <param name="point_cloud_two_types_size/iterations" value="5"/>
-		<param name="point_cloud_two_types_size/distance" value="0.5"/>
-		<rosparam param="point_cloud_two_types_size/CeylonTea_orientation">[-90.0 , 90.0, 0.0]</rosparam>
-                <rosparam param="point_cloud_two_types_size/CoffeeFilters2_orientation">[-90.0 , 90.0, 0.0]</rosparam>
-		<rosparam param="point_cloud_two_types_size/element_deviation">[0.1, 0.1, 0.1]</rosparam>
-
 		<param name="side_objects/test" value="false"/>
-		<rosparam param="side_objects/initial_pose">[24.268 , 9.612 , 1.32 , 0.0 , 0.0 , 0.478 , 0.878]</rosparam>
-		<rosparam param="side_objects/element_orientation">[-90.0 , 90.0 , 0.0]</rosparam>
-		<rosparam param="side_objects/element_deviation">[0.0, 0.0, 0.0]</rosparam>
-		<param name="side_objects/element_type" value="CeylonTea"/>
-		<param name="side_objects/cloud_size" value="1"/>
-		<param name="side_objects/step_size" value="5"/>
-		<param name="side_objects/step_number" value="10"/>
 	</node>
 </launch>
+ 
