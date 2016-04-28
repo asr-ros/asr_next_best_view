@@ -16,7 +16,7 @@
                 <param name="mMapsImagePath" value="$(find next_best_view)/rsc"/>
 
 		<param name="configurable_point_clouds/test" value="true"/>
-		<param name="configurable_point_clouds/distance" value="0.1"/>
+		<param name="configurable_point_clouds/distance" value="0.5"/>
 		<rosparam param="configurable_point_clouds/object_types_1">[CeylonTea]</rosparam>
 		<rosparam param="configurable_point_clouds/object_types_2">[CoffeeFilters2]</rosparam>
 		<param name="configurable_point_clouds/elements_1" value="2"/>
