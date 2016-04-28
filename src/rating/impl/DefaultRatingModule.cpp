@@ -168,7 +168,7 @@ float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, co
 
     // determine the distance of the object to the mid of the frustum
     float distanceToMid = abs(projection-(mFcp+mNcp)/2.0);
-    float distanceThreshold = (mFcp-mNcp)/2.0;
+    float distanceThreshold = abs((mFcp-mNcp)/2.0);
 
     float utility = this->getNormalizedRating(distanceToMid, distanceThreshold);
 
@@ -182,7 +182,7 @@ float DefaultRatingModule::getFrustumPositionUtility(const ViewportPoint &viewpo
     SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
     SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
 
-    float angleMin = (float) MathHelper::degToRad(std::min(mFovV,mFovH));
+    float angleMin = (float) MathHelper::degToRad(std::min(mFovV,mFovH))/2.0;
     SimpleVector3 objectPosition = objectPoint.getPosition();
     SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
     SimpleVector3 objectToCameraVectorNormalized = objectToCameraVector.normalized();
