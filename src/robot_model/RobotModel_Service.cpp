@@ -109,7 +109,7 @@ bool calculateCameraPoseCorrection(CalculateCameraPoseCorrection::Request &req, 
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "getMovementCosts");
-    ros::NodeHandle n;
+    ros::NodeHandle n = ros::NodeHandle(ros::this_node::getName());
     ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getBase_TranslationalMovementCosts);
     ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
