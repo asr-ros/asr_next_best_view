@@ -299,12 +299,12 @@ target_link_libraries(
 )
 
 add_executable(
-        ${PROJECT_NAME}_robotmodel_service
+        ${PROJECT_NAME}_robot_model
         src/robot_model/RobotModel_Service.cpp
 )
 
 target_link_libraries(
-        ${PROJECT_NAME}_robotmodel_service
+        ${PROJECT_NAME}_robot_model
         ${PCL_LIBRARIES}
         ${PROJECT_NAME}_packages_impl
         glpk
