@@ -20,11 +20,13 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <tf/transform_datatypes.h>
 
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/SetAttributedPointCloud.h"
+#include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
@@ -50,8 +52,9 @@ typedef boost::shared_ptr<MoveBaseClient> MoveBaseClientPtr;
 class BaseTest {
 protected:
     ros::NodeHandle mNodeHandle;
-    MoveBaseClientPtr mMoveBaseClient;
     ros::Publisher mInitPosePub;
+    MoveBaseClientPtr mMoveBaseClient;
+    ros::ServiceClient mSetInitRobotStateClient;
 public:
     BaseTest();
 
@@ -64,6 +67,10 @@ public:
     void visualizeSingleObjectWithNormals();
 
     void setInitialPose(const geometry_msgs::Pose &initialPose);
+
+    virtual void setInitialRobotState(const geometry_msgs::Pose &initialPose);
+
+    MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
 
     void moveToPose(const geometry_msgs::Pose &pose);
 

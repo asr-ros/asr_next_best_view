@@ -13,6 +13,7 @@ using namespace next_best_view;
     BaseTest::BaseTest() {
         mInitPosePub = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
         mMoveBaseClient = MoveBaseClientPtr(new MoveBaseClient("move_base", true));
+        mSetInitRobotStateClient = mNodeHandle.serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
     }
 
     BaseTest::~BaseTest() {}
@@ -145,6 +146,34 @@ using namespace next_best_view;
         pose.pose.pose = initialPose;
 
         mInitPosePub.publish(pose);
+
+        this->setInitialRobotState(initialPose);
+    }
+
+    void BaseTest::setInitialRobotState(const geometry_msgs::Pose &initialPose) {
+        MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
+
+        SetInitRobotState sirb;
+        sirb.request.robotState.pan = statePtr->pan;
+        sirb.request.robotState.tilt = statePtr->tilt;
+        sirb.request.robotState.rotation = statePtr->rotation;
+        sirb.request.robotState.x = statePtr->x;
+        sirb.request.robotState.y = statePtr->y;
+
+        if (!mSetInitRobotStateClient.call(sirb)) {
+            ROS_ERROR("Failed to call service SetInitRobotState.");
+        }
+    }
+
+    MILDRobotStatePtr BaseTest::getRobotState(const geometry_msgs::Pose &initialPose) {
+        tf::Quaternion q(initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z, initialPose.orientation.w);
+        tf::Matrix3x3 m(q);
+        double yaw, pitch, roll;
+        m.getRPY(roll, pitch, yaw);
+
+        MILDRobotStatePtr statePtr(new MILDRobotState(0, 0, yaw, initialPose.position.x, initialPose.position.y));
+
+        return statePtr;
     }
 
     void BaseTest::moveToPose(const geometry_msgs::Pose &pose) {

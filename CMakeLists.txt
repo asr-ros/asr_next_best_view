@@ -46,6 +46,7 @@ add_service_files(
    GetPointCloud2.srv
    GetAttributedPointCloud.srv
    SetAttributedPointCloud.srv
+   SetInitRobotState.srv
    GetSpaceSampling.srv
    UpdatePointCloud.srv
    GetMovementCosts.srv

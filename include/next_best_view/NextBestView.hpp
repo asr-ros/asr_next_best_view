@@ -29,7 +29,6 @@
 #include <sensor_msgs/PointField.h>
 #include <set>
 #include <std_srvs/Empty.h>
-#include <tf/transform_listener.h>
 #include <world_model/GetViewportList.h>
 #include <world_model/PushViewport.h>
 #include <std_msgs/ColorRGBA.h>
@@ -43,6 +42,7 @@
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/GetSpaceSampling.h"
 #include "next_best_view/SetAttributedPointCloud.h"
+#include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/helper/MapHelper.hpp"
@@ -96,6 +96,7 @@ private:
     ros::ServiceServer mGetPointCloud2ServiceServer;
     ros::ServiceServer mGetPointCloudServiceServer;
     ros::ServiceServer mSetPointCloudServiceServer;
+    ros::ServiceServer mSetInitRobotStateServiceServer;
     ros::ServiceServer mGetNextBestViewServiceServer;
     ros::ServiceServer mGetSpaceSamplingServiceServer;
     ros::ServiceServer mUpdatePointCloudServiceServer;
@@ -136,6 +137,7 @@ public:
         mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
         mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
         mSetPointCloudServiceServer = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
+        mSetInitRobotStateServiceServer = mNodeHandle.advertiseService("set_init_robot_state", &NextBestView::processSetInitRobotStateServiceCall, this);
         mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
         mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
         mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
@@ -483,17 +485,6 @@ public:
             return true;
         }
 
-        mCurrentCameraViewport = ViewportPoint(request.pose);
-        mCalculator.getCameraModelFilter()->setOrientation(mCurrentCameraViewport.getSimpleQuaternion());
-        mCalculator.getCameraModelFilter()->setPivotPointPosition(mCurrentCameraViewport.getPosition());
-
-        MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
-        currentRobotStatePtr->pan = 0;
-        currentRobotStatePtr->tilt = 0;
-        currentRobotStatePtr->rotation = 0;
-        currentRobotStatePtr->x = mCurrentCameraViewport.x;
-        currentRobotStatePtr->y = mCurrentCameraViewport.y;
-        mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
         // Let's get the viewports and update the point cloud.
         world_model::GetViewportList getViewportListServiceCall;
         mGetViewportListServiceClient.call(getViewportListServiceCall);
@@ -514,10 +505,29 @@ public:
         response.is_empty = false;
 
         // publish the visualization
-        this->publishVisualization(request.pose, false);
+        this->publishPointCloudVisualization();
         mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
 
+    }
+
+    bool processSetInitRobotStateServiceCall(SetInitRobotState::Request &request, SetInitRobotState::Response &response) {
+        mDebugHelperPtr->writeNoticeably("STARTING NBV SET-INIT-ROBOT-STATE SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
+        currentRobotStatePtr->pan = request.robotState.pan;
+        currentRobotStatePtr->tilt = request.robotState.tilt;
+        currentRobotStatePtr->rotation = request.robotState.rotation;
+        currentRobotStatePtr->x = request.robotState.x;
+        currentRobotStatePtr->y = request.robotState.y;
+
+        ROS_INFO_STREAM("Initial pose: pan " << currentRobotStatePtr->pan << ", tilt " << currentRobotStatePtr->tilt
+                            << ", rotation " << currentRobotStatePtr->rotation << ", x " << currentRobotStatePtr->x << ", y " << currentRobotStatePtr->y);
+
+        mCalculator.getRobotModel()->setCurrentRobotState(currentRobotStatePtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING NBV SET-INIT-ROBOT-STATE SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        return true;
     }
 
     //COMMENT?
@@ -659,7 +669,7 @@ public:
      * \param publishFrustum whether the frustum should be published
      */
     void publishVisualization(ViewportPoint viewport, bool publishFrustum) {
-        mDebugHelperPtr->write("Publishing Visualization", DebugHelper::VISUALIZATION);
+        mDebugHelperPtr->write("Publishing Visualization with viewport", DebugHelper::VISUALIZATION);
         mDebugHelperPtr->write(std::stringstream() << "Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0]
                                         << " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
                                         << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2],
@@ -698,6 +708,19 @@ public:
             mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
         }
         mCurrentlyPublishingVisualization = false;
+    }
+
+    void publishPointCloudVisualization() {
+        mDebugHelperPtr->write("Publishing Visualization without viewport", DebugHelper::VISUALIZATION);
+
+        if (mVisualizationSettings.point_cloud)
+        {
+            // publish object point cloud
+            ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
+            std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
+
+            mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+        }
     }
 
     NextBestViewCalculator& getCalculator() {

@@ -158,7 +158,6 @@ public:
 //        initialPose.orientation.z = -0.86;
 
         this->setInitialPose(initialPose);
-        apc.request.pose = initialPose;
 
         GetNextBestView getNBV;
 
@@ -302,7 +301,6 @@ public:
             initialPose.orientation.z = -0.86;
 
             this->setInitialPose(initialPose);
-            apc.request.pose = initialPose;
 
             GetNextBestView getNBV;
 
@@ -492,7 +490,6 @@ public:
             initialPose.orientation.z = -0.86;
 
             this->setInitialPose(initialPose);
-            apc.request.pose = initialPose;
 
             GetNextBestView getNBV;
 
@@ -650,8 +647,6 @@ public:
             SimpleQuaternion orientation(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
             MILDRobotStatePtr robotStatePtr(new MILDRobotState());
             robotStatePtr = boost::static_pointer_cast<MILDRobotState>(robot.calculateRobotState(robotStatePtr, position, orientation));
-
-            apc.request.pose = initialPose;
 
             ROS_INFO_STREAM("Set point cloud consisting of one object type with " << cloudSize << " occurances.");
 
@@ -827,6 +822,19 @@ public:
         element.pose = pose;
 
         return element;
+    }
+
+    void setInitialRobotState(const geometry_msgs::Pose &initialPose) {
+        MILDRobotStatePtr state = this->getRobotState(initialPose);
+
+        SetInitRobotState sirb;
+        sirb.request.robotState.pan = state->pan;
+        sirb.request.robotState.tilt = state->tilt;
+        sirb.request.robotState.rotation = state->rotation;
+        sirb.request.robotState.x = state->x;
+        sirb.request.robotState.y = state->y;
+
+        NBV.processSetInitRobotStateServiceCall(sirb.request, sirb.response);
     }
 
 };
