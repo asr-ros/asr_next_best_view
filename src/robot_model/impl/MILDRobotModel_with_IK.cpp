@@ -35,7 +35,7 @@
 
 namespace next_best_view {
     MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
-        ros::NodeHandle n("nbv_srv");
+        ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
         double mOmegaPan_, mOmegaTilt_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
@@ -344,7 +344,7 @@ namespace next_best_view {
         double tilt; Eigen::Vector3d tilt_base_point_projected;
         if (!getTiltAngleAndTiltBasePointProjected(planeNormal, targetViewVector, target_view_center_point, tilt, tilt_base_point_projected))
         {
-             ROS_ERROR_STREAM("No solution found.");
+             ROS_ERROR_STREAM("No solution found for center point (" << position[0] << ", " << position[1] << ", " << position[2] << ")");
              mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-ROBOT-STATE METHOD", DebugHelper::ROBOT_MODEL);
              return targetMILDRobotState;
         }
