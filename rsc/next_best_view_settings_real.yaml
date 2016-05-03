@@ -24,6 +24,7 @@ panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
+mSigma: 0.5
 radius: 0.2
 sampleSizeUnitSphereSampler: 128
 colThresh: 45

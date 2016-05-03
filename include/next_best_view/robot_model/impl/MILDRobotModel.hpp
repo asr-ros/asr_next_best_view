@@ -36,6 +36,7 @@ namespace next_best_view {
 		float speedFactorBaseMove;
 		float speedFactorBaseRot;
 		float tolerance;
+        float mSigma;
 		bool useGlobalPlanner;
         tf::TransformListener listener;
 

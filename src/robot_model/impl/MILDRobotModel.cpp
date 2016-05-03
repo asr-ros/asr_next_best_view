@@ -30,10 +30,10 @@
 
 namespace next_best_view {
     MILDRobotModel::MILDRobotModel() : RobotModel() {
-        ros::NodeHandle n("nbv_srv");
+        ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mSigma_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
@@ -43,6 +43,7 @@ namespace next_best_view {
         n.getParam("speedFactorBaseRot", speedFactorBaseRot_);
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
+        n.getParam("mSigma", mSigma_);
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
@@ -60,6 +61,7 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaRot: " << mOmegaRot_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "mSigma: " << mSigma_, DebugHelper::PARAMETERS);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
@@ -67,6 +69,7 @@ namespace next_best_view {
         speedFactorBaseMove = speedFactorBaseMove_;
         speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
+        mSigma = mSigma_;
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
@@ -286,9 +289,7 @@ namespace next_best_view {
 
         distance = getDistance(sourcePoint, targetPoint);
 
-        float mu = 0.0;
-        float sigma = 0.5;
-        float movementCosts = std::exp(-pow((distance-mu), 2.0)/(2.0*pow(sigma, 2.0))); // [0, 1]
+        float movementCosts = std::exp(-pow((distance-0.0), 2.0)/(2.0*pow(mSigma, 2.0))); // [0, 1]
         return movementCosts;
     }
 
@@ -300,6 +301,9 @@ namespace next_best_view {
         float panDiff = targetMILDRobotState->pan - sourceMILDRobotState->pan;
 
         float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
+
+        if (panSpan == 0)
+            return 1.0;
 
         float ptuPanCosts = fabs(panDiff)/ panSpan;
 
@@ -313,6 +317,9 @@ namespace next_best_view {
         float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
 
         float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
+
+        if (tiltSpan == 0)
+            return 1.0;
 
         float ptuTiltCosts = fabs(tiltDiff)/ tiltSpan;
 

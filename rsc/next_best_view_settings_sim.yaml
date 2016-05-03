@@ -4,9 +4,6 @@ mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 120 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 120 #Gewichtungsfaktor für die Bewegung der Basis
 mOmegaRecognizer: 6 
-speedFactorPTU: 0.05 #Zeitkosten für Drehung der PTU in Sec/Rad
-speedFactorBaseRot: 0.1 #Zeitkosten für Drehung der Basis in Sec/Rad
-speedFactorBaseMove: 5.0 #Zeitkosten für Bewegung der Basis in Sec/Meter
 speedFactorRecognizer: 3.0 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
@@ -20,13 +17,14 @@ show_frustum_point_cloud: true
 show_frustum_marker_array: true
 useNewIK: false
 visualizeIK: false
-useRaytracing: true #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
+useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
 recognition_time: 6
 panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
+mSigma: 0.5
 radius: 0.1
 sampleSizeUnitSphereSampler: 512
 colThresh: 10
