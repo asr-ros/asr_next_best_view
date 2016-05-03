@@ -331,18 +331,26 @@ namespace next_best_view {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
 
-        float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
+        float rotationCosts;
 
-        geometry_msgs::Point sourcePoint, targetPoint;
-        sourcePoint.x = sourceMILDRobotState->x;
-        sourcePoint.y = sourceMILDRobotState->y;
-        sourcePoint.z = 0;
-        targetPoint.x = targetMILDRobotState->x;
-        targetPoint.y = targetMILDRobotState->y;
-        targetPoint.z = 0;
+        if (fabs(targetMILDRobotState->y - sourceMILDRobotState->y) < 0.00001 && fabs(targetMILDRobotState->x - sourceMILDRobotState->x) < 0.00001) {
+            float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
 
+            rotationCosts = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/ (2.0 * M_PI);
 
-        float rotationCosts = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/M_PI;
+        }
+        else {
+            float angleBetweenPoints = std::atan2(targetMILDRobotState->y - sourceMILDRobotState->y, targetMILDRobotState->x - sourceMILDRobotState->x);
+            if(angleBetweenPoints < 0.0) angleBetweenPoints += 2.0 * M_PI;
+
+            float sourceRotDiff = sourceMILDRobotState->rotation - angleBetweenPoints;
+            float targetRotDiff = targetMILDRobotState->rotation - angleBetweenPoints;
+
+            rotationCosts = std::min(fabs(sourceRotDiff), (float)(2.0f*M_PI-fabs(sourceRotDiff)))
+                                    + std::min(fabs(targetRotDiff), (float)(2.0f*M_PI-fabs(targetRotDiff)));
+            rotationCosts /= 2.0 * M_PI;
+
+        }
         return 1.0 - rotationCosts;
     }
 
