@@ -38,7 +38,7 @@ namespace next_best_view {
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_;
+        double mOmegaPan_, mOmegaTilt_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_, mSigma_;
         int panAngleSamplingStepsPerIteration_;
         bool useGlobalPlanner_, visualizeIK_;
         n.getParam("mOmegaPan", mOmegaPan_);
@@ -50,6 +50,7 @@ namespace next_best_view {
         n.getParam("visualizeIK", visualizeIK_);
         n.getParam("ncp", ncp_);
         n.getParam("fcp", fcp_);
+        n.getParam("mSigma", mSigma_);
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
@@ -73,6 +74,7 @@ namespace next_best_view {
         mPanAngleSamplingStepsPerIteration = panAngleSamplingStepsPerIteration_;
         mViewPointDistance = (ncp_ + fcp_)/2.0;
         mInverseKinematicIterationAccuracy = inverseKinematicIterationAccuracy_;
+        mSigma = mSigma_;
         mVisualizeIK = visualizeIK_;
         mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan, DebugHelper::PARAMETERS);
@@ -80,6 +82,7 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mInverseKinematicIterationAccuracy: " << mInverseKinematicIterationAccuracy, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mViewPointDistance: " << mViewPointDistance, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "mSigma: " << mSigma, DebugHelper::PARAMETERS);
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
@@ -858,9 +861,7 @@ namespace next_best_view {
 
         distance = getDistance(sourcePoint, targetPoint);
 
-        float mu = 0.0;
-        float sigma = 0.5;
-        float movementCosts = std::exp(-pow((distance-mu), 2.0)/(2.0*pow(sigma, 2.0))); // [0, 1]
+        float movementCosts = std::exp(-pow((distance-0.0), 2.0)/(2.0*pow(mSigma, 2.0))); // [0, 1]
         return movementCosts;
     }
 

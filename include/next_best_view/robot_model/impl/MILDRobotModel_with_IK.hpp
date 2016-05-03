@@ -39,6 +39,7 @@ namespace next_best_view {
         float mOmegaBase;
         float mViewPointDistance;
 		float tolerance;
+        float mSigma;
         float mInverseKinematicIterationAccuracy;
 
 		bool useGlobalPlanner;
