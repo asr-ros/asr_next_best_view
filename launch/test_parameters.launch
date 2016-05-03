@@ -3,6 +3,7 @@
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
 	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
+	<include file="$(find next_best_view)/launch/RobotModelServiceSim.launch" />
 	<node pkg="next_best_view" type="next_best_view_parameters_test" name="nbv" output="screen">
 
 		<param name="output_path" value="$(find next_best_view)/rsc/" />

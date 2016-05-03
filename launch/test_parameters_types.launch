@@ -1,8 +1,9 @@
 <launch>
-	<env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" />
+	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" /-->
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
 	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
+	<include file="$(find next_best_view)/launch/RobotModelServiceSim.launch" />
 	<node pkg="next_best_view" type="next_best_view_parameters_test" name="nbv" output="screen">
 
 		<param name="output_path" value="$(find next_best_view)/rsc/" />
@@ -17,8 +18,8 @@
 
 		<param name="configurable_point_clouds/test" value="true"/>
 		<param name="configurable_point_clouds/distance" value="0.5"/>
-		<rosparam param="configurable_point_clouds/object_types_1">[CeylonTea]</rosparam>
-		<rosparam param="configurable_point_clouds/object_types_2">[Smacks, CoffeeFilters2]</rosparam>
+		<rosparam param="configurable_point_clouds/object_types_1">[Smacks, CoffeeFilters2]</rosparam>
+		<rosparam param="configurable_point_clouds/object_types_2">[CeylonTea]</rosparam>
 		<param name="configurable_point_clouds/elements_1" value="2"/>
 		<param name="configurable_point_clouds/elements_2" value="2"/>
 		<rosparam param="configurable_point_clouds/position_deviation_1">[0.0, 0.0, 0.0]</rosparam>
@@ -29,6 +30,7 @@
 		<rosparam param="configurable_point_clouds/CoffeeFilters2_orientation">[-90.0 , 90.0, 0.0]</rosparam>
 		<rosparam param="configurable_point_clouds/Smacks_orientation">[-90.0 , 90.0, 0.0]</rosparam>
 		
+		<param name="positions/test" value="false"/>
 		<param name="point_cloud_one_type_size/test" value="false"/>
 		<param name="point_cloud_two_types_size/test" value="false"/>
 		<param name="side_objects/test" value="false"/>
