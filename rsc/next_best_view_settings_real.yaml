@@ -1,9 +1,9 @@
-mOmegaUtility: 248 #Gewichtungsfaktor für den Nutzen-Faktor 
+mOmegaUtility: 750 #Gewichtungsfaktor für den Nutzen-Faktor 
 mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
-mOmegaRot: 120 #Gewichtungsfaktor für die Rotation der Basis
-mOmegaBase: 120 #Gewichtungsfaktor für die Bewegung der Basis
-mOmegaRecognizer: 6 
+mOmegaRot: 100 #Gewichtungsfaktor für die Rotation der Basis
+mOmegaBase: 100 #Gewichtungsfaktor für die Bewegung der Basis
+mOmegaRecognizer: 50 
 speedFactorRecognizer: 3.0 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
@@ -15,9 +15,9 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
-useNewIK: true
+useNewIK: false
 visualizeIK: false
-useRaytracing: false
+useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
 recognition_time: 6
 panMin: -20
@@ -25,8 +25,8 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 mSigma: 0.5
-radius: 0.2
-sampleSizeUnitSphereSampler: 128
+radius: 0.1
+sampleSizeUnitSphereSampler: 512
 colThresh: 45
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
