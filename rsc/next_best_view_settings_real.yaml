@@ -4,7 +4,7 @@ mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 100 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 100 #Gewichtungsfaktor für die Bewegung der Basis
 mOmegaRecognizer: 50 
-speedFactorRecognizer: 3.0 #Zeitkosten für Objekterkennung in Sec/Objekt
+speedFactorRecognizer: 1.0 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
 fovx: 30
