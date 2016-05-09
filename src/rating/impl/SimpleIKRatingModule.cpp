@@ -14,6 +14,7 @@ namespace next_best_view {
     double SimpleIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
         double absolutAngleChange = fabs(sourceRotationBase - targetRotationBase);
+        absolutAngleChange = fmod(absolutAngleChange, 2.0*M_PI);
         if (absolutAngleChange > M_PI) {absolutAngleChange = 2.0*M_PI - absolutAngleChange;}
         double rating = pow(0.6, absolutAngleChange);
         return rating;
