@@ -184,12 +184,12 @@ target_link_libraries(
 #        ${catkin_LIBRARIES}
 #)
 
-##add_executable(
-#	${PROJECT_NAME}_test
-#	src/test_cases/Test.cpp
+#add_executable(
+#        ${PROJECT_NAME}_test
+#        src/test_cases/Test.cpp
 #)
 
-##add_executable(
+#add_executable(
 #        ${PROJECT_NAME}_performance_test
 #        src/test_cases/PerformanceTest.cpp
 #)
@@ -200,12 +200,7 @@ target_link_libraries(
 #)
 
 
-##add_executable(
-#        ${PROJECT_NAME}_multi_scene_test
-#        src/test_cases/MultiSceneTest.cpp
-#)
-
-##add_executable(
+#add_executable(
 #        ${PROJECT_NAME}_multi_id_scene_test
 #        src/test_cases/MultiIdSceneTest.cpp
 #)
@@ -223,15 +218,15 @@ target_link_libraries(
 #        src/robot_model/impl/MILDRobotState.cpp
 #)
 
-##target_link_libraries(
-#	${PROJECT_NAME}_test
-#	${PROJECT_NAME}_helper
-#	${PROJECT_NAME}_packages
-#	${PROJECT_NAME}_packages_impl
-#	${PROJECT_NAME}_test_core
-#	${PCL_LIBRARIES}
-#	glpk
-#	${catkin_LIBRARIES}
+#target_link_libraries(
+#        ${PROJECT_NAME}_test
+#        ${PROJECT_NAME}_helper
+#        ${PROJECT_NAME}_packages
+#        ${PROJECT_NAME}_packages_impl
+#        ${PROJECT_NAME}_test_core
+#        ${PCL_LIBRARIES}
+#        glpk
+#        ${catkin_LIBRARIES}
 #)
 
 #target_link_libraries(
@@ -245,7 +240,7 @@ target_link_libraries(
 #        ${catkin_LIBRARIES}
 #)
 
-##target_link_libraries(
+#target_link_libraries(
 #        ${PROJECT_NAME}_performance_test
 #        ${PROJECT_NAME}_helper
 #        ${PROJECT_NAME}_packages
@@ -256,18 +251,7 @@ target_link_libraries(
 #        ${catkin_LIBRARIES}
 #)
 
-##target_link_libraries(
-#        ${PROJECT_NAME}_multi_scene_test
-#        ${PROJECT_NAME}_helper
-#        ${PROJECT_NAME}_packages
-#        ${PROJECT_NAME}_packages_impl
-#        ${PROJECT_NAME}_test_core
-#        ${PCL_LIBRARIES}
-#        glpk
-#        ${catkin_LIBRARIES}
-#)
-
-##target_link_libraries(
+#target_link_libraries(
 #        ${PROJECT_NAME}_multi_id_scene_test
 #        ${PROJECT_NAME}_helper
 #        ${PROJECT_NAME}_packages

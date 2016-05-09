@@ -1,6 +1,0 @@
-<launch>
-	<include file="$(find next_best_view)/launch/next_best_view_core_sim.launch" />
-	<include file="$(find world_model)/launch/world_model.launch" />
-	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
-	<node pkg="next_best_view" type="next_best_view_multi_scene_test" name="test" output="screen"/>
-</launch>

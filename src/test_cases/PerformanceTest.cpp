@@ -125,8 +125,6 @@ public:
                     initialPose.orientation.z = -0.265640665651;
                     this->setInitialPose(initialPose);
 
-                    apc.request.pose = initialPose;
-
                     //Resete den calculator vor jedem test
                     resetCalculatorClient.call(reca.request, reca.response);
                     // Setze PointCloud

@@ -31,8 +31,6 @@
 		<rosparam param="configurable_point_clouds/Smacks_orientation">[-90.0 , 90.0, 0.0]</rosparam>
 		
 		<param name="positions/test" value="false"/>
-		<param name="point_cloud_one_type_size/test" value="false"/>
-		<param name="point_cloud_two_types_size/test" value="false"/>
 		<param name="side_objects/test" value="false"/>
 	</node>
 </launch>

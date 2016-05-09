@@ -24,10 +24,8 @@ public:
 	void iterationTest() {
 		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
         ros::ServiceClient getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
-		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/nbv/get_point_cloud2");
 		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
-		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
-		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/nbv/get_space_sampling");
+        ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
 
         GetAttributedPointCloud gpc;
 		SetAttributedPointCloud apc;
@@ -46,10 +44,7 @@ public:
         orientation[1] = euler2Quaternion(-90, 180.0, 0.0);
         orientation[2] = euler2Quaternion(-90, -90.0, 0.0);
         orientation[3] = euler2Quaternion(-90, 0.0, 0.0);
-        /*orientation[0] = SimpleQuaternion(0.658806053033,0.0, 0.0, 0.752312823556);
-        orientation[1] = SimpleQuaternion(0.658806053033, 0.0, 0.0, 0.752312823556);
-        orientation[2] = SimpleQuaternion(0.999847878074, 0.0, 0.0, -0.0174419239707);
-        orientation[3] = SimpleQuaternion(0.695335180664, 0.0, 0.0,-0.718685596441);*/
+
         std::string* types = new std::string[hpSize];
         types[0] = "Knaeckebrot";
         types[1] = "VitalisSchoko";
@@ -106,14 +101,11 @@ public:
         initialPose.orientation.z = 0.695335281472;
 		this->setInitialPose(initialPose);
 
-		apc.request.pose = initialPose;
-
 		// Setze PointCloud
 		setPointCloudClient.call(apc.request, apc.response);
         ros::Rate r(2);
 		GetNextBestView nbv;
 		nbv.request.current_pose = initialPose;
-		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
         bool setPointCloud = false;
 		int x = 1;
 		while(ros::ok()) {

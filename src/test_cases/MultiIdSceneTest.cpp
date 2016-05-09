@@ -115,7 +115,6 @@ public:
         initialPose.orientation.z = 0.744128113166;
         this->setInitialPose(initialPose);
 
-        apc.request.pose = initialPose;
         // Setze PointCloud
         if (!setPointCloudClient.call(apc.request, apc.response)) {
             ROS_ERROR("Could not set initial point cloud.");

@@ -118,7 +118,6 @@ test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 
     boost::shared_ptr<IKTest> testPtr(new IKTest());
 
-    //evaluation->add(BOOST_CLASS_TEST_CASE(&MultiSceneTest::visualizeSingleObjectWithNormals, testPtr));
     evaluation->add(BOOST_CLASS_TEST_CASE(&IKTest::cameraPoseTest, testPtr));
 
     framework::master_test_suite().add(evaluation);

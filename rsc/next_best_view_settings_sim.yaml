@@ -30,7 +30,7 @@ sampleSizeUnitSphereSampler: 512
 colThresh: 10
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
-enableCropBoxFiltering : true
+enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler

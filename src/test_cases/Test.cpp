@@ -87,8 +87,6 @@ public:
 		initialPose.orientation.z = -0.237177;
 		this->setInitialPose(initialPose);
 
-		apc.request.pose = initialPose;
-
 		// Setze PointCloud
 		setPointCloudClient.call(apc.request, apc.response);
 
