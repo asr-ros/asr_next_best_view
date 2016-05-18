@@ -13,10 +13,16 @@ namespace next_best_view {
 
     double SimpleIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
-        double absolutAngleChange = fabs(sourceRotationBase - targetRotationBase);
-        absolutAngleChange = fmod(absolutAngleChange, 2.0*M_PI);
-        if (absolutAngleChange > M_PI) {absolutAngleChange = 2.0*M_PI - absolutAngleChange;}
-        double rating = pow(0.6, absolutAngleChange);
+        float angleBetweenPoints = std::atan2(targetPosition.y - sourcePosition.y, targetPosition.x - sourcePosition.x);
+        angleBetweenPoints = fmod(angleBetweenPoints, 2.0*M_PI);
+
+        float sourceRotDiff = sourceRotationBase - angleBetweenPoints;
+        float targetRotDiff = targetRotationBase - angleBetweenPoints;
+
+        double rotationCosts = std::min(fabs(sourceRotDiff), (float)(2.0f*M_PI-fabs(sourceRotDiff)))
+                                + std::min(fabs(targetRotDiff), (float)(2.0f*M_PI-fabs(targetRotDiff)));
+
+        double rating = pow(0.6, rotationCosts);
         return rating;
     }
 }
