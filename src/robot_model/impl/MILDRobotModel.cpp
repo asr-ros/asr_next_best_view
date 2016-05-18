@@ -29,7 +29,7 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 
 namespace next_best_view {
-    MILDRobotModel::MILDRobotModel() : RobotModel() {
+    MILDRobotModel::MILDRobotModel() : RobotModel(), listener() {
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
@@ -240,7 +240,8 @@ namespace next_best_view {
 			ROS_ERROR("No optimal solution found - inverse kinematics");
 		}
 
-		double cost_value = glp_get_obj_val(lp);
+        //Deprecated?   -   Florian Aumann, 18.05.2016
+        //double cost_value = glp_get_obj_val(lp);
 		double x_pan_plus = glp_get_col_prim(lp, 1);
 		double x_pan_minus = glp_get_col_prim(lp, 2);
 		double x_rot_plus = glp_get_col_prim(lp, 3);
@@ -357,7 +358,7 @@ namespace next_best_view {
     float MILDRobotModel::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
     {
         mDebugHelperPtr->writeNoticeably("STARTING GET-DISTANCE METHOD", DebugHelper::ROBOT_MODEL);
-        double distance, costs;
+        double distance;
         if (useGlobalPlanner) //Use global planner to calculate distance
         {
             nav_msgs::Path path;
@@ -386,7 +387,7 @@ namespace next_best_view {
             }
             else
             {
-                costs = -1;
+                distance = -1;
                 ROS_ERROR("Could not get navigation path..");
             }
         }

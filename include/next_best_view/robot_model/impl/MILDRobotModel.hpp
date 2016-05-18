@@ -17,14 +17,14 @@
 
 namespace next_best_view {
 	/*!
-	 * \brief PTURobotModel implements a model of pan tilt unit robot.
+     * \brief MILDRobotModel implements a model of pan tilt unit robot.
 	 * \author Ralf Schleicher
 	 * \date 2014
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class MILDRobotModel : public RobotModel {
-	private:
+    class MILDRobotModel : public RobotModel {
+    protected:
 
         DebugHelperPtr mDebugHelperPtr;
 
@@ -62,14 +62,14 @@ namespace next_best_view {
 		
 	public:
 		/*!
-		 * \brief constructor of the PTURobotModel
+         * \brief constructor of the MILDRobotModel
 		 */
-		MILDRobotModel();
+        MILDRobotModel();
 
 		/*!
 		 * \brief destructor of the MILDRobotModel
 		 */
-		virtual ~MILDRobotModel();
+        virtual ~MILDRobotModel();
 
         /*!
          * Client used for communication with the global_planner to calculate movement costs
@@ -102,13 +102,6 @@ namespace next_best_view {
 		
 		bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
-		RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
-		
-		/*!
-		 * \brief Uses a given RobotState to calculate the camera frame
-		 */
-		geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
-
 		/*!
 		 * \brief Calculates the movement costs from sourceRobotState to targetRobotState. Returns -1 if pose is not reachable
 		 */
@@ -127,7 +120,17 @@ namespace next_best_view {
         //Returns the current pose of the robots camera from tf
         geometry_msgs::Pose getCameraPose();
 
+        /*!
+         * \brief Uses a given RobotState to calculate the camera frame
+         */
+        virtual RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation) = 0;
+
+        /*!
+         * \brief Uses a given RobotState to calculate the camera frame
+         */
+        geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
+
 	};
 
-	typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;
+    typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;
 }

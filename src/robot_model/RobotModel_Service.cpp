@@ -1,4 +1,4 @@
-#include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/robot_model/RobotState.hpp"
@@ -20,7 +20,7 @@
 
 
 using namespace next_best_view;
-MILDRobotModelWithIKPtr robotModelPtr;
+MILDRobotModelWithExactIKPtr robotModelPtr;
 
 bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
@@ -120,10 +120,10 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
 
     ROS_INFO_STREAM("NBV Service: Using new IK model.");
-    MILDRobotModelWithIK *tempRobotModel = new MILDRobotModelWithIK();
+    MILDRobotModelWithExactIK *tempRobotModel = new MILDRobotModelWithExactIK();
     tempRobotModel->setTiltAngleLimits(-45, 45);
     tempRobotModel->setPanAngleLimits(-60, 60);
-    robotModelPtr = MILDRobotModelWithIKPtr(tempRobotModel);
+    robotModelPtr = MILDRobotModelWithExactIKPtr(tempRobotModel);
 
     ROS_INFO("RobotModel Service started.");
     ros::spin();

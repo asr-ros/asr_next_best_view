@@ -129,7 +129,8 @@ add_library(
         src/rating/impl/SimpleIKRatingModule.cpp
         src/rating/impl/DefaultScoreContainer.cpp
         src/robot_model/impl/MILDRobotModel.cpp
-        src/robot_model/impl/MILDRobotModel_with_IK.cpp
+        src/robot_model/impl/MILDRobotModelWithExactIK.cpp
+        src/robot_model/impl/MILDRobotModelWithApproximatedIK.cpp
         src/robot_model/impl/MILDRobotState.cpp
         src/space_sampler/impl/PlaneSubSpaceSampler.cpp
         src/space_sampler/impl/Raytracing2DBasedSpaceSampler.cpp
@@ -174,7 +175,7 @@ target_link_libraries(
 
 set (BUILD_TEST FALSE) #ToDo: Change Name
 set (BUILD_PARAMETERS_TEST FALSE)
-set (BUILD_IK_TEST FALSE)
+set (BUILD_IK_TEST TRUE)
 set (BUILD_SINGLE_SCENE_TEST FALSE)
 set (BUILD_MULTI_ID_SCENE_TEST FALSE)
 set (BUILD_PERFORMANCE_TEST FALSE)
@@ -282,9 +283,6 @@ MESSAGE (" - IK Test")
 add_executable(
         ${PROJECT_NAME}_ik_test
         src/test_cases/IKTest.cpp
-        src/robot_model/RobotModel.cpp
-        src/robot_model/impl/MILDRobotModel_with_IK.cpp
-        src/robot_model/impl/MILDRobotState.cpp
 )
 
 target_link_libraries(

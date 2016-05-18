@@ -10,7 +10,7 @@
 #include <ros/ros.h>
 #include <ros/node_handle.h>
 
-#include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 
@@ -34,32 +34,18 @@
 #include <visualization_msgs/Marker.h>
 
 namespace next_best_view {
-    MILDRobotModelWithIK::MILDRobotModelWithIK() : RobotModel() {
+    MILDRobotModelWithExactIK::MILDRobotModelWithExactIK() : MILDRobotModel() {
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, tolerance_, inverseKinematicIterationAccuracy_, ncp_, fcp_, mSigma_;
+        double inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
-        bool useGlobalPlanner_, visualizeIK_;
-        n.getParam("mOmegaPan", mOmegaPan_);
-        n.getParam("mOmegaTilt", mOmegaTilt_);
-        n.getParam("tolerance", tolerance_);
-        n.getParam("useGlobalPlanner", useGlobalPlanner_);
+        bool visualizeIK_;
         n.getParam("panAngleSamplingStepsPerIteration", panAngleSamplingStepsPerIteration_);
         n.getParam("inverseKinematicIterationAccuracy", inverseKinematicIterationAccuracy_);
         n.getParam("visualizeIK", visualizeIK_);
         n.getParam("ncp", ncp_);
         n.getParam("fcp", fcp_);
-        n.getParam("mSigma", mSigma_);
-        useGlobalPlanner = useGlobalPlanner_;
-        if (useGlobalPlanner_)
-        {
-            mDebugHelperPtr->write("Use of global planner ENABLED", DebugHelper::PARAMETERS);
-        }
-        else
-        {
-            mDebugHelperPtr->write("Use of global planner DISABLED. Using simplified calculation instead", DebugHelper::PARAMETERS);
-        }
         if (visualizeIK_)
         {
             mDebugHelperPtr->write("IK Visualization ENABLED", DebugHelper::PARAMETERS);
@@ -68,25 +54,13 @@ namespace next_best_view {
         {
             mDebugHelperPtr->write("IK Visualization DISABLED", DebugHelper::PARAMETERS);
         }
-        mOmegaPan = mOmegaPan_;
-        mOmegaTilt = mOmegaTilt_;
-        tolerance = tolerance_;
         mPanAngleSamplingStepsPerIteration = panAngleSamplingStepsPerIteration_;
         mViewPointDistance = (ncp_ + fcp_)/2.0;
         mInverseKinematicIterationAccuracy = inverseKinematicIterationAccuracy_;
-        mSigma = mSigma_;
         mVisualizeIK = visualizeIK_;
-        mDebugHelperPtr->write(std::stringstream() << "tolerance: " << tolerance, DebugHelper::PARAMETERS);
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaPan: " << mOmegaPan, DebugHelper::PARAMETERS);
-        mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mPanAngleSamplingStepsPerIteration: " << mPanAngleSamplingStepsPerIteration, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mInverseKinematicIterationAccuracy: " << mInverseKinematicIterationAccuracy, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mViewPointDistance: " << mViewPointDistance, DebugHelper::PARAMETERS);
-        mDebugHelperPtr->write(std::stringstream() << "mSigma: " << mSigma, DebugHelper::PARAMETERS);
-		this->setPanAngleLimits(0, 0);
-		this->setTiltAngleLimits(0, 0);
-        this->setRotationAngleLimits(0, 0);
-        listener = new tf::TransformListener();
         //Temporary Visualization Publisher
         std::string IKVisualization;
         n.getParam("IKVisualization", IKVisualization);
@@ -99,82 +73,16 @@ namespace next_best_view {
         mnTotalIKTime = 0.0;
 	}
 
-    MILDRobotModelWithIK::~MILDRobotModelWithIK() {}
+    MILDRobotModelWithExactIK::~MILDRobotModelWithExactIK() {}
 
-    geometry_msgs::Pose MILDRobotModelWithIK::getRobotPose()
-    {
-        geometry_msgs::Pose robotPose;
-        tf::StampedTransform transform;
-        listener->lookupTransform("/map", "/base_link", ros::Time(0), transform);
-        robotPose.position.x = transform.getOrigin()[0];
-        robotPose.position.y = transform.getOrigin()[1];
-        robotPose.position.z = transform.getOrigin()[2];
-        tf::quaternionTFToMsg(transform.getRotation(), robotPose.orientation);
-        return robotPose;
-    }
-
-    geometry_msgs::Pose MILDRobotModelWithIK::getCameraPose()
-    {
-        geometry_msgs::Pose cameraPose;
-        tf::StampedTransform transform;
-        listener->lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
-        cameraPose.position.x = transform.getOrigin()[0];
-        cameraPose.position.y = transform.getOrigin()[1];
-        cameraPose.position.z = transform.getOrigin()[2];
-        tf::quaternionTFToMsg(transform.getRotation(), cameraPose.orientation);
-        return cameraPose;
-    }
-
-    void MILDRobotModelWithIK::setPanAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
-		mPanLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
-		mPanLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
-	}
-
-    void MILDRobotModelWithIK::setTiltAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
-		mTiltLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
-		mTiltLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
-	}
-
-    void MILDRobotModelWithIK::setRotationAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
-        mRotationLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
-		mRotationLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
-	}
-
-    void MILDRobotModelWithIK::setViewPointDistance(float viewPointDistance) {
+    void MILDRobotModelWithExactIK::setViewPointDistance(float viewPointDistance) {
         this->mViewPointDistance = viewPointDistance;
+        mDebugHelperPtr->write(std::stringstream() << "viewPointDistance set to: " << viewPointDistance, DebugHelper::PARAMETERS);
+
     }
 
-    bool MILDRobotModelWithIK::isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation)
-    {
-        SimpleVector3 visualAxis = MathHelper::getVisualAxis(orientation);
-		SimpleSphereCoordinates sphereCoords = MathHelper::convertC2S(visualAxis);
 
-		return (mTiltLimits.get<0>() <= sphereCoords[1] && sphereCoords[1] <= mTiltLimits.get<1>());
-	}
-
-    bool MILDRobotModelWithIK::isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
-    {
-        mDebugHelperPtr->writeNoticeably("STARTING IS-POSITION-REACHABLE METHOD", DebugHelper::ROBOT_MODEL);
-
-        nav_msgs::Path path = getNavigationPath(sourcePosition, targetPosition);
-
-        if (path.poses.empty())
-        {
-            mDebugHelperPtr->writeNoticeably("ENDING IS-POSITION-REACHABLE METHOD", DebugHelper::ROBOT_MODEL);
-            return false;
-        }
-
-        int lastPose = path.poses.size()-1;
-        float distanceToLastPoint = sqrt(pow(targetPosition.x - path.poses[lastPose].pose.position.x, 2) + pow(targetPosition.y  - path.poses[lastPose].pose.position.y, 2));
-        mDebugHelperPtr->write(std::stringstream() << "Target: " << targetPosition.x << ", " << targetPosition.y,
-                    DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "Actual position: " << path.poses[lastPose].pose.position.x << ", " << path.poses[lastPose].pose.position.y,
-                    DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->writeNoticeably("ENDING IS-POSITION-REACHABLE METHOD", DebugHelper::ROBOT_MODEL);
-        return distanceToLastPoint < 0.01f;
-    }
-
-    PTUConfig MILDRobotModelWithIK::calculateCameraPoseCorrection(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
+    PTUConfig MILDRobotModelWithExactIK::calculateCameraPoseCorrection(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         //Make sure the necessary geometry parameters are initialized
@@ -290,7 +198,7 @@ namespace next_best_view {
 
 
     //Solves the inverse kinematical problem for an given robot state and a pose for the camera
-    RobotStatePtr MILDRobotModelWithIK::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
+    RobotStatePtr MILDRobotModelWithExactIK::calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {
         mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-ROBOT-STATE METHOD", DebugHelper::ROBOT_MODEL);
         std::clock_t begin = std::clock();
@@ -434,7 +342,7 @@ namespace next_best_view {
         return targetMILDRobotState;
 	}
 
-    Eigen::Affine3d MILDRobotModelWithIK::getTiltJointFrame(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &tilt_base_point)
+    Eigen::Affine3d MILDRobotModelWithExactIK::getTiltJointFrame(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &tilt_base_point)
     {
         Eigen::Vector3d viewDirection;
         viewDirection = targetViewVector;
@@ -450,7 +358,7 @@ namespace next_best_view {
         return tiltFrame;
     }
 
-    bool MILDRobotModelWithIK::getTiltAngleAndTiltBasePointProjected(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &target_view_center_point, double &tilt, Eigen::Vector3d &tilt_base_point_projected)
+    bool MILDRobotModelWithExactIK::getTiltAngleAndTiltBasePointProjected(Eigen::Vector3d &planeNormal, Eigen::Vector3d &targetViewVector,  Eigen::Vector3d &target_view_center_point, double &tilt, Eigen::Vector3d &tilt_base_point_projected)
     {
         //Calculate tilt base point (t1, t2, t3)
         double t1, t2, t3;
@@ -497,7 +405,7 @@ namespace next_best_view {
 
 
 
-    double MILDRobotModelWithIK::getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState)
+    double MILDRobotModelWithExactIK::getPanAngleFromPanJointPose(Eigen::Affine3d &panJointFrame, MILDRobotStatePtr &robotState)
     {
         unsigned int iterationCount = 1;
         double phiMin = mPanLimits.get<0>();
@@ -571,7 +479,7 @@ namespace next_best_view {
     }
 
 
-    bool MILDRobotModelWithIK::setUpTFParameters()
+    bool MILDRobotModelWithExactIK::setUpTFParameters()
     {
         //Get Parameters from TF-Publishers
         tf::StampedTransform panToTiltTF, baseToPanTF, tiltToCamLeftTF, tiltToCamRightTF;
@@ -580,13 +488,13 @@ namespace next_best_view {
         try
         {      
             //Wait for first transform to be published
-            if (listener->waitForTransform("/map", "/ptu_mount_link", ros::Time(), ros::Duration(4.0)))
+            if (listener.waitForTransform("/map", "/ptu_mount_link", ros::Time(), ros::Duration(4.0)))
             {
                 //Assume that tf is alive and lookups will be successful
-                listener->lookupTransform("/ptu_pan_link", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
-                listener->lookupTransform("/base_link", "/ptu_pan_link", ros::Time(0), baseToPanTF);
-                listener->lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCamLeftTF);
-                listener->lookupTransform("/ptu_tilted_link", "/camera_right_frame", ros::Time(0), tiltToCamRightTF);
+                listener.lookupTransform("/ptu_pan_link", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
+                listener.lookupTransform("/base_link", "/ptu_pan_link", ros::Time(0), baseToPanTF);
+                listener.lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCamLeftTF);
+                listener.lookupTransform("/ptu_tilted_link", "/camera_right_frame", ros::Time(0), tiltToCamRightTF);
             }
             else
             {
@@ -662,7 +570,7 @@ namespace next_best_view {
         return true;
     }
 
-    void MILDRobotModelWithIK::resetIKVisualization()
+    void MILDRobotModelWithExactIK::resetIKVisualization()
     {
         visualization_msgs::Marker resetMarker = visualization_msgs::Marker();
         resetMarker.id = 0;
@@ -727,13 +635,13 @@ namespace next_best_view {
         mIKVisualizationLastMarkerCount = 0;
     }
 
-    void MILDRobotModelWithIK::visualizeIKCameraTarget(Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point)
+    void MILDRobotModelWithExactIK::visualizeIKCameraTarget(Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point)
     {
         Eigen::Vector4d color_green(0.0,1.0,0.0,1.0);
         visualizeIKArrowLarge(target_camera_point, target_view_center_point, color_green, "targetCameraVector", 0);
     }
 
-    void MILDRobotModelWithIK::visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point)
+    void MILDRobotModelWithExactIK::visualizeIKcalculation(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &tilt_base_point_projected, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point)
     {
         Eigen::Vector4d color_red(1.0,0.0,0.0,1.0);
         Eigen::Vector4d color_blue(0.0,0.0,1.0,1.0);
@@ -750,7 +658,7 @@ namespace next_best_view {
         visualizeIKArrowLarge(base_point, base_point2, color_blue, "basePose", 1);
     }
 
-    void MILDRobotModelWithIK::visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point)
+    void MILDRobotModelWithExactIK::visualizeCameraPoseCorrection(Eigen::Vector3d &base_point, Eigen::Vector3d &base_orientation, Eigen::Vector3d &pan_joint_point, Eigen::Vector3d & pan_rotated_point, Eigen::Vector3d &tilt_base_point, Eigen::Vector3d &cam_point, Eigen::Vector3d &actual_view_center_point)
     {
         Eigen::Vector4d color_red(1.0,0.0,0.0,1.0);
         base_orientation.normalize();
@@ -765,7 +673,7 @@ namespace next_best_view {
         visualizeIKArrowLarge(base_point, base_point2, color_red, "basePose_poseCorrection", 1);
     }
 
-    void MILDRobotModelWithIK::visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns, int id)
+    void MILDRobotModelWithExactIK::visualizeIKPoint(Eigen::Vector3d &point, Eigen::Vector4d &colorRGBA, std::string ns, int id)
     {
         visualization_msgs::Marker pointMarker = visualization_msgs::Marker();
         pointMarker.header.stamp = ros::Time();
@@ -788,19 +696,19 @@ namespace next_best_view {
         vis_pub.publish(pointMarker);
     }
 
-    void MILDRobotModelWithIK::visualizeIKArrowSmall(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id)
+    void MILDRobotModelWithExactIK::visualizeIKArrowSmall(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id)
     {
         Eigen::Vector3d scaleParameters(0.005, 0.01, 0.01);
         visualizeIKArrow(pointStart, pointEnd, colorRGBA, ns, scaleParameters, id);
     }
 
-    void MILDRobotModelWithIK::visualizeIKArrowLarge(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id)
+    void MILDRobotModelWithExactIK::visualizeIKArrowLarge(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, int id)
     {
         Eigen::Vector3d scaleParameters(0.02, 0.05, 0.1);
         visualizeIKArrow(pointStart, pointEnd, colorRGBA, ns, scaleParameters, id);
     }
 
-    void MILDRobotModelWithIK::visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters, int id)
+    void MILDRobotModelWithExactIK::visualizeIKArrow(Eigen::Vector3d &pointStart, Eigen::Vector3d &pointEnd, Eigen::Vector4d &colorRGBA, std::string ns, Eigen::Vector3d &scaleParameters, int id)
     {
         geometry_msgs::Point point1, point2;
         visualization_msgs::Marker arrowMarker = visualization_msgs::Marker();
@@ -829,7 +737,7 @@ namespace next_best_view {
         vis_pub.publish(arrowMarker);
     }
 
-    double MILDRobotModelWithIK::getBaseAngleFromBaseFrame(Eigen::Affine3d &baseFrame)
+    double MILDRobotModelWithExactIK::getBaseAngleFromBaseFrame(Eigen::Affine3d &baseFrame)
     {
         Eigen::Vector3d xAxis(baseFrame(0,0), baseFrame(1,0), 0.0);
         Eigen::Vector3d yAxis(baseFrame(0,1), baseFrame(1,1), 0.0);
@@ -842,233 +750,6 @@ namespace next_best_view {
         {
             return 2.0*M_PI - acos(xAxis[0]);
         }
-    }
-
-
-    float MILDRobotModelWithIK::getBase_TranslationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
-    {
-        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
-        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
-
-        float distance ;
-        geometry_msgs::Point sourcePoint, targetPoint;
-        sourcePoint.x = sourceMILDRobotState->x;
-        sourcePoint.y = sourceMILDRobotState->y;
-        sourcePoint.z = 0;
-        targetPoint.x = targetMILDRobotState->x;
-        targetPoint.y = targetMILDRobotState->y;
-        targetPoint.z = 0;
-
-        distance = getDistance(sourcePoint, targetPoint);
-
-        float movementCosts = std::exp(-pow((distance-0.0), 2.0)/(2.0*pow(mSigma, 2.0))); // [0, 1]
-        return movementCosts;
-    }
-
-    float MILDRobotModelWithIK::getPTU_PanMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
-    {
-        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
-        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
-
-        float panDiff = targetMILDRobotState->pan - sourceMILDRobotState->pan;
-
-        float panSpan = mPanLimits.get<1>() - mPanLimits.get<0>();
-
-        float ptuPanCosts = fabs(panDiff)/ panSpan;
-
-        return 1.0 - ptuPanCosts;
-    }
-
-    float MILDRobotModelWithIK::getPTU_TiltMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
-    {
-        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
-        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
-        float tiltDiff = targetMILDRobotState->tilt - sourceMILDRobotState->tilt;
-
-        float tiltSpan = mTiltLimits.get<1>() - mTiltLimits.get<0>();
-
-        float ptuTiltCosts = fabs(tiltDiff)/ tiltSpan;
-
-        return 1.0 - ptuTiltCosts;
-    }
-
-    float MILDRobotModelWithIK::getBase_RotationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState)
-    {
-        MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
-        MILDRobotStatePtr targetMILDRobotState = boost::static_pointer_cast<MILDRobotState>(targetRobotState);
-
-        float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
-
-        geometry_msgs::Point sourcePoint, targetPoint;
-        sourcePoint.x = sourceMILDRobotState->x;
-        sourcePoint.y = sourceMILDRobotState->y;
-        sourcePoint.z = 0;
-        targetPoint.x = targetMILDRobotState->x;
-        targetPoint.y = targetMILDRobotState->y;
-        targetPoint.z = 0;
-
-
-        float rotationCosts = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/M_PI;
-        return 1.0 - rotationCosts;
-    }
-
-    float MILDRobotModelWithIK::getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
-    {
-        mDebugHelperPtr->writeNoticeably("STARTING GET-DISTANCE METHOD", DebugHelper::ROBOT_MODEL);
-        float distance = 0;
-        if (useGlobalPlanner) //Use global planner to calculate distance
-        {
-            nav_msgs::Path path;
-            mDebugHelperPtr->write(std::stringstream() << "Calculate path from (" << sourcePosition.x << ", " << sourcePosition.y
-                                    << ") to (" << targetPosition.x << ", "<< targetPosition.y << ")",
-                        DebugHelper::ROBOT_MODEL);
-
-            path = getNavigationPath(sourcePosition, targetPosition);
-
-            if (!path.poses.empty())
-            {
-                unsigned int size = path.poses.size();
-                distance = 0;
-                for (unsigned int i = 0; i < size ; i++)
-                {
-                    mDebugHelperPtr->write(std::stringstream() << "Path (" << path.poses[i].pose.position.x << ", " << path.poses[i].pose.position.y << ")",
-                                DebugHelper::ROBOT_MODEL);
-                }
-                //Calculate distance from source point to first point in path
-                distance += sqrt(pow(sourcePosition.x - path.poses[0].pose.position.x, 2) + pow(sourcePosition.y - path.poses[0].pose.position.y, 2));
-                //Calculate path length
-                for (unsigned int i = 0; i < size - 1 ; i++)
-                {
-                    distance += sqrt(pow(path.poses[i].pose.position.x - path.poses[i+1].pose.position.x, 2) + pow(path.poses[i].pose.position.y - path.poses[i+1].pose.position.y, 2));
-                }
-            }
-            else
-            {
-                distance = -1;
-                ROS_ERROR("Could not get navigation path..");
-            }
-        }
-        else //Use euclidean distance
-        {
-            distance = sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2));
-        }
-        mDebugHelperPtr->write(std::stringstream() << "Calculated distance: " << distance, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "Euclidian distance: "
-                                << sqrt(pow(sourcePosition.x -targetPosition.x, 2) + pow(sourcePosition.y - targetPosition.y, 2)),
-                    DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->writeNoticeably("ENDING GET-DISTANCE METHOD", DebugHelper::ROBOT_MODEL);
-        return distance;
-    }
-
-    nav_msgs::Path MILDRobotModelWithIK::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition)
-    {
-        return getNavigationPath(sourcePosition, targetPosition, 0, 0);
-    }
-
-    nav_msgs::Path MILDRobotModelWithIK::getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
-    {
-        mDebugHelperPtr->writeNoticeably("STARTING GET-NAVIGATION-PATH METHOD", DebugHelper::ROBOT_MODEL);
-
-        nav_msgs::GetPlan srv;
-        srv.request.start.header.frame_id = "map";
-        srv.request.goal.header.frame_id = "map";
-        srv.request.start.pose.position = sourcePosition;
-        srv.request.goal.pose.position = targetPosition;
-        Eigen::Quaterniond sourceRotationEigen(Eigen::AngleAxisd(sourceRotationBase,Eigen::Vector3d::UnitZ()));
-        Eigen::Quaterniond targetRotationEigen(Eigen::AngleAxisd(targetRotationBase,Eigen::Vector3d::UnitZ()));
-        geometry_msgs::Quaternion sourceRotation;
-        sourceRotation.w = sourceRotationEigen.w();
-        sourceRotation.x = sourceRotationEigen.x();
-        sourceRotation.y = sourceRotationEigen.y();
-        sourceRotation.z = sourceRotationEigen.z();
-        geometry_msgs::Quaternion targetRotation;
-        targetRotation.w = targetRotationEigen.w();
-        targetRotation.x = targetRotationEigen.x();
-        targetRotation.y = targetRotationEigen.y();
-        targetRotation.z = targetRotationEigen.z();
-        srv.request.start.pose.orientation = sourceRotation;
-        srv.request.goal.pose.orientation = targetRotation;
-        srv.request.tolerance = tolerance;
-
-        nav_msgs::Path path;
-        if (navigationCostClient.call(srv))
-        {
-            path = srv.response.plan;
-            mDebugHelperPtr->write(std::stringstream() << "Path size:" << path.poses.size(), DebugHelper::ROBOT_MODEL);
-        }
-        else
-        {
-            ROS_ERROR("Failed to call the global planner.");
-        }
-
-        mDebugHelperPtr->writeNoticeably("ENDING GET-NAVIGATION-PATH METHOD", DebugHelper::ROBOT_MODEL);
-        return path;
-    }
-
-    // Not fully implemented
-    // Guideline: http://www.orocos.org/kdl/examples
-    geometry_msgs::Pose MILDRobotModelWithIK::calculateCameraPose(const RobotStatePtr &sourceRobotState)
-    {
-        /*MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
-
-        urdf::Model * myModel;
-        geometry_msgs::Pose cameraPose;
-
-        tf::Transform pan(tf::Quaternion(tf::Vector3(0,0,1), sourceMILDRobotState->pan));
-        tf::Transform tilt(tf::Quaternion(tf::Vector3(0,-1,0), sourceMILDRobotState->tilt));
-
-        urdf::Model myModel;
-        ros::Rate loop_rate(30);
-        //geometry_msgs::Pose cameraPose;
-
-        if(!myModel.initParam("/robot_description"))
-        {
-            ROS_ERROR("Could not get robot description.");
-        }
-        else
-        {
-            KDL::Tree my_tree;
-            if (!kdl_parser::treeFromUrdfModel(myModel, my_tree))
-            {
-                   ROS_ERROR("Failed to construct kdl tree");
-            }
-            else
-            {
-                 KDL::Chain chain;
-                 my_tree.getChain(myModel.getRoot()->name, "mount_to_camera_left", chain);
-                 ChainFkSolverPos_recursive fksolver = ChainFkSolverPos_recursive(chain);
-
-
-                 //robot_state_publisher::RobotStatePublisher* publisher = new robot_state_publisher::RobotStatePublisher(my_tree);
-                 //my_tree.getSegment()
-
-                 typedef std::map<std::string, boost::shared_ptr<urdf::Joint> > joint_map;
-
-                 std::map<std::string, double> positions;
-                 joint_map joints = myModel.joints_;
-
-                 for(joint_map::const_iterator it =  joints.begin(); it !=  joints.end(); ++it)
-                 {
-                    std::string name = it->first;
-                    urdf::Joint* joint = it->second.get();
-                    //joint->dynamics.
-                    mDebugHelperPtr->write(name, DebugHelper::ROBOT_MODEL);
-                    if(joint->type==urdf::Joint::REVOLUTE || joint->type==urdf::Joint::CONTINUOUS || joint->type==urdf::Joint::PRISMATIC) positions[name] = 0;
-                 }
-                 while (ros::ok())
-                 {
-                     //publisher->publishTransforms(positions, ros::Time::now());
-
-                     // Process a round of subscription messages
-                     ros::spinOnce();
-
-                     // This will adjust as needed per iteration
-                     loop_rate.sleep();
-                 }
-             }
-        } */
-        geometry_msgs::Pose myPose;
-        return myPose;
     }
 }
 

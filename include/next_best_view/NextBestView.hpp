@@ -57,8 +57,8 @@
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdater.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModel_with_IK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModelWithApproximatedIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.hpp"
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
@@ -330,22 +330,20 @@ public:
         bool useNewIK;
         mNodeHandle.param("useNewIK", useNewIK, false);
         RobotModelPtr robotModelPtr;
+        MILDRobotModel *tempRobotModel;
         if (useNewIK)
         {
             mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
-            MILDRobotModelWithIK *tempRobotModel = new MILDRobotModelWithIK();
-            tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
-            tempRobotModel->setPanAngleLimits(panMin, panMax);
-            robotModelPtr = MILDRobotModelWithIKPtr(tempRobotModel);
+            tempRobotModel = new MILDRobotModelWithExactIK();
         }
         else
         {
             mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
-            MILDRobotModel *tempRobotModel = new MILDRobotModel();
-            tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
-            tempRobotModel->setPanAngleLimits(panMin, panMax);
-            robotModelPtr = MILDRobotModelPtr(tempRobotModel);
+            tempRobotModel = new MILDRobotModelWithApproximatedIK();
         }
+        tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
+        tempRobotModel->setPanAngleLimits(panMin, panMax);
+        robotModelPtr = MILDRobotModelPtr(tempRobotModel);
 
 
         /* DefaultRatingModule is a specialization of the abstract RatingModule class.

@@ -8,7 +8,7 @@
 #pragma once
 
 #include <boost/tuple/tuple.hpp>
-#include "next_best_view/robot_model/RobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "typedef.hpp"
 #include "geometry_msgs/Pose.h"
@@ -20,51 +20,17 @@
 
 namespace next_best_view {
 	/*!
-     * \brief MILDRobotModelWithIK implements a model of pan tilt unit robot.
+     * \brief MILDRobotModelWithExactIK implements a model of pan tilt unit robot where the inverse kinematic is calculated exactly.
      * \author Florian Aumann
      * \date 10.2015
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
     typedef std::tuple<double,double> PTUConfig;    //Pan and tilt angle of the ptu
-    class MILDRobotModelWithIK : public RobotModel {
+    class MILDRobotModelWithExactIK : public MILDRobotModel {
 	private:
 
-        DebugHelperPtr mDebugHelperPtr;
-
-		// weighting values
-		float mOmegaPan;
-		float mOmegaTilt;
-		float mOmegaRot;
-        float mOmegaBase;
-        float mViewPointDistance;
-		float tolerance;
-        float mSigma;
-        float mInverseKinematicIterationAccuracy;
-
-		bool useGlobalPlanner;
-        tf::TransformListener *listener;
-
-		/*!
-		 * contains the lower and upper limit of pan
-		 */
-		boost::tuple<float, float> mPanLimits;
-
-		/*!
-		 * contains the lower and upper limit of tilt
-		 */
-		boost::tuple<float, float> mTiltLimits;
-
-		/*!
-		 * contains the lower and upper limit of rotation
-		 */
-		boost::tuple<float, float> mRotationLimits;
-		
-		/*!
-		 * Client used for communication with the global_planner to calculate movement costs
-		 */
-		ros::ServiceClient navigationCostClient;
-
+         float mInverseKinematicIterationAccuracy;
 
          /*!
           * The rating module for the inverse kinematic sampling
@@ -84,6 +50,7 @@ namespace next_best_view {
          unsigned int mIKVisualizationLastMarkerCount = 0;
          double mTiltAngleOffset;
          double mPanAngleOffset;
+         double mViewPointDistance;
 
          /*!
           * Detemines if the IK calculation should be visualized by markers. Turn this off to speed up calculation
@@ -179,51 +146,15 @@ namespace next_best_view {
     public:
 
 		/*!
-		 * \brief constructor of the PTURobotModel
+         * \brief constructor of the MILDRobotModelWithExactIK
 		 */
-        MILDRobotModelWithIK();
+        MILDRobotModelWithExactIK();
 
 		/*!
-		 * \brief destructor of the MILDRobotModel
+         * \brief destructor of the MILDRobotModelWithExactIK
 		 */
-        virtual ~MILDRobotModelWithIK();
+        virtual ~MILDRobotModelWithExactIK();
 
-        /*!
-         * Client used for communication with the global_planner to calculate movement costs
-         */
-         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase);
-         nav_msgs::Path getNavigationPath(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
-
-		/*!
-		 * \brief sets the angle limits of the pan angle.
-		 * \param minAngleDegrees the minimum angle in degrees
-		 * \param maxAngleDegrees the maximum angle in degrees
-		 */
-		void setPanAngleLimits(float minAngleDegrees, float maxAngleDegrees);
-
-		/*!
-		 * \brief sets the angle limits of the tilt angle.
-		 * \param minAngleDegrees the minimum angle in degrees
-		 * \param maxAngleDegrees the maximum angle in degrees
-		 */
-		void setTiltAngleLimits(float minAngleDegrees, float maxAngleDegrees);
-
-		/*!
-		 * \brief sets the angle limits of the rotation angle.
-		 * \param minAngleDegrees the minimum angle in degrees
-		 * \param maxAngleDegrees the maximum angle in degrees
-		 */
-		void setRotationAngleLimits(float minAngleDegrees, float maxAngleDegrees);
-
-        /*!
-         * \brief sets distance bewtween the center of the view frustum and the camera
-         * \param viewPointDistance distance bewtween the center of the view frustum and the camera in milimeters
-         */
-        void setViewPointDistance(float viewPointDistance);
-
-		bool isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation);
-		
-		bool isPositionReachable(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
 
         /*!
          * \brief Calculates the inverse kinematics for the given camera pose
@@ -234,32 +165,14 @@ namespace next_best_view {
          * \brief Calculates the best approximation for the given camera pose from the current base position
          */
         PTUConfig calculateCameraPoseCorrection(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
-		
-		/*!
-		 * \brief Uses a given RobotState to calculate the camera frame
-		 */
-		geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
 
-		/*!
-		 * \brief Calculates the movement costs from sourceRobotState to targetRobotState. Returns -1 if pose is not reachable
-		 */
-        float getBase_TranslationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
-
-        float getPTU_TiltMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
-
-        float getPTU_PanMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
-
-        float getBase_RotationalMovementCosts(const RobotStatePtr &sourceRobotState, const RobotStatePtr &targetRobotState);
-		
-		float getDistance(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition);
-
-        //Returns the current pose of the robots base from tf
-        geometry_msgs::Pose getRobotPose();
-        //Returns the current pose of the robots camera from tf
-        geometry_msgs::Pose getCameraPose();
+        /*!
+         * \brief Sets the distance between the desired view center point and the camera
+         */
+        void setViewPointDistance(float viewPointDistance);
 
         ros::Publisher vis_pub;
 	};
 
-    typedef boost::shared_ptr<MILDRobotModelWithIK> MILDRobotModelWithIKPtr;
+    typedef boost::shared_ptr<MILDRobotModelWithExactIK> MILDRobotModelWithExactIKPtr;
 }

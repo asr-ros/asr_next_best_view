@@ -18,7 +18,6 @@ namespace next_best_view {
 		float rotation;
 		float x;
 		float y;
-	public:
 		MILDRobotState(float pan, float tilt, float rotation, float x, float y);
 		MILDRobotState();
 		virtual ~MILDRobotState();
