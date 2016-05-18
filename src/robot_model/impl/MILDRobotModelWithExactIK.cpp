@@ -105,7 +105,7 @@ namespace next_best_view {
         Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
         Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
-        if (mVisualizeIK)
+        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
             visualizeIKCameraTarget(target_view_center_point, target_cam_point);
@@ -179,7 +179,7 @@ namespace next_best_view {
         }
 
         //Visualization
-        if (mVisualizeIK)
+        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d baseOrientation(basePoseEigen(0,0), basePoseEigen(1,0), basePoseEigen(2,0));
             Eigen::Vector3d pan_base_point(panJointEigen(0,3), panJointEigen(1,3), panJointEigen(2,3));
@@ -208,7 +208,7 @@ namespace next_best_view {
         double tiltMin = mTiltLimits.get<0>();
         double tiltMax = mTiltLimits.get<1>();
 
-        if (mVisualizeIK) {this->resetIKVisualization();}
+        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0) {this->resetIKVisualization();}
 
         //Make sure the necessary geometry parameters are initialized
         if (!tfParametersInitialized)
@@ -245,7 +245,7 @@ namespace next_best_view {
 
         //Visualize target camera pose & target viewcenter
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
-        if (mVisualizeIK)
+        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
             visualizeIKCameraTarget(target_view_center_point, target_cam_point);
@@ -295,7 +295,7 @@ namespace next_best_view {
         Eigen::Affine3d base_Frame = pan_Frame * panToBaseEigen;
 
         //Visualization
-        if (mVisualizeIK)
+        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d base_point(base_Frame(0,3), base_Frame(1,3), base_Frame(2,3));
             Eigen::Vector3d pan_base_point(pan_Frame(0,3), pan_Frame(1,3), pan_Frame(2,3));
@@ -459,7 +459,7 @@ namespace next_best_view {
                         newBestRating = currentRating;
                         currentBestAngle = currentIterationAngle;
                     }
-                    if (mVisualizeIK)
+                    if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
                     {
                         Eigen::Vector4d color_succeeded(1.0-currentRating,currentRating, 0.0, 1.0);
                         visualizeIKPoint(basePoint, color_succeeded, nsIterationVector, 2*i);
