@@ -13,8 +13,12 @@ namespace next_best_view {
 
     double SimpleIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
-        float angleBetweenPoints = std::atan2(targetPosition.y - sourcePosition.y, targetPosition.x - sourcePosition.x);
-        angleBetweenPoints = fmod(angleBetweenPoints, 2.0*M_PI);
+        float angleBetweenPoints = 0.0;
+        if (fabs(targetPosition.y - sourcePosition.y) > 0.000001f && fabs(targetPosition.x - sourcePosition.x) > 0.000001f)  //Prevent undefined behavior when distance if close to zero
+        {
+            angleBetweenPoints = std::atan2(targetPosition.y - sourcePosition.y, targetPosition.x - sourcePosition.x);
+            angleBetweenPoints = fmod(angleBetweenPoints, 2.0*M_PI);
+        }
 
         float sourceRotDiff = sourceRotationBase - angleBetweenPoints;
         float targetRotDiff = targetRotationBase - angleBetweenPoints;
