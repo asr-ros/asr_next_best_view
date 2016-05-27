@@ -15,6 +15,7 @@ namespace next_best_view {
 	class PerspectiveHypothesisUpdater : public HypothesisUpdater {
 	private:
 		DefaultRatingModulePtr mDefaultRatingModulePtr;
+        DebugHelperPtr mDebugHelperPtr;
 	public:
 		PerspectiveHypothesisUpdater();
 		virtual ~PerspectiveHypothesisUpdater();

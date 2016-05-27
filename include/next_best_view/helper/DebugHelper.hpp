@@ -23,14 +23,17 @@ public:
         ROBOT_MODEL = 32,
         MAP = 64,
         FILTER = 128,
-        IK_RATING = 256
+        IK_RATING = 256,
+        SPACE_SAMPLER = 512,
+        HYPOTHESIS_UPDATER = 1024
     };
 
 private:
 
     static boost::shared_ptr<DebugHelper> instancePtr;
     static const int ALL = PARAMETERS + SERVICE_CALLS + VISUALIZATION + CALCULATION
-                            + RATING + ROBOT_MODEL + MAP + FILTER + IK_RATING;
+                            + RATING + ROBOT_MODEL + MAP + FILTER + IK_RATING + SPACE_SAMPLER
+                            + HYPOTHESIS_UPDATER;
     static const int NONE = 0;
 
     ros::NodeHandle mNodeHandle;

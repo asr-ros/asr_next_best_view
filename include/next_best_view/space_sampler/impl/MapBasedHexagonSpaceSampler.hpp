@@ -22,6 +22,7 @@ namespace next_best_view {
 	class MapBasedHexagonSpaceSampler : public SpaceSampler {
 	private:
 		MapHelperPtr mMapHelperPtr;
+        DebugHelperPtr mDebugHelperPtr;
 		double mHexagonRadius;
 	public:
 		/*!

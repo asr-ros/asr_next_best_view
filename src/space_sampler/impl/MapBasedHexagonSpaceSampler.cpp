@@ -9,7 +9,7 @@
 
 namespace next_best_view {
 	MapBasedHexagonSpaceSampler::MapBasedHexagonSpaceSampler(const MapHelperPtr &mapUtilityPtr) :  mMapHelperPtr(mapUtilityPtr), mHexagonRadius(1.0) {
-
+        mDebugHelperPtr = DebugHelper::getInstance();
 	}
 
 	MapBasedHexagonSpaceSampler::~MapBasedHexagonSpaceSampler() { }
@@ -22,7 +22,8 @@ namespace next_best_view {
         currentSamplePoint.y = currentSpacePosition[1];
         pointCloud->push_back(currentSamplePoint);
 
-	ROS_DEBUG_STREAM("MapBasedHexagonSpaceSampler::getSampledSpacePointCloud contractor" << contractor);
+    mDebugHelperPtr->write(std::stringstream() << "MapBasedHexagonSpaceSampler::getSampledSpacePointCloud contractor " << contractor,
+                DebugHelper::SPACE_SAMPLER);
 	
 	double width = mMapHelperPtr->getMetricWidth();
 	double height = mMapHelperPtr->getMetricHeight();
@@ -75,7 +76,8 @@ namespace next_best_view {
 	    }
 	  }
 	}
-	ROS_DEBUG_STREAM("MapBasedHexagonSpaceSampler::size" << pointCloud->size());
+    mDebugHelperPtr->write(std::stringstream() << "MapBasedHexagonSpaceSampler::size " << pointCloud->size(),
+                DebugHelper::SPACE_SAMPLER);
 	return pointCloud;
     }
 
