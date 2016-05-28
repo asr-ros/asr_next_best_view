@@ -129,13 +129,16 @@ namespace next_best_view {
             panAngle *= -1;
         }
         panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;
-        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA);
-        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB);
-        ROS_DEBUG_STREAM("viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC);
-        ROS_DEBUG_STREAM("panJointToCenterPointProjected.dot(panJointYAxis): " << panJointToCenterPointProjected.dot(panJointYAxis));
-        ROS_DEBUG_STREAM("mPanAngleOffset: " << mPanAngleOffset);
-        ROS_DEBUG_STREAM("panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis));
-        ROS_DEBUG_STREAM("-acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << -acos(panJointToCenterPointProjected.dot(panJointXAxis)));
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointYAxis): " << panJointToCenterPointProjected.dot(panJointYAxis),
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "mPanAngleOffset: " << mPanAngleOffset, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis),
+                    DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "-acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << -acos(panJointToCenterPointProjected.dot(panJointXAxis)),
+                    DebugHelper::ROBOT_MODEL);
         //Calculate TILT
         Eigen::Affine3d panJointRotatedEigen = panJointEigen * Eigen::AngleAxisd(panAngle, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d tiltJointEigen = panJointRotatedEigen * panToTiltEigen;
@@ -144,9 +147,9 @@ namespace next_best_view {
         double aTimesCos = viewTriangleZPlane_sideB*cos(viewTriangleZPlane_angleAlpha);
         double viewTriangleZPlane_sideA = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideC,2.0));
 
-        ROS_DEBUG_STREAM("viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA);
-        ROS_DEBUG_STREAM("viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB);
-        ROS_DEBUG_STREAM("viewTriangleZPlane_sideC: " << viewTriangleZPlane_sideC);
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideC: " << viewTriangleZPlane_sideC, DebugHelper::ROBOT_MODEL);
 
         double tiltAngle = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideC, 2.0) - pow(viewTriangleZPlane_sideA, 2.0);
         tiltAngle = -acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm()) +  acos(tiltAngle / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideC));// + mTiltAngleOffset;

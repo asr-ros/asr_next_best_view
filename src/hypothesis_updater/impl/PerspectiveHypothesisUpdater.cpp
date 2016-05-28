@@ -13,11 +13,18 @@
 #include <ros/ros.h>
 
 namespace next_best_view {
-	PerspectiveHypothesisUpdater::PerspectiveHypothesisUpdater() { }
-	PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
+    PerspectiveHypothesisUpdater::PerspectiveHypothesisUpdater() {
+        mDebugHelperPtr = DebugHelper::getInstance();
+    }
+
+    PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
     unsigned int PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
+        mDebugHelperPtr->writeNoticeably("STARTING UPDATE METHOD", DebugHelper::HYPOTHESIS_UPDATER);
+
         unsigned int counter = 0;
+
+        mDebugHelperPtr->write(std::stringstream() << "Child indices in viewport: " << viewportPoint.child_indices->size(), DebugHelper::HYPOTHESIS_UPDATER);
 
         BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
@@ -29,6 +36,9 @@ namespace next_best_view {
 				SimpleVector3 normalVector = objectPoint.normal_vectors->at(normalIndex);
 
                 float rating = mDefaultRatingModulePtr->getNormalUtility(viewportPoint, normalVector);
+
+                mDebugHelperPtr->write(std::stringstream() << "Normal utility: " << rating, DebugHelper::HYPOTHESIS_UPDATER);
+
 				if (rating != 0.0) {
 					end--;
 					std::iter_swap(iter, end);
@@ -50,6 +60,8 @@ namespace next_best_view {
 			objectPoint.g = ratio > .5 ? 255 : int(2.0  * ratio * 255);
 			objectPoint.b = 0;
 		}
+
+        mDebugHelperPtr->writeNoticeably("ENDING UPDATE METHOD", DebugHelper::HYPOTHESIS_UPDATER);
 
         return counter;
 	}

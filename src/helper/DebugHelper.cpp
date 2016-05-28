@@ -101,6 +101,12 @@ std::string DebugHelper::getLevelString()
     if (mLevels & IK_RATING) {
         addToString(level, "IK_RATING");
     }
+    if (mLevels & SPACE_SAMPLER) {
+        addToString(level, "SPACE_SAMPLER");
+    }
+    if (mLevels & HYPOTHESIS_UPDATER) {
+        addToString(level, "HYPOTHESIS_UPDATER");
+    }
 
     return level;
 }
@@ -153,6 +159,12 @@ int DebugHelper::parseLevels(std::vector<std::string> levels) {
         }
         else if (levels.at(i).compare("IK_RATING") == 0) {
             level += IK_RATING;
+        }
+        else if (levels.at(i).compare("SPACE_SAMPLER") == 0) {
+            level += SPACE_SAMPLER;
+        }
+        else if (levels.at(i).compare("HYPOTHESIS_UPDATER") == 0) {
+            level += HYPOTHESIS_UPDATER;
         }
         else {
             ROS_ERROR_STREAM("Invalid debug level: " << levels.at(i));
