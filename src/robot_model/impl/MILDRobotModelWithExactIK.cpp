@@ -105,6 +105,7 @@ namespace next_best_view {
         Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
         Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
+        //Visualize target view
         if (vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
@@ -132,12 +133,13 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC, DebugHelper::ROBOT_MODEL);
+        mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_AngleBeta: " << viewTriangleXYPlane_AngleBeta, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointYAxis): " << panJointToCenterPointProjected.dot(panJointYAxis),
                     DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "mPanAngleOffset: " << mPanAngleOffset, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis),
                     DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "-acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << -acos(panJointToCenterPointProjected.dot(panJointXAxis)),
+        mDebugHelperPtr->write(std::stringstream() << "acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << acos(panJointToCenterPointProjected.dot(panJointXAxis)),
                     DebugHelper::ROBOT_MODEL);
         //Calculate TILT
         Eigen::Affine3d panJointRotatedEigen = panJointEigen * Eigen::AngleAxisd(panAngle, Eigen::Vector3d::UnitZ());
@@ -181,7 +183,7 @@ namespace next_best_view {
             panAngle = panMax;
         }
 
-        //Visualization
+        //visualize current robot configuration and corrected view target
         if (vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d baseOrientation(basePoseEigen(0,0), basePoseEigen(1,0), basePoseEigen(2,0));
