@@ -600,8 +600,8 @@ public:
 
     bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        SimpleVector3 point = TypeHelper::getSimpleVector3(request.update_pose);
-        SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.update_pose);
+        SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
+        SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.pose_for_update);
         ViewportPoint viewportPoint;
         mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
                                         << mCalculator.getActiveIndices()->size(),
