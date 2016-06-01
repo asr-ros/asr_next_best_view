@@ -105,7 +105,7 @@ namespace next_best_view {
         Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
         Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
         Eigen::Vector3d target_view_center_point = Eigen::Vector3d(position[0], position[1], position[2]) + targetViewVector*mViewPointDistance;
-        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
+        if (vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d target_cam_point(position[0], position[1], position[2]);
             visualizeIKCameraTarget(target_view_center_point, target_cam_point);
@@ -182,7 +182,7 @@ namespace next_best_view {
         }
 
         //Visualization
-        if (mVisualizeIK && vis_pub.getNumSubscribers() > 0)
+        if (vis_pub.getNumSubscribers() > 0)
         {
             Eigen::Vector3d baseOrientation(basePoseEigen(0,0), basePoseEigen(1,0), basePoseEigen(2,0));
             Eigen::Vector3d pan_base_point(panJointEigen(0,3), panJointEigen(1,3), panJointEigen(2,3));
