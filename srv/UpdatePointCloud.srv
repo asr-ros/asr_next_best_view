@@ -1,3 +1,5 @@
 geometry_msgs/Pose update_pose
+# objects searched
+string[] object_type_name_list
 ---
 uint32 deactivated_object_normals

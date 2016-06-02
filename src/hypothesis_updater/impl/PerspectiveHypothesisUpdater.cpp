@@ -19,7 +19,7 @@ namespace next_best_view {
 
     PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
-    unsigned int PerspectiveHypothesisUpdater::update(const ViewportPoint &viewportPoint) {
+    unsigned int PerspectiveHypothesisUpdater::update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) {
         mDebugHelperPtr->writeNoticeably("STARTING UPDATE METHOD", DebugHelper::HYPOTHESIS_UPDATER);
 
         unsigned int counter = 0;
@@ -28,6 +28,10 @@ namespace next_best_view {
 
         BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
+
+            if (objectTypeSetPtr->find(objectPoint.type) == objectTypeSetPtr->end()) {
+                continue;
+            }
 
 			Indices::iterator begin = objectPoint.active_normal_vectors->begin();
 			Indices::iterator end = objectPoint.active_normal_vectors->end();

@@ -608,7 +608,10 @@ public:
                                     DebugHelper::SERVICE_CALLS);
         mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
         mDebugHelperPtr->write("Do update object point cloud", DebugHelper::SERVICE_CALLS);
-        unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(viewportPoint);
+
+        // copy objects to be updated from list to set
+        ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
+        unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
         response.deactivated_object_normals = deactivatedNormals;
 

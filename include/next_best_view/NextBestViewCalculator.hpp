@@ -326,18 +326,19 @@ public:
             {
                 mDebugHelperPtr->write(std::stringstream() << "Object: " << *it, DebugHelper::CALCULATION);
             }
-            this->updateObjectPointCloud(resultingViewportPoint);
+            this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
             break;
         }
     }
 
     /*!
          * \brief Updates the point cloud under the assumption that the given viewport was chosen.
+         * \param objectTypeSetPtr the object type names that shall be updated.
          * \param viewportPoint the viewport that was chosen
          * \return the number of deactivated normals
          */
-    unsigned int updateObjectPointCloud(const ViewportPoint &viewportPoint) {
-        return mHypothesisUpdaterPtr->update(viewportPoint);
+    unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) {
+        return mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint);
     }
 
     /////

@@ -22,10 +22,11 @@ namespace next_best_view {
 
         /*!
          * \brief Updates the point cloud under the assumption that the given viewport was chosen.
+         * \param objectTypeSetPtr the object type names that shall be updated.
          * \param viewportPoint the viewport that was chosen
          * \return the number of deactivated normals
          */
-        virtual unsigned int update(const ViewportPoint &viewportPoint) = 0;
+        virtual unsigned int update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) = 0;
 	};
 
 	/*!
