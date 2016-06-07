@@ -172,7 +172,7 @@ public:
                         }
 
                         UpdatePointCloud upc_req;
-                        upc_req.request.update_pose = nbv.response.resulting_pose;
+                        upc_req.request.pose_for_update = nbv.response.resulting_pose;
 
                         start = std::chrono::system_clock::now();
                         if(!updatePointCloudClient.call(upc_req)) {
