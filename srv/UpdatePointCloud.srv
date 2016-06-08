@@ -1,4 +1,4 @@
-geometry_msgs/Pose update_pose
+geometry_msgs/Pose pose_for_update
 # objects searched
 string[] object_type_name_list
 ---

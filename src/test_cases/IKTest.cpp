@@ -12,6 +12,7 @@
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/GetAttributedPointCloud.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 
 using namespace next_best_view;
 using namespace boost::unit_test;
@@ -83,8 +84,30 @@ public:
         //Initialize robot model
         MILDRobotModelWithExactIK *myRobotModel = new MILDRobotModelWithExactIK();
         MILDRobotModelWithExactIKPtr myRobotModelPtr(myRobotModel);
-        MILDRobotState * startState = new MILDRobotState(0,0,-1.57,0.013948535919,-1.60322499275);
+        double position_x = 0.013948535919;
+        double position_y = -1.60322499275;
+        double rotationAngle = -1.57;
+
+        MILDRobotState * startState = new MILDRobotState(0,0,rotationAngle,position_x,position_y);
         MILDRobotStatePtr startStatePtr(startState);
+
+        //Publish current pose
+        ros::NodeHandle n;
+        ros::Publisher pose_pub = n.advertise<geometry_msgs::PoseWithCovarianceStamped>("initialpose", 1000);
+        geometry_msgs::PoseWithCovarianceStamped startPoseStamped = geometry_msgs::PoseWithCovarianceStamped();
+        geometry_msgs::PoseWithCovariance startPose = geometry_msgs::PoseWithCovariance();
+        SimpleQuaternion rotation = ZXZ2Quaternion(0, 0, rotationAngle*180/M_PI);
+        startPose.pose.position.x = position_x;
+        startPose.pose.position.y = position_y;
+        startPose.pose.position.z = 0;
+        startPose.pose.orientation.w = rotation.w();
+        startPose.pose.orientation.x = rotation.x();
+        startPose.pose.orientation.y = rotation.y();
+        startPose.pose.orientation.z = rotation.z();
+        startPoseStamped.pose = startPose;
+        startPoseStamped.header.stamp = ros::Time::now();
+        pose_pub.publish(startPoseStamped);
+
 
         myRobotModelPtr->setPanAngleLimits(-180, 180);
         myRobotModelPtr->setTiltAngleLimits(-180, 180);
@@ -95,11 +118,11 @@ public:
             ROS_INFO_STREAM("Testpose " << (i+1));
             SimpleVector3 currentPosition = targetCameraPositions[i];
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
-            ROS_INFO_STREAM("Calculating inverse kinematics...");
-            RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            //ROS_INFO_STREAM("Calculating inverse kinematics...");
+            //RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
             ROS_INFO_STREAM("Calculating camera pose correction...");
             PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
-            ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig) << ", tilt = " << std::get<1>(ptuConfig));
+            ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);
             ros::spinOnce();
             waitForEnter();
             ros::Duration(2).sleep();
