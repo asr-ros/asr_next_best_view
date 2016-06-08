@@ -172,6 +172,7 @@ public:
                         }
 
                         UpdatePointCloud upc_req;
+                        upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
                         upc_req.request.pose_for_update = nbv.response.resulting_pose;
 
                         start = std::chrono::system_clock::now();
