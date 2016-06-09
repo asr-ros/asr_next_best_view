@@ -83,7 +83,7 @@ namespace next_best_view {
 				ros::Duration(0.5).sleep();
 			}
 
-            this->setCostmap();
+
 
 			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName, true);
 			while(ros::ok() && !mGetPlanServiceClient.exists()) {
@@ -92,7 +92,7 @@ namespace next_best_view {
 				ros::spinOnce();
 				ros::Duration(0.5).sleep();
 			}
-
+            this->setCostmap();
             this->aggregateRaytracingMap();
 		}
 
