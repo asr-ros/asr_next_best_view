@@ -110,6 +110,7 @@ namespace next_best_view {
             costmap_2d::Costmap2DROS costmapRos(name, tf);
             costmapRos.start();
             //costmapRos.stop();
+            costmapRos.updateMap();
 
             mCostmap = *(costmapRos.getCostmap());
 
