@@ -109,7 +109,7 @@ namespace next_best_view {
             std::string name = "global_costmap";
             costmap_2d::Costmap2DROS costmapRos(name, tf);
             costmapRos.start();
-            costmapRos.stop();
+            //costmapRos.stop();
 
             mCostmap = *(costmapRos.getCostmap());
 
