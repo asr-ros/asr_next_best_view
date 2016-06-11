@@ -14,6 +14,7 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include "next_best_view/helper/DebugHelper.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 	/*!
@@ -39,6 +40,7 @@ namespace next_best_view {
         float mSigma;
 		bool useGlobalPlanner;
         tf::TransformListener listener;
+        MapHelperPtr mMapHelperPtr;
 
 		/*!
 		 * contains the lower and upper limit of pan
@@ -97,6 +99,8 @@ namespace next_best_view {
 		 * \param maxAngleDegrees the maximum angle in degrees
 		 */
 		void setRotationAngleLimits(float minAngleDegrees, float maxAngleDegrees);
+
+        bool isPositionAllowed(const geometry_msgs::Point &position);
 
 		bool isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation);
 		
