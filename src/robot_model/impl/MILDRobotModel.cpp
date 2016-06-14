@@ -29,7 +29,7 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 
 namespace next_best_view {
-    MILDRobotModel::MILDRobotModel() : RobotModel(), listener() {
+    MILDRobotModel::MILDRobotModel() : RobotModel(), listener(), mMapHelperPtr(new MapHelper()) {
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
@@ -115,6 +115,15 @@ namespace next_best_view {
         mRotationLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
 		mRotationLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
 	}
+
+    bool MILDRobotModel::isPositionAllowed(const geometry_msgs::Point &position)
+    {
+        mDebugHelperPtr->writeNoticeably("STARTING IS-POSITION-ALLOWED METHOD", DebugHelper::ROBOT_MODEL);
+        SimpleVector3 pos(position.x, position.y, position.z);
+        int8_t occupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(pos);
+        mDebugHelperPtr->writeNoticeably("ENDING IS-POSITION-ALLOWED METHOD", DebugHelper::ROBOT_MODEL);
+        return mMapHelperPtr->isOccupancyValueAcceptable(occupancyValue);
+    }
 
     bool MILDRobotModel::isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation)
     {

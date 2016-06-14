@@ -107,7 +107,7 @@ public:
 			}
 
             UpdatePointCloud upc_req;
-            upc_req.request.update_pose = nbv.response.resulting_pose;
+            upc_req.request.pose_for_update = nbv.response.resulting_pose;
 
             if(!updatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
