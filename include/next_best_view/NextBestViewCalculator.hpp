@@ -134,7 +134,6 @@ public:
 
             // set the indices
             spaceSamplePoint.child_indices = childIndicesPtr;
-            spaceSamplePoint.child_point_cloud = mSpaceSamplerPtr->getInputCloud();
 
             // add the index to active indices.
             resultIndicesPtr->push_back(index);

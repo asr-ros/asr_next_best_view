@@ -18,7 +18,7 @@ DebugHelper::DebugHelper() {
 void DebugHelper::write(const char *text, DebugHelper::DebugLevel level)
 {
     if (this->checkLevel(level)) {
-        ROS_DEBUG(text);
+        ROS_DEBUG("%s", text);
     }
 }
 
@@ -39,9 +39,9 @@ void DebugHelper::write(const std::ostream& text, DebugLevel level) {
 void DebugHelper::writeNoticeably(const char *text, DebugHelper::DebugLevel level)
 {
     if (this->checkLevel(level)) {
-        ROS_DEBUG("");
-        ROS_DEBUG(text);
-        ROS_DEBUG("");
+        ROS_DEBUG(" ");
+        ROS_DEBUG("%s", text);
+        ROS_DEBUG(" ");
     }
 }
 
