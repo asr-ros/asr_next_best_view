@@ -42,9 +42,7 @@ namespace next_best_view {
 	public:
 		PCL_ADD_POINT4D;
 
-	  //Radius search result -> Comment?
-		ObjectPointCloudPtr child_point_cloud;
-		IndicesPtr child_indices;
+        IndicesPtr child_indices;
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		SpaceSamplePoint(const gm::Pose &pose = gm::Pose()) {

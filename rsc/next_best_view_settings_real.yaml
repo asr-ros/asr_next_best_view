@@ -19,7 +19,6 @@ useNewIK: false
 visualizeIK: false
 useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
-recognition_time: 6
 panMin: -20
 panMax: 20
 tiltMin: -45

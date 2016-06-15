@@ -300,9 +300,7 @@ namespace next_best_view {
 			}
 
 			// do a topological sort by distance to the fromPoint
-			RayTracingIndex source;
-			source.x = fromMapX;
-			source.y = fromMapY;
+            RayTracingIndex source = {fromMapX, fromMapY, 0};
 			std::stable_sort(ray.begin(), ray.end(), boost::bind(&RayTracingIndex::topologicalCompare, source, _1, _2));
 
 			// remove duplicate values
