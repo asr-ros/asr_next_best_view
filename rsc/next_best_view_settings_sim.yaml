@@ -26,7 +26,7 @@ tiltMax: 25
 mSigma: 0.5
 radius: 0.1
 sampleSizeUnitSphereSampler: 512
-colThresh: 45
+colThresh: 40
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
 enableCropBoxFiltering : false
