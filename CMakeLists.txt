@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   kdl_parser
   costmap_2d
+  rapidxml
 )
 
 find_package(PCL REQUIRED)

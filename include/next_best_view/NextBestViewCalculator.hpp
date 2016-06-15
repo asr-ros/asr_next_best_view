@@ -31,8 +31,8 @@
 
 #include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
 
-#include <rapid_xml/rapidxml.hpp>
-#include <rapid_xml/rapidxml_utils.hpp>
+#include <rapidxml.hpp>
+#include <rapidxml_utils.hpp>
 
 namespace next_best_view {
 class NextBestViewCalculator {
