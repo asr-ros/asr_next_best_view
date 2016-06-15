@@ -180,6 +180,7 @@ set (BUILD_SINGLE_SCENE_TEST FALSE)
 set (BUILD_MULTI_ID_SCENE_TEST FALSE)
 set (BUILD_PERFORMANCE_TEST FALSE)
 set (BUILD_UPDATE_POINTCLOUD_TEST FALSE)
+set (BUILD_MATH_TEST FALSE)
 
 if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST)
 MESSAGE ("Building Tests:")
@@ -337,6 +338,27 @@ target_link_libraries(
         ${catkin_LIBRARIES}
 )
 endif (BUILD_UPDATE_POINTCLOUD_TEST)
+
+
+if (BUILD_MATH_TEST)
+MESSAGE (" - Math Test")
+add_executable(
+        ${PROJECT_NAME}_math_test
+        src/test_cases/MathTest.cpp
+)
+
+target_link_libraries(
+        ${PROJECT_NAME}_math_test
+        ${PROJECT_NAME}_helper
+        ${PROJECT_NAME}_packages
+        ${PROJECT_NAME}_packages_impl
+        ${PROJECT_NAME}_test_core
+        ${PCL_LIBRARIES}
+        glpk
+        ${catkin_LIBRARIES}
+)
+endif (BUILD_MATH_TEST)
+
 
 add_executable(
         ${PROJECT_NAME}_robot_model

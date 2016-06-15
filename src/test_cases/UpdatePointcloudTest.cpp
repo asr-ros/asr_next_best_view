@@ -8,7 +8,6 @@
 #define BOOST_TEST_STATIC_LINK
 
 #include <boost/test/included/unit_test.hpp>
-#include <map>
 #include "next_best_view/test_cases/BaseTest.h"
 #include "next_best_view/GetAttributedPointCloud.h"
 
