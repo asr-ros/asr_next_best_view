@@ -1,0 +1,5 @@
+<launch>
+	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" /-->
+	<include file="$(find next_best_view)/launch/next_best_view_core_sim.launch" />
+	<node pkg="next_best_view" type="next_best_view_math_test" name="test" output="screen" />
+</launch>
