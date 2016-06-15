@@ -33,7 +33,7 @@ namespace next_best_view {
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mSigma_;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mSigma_, colThresh;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
@@ -44,6 +44,7 @@ namespace next_best_view {
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         n.getParam("mSigma", mSigma_);
+        n.param("colThresh", colThresh, 45.0);
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
@@ -62,6 +63,7 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaRot: " << mOmegaRot_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mSigma: " << mSigma_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "colThresh: " << colThresh, DebugHelper::PARAMETERS);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
@@ -70,6 +72,7 @@ namespace next_best_view {
         speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
         mSigma = mSigma_;
+        mMapHelperPtr->setCollisionThreshold(colThresh);
 		this->setPanAngleLimits(0, 0);
 		this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
