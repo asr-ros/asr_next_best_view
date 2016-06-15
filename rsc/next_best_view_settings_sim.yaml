@@ -15,7 +15,7 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
-useNewIK: false
+useNewIK: true
 visualizeIK: false
 useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
