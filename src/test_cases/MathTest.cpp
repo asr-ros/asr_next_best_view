@@ -56,21 +56,7 @@ public:
         }
     }
 
-    void solveLinearProblem() {
-        MILDRobotStatePtr robotState(new MILDRobotState());
-        robotState->pan = 0;
-        robotState->tilt = M_PI / 6.0;
-        robotState->rotation = 25.0 * M_PI / 32.0;
-
-        MILDRobotModelWithExactIK model;
-        model.setPanAngleLimits(-45, 45);
-        model.setTiltAngleLimits(-45, 45);
-        RobotStatePtr state = model.calculateRobotState(robotState, SimpleVector3(20, 50, 0), MathHelper::getQuaternionByAngles(M_PI / 64.0, 0, 0));
-        ROS_INFO_STREAM("costs: " << model.getBase_TranslationalMovementCosts(robotState, state));
-    }
-
     void iterationTest() {
-      solveLinearProblem();
       evaluateS2CandC2S();
     }
 };
