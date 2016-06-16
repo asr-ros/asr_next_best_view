@@ -173,14 +173,24 @@ target_link_libraries(
 #TEST CASES
 #SET VARIABLES TO ENABLE/DISABLE TEST BUILDING
 
-set (BUILD_TEST FALSE) #ToDo: Change Name
-set (BUILD_PARAMETERS_TEST FALSE)
+set (BUILD_TEST TRUE) #ToDo: Change Name
+set (BUILD_PARAMETERS_TEST TRUE)
 set (BUILD_IK_TEST TRUE)
-set (BUILD_SINGLE_SCENE_TEST FALSE)
-set (BUILD_MULTI_ID_SCENE_TEST FALSE)
-set (BUILD_PERFORMANCE_TEST FALSE)
-set (BUILD_UPDATE_POINTCLOUD_TEST FALSE)
-set (BUILD_MATH_TEST FALSE)
+set (BUILD_SINGLE_SCENE_TEST TRUE)
+set (BUILD_MULTI_ID_SCENE_TEST TRUE)
+set (BUILD_PERFORMANCE_TEST TRUE)
+set (BUILD_UPDATE_POINTCLOUD_TEST TRUE)
+set (BUILD_MATH_TEST TRUE)
+
+set (TEST_LINK_LIBRARIES 
+        ${PROJECT_NAME}_test_core
+        ${PROJECT_NAME}_helper
+        ${PROJECT_NAME}_packages
+        ${PROJECT_NAME}_packages_impl
+        ${PCL_LIBRARIES}
+        glpk
+        ${catkin_LIBRARIES}
+)
 
 if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST)
 MESSAGE ("Building Tests:")
@@ -190,13 +200,7 @@ add_library(
 )
 
 target_link_libraries(
-        ${PROJECT_NAME}_test_core
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST)
 
@@ -210,13 +214,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_TEST)
 
@@ -230,13 +228,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_single_scene_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_SINGLE_SCENE_TEST)
 
@@ -250,13 +242,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_multi_id_scene_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_MULTI_ID_SCENE_TEST)
 
@@ -270,13 +256,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_parameters_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_PARAMETERS_TEST)
 
@@ -289,13 +269,7 @@ add_executable(
 
 target_link_libraries(
        ${PROJECT_NAME}_ik_test
-       ${PROJECT_NAME}_helper
-       ${PROJECT_NAME}_packages
-       ${PROJECT_NAME}_packages_impl
-       ${PROJECT_NAME}_test_core
-       ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_IK_TEST)
 
@@ -309,13 +283,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_performance_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_PERFORMANCE_TEST)
 
@@ -329,13 +297,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_update_pointcloud_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_UPDATE_POINTCLOUD_TEST)
 
@@ -349,13 +311,7 @@ add_executable(
 
 target_link_libraries(
         ${PROJECT_NAME}_math_test
-        ${PROJECT_NAME}_helper
-        ${PROJECT_NAME}_packages
-        ${PROJECT_NAME}_packages_impl
-        ${PROJECT_NAME}_test_core
-        ${PCL_LIBRARIES}
-        glpk
-        ${catkin_LIBRARIES}
+        ${TEST_LINK_LIBRARIES}
 )
 endif (BUILD_MATH_TEST)
 
