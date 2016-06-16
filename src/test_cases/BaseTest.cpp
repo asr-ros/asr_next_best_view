@@ -14,6 +14,10 @@ using namespace next_best_view;
         mInitPosePub = mNodeHandle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
         mMoveBaseClient = MoveBaseClientPtr(new MoveBaseClient("move_base", true));
         mSetInitRobotStateClient = mNodeHandle.serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
+        setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
+        getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
+        getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
+        updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
     }
 
     BaseTest::~BaseTest() {}

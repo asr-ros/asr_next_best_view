@@ -21,7 +21,7 @@ public:
 
     virtual ~UpdatePointCloudTest() {}
 
-    int test(ros::ServiceClient getNextBestViewClient, ros::ServiceClient getPointCloudClient, ros::ServiceClient setPointCloudClient, ros::ServiceClient updatePointCloudClient, SetAttributedPointCloud apc, std::vector<std::string> object_type_name_list) {
+    int test(SetAttributedPointCloud apc, std::vector<std::string> object_type_name_list) {
         ROS_INFO("Setze initiale Pose");
         geometry_msgs::Pose initialPose;
         initialPose.position.x = -0.383223;
@@ -72,11 +72,6 @@ public:
     }
 
     void iterationTest() {
-        ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
-        ros::ServiceClient getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
-        ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
-        ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
-
         SetAttributedPointCloud apc;
 
         ROS_INFO("Generiere Häufungspunkte");
@@ -118,8 +113,8 @@ public:
             }
         }
 
-        int deactivatedSmacksNormals = test(getNextBestViewClient, getPointCloudClient, setPointCloudClient, updatePointCloudClient, apc, {"Smacks"});
-        int deactivatedSmacksPlateDeepNormals = test(getNextBestViewClient, getPointCloudClient, setPointCloudClient, updatePointCloudClient, apc, {"Smacks", "PlateDeep"});
+        int deactivatedSmacksNormals = test(apc, {"Smacks"});
+        int deactivatedSmacksPlateDeepNormals = test(apc, {"Smacks", "PlateDeep"});
         if (deactivatedSmacksNormals >= deactivatedSmacksPlateDeepNormals) {
             ROS_ERROR("Update deactivated the same or more normals without PlateDeep");
             ROS_ERROR("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);

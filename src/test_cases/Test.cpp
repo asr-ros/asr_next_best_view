@@ -20,12 +20,7 @@ public:
 
 	virtual ~Test() {}
 
-	void iterationTest() {
-		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
-		ros::ServiceClient getPointCloud2Client = mNodeHandle.serviceClient<GetPointCloud2>("/nbv/get_point_cloud2");
-		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
-		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
-		ros::ServiceClient getSpaceSamplingClient = mNodeHandle.serviceClient<GetSpaceSampling>("/nbv/get_space_sampling");
+    void iterationTest() {
 
 		SetAttributedPointCloud apc;
 
@@ -91,8 +86,7 @@ public:
 		setPointCloudClient.call(apc.request, apc.response);
 
 		GetNextBestView nbv;
-		nbv.request.current_pose = initialPose;
-		ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
+        nbv.request.current_pose = initialPose;
 		int x = 1;
 		while(ros::ok()) {
             ROS_INFO_STREAM("Kalkuliere NBV " << x);

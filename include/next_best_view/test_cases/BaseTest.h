@@ -55,6 +55,10 @@ protected:
     ros::Publisher mInitPosePub;
     MoveBaseClientPtr mMoveBaseClient;
     ros::ServiceClient mSetInitRobotStateClient;
+    ros::ServiceClient setPointCloudClient;
+    ros::ServiceClient getPointCloudClient;
+    ros::ServiceClient getNextBestViewClient;
+    ros::ServiceClient updatePointCloudClient;
 public:
     BaseTest();
 
