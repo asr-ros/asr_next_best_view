@@ -24,8 +24,8 @@ public:
     int test(ros::ServiceClient getNextBestViewClient, ros::ServiceClient getPointCloudClient, ros::ServiceClient setPointCloudClient, ros::ServiceClient updatePointCloudClient, SetAttributedPointCloud apc, std::vector<std::string> object_type_name_list) {
         ROS_INFO("Setze initiale Pose");
         geometry_msgs::Pose initialPose;
-        initialPose.position.x = -0.6833919;
-        initialPose.position.y = -0.2539510;
+        initialPose.position.x = -0.383223;
+        initialPose.position.y = 0.157997;
         initialPose.position.z = 1.32;
         initialPose.orientation.x = -0.17266;
         initialPose.orientation.y = 0.2115588;
@@ -57,17 +57,13 @@ public:
 
             UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = object_type_name_list;
-            upc_req.request.pose_for_update = initialPose;
+            upc_req.request.pose_for_update = nbv.response.resulting_pose;
             if(!updatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }
-            deactivatedNormals = upc_req.response.deactivated_object_normals;
-            if(upc_req.response.deactivated_object_normals == 0 && i == 0) {
-                ROS_ERROR("Update didn't deactivate normals at first run!");
-            }
-            if(upc_req.response.deactivated_object_normals > 0 && i > 0) {
-                ROS_ERROR("Update deactivated normal after first run!");
+            if (i == 0) {
+                deactivatedNormals = upc_req.response.deactivated_object_normals;
             }
             this->waitForEnter();
             i++;
@@ -124,8 +120,10 @@ public:
 
         int deactivatedSmacksNormals = test(getNextBestViewClient, getPointCloudClient, setPointCloudClient, updatePointCloudClient, apc, {"Smacks"});
         int deactivatedSmacksPlateDeepNormals = test(getNextBestViewClient, getPointCloudClient, setPointCloudClient, updatePointCloudClient, apc, {"Smacks", "PlateDeep"});
-        if (deactivatedSmacksNormals <= deactivatedSmacksPlateDeepNormals) {
-            ROS_ERROR("Update deactivated the same or more normals with PlateDeep");
+        if (deactivatedSmacksNormals >= deactivatedSmacksPlateDeepNormals) {
+            ROS_ERROR("Update deactivated the same or more normals without PlateDeep");
+            ROS_ERROR("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
+            ROS_ERROR("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
         }
     }
 };
