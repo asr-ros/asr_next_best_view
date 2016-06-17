@@ -114,8 +114,6 @@ private:
 
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
-    ObjectPointCloudPtr mPointCloudPtr;
-    KdTreePtr mKdTreePtr;
     DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
     SetupVisualizationRequest mVisualizationSettings;
@@ -124,6 +122,8 @@ private:
     // Bool for set point cloud flags
     bool mEnableIntermediateObjectWeighting;
     bool mEnableCropBoxFiltering;
+
+    boost::shared_ptr<boost::thread> mVisualizationThread;
 
 public:
     /*!
@@ -153,7 +153,9 @@ public:
     }
 
     //dtor
-    virtual ~NextBestView() { }
+    virtual ~NextBestView() {
+        this->mVisualizationThread->join();
+    }
 
     void initialize()
     {
@@ -161,7 +163,6 @@ public:
 
         mDebugHelperPtr->write(std::stringstream() << "debugLevels: " << mDebugHelperPtr->getLevelString(), DebugHelper::PARAMETERS);
 
-        mPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
         mCurrentlyPublishingVisualization = false;
 
         // setup the visualization defaults
@@ -645,7 +646,7 @@ public:
 
         mCurrentlyPublishingVisualization = true;
 
-        boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, true);
+        this->mVisualizationThread = boost::shared_ptr<boost::thread>(new boost::thread(&NextBestView::publishVisualization, this, viewport, true));
         return true;
     }
 
