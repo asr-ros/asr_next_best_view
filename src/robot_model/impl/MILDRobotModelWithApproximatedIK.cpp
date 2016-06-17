@@ -143,8 +143,7 @@ namespace next_best_view {
 			ROS_ERROR("No optimal solution found - inverse kinematics");
 		}
 
-		double cost_value = glp_get_obj_val(lp);
-		double x_pan_plus = glp_get_col_prim(lp, 1);
+        double x_pan_plus = glp_get_col_prim(lp, 1);
 		double x_pan_minus = glp_get_col_prim(lp, 2);
 		double x_rot_plus = glp_get_col_prim(lp, 3);
 		double x_rot_minus = glp_get_col_prim(lp, 4);

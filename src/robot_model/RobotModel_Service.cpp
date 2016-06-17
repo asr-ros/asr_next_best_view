@@ -9,6 +9,7 @@
 #include "next_best_view/CalculateRobotState.h"
 #include "next_best_view/CalculateCameraPose.h"
 #include "next_best_view/CalculateCameraPoseCorrection.h"
+#include "next_best_view/IsPositionAllowed.h"
 #include "next_best_view/IsPositionReachable.h"
 #include "next_best_view/RobotStateMessage.h"
 #include "next_best_view/GetPose.h"
@@ -76,6 +77,12 @@ bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose:
     return true;
 }
 
+bool isPositionAllowed(IsPositionAllowed::Request &req, IsPositionAllowed::Response &res)
+{
+  res.isAllowed = robotModelPtr->isPositionAllowed(req.targetPosition);
+  return true;
+}
+
 bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
 {
   res.isReachable = robotModelPtr->isPositionReachable(req.sourcePosition, req.targetPosition);
@@ -114,6 +121,7 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
     ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
     ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
+    ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", isPositionAllowed);
     ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
     ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
     ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);

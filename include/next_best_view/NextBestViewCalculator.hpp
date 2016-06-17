@@ -31,8 +31,8 @@
 
 #include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
 
-#include <rapid_xml/rapidxml.hpp>
-#include <rapid_xml/rapidxml_utils.hpp>
+#include <rapidxml.hpp>
+#include <rapidxml_utils.hpp>
 
 namespace next_best_view {
 class NextBestViewCalculator {
@@ -134,7 +134,6 @@ public:
 
             // set the indices
             spaceSamplePoint.child_indices = childIndicesPtr;
-            spaceSamplePoint.child_point_cloud = mSpaceSamplerPtr->getInputCloud();
 
             // add the index to active indices.
             resultIndicesPtr->push_back(index);

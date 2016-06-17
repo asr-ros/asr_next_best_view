@@ -15,11 +15,10 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
-useNewIK: false
+useNewIK: true
 visualizeIK: false
 useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
-recognition_time: 6
 panMin: -20
 panMax: 20
 tiltMin: -45
@@ -27,7 +26,7 @@ tiltMax: 25
 mSigma: 0.5
 radius: 0.1
 sampleSizeUnitSphereSampler: 512
-colThresh: 45
+colThresh: 40
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 enableCropBoxFiltering : false

@@ -4,7 +4,7 @@ mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 100 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 100 #Gewichtungsfaktor für die Bewegung der Basis
 mOmegaRecognizer: 50 
-speedFactorRecognizer: 1.0 #Zeitkosten für Objekterkennung in Sec/Objekt
+speedFactorRecognizer: 0.1 #Zeitkosten für Objekterkennung in Sec/Objekt
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
 fovx: 30
@@ -19,7 +19,6 @@ useNewIK: false
 visualizeIK: false
 useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
-recognition_time: 6
 panMin: -20
 panMax: 20
 tiltMin: -45
@@ -27,7 +26,7 @@ tiltMax: 25
 mSigma: 0.5
 radius: 0.1
 sampleSizeUnitSphereSampler: 512
-colThresh: 10
+colThresh: 40
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
 enableCropBoxFiltering : false

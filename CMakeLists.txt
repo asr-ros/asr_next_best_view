@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   kdl_parser
   costmap_2d
+  rapidxml
 )
 
 find_package(PCL REQUIRED)
@@ -54,6 +55,7 @@ add_service_files(
    CalculateRobotState.srv
    CalculateCameraPose.srv
    CalculateCameraPoseCorrection.srv
+   IsPositionAllowed.srv
    IsPositionReachable.srv
    TriggerFrustumVisualization.srv
    ResetCalculator.srv

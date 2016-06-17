@@ -41,7 +41,7 @@ namespace next_best_view {
 
 			Ray ray;
             if (!mMapHelperPtr->doRaytracing(currentSpacePosition, vector, ray)) {
-				SimpleVector3 obstacle;
+                SimpleVector3 obstacle(0,0,0);
 				for (Ray::reverse_iterator iter = ray.rbegin(); iter != ray.rend(); iter++) {
 					if (mMapHelperPtr->isOccupancyValueAcceptable(iter->occupancy)) {
 						mMapHelperPtr->mapToWorldCoordinates(iter->x, iter->y, obstacle);
@@ -52,9 +52,8 @@ namespace next_best_view {
                 vector[2] = currentSpacePosition[2];
 			}
 
-            SamplePoint samplePoint;
-            samplePoint.x = vector[0];
-            samplePoint.y = vector[1];
+            vector[2] = 0;
+            SamplePoint samplePoint(vector);
             sampledSpacePointCloudPtr->push_back(samplePoint);
 		}
 

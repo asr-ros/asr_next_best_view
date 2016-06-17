@@ -128,7 +128,9 @@ namespace next_best_view {
         void aggregateRaytracingMap() {
             mDebugHelperPtr->write("Aggregating raytracing map.", DebugHelper::MAP);
             if (mMap.info.width != mCostmap.getSizeInCellsX() || mMap.info.height != mCostmap.getSizeInCellsY()) {
-				ROS_ERROR("Cannot aggregate raytracing map. Dimensions of map and costmap do not match!");
+                ROS_ERROR("Cannot aggregate raytracing map. Dimensions of map and costmap do not match!");
+                mDebugHelperPtr->write(std::stringstream() << "Map size: " << mMap.info.width << "x" << mMap.info.height, DebugHelper::MAP);
+                mDebugHelperPtr->write(std::stringstream() << "Costmap size: " << mCostmap.getSizeInCellsX() << "x" << mCostmap.getSizeInCellsY(), DebugHelper::MAP);
                 assert(mMap.info.width == mCostmap.getSizeInCellsX() && mMap.info.height == mCostmap.getSizeInCellsY());
             }
 
@@ -300,9 +302,7 @@ namespace next_best_view {
 			}
 
 			// do a topological sort by distance to the fromPoint
-			RayTracingIndex source;
-			source.x = fromMapX;
-			source.y = fromMapY;
+            RayTracingIndex source = {fromMapX, fromMapY, 0};
 			std::stable_sort(ray.begin(), ray.end(), boost::bind(&RayTracingIndex::topologicalCompare, source, _1, _2));
 
 			// remove duplicate values
