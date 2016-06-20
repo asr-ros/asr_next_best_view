@@ -24,8 +24,8 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 mSigma: 0.5
-radius: 0.1
-sampleSizeUnitSphereSampler: 512
+radius: 0.15
+sampleSizeUnitSphereSampler: 384
 colThresh: 40
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
