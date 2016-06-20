@@ -73,8 +73,8 @@ namespace next_best_view {
         tolerance = tolerance_;
         mSigma = mSigma_;
         mMapHelperPtr->setCollisionThreshold(colThresh);
-		this->setPanAngleLimits(0, 0);
-		this->setTiltAngleLimits(0, 0);
+        this->setPanAngleLimits(0, 0);
+        this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
 	}
 
@@ -105,16 +105,19 @@ namespace next_best_view {
     }
 
 	void MILDRobotModel::setPanAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
+        mDebugHelperPtr->write(std::stringstream() << "Setting PAN angle limits to (" << minAngleDegrees << ", " << maxAngleDegrees << ")", DebugHelper::PARAMETERS);
 		mPanLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
 		mPanLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
 	}
 
 	void MILDRobotModel::setTiltAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
+        mDebugHelperPtr->write(std::stringstream() << "Setting TILT angle limits to (" << minAngleDegrees << ", " << maxAngleDegrees << ")", DebugHelper::PARAMETERS);
 		mTiltLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
 		mTiltLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
 	}
 
 	void MILDRobotModel::setRotationAngleLimits(float minAngleDegrees, float maxAngleDegrees) {
+        mDebugHelperPtr->write(std::stringstream() << "Setting rotation angle limits to (" << minAngleDegrees << ", " << maxAngleDegrees << ")", DebugHelper::PARAMETERS);
         mRotationLimits.get<0>() = MathHelper::degToRad(minAngleDegrees);
 		mRotationLimits.get<1>() = MathHelper::degToRad(maxAngleDegrees);
 	}
