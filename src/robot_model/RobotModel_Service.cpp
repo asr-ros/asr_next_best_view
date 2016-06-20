@@ -128,9 +128,20 @@ int main(int argc, char *argv[])
     ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
 
     ROS_INFO_STREAM("NBV Service: Using new IK model.");
+
+    double panMin, panMax, tiltMin, tiltMax;
+    n.param("panMin", panMin, -60.);
+    n.param("panMax", panMax, 60.);
+    n.param("tiltMin", tiltMin, -45.);
+    n.param("tiltMax", tiltMax, 45.);
+    ROS_INFO_STREAM("panMin: " << panMin);
+    ROS_INFO_STREAM("panMax: " << panMax);
+    ROS_INFO_STREAM("tiltMin: " << tiltMin);
+    ROS_INFO_STREAM("tiltMax: " << tiltMax);
+
     MILDRobotModelWithExactIK *tempRobotModel = new MILDRobotModelWithExactIK();
-    tempRobotModel->setTiltAngleLimits(-45, 45);
-    tempRobotModel->setPanAngleLimits(-60, 60);
+    tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
+    tempRobotModel->setPanAngleLimits(panMin, panMax);
     robotModelPtr = MILDRobotModelWithExactIKPtr(tempRobotModel);
 
     ROS_INFO("RobotModel Service started.");
