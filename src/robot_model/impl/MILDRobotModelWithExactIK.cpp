@@ -754,7 +754,7 @@ namespace next_best_view {
     {
         Eigen::Vector3d xAxis(baseFrame(0,0), baseFrame(1,0), 0.0);
         Eigen::Vector3d yAxis(baseFrame(0,1), baseFrame(1,1), 0.0);
-        xAxis.normalize(); yAxis.normalize();
+        xAxis.normalize();
         if (yAxis[0] >= 0)
         {
             return acos(xAxis[0]);
