@@ -26,6 +26,8 @@ namespace next_best_view {
         float mMovementCostsBaseRotation;
         float mMovementCostsPTU;
         float mRecognitionCosts;
+        // this is the UNnormalized utility, while the BaseScoreContainer contains the normalized utility
+        float mUtility;
         // the utility for each object type
         std::map<std::string, float> mObjectUtilities;
         float mUtilityNormalization;
@@ -107,11 +109,27 @@ namespace next_best_view {
         }
 
         /*!
+         * \brief sets the weighted unnormalized utility
+         * \param value the utility
+         */
+        void setWeightedUnnormalizedUtility(float value) {
+            mUtility = value;
+        }
+
+        /*!
+         * \brief returns the weighted unnormalized utility
+         * \return the utility
+         */
+        float getWeightedUnnormalizedUtility() {
+            return mUtility;
+        }
+
+        /*!
          * \brief sets the utilitiy for an object type
          * \param objectType the object type
          * \param value the utility
          */
-        void setUnweightedNormalizedObjectUtilitiy(std::string objectType, float value) {
+        void setUnweightedUnnormalizedObjectUtilitiy(std::string objectType, float value) {
             mObjectUtilities[objectType] = value;
         }
 
@@ -120,7 +138,7 @@ namespace next_best_view {
          * \param objectType the object type
          * \return the utility
          */
-        float getUnweightedNormalizedObjectUtility(std::string objectType) {
+        float getUnweightedUnnormalizedObjectUtility(std::string objectType) {
             if (mObjectUtilities.count(objectType) == 0) {
                 return 0;
             }

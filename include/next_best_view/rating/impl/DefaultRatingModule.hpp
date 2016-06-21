@@ -52,7 +52,7 @@ namespace next_best_view {
          * must be reset everytime setBaseScoreContainer is called
          */
         // the utility for each object type
-        std::map<std::string, float> mUnweightedNormalizedObjectUtilities;
+        std::map<std::string, float> mUnweightedUnnormalizedObjectUtilities;
         // the full costs of the movement - does not contain the costs of the recognition
         double mWeightedInverseMovementCosts = -1;
         // the costs of the translational movement of the base
@@ -174,14 +174,14 @@ namespace next_best_view {
          * \param candidateViewport the candidate camera viewport
          * \return the utility
          */
-        double getWeightedNormalizedUtility(const ViewportPoint &candidateViewport);
+        double getWeightedUnnormalizedUtility(const ViewportPoint &candidateViewport);
 
         /*!
          * \brief sets the mObjectUtilities member.
          * \param candidateViewport the candidate camera viewport
          * \param objectType the object type for which the utility shall be set
          */
-        void setUnweightedNormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType);
+        void setUnweightedUnnormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType);
 
         /*!
          * \brief returns the inverse costs for the movement from the source to the target viewport

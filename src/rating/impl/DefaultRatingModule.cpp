@@ -85,6 +85,23 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
         return false;
     }
 
+    // set utility normalization and normalized utility depending on maximal amount of objects in viewport
+    float utilityNormalization = 0.0;
+
+    BOOST_FOREACH(ViewportPoint viewport, *viewports) {
+        int objects = viewport.child_indices->size();
+        if (objects > utilityNormalization) {
+            utilityNormalization = objects;
+        }
+    }
+
+    BOOST_FOREACH(ViewportPoint viewport, *viewports) {
+        viewport.score->setUtilityNormalization(utilityNormalization);
+
+        float normalizedUtility = viewport.score->getWeightedUnnormalizedUtility() / utilityNormalization;
+        viewport.score->setWeightedNormalizedUtility(normalizedUtility);
+    }
+
     // sort the viewports by rating
     std::sort(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
 
@@ -221,19 +238,17 @@ bool DefaultRatingModule::setSingleScoreContainer(const ViewportPoint &currentVi
     DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
 
     // set the utility
-    float utility = this->getWeightedNormalizedUtility(candidateViewport);
+    float utility = this->getWeightedUnnormalizedUtility(candidateViewport);
 
     if (utility <= 0) {
         return false;
     }
 
-    defRatingPtr->setWeightedNormalizedUtility(utility);
+    defRatingPtr->setWeightedUnnormalizedUtility(utility);
 
     BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
-        defRatingPtr->setUnweightedNormalizedObjectUtilitiy(objectType, mUnweightedNormalizedObjectUtilities[objectType]);
+        defRatingPtr->setUnweightedUnnormalizedObjectUtilitiy(objectType, mUnweightedUnnormalizedObjectUtilities[objectType]);
     }
-
-    defRatingPtr->setUtilityNormalization(this->getInputCloud()->size());
 
     // set the costs
     double costs = this->getWeightedInverseCosts(currentViewport, candidateViewport);
@@ -274,24 +289,23 @@ float DefaultRatingModule::getNormalizedRating(float deviation, float threshold)
     return 0.0;
 }
 
-double DefaultRatingModule::getWeightedNormalizedUtility(const ViewportPoint &candidateViewport) {
+double DefaultRatingModule::getWeightedUnnormalizedUtility(const ViewportPoint &candidateViewport) {
     double utility = 0.0;
 
     // get the utility for each object type and sum them up
     BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
         // set the utility for the object type if not already done
-        if (mUnweightedNormalizedObjectUtilities.count(objectType) == 0) {
-            setUnweightedNormalizedObjectUtilities(candidateViewport, objectType);
+        if (mUnweightedUnnormalizedObjectUtilities.count(objectType) == 0) {
+            setUnweightedUnnormalizedObjectUtilities(candidateViewport, objectType);
         }
 
-        utility += mUnweightedNormalizedObjectUtilities[objectType];
+        utility += mUnweightedUnnormalizedObjectUtilities[objectType];
     }
 
     return mOmegaUtility * utility;
 }
 
-void DefaultRatingModule::setUnweightedNormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {
-    double maxElements = this->getInputCloud()->size();
+void DefaultRatingModule::setUnweightedUnnormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {
     float utility = 0;
 
     // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
@@ -314,11 +328,8 @@ void DefaultRatingModule::setUnweightedNormalizedObjectUtilities(const ViewportP
         //ROS_ERROR_STREAM("DefaultRatingModule::setObjectUtilities weight "<< objectPoint.intermediate_object_weight);
     }
 
-    // normalize utility
-    utility /= maxElements;
-
     // cache the utility and the orientation and position utilities
-    mUnweightedNormalizedObjectUtilities[objectType] = utility;
+    mUnweightedUnnormalizedObjectUtilities[objectType] = utility;
 }
 
 double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceViewport,
@@ -429,7 +440,7 @@ void DefaultRatingModule::setMaxRecognitionCosts() {
 }
 
 void DefaultRatingModule::resetCache() {
-    mUnweightedNormalizedObjectUtilities.clear();
+    mUnweightedUnnormalizedObjectUtilities.clear();
     mWeightedInverseMovementCosts = -1;
     mUnweightedInverseMovementCostsBaseTranslation = -1;
     mUnweightedInverseMovementCostsBaseRotation = -1;
