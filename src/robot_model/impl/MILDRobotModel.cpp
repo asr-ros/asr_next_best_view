@@ -133,13 +133,14 @@ namespace next_best_view {
     void MILDRobotModel::initMapHelper() {
         if (mMapHelperPtr == nullptr)
         {
-            mDebugHelperPtr->writeNoticeably("INITIL MAP_HELPER IN IS-POSITION-ALLOWED METHOD", DebugHelper::ROBOT_MODEL);
+            mDebugHelperPtr->writeNoticeably("INIT MAP_HELPER IN MILDRobotModel", DebugHelper::ROBOT_MODEL);
             mMapHelperPtr = MapHelperPtr(new MapHelper());
             ros::NodeHandle n("nbv_robot_model");
             double colThresh;
             n.param("colThresh", colThresh, 45.0);
             mDebugHelperPtr->write(std::stringstream() << "colThresh: " << colThresh, DebugHelper::PARAMETERS);
             mMapHelperPtr->setCollisionThreshold(colThresh);
+            mDebugHelperPtr->writeNoticeably("INIT MAP_HELPER IN MILDRobotModel DONE", DebugHelper::ROBOT_MODEL);
         }
     }
 
