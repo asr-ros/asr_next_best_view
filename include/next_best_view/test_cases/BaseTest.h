@@ -64,21 +64,9 @@ public:
 
     ~BaseTest();
 
-    void evaluateS2CandC2S();
-
-    void solveLinearProblem();
-
-    void visualizeSingleObjectWithNormals();
-
     void setInitialPose(const geometry_msgs::Pose &initialPose);
 
-    virtual void setInitialRobotState(const geometry_msgs::Pose &initialPose);
-
     MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
-
-    void moveToPose(const geometry_msgs::Pose &pose);
-
-    void visualizeSpaceSampling();
 
     void waitForEnter();
 
