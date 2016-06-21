@@ -29,11 +29,11 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 
 namespace next_best_view {
-    MILDRobotModel::MILDRobotModel() : RobotModel(), listener(), mMapHelperPtr(new MapHelper()) {
+    MILDRobotModel::MILDRobotModel() : RobotModel(), listener() {
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
         mDebugHelperPtr = DebugHelper::getInstance();
-        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mSigma_, colThresh;
+        double mOmegaPan_, mOmegaTilt_, mOmegaRot_, tolerance_, speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_, mSigma_;
         bool useGlobalPlanner_;
         n.getParam("mOmegaPan", mOmegaPan_);
         n.getParam("mOmegaTilt", mOmegaTilt_);
@@ -44,7 +44,7 @@ namespace next_best_view {
         n.getParam("tolerance", tolerance_);
         n.getParam("useGlobalPlanner", useGlobalPlanner_);
         n.getParam("mSigma", mSigma_);
-        n.param("colThresh", colThresh, 45.0);
+
         useGlobalPlanner = useGlobalPlanner_;
         if (useGlobalPlanner_)
         {
@@ -63,7 +63,6 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "mOmegaTilt: " << mOmegaTilt_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mOmegaRot: " << mOmegaRot_, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "mSigma: " << mSigma_, DebugHelper::PARAMETERS);
-        mDebugHelperPtr->write(std::stringstream() << "colThresh: " << colThresh, DebugHelper::PARAMETERS);
         mOmegaPan = mOmegaPan_;
         mOmegaTilt = mOmegaTilt_;
         mOmegaRot = mOmegaRot_;
@@ -72,7 +71,6 @@ namespace next_best_view {
         speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
         mSigma = mSigma_;
-        mMapHelperPtr->setCollisionThreshold(colThresh);
         this->setPanAngleLimits(0, 0);
         this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
@@ -125,10 +123,24 @@ namespace next_best_view {
     bool MILDRobotModel::isPositionAllowed(const geometry_msgs::Point &position)
     {
         mDebugHelperPtr->writeNoticeably("STARTING IS-POSITION-ALLOWED METHOD", DebugHelper::ROBOT_MODEL);
+        MILDRobotModel::initMapHelper();
         SimpleVector3 pos(position.x, position.y, position.z);
         int8_t occupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(pos);
         mDebugHelperPtr->writeNoticeably("ENDING IS-POSITION-ALLOWED METHOD", DebugHelper::ROBOT_MODEL);
         return mMapHelperPtr->isOccupancyValueAcceptable(occupancyValue);
+    }
+
+    void MILDRobotModel::initMapHelper() {
+        if (mMapHelperPtr == nullptr)
+        {
+            mDebugHelperPtr->writeNoticeably("INITIL MAP_HELPER IN IS-POSITION-ALLOWED METHOD", DebugHelper::ROBOT_MODEL);
+            mMapHelperPtr = MapHelperPtr(new MapHelper());
+            ros::NodeHandle n("nbv_robot_model");
+            double colThresh;
+            n.param("colThresh", colThresh, 45.0);
+            mDebugHelperPtr->write(std::stringstream() << "colThresh: " << colThresh, DebugHelper::PARAMETERS);
+            mMapHelperPtr->setCollisionThreshold(colThresh);
+        }
     }
 
     bool MILDRobotModel::isPoseReachable(const SimpleVector3 &position, const SimpleQuaternion &orientation)

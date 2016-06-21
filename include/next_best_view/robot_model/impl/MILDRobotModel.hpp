@@ -25,6 +25,7 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 */
     class MILDRobotModel : public RobotModel {
+
     protected:
 
         DebugHelperPtr mDebugHelperPtr;
@@ -134,6 +135,11 @@ namespace next_best_view {
          */
         geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
 
+    private:
+        /*!
+         * \brief Init MapHelper if it is not initialized yet.
+         */
+        void initMapHelper();
 	};
 
     typedef boost::shared_ptr<MILDRobotModel> MILDRobotModelPtr;
