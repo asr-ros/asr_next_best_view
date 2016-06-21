@@ -117,15 +117,6 @@ int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "getMovementCosts");
     ros::NodeHandle n = ros::NodeHandle(ros::this_node::getName());
-    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getBase_TranslationalMovementCosts);
-    ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
-    ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
-    ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
-    ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", isPositionAllowed);
-    ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
-    ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
-    ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);
-    ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
 
     ROS_INFO_STREAM("NBV Service: Using new IK model.");
 
@@ -139,10 +130,19 @@ int main(int argc, char *argv[])
     ROS_INFO_STREAM("tiltMin: " << tiltMin);
     ROS_INFO_STREAM("tiltMax: " << tiltMax);
 
-    MILDRobotModelWithExactIK *tempRobotModel = new MILDRobotModelWithExactIK();
-    tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
-    tempRobotModel->setPanAngleLimits(panMin, panMax);
-    robotModelPtr = MILDRobotModelWithExactIKPtr(tempRobotModel);
+    robotModelPtr = MILDRobotModelWithExactIKPtr(new MILDRobotModelWithExactIK());
+    robotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
+    robotModelPtr->setPanAngleLimits(panMin, panMax);
+
+    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getBase_TranslationalMovementCosts);
+    ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
+    ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
+    ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
+    ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", isPositionAllowed);
+    ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
+    ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
+    ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);
+    ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
 
     ROS_INFO("RobotModel Service started.");
     ros::spin();
