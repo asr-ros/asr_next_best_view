@@ -1,4 +1,4 @@
-mOmegaUtility: 750 #Gewichtungsfaktor für den Nutzen-Faktor 
+mOmegaUtility: 840 #Gewichtungsfaktor für den Nutzen-Faktor 
 mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 100 #Gewichtungsfaktor für die Rotation der Basis
@@ -15,7 +15,7 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
-useNewIK: true
+useNewIK: false
 visualizeIK: false
 useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
 move_robot: true
