@@ -31,6 +31,7 @@ using namespace next_best_view;
         sirb.request.robotState.x = statePtr->x;
         sirb.request.robotState.y = statePtr->y;
 
+        ros::service::waitForService("/nbv/set_init_robot_state", -1);
         if (!mSetInitRobotStateClient.call(sirb)) {
             ROS_ERROR("Failed to call service SetInitRobotState.");
         }
