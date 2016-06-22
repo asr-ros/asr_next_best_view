@@ -128,11 +128,6 @@ namespace next_best_view {
         /*!
          * \brief Uses a given RobotState to calculate the camera frame
          */
-        virtual RobotStatePtr calculateRobotState(const RobotStatePtr &sourceRobotState, const SimpleVector3 &position, const SimpleQuaternion &orientation);
-
-        /*!
-         * \brief Uses a given RobotState to calculate the camera frame
-         */
         geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
 
     private:

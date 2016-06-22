@@ -35,9 +35,11 @@
 
 namespace next_best_view {
     MILDRobotModelWithExactIK::MILDRobotModelWithExactIK() : MILDRobotModel() {
+        mDebugHelperPtr = DebugHelper::getInstance();
+        mDebugHelperPtr->write(std::stringstream() << "STARTING MILD ROBOT MODEL WITH EXACT IK", DebugHelper::ROBOT_MODEL);
+
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        mDebugHelperPtr = DebugHelper::getInstance();
         double inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
         bool visualizeIK_;
