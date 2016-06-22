@@ -168,12 +168,12 @@ namespace next_best_view {
 
         // Truncate pan angle to valid range
         if (targetMILDRobotState->pan < phiMin) {
-            ROS_ERROR_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too small.");
-//            targetMILDRobotState->pan = phiMin;
+            ROS_WARN_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too small.");
+            targetMILDRobotState->pan = phiMin;
         }
         if (targetMILDRobotState->pan > phiMax) {
-            ROS_ERROR_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too large.");
-//            targetMILDRobotState->pan = phiMax;
+            ROS_WARN_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too large.");
+            targetMILDRobotState->pan = phiMax;
         }
 
 		// set rotation
