@@ -46,9 +46,9 @@ public:
         GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 
-        int i = 0;
+        int i = 1;
         int deactivatedNormals = 0;
-        while(ros::ok() && i < 3) {
+        while(ros::ok() && i <= 3) {
             ROS_INFO_STREAM("Kalkuliere NBV " << i);
             if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
                 ROS_ERROR("Something went wrong in next best view");
@@ -62,9 +62,7 @@ public:
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }
-            if (i == 0) {
-                deactivatedNormals = upc_req.response.deactivated_object_normals;
-            }
+            deactivatedNormals += upc_req.response.deactivated_object_normals;
             this->waitForEnter();
             i++;
         }
@@ -116,9 +114,9 @@ public:
         int deactivatedSmacksNormals = test(apc, {"Smacks"});
         int deactivatedSmacksPlateDeepNormals = test(apc, {"Smacks", "PlateDeep"});
         if (deactivatedSmacksNormals >= deactivatedSmacksPlateDeepNormals) {
-            ROS_ERROR("Update deactivated the same or more normals without PlateDeep");
-            ROS_ERROR("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
-            ROS_ERROR("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
+            BOOST_ERROR("Update deactivated the same or more normals without PlateDeep");
+            ROS_INFO("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
+            ROS_INFO("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
         }
     }
 };
