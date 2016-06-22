@@ -154,6 +154,15 @@ namespace next_best_view {
 		 */
         double getNormalAngleThreshold();
 
+        /*!
+         * \brief returns a rating for the difference between the two given normals.
+         * \param v1 first normal
+         * \param v2 second normal
+         * \param angleThreshold
+         * \return rating for the difference of v1 and v2
+         */
+        float getNormalizedAngleUtility(const SimpleVector3 v1, const SimpleVector3 v2, double angleThreshold);
+
         void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
 
         bool setSingleScoreContainer(const ViewportPoint &currentViewport,
