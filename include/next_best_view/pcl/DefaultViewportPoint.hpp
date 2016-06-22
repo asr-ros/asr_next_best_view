@@ -149,8 +149,8 @@ namespace next_best_view {
                         level);
 
             BOOST_FOREACH(std::string objectType, *object_type_set) {
-                mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted normalized utility for " << objectType << ": "
-                                    << score->getUnweightedNormalizedObjectUtility(objectType),
+                mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted unnormalized utility for " << objectType << ": "
+                                    << score->getUnweightedUnnormalizedObjectUtility(objectType),
                         level);
             }
 

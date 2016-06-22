@@ -82,6 +82,16 @@ namespace next_best_view {
 		alpha = alpha > M_PI ? alpha - 2 * M_PI : alpha;
 		alpha = alpha < -M_PI ? alpha + 2 * M_PI : alpha;
 
+        // Truncate pan angle to valid range
+        if (currentPhi < phiMin) {
+            ROS_WARN_STREAM("Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too small.");
+            currentPhi = phiMin;
+        }
+        if (currentPhi > phiMax) {
+            ROS_WARN_STREAM("Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too large.");
+            currentPhi = phiMax;
+        }
+
 		glp_prob *lp;
 
 		int rows = 1;

@@ -210,6 +210,12 @@ namespace next_best_view {
 
         MILDRobotStatePtr sourceMILDRobotState = boost::static_pointer_cast<MILDRobotState>(sourceRobotState);
         MILDRobotStatePtr targetMILDRobotState(new MILDRobotState());
+        targetMILDRobotState->pan = 0;
+        targetMILDRobotState->tilt = 0;
+        targetMILDRobotState->rotation = 0;
+        targetMILDRobotState->x = 0;
+        targetMILDRobotState->y = 0;
+
         double tiltMin = mTiltLimits.get<0>();
         double tiltMax = mTiltLimits.get<1>();
 
@@ -293,7 +299,7 @@ namespace next_best_view {
         Eigen::Affine3d pan_rotated_Frame = tiltFrame * tiltToPanEigen;
 
         //Calculate PAN and base rotation
-        double pan = getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
+        double pan = this->getPanAngleFromPanJointPose(pan_rotated_Frame, sourceMILDRobotState);
         mDebugHelperPtr->write(std::stringstream() << "Pan: " << pan*(180.0/M_PI) << " deg", DebugHelper::ROBOT_MODEL);
 
         Eigen::Affine3d pan_Frame = pan_rotated_Frame * Eigen::AngleAxisd(pan, Eigen::Vector3d::UnitZ());
@@ -314,6 +320,8 @@ namespace next_best_view {
         // Set output values
 		// set pan
         targetMILDRobotState->pan = pan;
+        //if (targetMILDRobotState->pan < -M_PI) { targetMILDRobotState->pan += 2 * M_PI; };
+        //if (targetMILDRobotState->pan > M_PI) { targetMILDRobotState->pan -= 2 * M_PI; };
 
 		// set rotation
         targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
@@ -746,7 +754,7 @@ namespace next_best_view {
     {
         Eigen::Vector3d xAxis(baseFrame(0,0), baseFrame(1,0), 0.0);
         Eigen::Vector3d yAxis(baseFrame(0,1), baseFrame(1,1), 0.0);
-        xAxis.normalize(); yAxis.normalize();
+        xAxis.normalize();
         if (yAxis[0] >= 0)
         {
             return acos(xAxis[0]);
