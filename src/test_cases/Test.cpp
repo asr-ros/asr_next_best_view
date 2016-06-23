@@ -116,60 +116,7 @@ public:
 			ros::spinOnce();
 			waitForEnter();
 			ros::Duration(2).sleep();
-		}
-//
-//		uint32_t seq = 0;
-//
-//		SimpleVector4 poisonGreenColorVector = SimpleVector4(191.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0, 1.0);
-//		SimpleVector4 darkBlueColorVector = SimpleVector4(4.0 / 255.0, 59.0 / 255.0, 89.0 / 255.0, 1.0);
-//		SimpleVector4 blueColorVector = SimpleVector4(56.0 / 255.0, 129.0 / 255.0, 168.0 / 255.0, 1.0);
-//		viz::MarkerArray arrowMarkerArray;
-//		double ratio = 1.0 / ((double) viewportPointCloudPtr->size());
-//		SimpleVector3 displacement(0.0, 0.0, 1.0);
-//		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size() - 1; idx++) {
-//			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
-//			ViewportPoint endViewportPoint = viewportPointCloudPtr->at(idx + 1);
-//
-//			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-//			startPoint[2] = 0.0;
-//			startPoint += idx * ratio * displacement;
-//			SimpleVector3 endPoint = endViewportPoint.getSimpleVector3();
-//			endPoint[2] = 0.0;
-//			endPoint += (idx + 1) * ratio * displacement;
-//
-//			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, blueColorVector);
-//			arrowMarkerArray.markers.push_back(arrowMarker);
-//		}
-//
-//		for (std::size_t idx = 0; idx < viewportPointCloudPtr->size(); idx++) {
-//			ViewportPoint startViewportPoint = viewportPointCloudPtr->at(idx);
-//
-//			SimpleVector3 startPoint =  startViewportPoint.getSimpleVector3();
-//			startPoint[2] = 1.32;
-//
-//			SimpleVector3 endPoint(startPoint);
-//			endPoint[2] = 0.0;
-//
-//
-//			viz::Marker arrowMarker = MarkerHelper::getArrowMarker(seq++, startPoint, endPoint, darkBlueColorVector);
-//			arrowMarkerArray.markers.push_back(arrowMarker);
-//
-//
-//
-//			SimpleVector3 orientationStart = startPoint;
-//			SimpleVector3 orientationVector = startViewportPoint.getSimpleQuaternion().toRotationMatrix() * SimpleVector3::UnitX();
-//			SimpleVector3 orientationEnd = orientationStart + orientationVector / 3.0;
-//
-//			viz::Marker orientationMarker = MarkerHelper::getArrowMarker(seq++, orientationStart, orientationEnd, poisonGreenColorVector);
-//			arrowMarkerArray.markers.push_back(orientationMarker);
-//		}
-//
-//		while(ros::ok()) {
-//			markerArrayPublisher.publish(arrowMarkerArray);
-//
-//			ros::spinOnce();
-//			ros::Duration(20.0).sleep();
-//		}
+        }
 	}
 
 
