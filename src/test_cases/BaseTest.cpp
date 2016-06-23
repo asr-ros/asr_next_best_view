@@ -14,7 +14,8 @@ using namespace next_best_view;
         initRosServices();
     }
 
-    BaseTest::BaseTest(bool useRos) {
+    BaseTest::BaseTest(bool useRos, bool silent) {
+        this->silent = silent;
         if (useRos) {
             initRosServices();
         }
@@ -60,6 +61,9 @@ using namespace next_best_view;
     }
 
     void BaseTest::waitForEnter() {
+        if (silent) {
+            return;
+        }
         std::string dummy;
         std::cout << "Press ENTER to continue.." << std::endl << ">";
         std::getline(std::cin, dummy);

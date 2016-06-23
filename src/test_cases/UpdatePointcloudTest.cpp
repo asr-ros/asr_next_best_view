@@ -16,8 +16,7 @@ using namespace boost::unit_test;
 
 class UpdatePointCloudTest : public BaseTest{
 public:
-    UpdatePointCloudTest() : BaseTest (){
-    }
+    UpdatePointCloudTest(bool silent) : BaseTest (true, silent) { }
 
     virtual ~UpdatePointCloudTest() {}
 
@@ -127,7 +126,15 @@ test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 
     test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV");
 
-    boost::shared_ptr<UpdatePointCloudTest> testPtr(new UpdatePointCloudTest());
+    bool silent = false;
+    if (argc >= 2) {
+        cout << argv[1];
+        // caseinsensitive comparison
+        if (boost::iequals(argv[1], "silent") || boost::iequals(argv[1], "s")) {
+            silent = true;
+        }
+    }
+    boost::shared_ptr<UpdatePointCloudTest> testPtr(new UpdatePointCloudTest(silent));
 
     evaluation->add(BOOST_CLASS_TEST_CASE(&UpdatePointCloudTest::iterationTest, testPtr));
 

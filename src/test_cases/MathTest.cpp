@@ -15,7 +15,7 @@ using namespace boost::unit_test;
 
 class MathTest : public BaseTest {
 public:
-    MathTest() : BaseTest(false) {}
+    MathTest() : BaseTest(false, true) {}
 
     virtual ~MathTest() {}
 

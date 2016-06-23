@@ -61,10 +61,11 @@ protected:
     ros::ServiceClient mGetNextBestViewClient;
     ros::ServiceClient mUpdatePointCloudClient;
     ros::ServiceClient mResetCalculatorClient;
+    bool silent;
 public:
     BaseTest();
 
-    BaseTest(bool useRos);
+    BaseTest(bool useRos, bool silent);
 
     ~BaseTest();
 
