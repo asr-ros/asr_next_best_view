@@ -98,9 +98,7 @@ private:
     ros::ServiceServer mSetPointCloudServiceServer;
     ros::ServiceServer mSetInitRobotStateServiceServer;
     ros::ServiceServer mGetNextBestViewServiceServer;
-    ros::ServiceServer mGetSpaceSamplingServiceServer;
     ros::ServiceServer mUpdatePointCloudServiceServer;
-    ros::ServiceServer mSetupVisualizationServiceServer;
     ros::ServiceServer mTriggerFrustumVisualizationServer;
     ros::ServiceServer mTriggerOldFrustumVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
@@ -143,8 +141,6 @@ public:
         mSetPointCloudServiceServer = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
         mSetInitRobotStateServiceServer = mNodeHandle.advertiseService("set_init_robot_state", &NextBestView::processSetInitRobotStateServiceCall, this);
         mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
-        mGetSpaceSamplingServiceServer = mNodeHandle.advertiseService("get_space_sampling", &NextBestView::processGetSpaceSamplingServiceCall, this);
-        mSetupVisualizationServiceServer = mNodeHandle.advertiseService("setup_visualization", &NextBestView::processSetupVisualizationServiceCall, this);
         mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
         mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
         mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
@@ -389,44 +385,11 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
     }
 
-    bool processSetupVisualizationServiceCall(SetupVisualizationRequest &request, SetupVisualizationResponse &response) {
-        mDebugHelperPtr->writeNoticeably("STARTING NBV SETUP-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        mVisualizationSettings = SetupVisualizationRequest(request);
-
-        this->triggerVisualization(mCurrentCameraViewport);
-
-        mDebugHelperPtr->writeNoticeably("ENDING NBV SETUP-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        return true;
-    }
-
     bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
         initialize();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        return true;
-    }
-
-    bool processGetSpaceSamplingServiceCall(GetSpaceSampling::Request &request, GetSpaceSampling::Response &response) {
-        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-SPACE-SAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        double contractor = request.contractor;
-        SimpleVector3 position = TypeHelper::getSimpleVector3(request.position);
-
-        SamplePointCloudPtr pointcloud = mCalculator.getSpaceSampler()->getSampledSpacePointCloud(position, contractor);
-        mCalculator.setHeight(pointcloud, position[2]);
-        IndicesPtr feasibleIndices(new Indices());
-        mCalculator.getFeasibleSamplePoints(pointcloud, feasibleIndices);
-
-        SamplePointCloud pcl = SamplePointCloud(*pointcloud, *feasibleIndices);
-        pcl::toROSMsg(pcl, response.point_cloud);
-        response.point_cloud.header.frame_id = "/map";
-        sensor_msgs::PointField rgb;
-        rgb.name = "rgb";
-        rgb.datatype = sensor_msgs::PointField::UINT32;
-        rgb.offset = offsetof(ObjectPoint, rgb);
-        response.point_cloud.fields.push_back(rgb);
-
-        mDebugHelperPtr->writeNoticeably("ENDING NBV GET-SPACE-SAMPLING SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
