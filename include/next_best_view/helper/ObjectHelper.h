@@ -64,6 +64,10 @@ namespace next_best_view {
 
                 std::string recognizer = getRecognizerName.response.recognizer_name;
 
+                if (recognizer.compare("") == 0) {
+                    ROS_ERROR_STREAM("No recognizer name received from world_model for object type " << objectTypeName << ".");
+                }
+
                 object_database::ObjectMetaData objectMetaData;
                 objectMetaData.request.object_type = objectTypeName;
                 objectMetaData.request.recognizer = recognizer;
