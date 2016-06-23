@@ -111,11 +111,11 @@ public:
         this->setInitialPose(initialPose);
 
         // Setze PointCloud
-        if (!setPointCloudClient.call(apc.request, apc.response)) {
+        if (!mSetPointCloudClient.call(apc.request, apc.response)) {
             ROS_ERROR("Could not set initial point cloud.");
         }
 
-        if (!getPointCloudClient.call(gpc)) {
+        if (!mGetPointCloudClient.call(gpc)) {
             ROS_ERROR("Could not get initial point cloud.");
         }
 
@@ -136,20 +136,20 @@ public:
             else if(setPointCloud)
             {
                 setPointCloud = false;
-                if (!setPointCloudClient.call(apc.request, apc.response)) {
+                if (!mSetPointCloudClient.call(apc.request, apc.response)) {
                     ROS_ERROR("Could not set point cloud.");
                     break;
                 }
             }
 
             ROS_INFO_STREAM("Kalkuliere NBV " << x);
-            if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+            if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                 ROS_ERROR("Something went wrong in next best view");
                 break;
             }
             if (nbv.response.object_type_name_list.size() > 0)
             {
-                if (!getPointCloudClient.call(gpc)) {
+                if (!mGetPointCloudClient.call(gpc)) {
                     ROS_ERROR("Could not get point cloud.");
                     break;
                 }
@@ -213,7 +213,7 @@ public:
             UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
-            if(!updatePointCloudClient.call(upc_req)) {
+            if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }

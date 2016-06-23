@@ -34,12 +34,12 @@ public:
         this->setInitialPose(initialPose);
 
         // Setze PointCloud
-        if (!setPointCloudClient.call(apc.request, apc.response)) {
+        if (!mSetPointCloudClient.call(apc.request, apc.response)) {
             ROS_ERROR("Could not set initial point cloud.");
         }
 
         GetAttributedPointCloud gpc;
-        if (!getPointCloudClient.call(gpc)) {
+        if (!mGetPointCloudClient.call(gpc)) {
             ROS_ERROR("Could not get initial point cloud.");
         }
 
@@ -50,7 +50,7 @@ public:
         int deactivatedNormals = 0;
         while(ros::ok() && i <= 3) {
             ROS_INFO_STREAM("Kalkuliere NBV " << i);
-            if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+            if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                 ROS_ERROR("Something went wrong in next best view");
                 break;
             }
@@ -58,7 +58,7 @@ public:
             UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
-            if(!updatePointCloudClient.call(upc_req)) {
+            if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }
@@ -113,11 +113,9 @@ public:
 
         int deactivatedSmacksNormals = test(apc, {"Smacks"});
         int deactivatedSmacksPlateDeepNormals = test(apc, {"Smacks", "PlateDeep"});
-        if (deactivatedSmacksNormals >= deactivatedSmacksPlateDeepNormals) {
-            BOOST_ERROR("Update deactivated the same or more normals without PlateDeep");
-            ROS_INFO("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
-            ROS_INFO("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
-        }
+        BOOST_CHECK_MESSAGE(deactivatedSmacksNormals < deactivatedSmacksPlateDeepNormals, "Update deactivated the same or more normals without PlateDeep");
+        ROS_INFO("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
+        ROS_INFO("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
     }
 };
 

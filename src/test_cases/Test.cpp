@@ -83,14 +83,14 @@ public:
 		this->setInitialPose(initialPose);
 
 		// Setze PointCloud
-		setPointCloudClient.call(apc.request, apc.response);
+        mSetPointCloudClient.call(apc.request, apc.response);
 
 		GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 		int x = 1;
 		while(ros::ok()) {
             ROS_INFO_STREAM("Kalkuliere NBV " << x);
-			if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+            if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
 				ROS_ERROR("Something went wrong in next best view");
 				break;
 			}
@@ -104,7 +104,7 @@ public:
             upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
 
-            if(!updatePointCloudClient.call(upc_req)) {
+            if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }

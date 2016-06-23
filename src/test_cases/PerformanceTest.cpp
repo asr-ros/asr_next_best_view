@@ -24,10 +24,6 @@ public:
     virtual ~PerformanceTest() {}
 
     void iterationTest() {
-		ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
-		ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
-		ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
-        ros::ServiceClient resetCalculatorClient = mNodeHandle.serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
         ros::NodeHandle nh;
         std::string testResultPath;
         nh.getParam("/test/testResultFilePath", testResultPath);
@@ -126,9 +122,9 @@ public:
                     this->setInitialPose(initialPose);
 
                     //Resete den calculator vor jedem test
-                    resetCalculatorClient.call(reca.request, reca.response);
+                    mResetCalculatorClient.call(reca.request, reca.response);
                     // Setze PointCloud
-                    if (!setPointCloudClient.call(apc.request, apc.response))
+                    if (!mSetPointCloudClient.call(apc.request, apc.response))
                     {
                         ROS_ERROR("Could not set initial point cloud");
                     }
@@ -148,7 +144,7 @@ public:
                         else if(setPointCloud)
                         {
                             setPointCloud = false;
-                            if (!setPointCloudClient.call(apc.request, apc.response))
+                            if (!mSetPointCloudClient.call(apc.request, apc.response))
                             {
                                 ROS_ERROR("Could not set point cloud");
                                 break;
@@ -157,7 +153,7 @@ public:
 
                         ROS_INFO_STREAM("Kalkuliere NBV "<< x);
                         start = std::chrono::system_clock::now();
-                        if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+                        if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                             ROS_ERROR("Something went wrong in next best view");
                             break;
                         }
@@ -176,7 +172,7 @@ public:
                         upc_req.request.pose_for_update = nbv.response.resulting_pose;
 
                         start = std::chrono::system_clock::now();
-                        if(!updatePointCloudClient.call(upc_req)) {
+                        if(!mUpdatePointCloudClient.call(upc_req)) {
                             ROS_ERROR("Update Point Cloud failed!");
                             break;
                         }
