@@ -24,9 +24,9 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 mSigma: 0.5
-radius: 0.15
-sampleSizeUnitSphereSampler: 384
-colThresh: 40
+radius: 0.15 # hexagon space sample radius
+sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler
+colThresh: 40 # collision thhreshold, used by mapHelper
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
 enableCropBoxFiltering : false
