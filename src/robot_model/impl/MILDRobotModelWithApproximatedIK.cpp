@@ -31,9 +31,11 @@
 
 namespace next_best_view {
     MILDRobotModelWithApproximatedIK::MILDRobotModelWithApproximatedIK() : MILDRobotModel() {
+        mDebugHelperPtr = DebugHelper::getInstance();
+        mDebugHelperPtr->write(std::stringstream() << "STARTING MILD ROBOT MODEL WITH APPROXIMATED IK", DebugHelper::ROBOT_MODEL);
+
         ros::NodeHandle n("nbv_robot_model");
         navigationCostClient = n.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-        mDebugHelperPtr = DebugHelper::getInstance();
         double speedFactorPTU_,speedFactorBaseMove_,speedFactorBaseRot_;
         n.getParam("speedFactorPTU", speedFactorPTU_);
         n.getParam("speedFactorBaseMove", speedFactorBaseMove_);
@@ -163,6 +165,16 @@ namespace next_best_view {
 
 		// set pan
 		targetMILDRobotState->pan = sourceMILDRobotState->pan + x_pan_plus - x_pan_minus;
+
+        // Truncate pan angle to valid range
+        if (targetMILDRobotState->pan < phiMin) {
+            ROS_WARN_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too small.");
+            targetMILDRobotState->pan = phiMin;
+        }
+        if (targetMILDRobotState->pan > phiMax) {
+            ROS_WARN_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too large.");
+            targetMILDRobotState->pan = phiMax;
+        }
 
 		// set rotation
 		targetMILDRobotState->rotation = sourceMILDRobotState->rotation + x_rot_plus - x_rot_minus;

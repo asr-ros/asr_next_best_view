@@ -5,6 +5,7 @@
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/test_cases/BaseTest.h"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
@@ -62,115 +63,143 @@ public:
         if (!this->getParameter("configurable_point_clouds/distance", distance))
             return;
 
-        std::map<std::string, std::vector<double>> typeToOrientation;
-        for (unsigned int i = 0; i < objectTypeNames1.size(); i++)
+        bool continueTest = true;
+        while (continueTest)
         {
-            std::string objectType = objectTypeNames1[i];
-            std::string parameter = "configurable_point_clouds/" + objectType + "_orientation";
-            typeToOrientation[objectType] = std::vector<double>();
-            if (!this->getParameter(parameter, typeToOrientation[objectType]))
-                return;
-        }
-        for (unsigned int i = 0; i < objectTypeNames2.size(); i++)
-        {
-            std::string objectType = objectTypeNames2[i];
-            if (std::find(objectTypeNames1.begin(), objectTypeNames1.end(), objectType) == objectTypeNames1.end()) {
+            ROS_INFO_STREAM("Running test with distance at " << distance);
+            std::map<std::string, std::vector<double>> typeToOrientation;
+            for (unsigned int i = 0; i < objectTypeNames1.size(); i++)
+            {
+                std::string objectType = objectTypeNames1[i];
                 std::string parameter = "configurable_point_clouds/" + objectType + "_orientation";
                 typeToOrientation[objectType] = std::vector<double>();
                 if (!this->getParameter(parameter, typeToOrientation[objectType]))
                     return;
             }
+            for (unsigned int i = 0; i < objectTypeNames2.size(); i++)
+            {
+                std::string objectType = objectTypeNames2[i];
+                if (std::find(objectTypeNames1.begin(), objectTypeNames1.end(), objectType) == objectTypeNames1.end()) {
+                    std::string parameter = "configurable_point_clouds/" + objectType + "_orientation";
+                    typeToOrientation[objectType] = std::vector<double>();
+                    if (!this->getParameter(parameter, typeToOrientation[objectType]))
+                        return;
+                }
+            }
+
+            std::vector<double> posDeviation1List, posDeviation2List;
+            if (!this->getParameter("configurable_point_clouds/position_deviation_1", posDeviation1List))
+                return;
+            if (!this->getParameter("configurable_point_clouds/position_deviation_2", posDeviation2List))
+                return;
+            SimpleVector3 posDeviation1(posDeviation1List[0], posDeviation1List[1], posDeviation1List[2]);
+            SimpleVector3 posDeviation2(posDeviation2List[0], posDeviation2List[1], posDeviation2List[2]);
+
+            float orientationDeviation1, orientationDeviation2;
+            if (!this->getParameter("configurable_point_clouds/orientation_deviation_1", orientationDeviation1))
+                return;
+            if (!this->getParameter("configurable_point_clouds/orientation_deviation_2", orientationDeviation2))
+                return;
+
+            world_model::EmptyViewportList empty;
+            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
+
+            ROS_INFO("Generiere Häufungspunkte");
+            // Häufungspunkte
+            int hpSize = 2;
+            SimpleVector3* hp = new SimpleVector3[hpSize];
+            hp[0] = SimpleVector3(30.5, 5.8, 1.32);
+            hp[1] = SimpleVector3(36.7, 2.2, 1.32);
+
+            SimpleQuaternion* orientations = new SimpleQuaternion[hpSize];
+            orientations[1] = SimpleQuaternion(0.967, 0.000, 0.000, -0.256);
+            orientations[0] = this->getOrientation(orientations[1], 0, 0, 180);
+
+            SetAttributedPointCloud apc;
+
+            //create first point cloud
+            for (int i = 0; i < elements1; i++) {
+                pbd_msgs::PbdAttributedPoint element = this->getAttributedPoint(hp[0], posDeviation1, orientations[0], orientationDeviation1,
+                                                                                    objectTypeNames1, typeToOrientation, i);
+
+                apc.request.point_cloud.elements.push_back(element);
+            }
+
+            //create second point cloud
+            for (int i = 0; i < elements2; i++) {
+                pbd_msgs::PbdAttributedPoint element = this->getAttributedPoint(hp[1], posDeviation2, orientations[1], orientationDeviation2,
+                                                                                    objectTypeNames2, typeToOrientation, i);
+
+                apc.request.point_cloud.elements.push_back(element);
+            }
+
+            ROS_INFO("Setze initiale Pose");
+            // interpoliere zwischen Roboter Position und Punktwolke
+            SimpleVector3 position;
+            position[0] = hp[0][0] + distance * (hp[1][0] - hp[0][0]);
+            position[1] = hp[0][1] + distance * (hp[1][1] - hp[0][1]);
+            position[2] = 1.32;
+
+            SimpleQuaternion orientation = this->getOrientation(orientations[1], 0, 0, -90);
+
+            geometry_msgs::Pose initialPose;
+
+            //Pose in der Mitte von CeylonTea und CoffeeFilters
+            initialPose.position.x = position[0];
+            initialPose.position.y = position[1];
+            initialPose.position.z = position[2];
+
+            initialPose.orientation.w = orientation.w();
+            initialPose.orientation.x = orientation.x();
+            initialPose.orientation.y = orientation.y();
+            initialPose.orientation.z = orientation.z();
+
+            this->setInitialPose(initialPose);
+
+            GetNextBestView getNBV;
+
+            emptyViewportsClient.call(empty);
+
+            NBV.processSetPointCloudServiceCall(apc.request, apc.response);
+
+            getNBV.request.current_pose = initialPose;
+            NBV.processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
+
+            float robotX = getNBV.response.resulting_pose.position.x;
+            float robotY = getNBV.response.resulting_pose.position.y;
+
+            float distanceToPC = sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2));
+            if (sqrt(pow(robotX - hp[0](0), 2) + pow(robotY - hp[0](1), 2)) < sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2))) {
+                ROS_INFO("Roboter bewegt sich zur 1. Objekt-Punktwolke.");
+            }
+            else {
+                ROS_INFO("Roboter bewegt sich zur 2. Objekt-Punktwolke.");
+            }
+            ROS_INFO("Abstand zur Punktwolke: %f", distanceToPC);
+
+            ROS_INFO("To run another test, enter a distance factor between 0 an 1 or press ENTER to run the test again with the same distance factor.");
+            ROS_INFO("Type <quit> or whatever to exit.");
+            std::string input;
+            std::getline (std::cin,input);
+            if( input.compare("\n") != 0 ){
+                try {
+                  double tempDistance;
+                  tempDistance = boost::lexical_cast<double>(input);
+                  if (tempDistance >= 0.0 && tempDistance <= 1.0)
+                  {
+                      distance = tempDistance;
+                  }
+                  else
+                  {
+                      ROS_ERROR("Distance must be between 0.0 and 1.0!");
+                      continueTest = false;
+                  }
+                } catch(boost::bad_lexical_cast &) {
+                  ROS_ERROR("Invalid number!");
+                  continueTest = false;
+                }
+            }
         }
-
-        std::vector<double> posDeviation1List, posDeviation2List;
-        if (!this->getParameter("configurable_point_clouds/position_deviation_1", posDeviation1List))
-            return;
-        if (!this->getParameter("configurable_point_clouds/position_deviation_2", posDeviation2List))
-            return;
-        SimpleVector3 posDeviation1(posDeviation1List[0], posDeviation1List[1], posDeviation1List[2]);
-        SimpleVector3 posDeviation2(posDeviation2List[0], posDeviation2List[1], posDeviation2List[2]);
-
-        float orientationDeviation1, orientationDeviation2;
-        if (!this->getParameter("configurable_point_clouds/orientation_deviation_1", orientationDeviation1))
-            return;
-        if (!this->getParameter("configurable_point_clouds/orientation_deviation_2", orientationDeviation2))
-            return;
-
-        world_model::EmptyViewportList empty;
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
-
-        ROS_INFO("Generiere Häufungspunkte");
-        // Häufungspunkte
-        int hpSize = 2;
-        SimpleVector3* hp = new SimpleVector3[hpSize];
-        hp[0] = SimpleVector3(30.5, 5.8, 1.32);
-        hp[1] = SimpleVector3(36.7, 2.2, 1.32);
-
-        SimpleQuaternion* orientations = new SimpleQuaternion[hpSize];
-        orientations[1] = SimpleQuaternion(0.967, 0.000, 0.000, -0.256);
-        orientations[0] = this->getOrientation(orientations[1], 0, 0, 180);
-
-        SetAttributedPointCloud apc;
-
-        //create first point cloud
-        for (int i = 0; i < elements1; i++) {
-            pbd_msgs::PbdAttributedPoint element = this->getAttributedPoint(hp[0], posDeviation1, orientations[0], orientationDeviation1,
-                                                                                objectTypeNames1, typeToOrientation, i);
-
-            apc.request.point_cloud.elements.push_back(element);
-        }
-
-        //create second point cloud
-        for (int i = 0; i < elements2; i++) {
-            pbd_msgs::PbdAttributedPoint element = this->getAttributedPoint(hp[1], posDeviation2, orientations[1], orientationDeviation2,
-                                                                                objectTypeNames2, typeToOrientation, i);
-
-            apc.request.point_cloud.elements.push_back(element);
-        }
-
-        ROS_INFO("Setze initiale Pose");
-        // interpoliere zwischen Roboter Position und Punktwolke
-        SimpleVector3 position;
-        position[0] = hp[0][0] + distance * (hp[1][0] - hp[0][0]);
-        position[1] = hp[0][1] + distance * (hp[1][1] - hp[0][1]);
-        position[2] = 1.32;
-
-        SimpleQuaternion orientation = this->getOrientation(orientations[1], 0, 0, -90);
-
-        geometry_msgs::Pose initialPose;
-
-        //Pose in der Mitte von CeylonTea und CoffeeFilters
-        initialPose.position.x = position[0];
-        initialPose.position.y = position[1];
-        initialPose.position.z = position[2];
-
-        initialPose.orientation.w = orientation.w();
-        initialPose.orientation.x = orientation.x();
-        initialPose.orientation.y = orientation.y();
-        initialPose.orientation.z = orientation.z();
-
-        this->setInitialPose(initialPose);
-
-        GetNextBestView getNBV;
-
-        emptyViewportsClient.call(empty);
-
-        NBV.processSetPointCloudServiceCall(apc.request, apc.response);
-
-        getNBV.request.current_pose = initialPose;
-        NBV.processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
-
-        float robotX = getNBV.response.resulting_pose.position.x;
-        float robotY = getNBV.response.resulting_pose.position.y;
-
-        float distanceToPC = sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2));
-        if (sqrt(pow(robotX - hp[0](0), 2) + pow(robotY - hp[0](1), 2)) < sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2))) {
-            ROS_INFO("Roboter bewegt sich zur 1. Objekt-Punktwolke.");
-        }
-        else {
-            ROS_INFO("Roboter bewegt sich zur 2. Objekt-Punktwolke.");
-        }
-        ROS_INFO("Abstand zur Punktwolke: %f", distanceToPC);
     }
 
     void positionsTest() {
@@ -370,7 +399,7 @@ public:
 
             SetAttributedPointCloud apc;
 
-            MILDRobotModel robot;
+            MILDRobotModelWithExactIK robot;
             SimpleVector3 position(initialPose.position.x, initialPose.position.y, initialPose.position.z);
             SimpleQuaternion orientation(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
             MILDRobotStatePtr robotStatePtr(new MILDRobotState());
