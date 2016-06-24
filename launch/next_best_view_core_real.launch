@@ -8,8 +8,6 @@
 	  <rosparam file="$(find next_best_view)/rsc/costmap_common_params.yaml" command="load" ns="global_costmap"/>
           <!-- Some params of "global_costmap_params.yaml" are needed for Costmap2DROS which is used in MapHelper -->
           <rosparam file="$(find mild_navigation)/config/global_costmap_params.yaml" command="load"/>
-          <!-- Square bug in costmap, if local_costmap_params  not used -->
-          <rosparam file="$(find mild_navigation)/config/local_costmap_params.yaml" command="load"/>
           <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxListManual.xml"/>
 	  <param name="mMapsImagePath" value="$(find next_best_view)/rsc"/>
 	</node>
