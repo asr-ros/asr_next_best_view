@@ -600,6 +600,28 @@ public:
 
     bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        // output
+        std::stringstream pose;
+        pose << "x = " << request.pose_for_update.position.x << ", "
+             << "y = " << request.pose_for_update.position.y << ", "
+             << "z = " << request.pose_for_update.position.z << ", "
+             << "qw = " << request.pose_for_update.orientation.w << ", "
+             << "qx = " << request.pose_for_update.orientation.x << ", "
+             << "qy = " << request.pose_for_update.orientation.y << ", "
+             << "qz = " << request.pose_for_update.orientation.z;
+        std::string objects = "";
+        BOOST_FOREACH(std::string object, request.object_type_name_list) {
+            if (objects.length() != 0) {
+                objects += ", ";
+            }
+            objects += object;
+        }
+
+        mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
+        mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
+
+        // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.pose_for_update);
         ViewportPoint viewportPoint;
