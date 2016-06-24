@@ -2,6 +2,8 @@
 	<node pkg="next_best_view" type="next_best_view_robot_model" name="nbv_robot_model" output="screen">
 	  <rosparam file="$(find next_best_view)/rsc/next_best_view_settings_real.yaml"/>
 	  <rosparam file="$(find next_best_view)/rsc/TopicsConfig.yaml"/>
+	  <!-- this is also used by costmap -->
+	  <rosparam file="$(find next_best_view)/rsc/costmap_common_params_real.yaml" command="load" ns="global_costmap"/>
           <!-- Some params of "global_costmap_params.yaml" are needed for Costmap2DROS which is used in MapHelper -->
           <rosparam file="$(find mild_navigation)/config/global_costmap_params.yaml" command="load"/>
 	</node>
