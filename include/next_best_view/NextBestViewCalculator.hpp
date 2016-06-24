@@ -385,8 +385,37 @@ public:
                 BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
                     SimpleVector3 normal(point.x, point.y, point.z);
                     normal = rotationMatrix * normal;
+                    bool willAdd = true;
+                    if (mEnableCropBoxFiltering)
+                    {
+                        willAdd = false;
+                        int i = 0;
+                        for (std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+                        {
+                            CropBoxPtr test();
+                            Eigen::Vector4f max = (*it)->getMax();
+                            Eigen::Vector3f translation = (*it)->getTranslation();
+                            if ((pointCloudPoint.getPosition()(0,0) >= translation(0,0) && pointCloudPoint.getPosition()(0,0) <= (translation(0,0) + max(0,0))) &&
+                                    (pointCloudPoint.getPosition()(1,0) >= translation(1,0) && pointCloudPoint.getPosition()(1,0) <= (translation(1,0) + max(1,0))) &&
+                                    (pointCloudPoint.getPosition()(2,0) >= translation(2,0) && pointCloudPoint.getPosition()(2,0) <= (translation(2,0) + max(2,0))))
+                            {
+                                if ((i == 0 && normal(0,0) >= 0.0 && normal(1,0) <= 0.0) ||
+                                        (i == 1 && normal(0,0) > 0.0) ||
+                                        (i == 2 && (normal(0,0) >= 0.0 && normal(1,0) >= -0.1)) ||
+                                        (i == 3 && (normal(0,0) < 0.0 || (normal(0,0) <= 0.0 && normal(1,0) < 0.0))) ||
+                                        (i == 4 && normal(0,0) < 0.0))
+                                {
+                                    willAdd = true;
+                                }
+                            }
+                            ++i;
+
+                        }
+                    }
+                    if (willAdd) {
+                        pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                    }
                     pointCloudPoint.normal_vectors->push_back(normal);
-                    pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
                     ++normalVectorCount;
                 }
             } else {
