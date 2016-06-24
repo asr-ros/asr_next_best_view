@@ -149,17 +149,15 @@ BaseScoreContainerPtr DefaultRatingModule::getScoreContainerInstance() {
 }
 
 float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint) {
-    float orientationUtility= 0.0;
+    float maxUtility = 0.0;
 
     // check the utilities for each normal and pick the best
     BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
         SimpleVector3 objectNormalVector = objectPoint.normal_vectors->at(index);
-        orientationUtility += this->getNormalUtility(viewport, objectNormalVector);
+        maxUtility = std::max(this->getNormalUtility(viewport, objectNormalVector), maxUtility);
     }
 
-    orientationUtility /= objectPoint.active_normal_vectors->size();
-
-    return orientationUtility;
+    return maxUtility;
 }
 
 float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector) {
