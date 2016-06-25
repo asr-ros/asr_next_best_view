@@ -52,6 +52,7 @@ private:
     DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
     std::vector<CropBoxPtr> mCropBoxPtrList;
+    std::vector<std::vector<SimpleVector3>> mCropBoxNormalsList;
     bool mEnableCropBoxFiltering;
     bool mEnableIntermediateObjectWeighting;
 
@@ -382,43 +383,36 @@ public:
             if (responsePtr_ObjectData) {
                 // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
                 int normalVectorCount = 0;
-                BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
-                    SimpleVector3 normal(point.x, point.y, point.z);
-                    normal = rotationMatrix * normal;
-                    bool willAdd = true;
-                    if (mEnableCropBoxFiltering)
+                if (mEnableCropBoxFiltering)
+                {
+                    int i = 0;
+                    for (std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
                     {
-                        willAdd = false;
-                        int i = 0;
-                        for (std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+                        Eigen::Vector4f max = (*it)->getMax();
+                        Eigen::Vector3f translation = (*it)->getTranslation();
+                        // check if pointCloudPoint is in cropbox
+                        if ((pointCloudPoint.getPosition()(0,0) >= translation(0,0) && pointCloudPoint.getPosition()(0,0) <= (translation(0,0) + max(0,0))) &&
+                                (pointCloudPoint.getPosition()(1,0) >= translation(1,0) && pointCloudPoint.getPosition()(1,0) <= (translation(1,0) + max(1,0))) &&
+                                (pointCloudPoint.getPosition()(2,0) >= translation(2,0) && pointCloudPoint.getPosition()(2,0) <= (translation(2,0) + max(2,0))))
                         {
-                            CropBoxPtr test();
-                            Eigen::Vector4f max = (*it)->getMax();
-                            Eigen::Vector3f translation = (*it)->getTranslation();
-                            if ((pointCloudPoint.getPosition()(0,0) >= translation(0,0) && pointCloudPoint.getPosition()(0,0) <= (translation(0,0) + max(0,0))) &&
-                                    (pointCloudPoint.getPosition()(1,0) >= translation(1,0) && pointCloudPoint.getPosition()(1,0) <= (translation(1,0) + max(1,0))) &&
-                                    (pointCloudPoint.getPosition()(2,0) >= translation(2,0) && pointCloudPoint.getPosition()(2,0) <= (translation(2,0) + max(2,0))))
-                            {
-                                if ((i == 0 && normal(0,0) >= 0.0 && normal(1,0) <= 0.0) ||
-                                        (i == 1 && normal(0,0) > 0.0) ||
-                                        (i == 2 && normal(0,0) > 0.0 && normal(1,0) > 0.0) ||
-                                        (i == 3 && normal(0,0) >= 0.0 && normal(1,0) >= -0.1) ||
-                                        (i == 4 && (normal(0,0) <= 0.0 || normal(1,0) < -0.1)) ||
-                                        (i == 5 && normal(1,0) < -0.1) ||
-                                        (i == 6 && normal(0,0) < 0.0))
-                                {
-                                    willAdd = true;
-                                }
+                            std::vector<SimpleVector3> normals = mCropBoxNormalsList.at(i);
+                            for (std::vector<SimpleVector3>::iterator itNor = normals.begin(); itNor != normals.end(); ++itNor) {
+                                (*itNor) = rotationMatrix * (*itNor);
+                                pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                                pointCloudPoint.normal_vectors->push_back((*itNor));
+                                ++normalVectorCount;
                             }
-                            ++i;
-
                         }
+                        ++i;
                     }
-                    if (willAdd) {
-                        pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-                    }
-                    pointCloudPoint.normal_vectors->push_back(normal);
-                    ++normalVectorCount;
+                } else {
+                    BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
+                            SimpleVector3 normal(point.x, point.y, point.z);
+                            normal = rotationMatrix * normal;
+                            pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                            pointCloudPoint.normal_vectors->push_back(normal);
+                            ++normalVectorCount;
+                        }
                 }
             } else {
                 ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
@@ -748,6 +742,31 @@ public:
                         Eigen::Vector3f translation(x_,y_,z_);
                         bufferCropBoxPtr->setTranslation(translation);
                     }
+
+                    int normalsCount = 0;
+                    std::vector<SimpleVector3> normals;
+                    char search[100];
+                    sprintf(search, "normal_%d", normalsCount);
+                    rapidxml::xml_node<> * normalsXML = child_node->first_node(search);
+                    while (normalsXML != nullptr) {
+                        x = normalsXML->first_attribute("x");
+                        y = normalsXML->first_attribute("y");
+                        z = normalsXML->first_attribute("z");
+                        if (x && y && z)
+                        {
+                            double x_ = boost::lexical_cast<double>(x->value());
+                            double y_ = boost::lexical_cast<double>(y->value());
+                            double z_ = boost::lexical_cast<double>(z->value());
+                            SimpleVector3 normal(x_, y_, z_);
+                            normals.push_back(normal);
+                        }
+                        ++normalsCount;
+                        char search2[100];
+                        sprintf(search2, "normal_%d", normalsCount);
+                        normalsXML = child_node->first_node(search2);
+                    }
+                    mCropBoxNormalsList.push_back(normals);
+
                     mCropBoxPtrList.push_back(bufferCropBoxPtr);
                     child_node = child_node->next_sibling();
                 }
