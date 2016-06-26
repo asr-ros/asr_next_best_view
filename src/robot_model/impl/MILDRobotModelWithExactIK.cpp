@@ -500,6 +500,7 @@ namespace next_best_view {
         tf::StampedTransform panToTiltTF, baseToPanTF, tiltToCamLeftTF, tiltToCamRightTF;
         Eigen::Affine3d tiltAxisPointEigen, tiltToCamLeftEigen, tiltToCamRightEigen, cameraLeftPointEigen, cameraRightPointEigen, cameraMidPointEigen;
         ROS_INFO_STREAM("Looking up tf transforms");
+        ros::spinOnce();
         try
         {      
             //Wait for first transform to be published
@@ -527,6 +528,14 @@ namespace next_best_view {
         tf::poseTFToEigen(tiltToCamLeftTF, tiltToCamLeftEigen);
         tf::poseTFToEigen(tiltToCamRightTF, tiltToCamRightEigen);
 
+        //Quick fix: Currently, the pan angle is included pan to tilt transformation and therefore the transformation must be adjusted accordingly before using it to extract parameters
+        //In the future, this problem should be approached by addign another joint to the kinematic chain to represent static and dynamic transformation frames seperately
+        //ROS_INFO_STREAM("panToTiltEigen:");
+        //ROS_INFO_STREAM(panToTiltEigen(0,0) << ", " << panToTiltEigen(0,1) << ", " <<  panToTiltEigen(0,2) << ", " << panToTiltEigen(0,3) << ")");
+        //ROS_INFO_STREAM(panToTiltEigen(1,0) << ", " << panToTiltEigen(1,1) << ", " <<  panToTiltEigen(1,2) << ", " << panToTiltEigen(1,3) << ")");
+        //ROS_INFO_STREAM(panToTiltEigen(2,0) << ", " << panToTiltEigen(2,1) << ", " <<  panToTiltEigen(2,2) << ", " << panToTiltEigen(2,3) << ")");
+        //ROS_INFO_STREAM(panToTiltEigen(3,0) << ", " << panToTiltEigen(3,1) << ", " <<  panToTiltEigen(3,2) << ", " << panToTiltEigen(3,3) << ")");
+        panToTiltEigen = Eigen::Affine3d::Identity();
 
         tiltAxisPointEigen = baseToPanEigen * panToTiltEigen;
         cameraLeftPointEigen = tiltAxisPointEigen * tiltToCamLeftEigen;
