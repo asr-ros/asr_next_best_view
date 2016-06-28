@@ -1,0 +1,15 @@
+global_costmap:
+  plugins:
+    - {name: static_layer, type: 'costmap_2d::StaticLayer'}
+    - {name: inflation_layer, type: 'costmap_2d::InflationLayer'}
+  inflation_layer:
+    inflation_radius: 0.65
+
+# alternatively without to specifying plugins:
+#global_costmap:
+#  inflation_radius: 0.65
+#  static_map: true
+#  
+#global_costmap/obstacle_layer:
+#  #No local, prehaps temporary, obstacles should be influence the global costmap.
+#  enabled: false
