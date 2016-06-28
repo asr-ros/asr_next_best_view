@@ -139,6 +139,7 @@ add_library(
         src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
         src/space_sampler/impl/MapBasedRandomSpaceSampler.cpp
         src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
+        src/crop_box/CropBoxFilter.cpp
 )
 target_link_libraries(
         ${PROJECT_NAME}_packages_impl

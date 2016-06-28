@@ -364,7 +364,7 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
-    void triggerCropBoxVisualization(const std::vector<CropBoxPtr> cropBoxListPtr)
+    void triggerCropBoxVisualization(const boost::shared_ptr<std::vector<CropBoxPtr>> cropBoxPtrList)
     {
         if(!mCropBoxMarkerArrayPtr)
         {
@@ -377,7 +377,7 @@ public:
         SimpleVector4 color = TypeHelper::getSimpleVector4(CropBoxMarkerRGBA);
 
         int id = 0;
-        for(std::vector<CropBoxPtr>::const_iterator it = cropBoxListPtr.begin(); it != cropBoxListPtr.end(); ++it)
+        for(std::vector<CropBoxPtr>::const_iterator it = cropBoxPtrList->begin(); it != cropBoxPtrList->end(); ++it)
         {
             Eigen::Vector4f ptMin,ptMax;
             ptMin = (*it)->getMin();

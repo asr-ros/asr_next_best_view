@@ -22,6 +22,7 @@ namespace next_best_view {
 	private:
 		GeneralFilterPtr mPreFilter;
 		GeneralFilterPtr mPostFilter;
+    protected:
         DebugHelperPtr mDebugHelperPtr;
 	public:
 		/*!
