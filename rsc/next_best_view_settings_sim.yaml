@@ -1,9 +1,9 @@
-mOmegaUtility: 25000 #Gewichtungsfaktor für den Nutzen-Faktor 
+mOmegaUtility: 210 #Gewichtungsfaktor für den Nutzen-Faktor 
 mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
-mOmegaRot: 50 #Gewichtungsfaktor für die Rotation der Basis
-mOmegaBase: 100 #Gewichtungsfaktor für die Bewegung der Basis
-mOmegaRecognizer: 50
+mOmegaRot: 10 #Gewichtungsfaktor für die Rotation der Basis
+mOmegaBase: 250 #Gewichtungsfaktor für die Bewegung der Basis
+mOmegaRecognizer: 30
 speedFactorRecognizer: 2.0 #Zeitkosten für Objekterkennung in Sec/Objekt. Bitte nur nach Ruecksprache mit Pascal ändern.
 tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
 useGlobalPlanner: false
@@ -23,7 +23,7 @@ panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
-mSigma: 0.5
+mSigma: 1.0
 radius: 0.15 # hexagon space sample radius
 sampleSizeUnitSphereSampler: 384 # anzahl von samples erstellt durch SpiralApproxUnitSphereSampler. Höher -> genauere Orientierung.
 colThresh: 10 # höhere Werte führen in der Simulation zu Problemen mit der Navigation. Kleiner -> mehr Abstand zu Hindernissen.

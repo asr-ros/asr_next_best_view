@@ -109,7 +109,7 @@ public:
             int hpSize = 2;
             SimpleVector3* hp = new SimpleVector3[hpSize];
             hp[0] = SimpleVector3(30.5, 5.8, 1.32);
-            hp[1] = SimpleVector3(36.7, 2.2, 1.32);
+            hp[1] = SimpleVector3(32.6, 4.5, 1.32);
 
             SimpleQuaternion* orientations = new SimpleQuaternion[hpSize];
             orientations[1] = SimpleQuaternion(0.967, 0.000, 0.000, -0.256);
@@ -136,8 +136,8 @@ public:
             ROS_INFO("Setze initiale Pose");
             // interpoliere zwischen Roboter Position und Punktwolke
             SimpleVector3 position;
-            position[0] = hp[0][0] + distance * (hp[1][0] - hp[0][0]);
-            position[1] = hp[0][1] + distance * (hp[1][1] - hp[0][1]);
+            position[0] = hp[0][0] + distance * (hp[1][0] - hp[0][0]) + 0.2;
+            position[1] = hp[0][1] + distance * (hp[1][1] - hp[0][1]) + 0.3;
             position[2] = 1.32;
 
             SimpleQuaternion orientation = this->getOrientation(orientations[1], 0, 0, -90);
