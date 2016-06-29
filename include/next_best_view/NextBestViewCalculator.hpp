@@ -377,12 +377,35 @@ public:
             if (responsePtr_ObjectData) {
                 // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
                 int normalVectorCount = 0;
-                BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
-                    SimpleVector3 normal(point.x, point.y, point.z);
-                    normal = rotationMatrix * normal;
-                    pointCloudPoint.normal_vectors->push_back(normal);
-                    pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-                    ++normalVectorCount;
+                // in cropbox filtering we don't use the normals of the point clouds. Instead we use the ones defined in the xml
+                if (mEnableCropBoxFiltering)
+                {
+                    auto cropBoxPtrList = mCropBoxFilterPtr->getCropBoxWrapperPtrList();
+                    for (CropBoxWrapperPtr cropBoxWrapper : *cropBoxPtrList) {
+                        CropBoxPtr cropBoxPtr = cropBoxWrapper->getCropBox();
+                        Eigen::Vector4f max = cropBoxPtr->getMax();
+                        Eigen::Vector3f translation = cropBoxPtr->getTranslation();
+                        // check if pointCloudPoint is in the cropbox
+                        if ((pointCloudPoint.getPosition()(0,0) >= translation(0,0) && pointCloudPoint.getPosition()(0,0) <= (translation(0,0) + max(0,0))) &&
+                                (pointCloudPoint.getPosition()(1,0) >= translation(1,0) && pointCloudPoint.getPosition()(1,0) <= (translation(1,0) + max(1,0))) &&
+                                (pointCloudPoint.getPosition()(2,0) >= translation(2,0) && pointCloudPoint.getPosition()(2,0) <= (translation(2,0) + max(2,0))))
+                        {
+                            for (SimpleVector3 normal : *cropBoxWrapper->getCropBoxNormalsList()) {
+                                pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                                SimpleVector3 rotatedNormal = rotationMatrix * normal;
+                                pointCloudPoint.normal_vectors->push_back(rotatedNormal);
+                                ++normalVectorCount;
+                            }
+                        }
+                    }
+                } else {
+                    for (geometry_msgs::Point point : responsePtr_ObjectData->normal_vectors) {
+                        SimpleVector3 normal(point.x, point.y, point.z);
+                        normal = rotationMatrix * normal;
+                        pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                        pointCloudPoint.normal_vectors->push_back(normal);
+                        ++normalVectorCount;
+                    }
                 }
             } else {
                 ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
@@ -431,7 +454,7 @@ public:
             mDebugHelperPtr->write("setPointCloudFromMessage::Filtering point cloud finished.",
                         DebugHelper::CALCULATION);
 
-            mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxPtrList());
+            mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
 
             outputPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*originalPointCloudPtr, *filteredObjectIndices));
         }

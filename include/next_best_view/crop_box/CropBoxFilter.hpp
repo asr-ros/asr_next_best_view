@@ -7,6 +7,7 @@
 #pragma once
 
 #include "next_best_view/common/GeneralFilter.hpp"
+#include "next_best_view/crop_box/CropBoxWrapper.hpp"
 #include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
 
 namespace next_best_view {
@@ -16,13 +17,7 @@ namespace next_best_view {
      */
     class CropBoxFilter : public GeneralFilter {
     private:
-        boost::shared_ptr<std::vector<CropBoxPtr>> mCropBoxPtrList;
-
-        /*!
-         * \brief readCropBoxDataFromXMLFile reads the given xml file into mCropBoxPtrList.
-         * \param mCropBoxListFilePath path to a xml file containing crop box information (name, poisition, size).
-         */
-        void readCropBoxDataFromXMLFile(const std::string &mCropBoxListFilePath);
+        boost::shared_ptr<std::vector<CropBoxWrapperPtr>> mCropBoxPtrList;
 
     public:
         /*!
@@ -41,7 +36,7 @@ namespace next_best_view {
          * \brief getCropBoxPtrList
          * \return returns mCropBoxPtrList for visualization.
          */
-        boost::shared_ptr<std::vector<CropBoxPtr>> getCropBoxPtrList();
+        boost::shared_ptr<std::vector<CropBoxWrapperPtr>> getCropBoxWrapperPtrList();
     };
 
     /*!
