@@ -165,14 +165,10 @@ float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const
     SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
 
     // rate the angle between the camera orientation and the object normal
-    float angle = MathHelper::getAngle(-cameraOrientationVector, objectNormalVector);
-    float utility = this->getNormalizedRating(angle, mNormalAngleThreshold);
-
-    return utility;
+    return this->getNormalizedAngleUtility(-cameraOrientationVector, objectNormalVector, mNormalAngleThreshold);
 }
 
 float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
-
     SimpleVector3 cameraPosition = viewport.getPosition();
     SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
     SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
@@ -192,28 +188,37 @@ float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, co
     return utility;
 }
 
-
-float DefaultRatingModule::getFrustumPositionUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint)
-{
+float DefaultRatingModule::getSideUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
     SimpleVector3 cameraPosition = viewport.getPosition();
     SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
     SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
 
-    float angleMin = (float) MathHelper::degToRad(std::min(mFovV,mFovH))/2.0;
+    float angleMin = (float) MathHelper::degToRad(std::min(mFovV, mFovH)) / 2.0;
     SimpleVector3 objectPosition = objectPoint.getPosition();
     SimpleVector3 objectToCameraVector = cameraPosition - objectPosition;
     SimpleVector3 objectToCameraVectorNormalized = objectToCameraVector.normalized();
 
+    return this->getNormalizedAngleUtility(-cameraOrientationVector, objectToCameraVectorNormalized, angleMin);
+}
+
+
+float DefaultRatingModule::getFrustumPositionUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint)
+{
     // utility for how far the object is on the side of the camera view
-    float angle = MathHelper::getAngle(-cameraOrientationVector, objectToCameraVectorNormalized);
-    float sideUtility = this->getNormalizedRating(angle, angleMin);
+    float sideUtility = this->getSideUtility(viewport, objectPoint);
 
     // utility for how far the object is away from the camera
-    float proximityUtility = this->getProximityUtility(viewport,objectPoint);
+    float proximityUtility = this->getProximityUtility(viewport, objectPoint);
 
     // the complete frumstum position utility
     float utility = sideUtility * proximityUtility;
 
+    return utility;
+}
+
+float DefaultRatingModule::getNormalizedAngleUtility(const SimpleVector3 v1, const SimpleVector3 v2, double angleThreshold) {
+    float angle = MathHelper::getAngle(v1, v2);
+    float utility = this->getNormalizedRating(angle, angleThreshold);
     return utility;
 }
 

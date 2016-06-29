@@ -21,7 +21,7 @@ namespace next_best_view {
 	class GeneralFilter : public CommonClass {
 	private:
 		GeneralFilterPtr mPreFilter;
-		GeneralFilterPtr mPostFilter;
+        GeneralFilterPtr mPostFilter;
         DebugHelperPtr mDebugHelperPtr;
 	public:
 		/*!

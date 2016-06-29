@@ -16,8 +16,7 @@ using namespace boost::unit_test;
 
 class UpdatePointCloudTest : public BaseTest{
 public:
-    UpdatePointCloudTest() : BaseTest (){
-    }
+    UpdatePointCloudTest(bool silent) : BaseTest (true, silent) { }
 
     virtual ~UpdatePointCloudTest() {}
 
@@ -34,23 +33,23 @@ public:
         this->setInitialPose(initialPose);
 
         // Setze PointCloud
-        if (!setPointCloudClient.call(apc.request, apc.response)) {
+        if (!mSetPointCloudClient.call(apc.request, apc.response)) {
             ROS_ERROR("Could not set initial point cloud.");
         }
 
         GetAttributedPointCloud gpc;
-        if (!getPointCloudClient.call(gpc)) {
+        if (!mGetPointCloudClient.call(gpc)) {
             ROS_ERROR("Could not get initial point cloud.");
         }
 
         GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 
-        int i = 0;
+        int i = 1;
         int deactivatedNormals = 0;
-        while(ros::ok() && i < 3) {
+        while(ros::ok() && i <= 3) {
             ROS_INFO_STREAM("Kalkuliere NBV " << i);
-            if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+            if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                 ROS_ERROR("Something went wrong in next best view");
                 break;
             }
@@ -58,13 +57,11 @@ public:
             UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
-            if(!updatePointCloudClient.call(upc_req)) {
+            if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }
-            if (i == 0) {
-                deactivatedNormals = upc_req.response.deactivated_object_normals;
-            }
+            deactivatedNormals += upc_req.response.deactivated_object_normals;
             this->waitForEnter();
             i++;
         }
@@ -115,11 +112,9 @@ public:
 
         int deactivatedSmacksNormals = test(apc, {"Smacks"});
         int deactivatedSmacksPlateDeepNormals = test(apc, {"Smacks", "PlateDeep"});
-        if (deactivatedSmacksNormals >= deactivatedSmacksPlateDeepNormals) {
-            ROS_ERROR("Update deactivated the same or more normals without PlateDeep");
-            ROS_ERROR("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
-            ROS_ERROR("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
-        }
+        BOOST_CHECK_MESSAGE(deactivatedSmacksNormals < deactivatedSmacksPlateDeepNormals, "Update deactivated the same or more normals without PlateDeep");
+        ROS_INFO("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
+        ROS_INFO("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
     }
 };
 
@@ -131,7 +126,15 @@ test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 
     test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV");
 
-    boost::shared_ptr<UpdatePointCloudTest> testPtr(new UpdatePointCloudTest());
+    bool silent = false;
+    if (argc >= 2) {
+        cout << argv[1];
+        // caseinsensitive comparison
+        if (boost::iequals(argv[1], "silent") || boost::iequals(argv[1], "s")) {
+            silent = true;
+        }
+    }
+    boost::shared_ptr<UpdatePointCloudTest> testPtr(new UpdatePointCloudTest(silent));
 
     evaluation->add(BOOST_CLASS_TEST_CASE(&UpdatePointCloudTest::iterationTest, testPtr));
 

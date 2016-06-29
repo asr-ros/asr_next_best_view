@@ -364,7 +364,7 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
-    void triggerCropBoxVisualization(const std::vector<CropBoxPtr> cropBoxListPtr)
+    void triggerCropBoxVisualization(const boost::shared_ptr<std::vector<CropBoxWrapperPtr>> cropBoxWrapperPtrList)
     {
         if(!mCropBoxMarkerArrayPtr)
         {
@@ -377,14 +377,16 @@ public:
         SimpleVector4 color = TypeHelper::getSimpleVector4(CropBoxMarkerRGBA);
 
         int id = 0;
-        for(std::vector<CropBoxPtr>::const_iterator it = cropBoxListPtr.begin(); it != cropBoxListPtr.end(); ++it)
+        for(std::vector<CropBoxWrapperPtr>::const_iterator it = cropBoxWrapperPtrList->begin(); it != cropBoxWrapperPtrList->end(); ++it)
         {
+            CropBoxWrapperPtr cropBoxWrapperPtr = *it;
+            CropBoxPtr cropBoxPtr = cropBoxWrapperPtr->getCropBox();
             Eigen::Vector4f ptMin,ptMax;
-            ptMin = (*it)->getMin();
-            ptMax = (*it)->getMax();
+            ptMin = cropBoxPtr->getMin();
+            ptMax = cropBoxPtr->getMax();
             Eigen::Vector3f rotation, translation;
-            rotation = (*it)->getRotation();
-            translation = (*it)->getTranslation();
+            rotation = cropBoxPtr->getRotation();
+            translation = cropBoxPtr->getTranslation();
 
             Eigen::Matrix3f rotationMatrix;
             rotationMatrix = Eigen::AngleAxisf(rotation[0], Eigen::Vector3f::UnitX())

@@ -43,6 +43,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+#include <ros/master.h>
+
 #include "next_best_view/GetSpaceSampling.h"
 
 using namespace next_best_view;
@@ -51,34 +53,27 @@ typedef boost::shared_ptr<MoveBaseClient> MoveBaseClientPtr;
 
 class BaseTest {
 protected:
-    ros::NodeHandle mNodeHandle;
+    boost::shared_ptr<ros::NodeHandle> mNodeHandle;
     ros::Publisher mInitPosePub;
-    MoveBaseClientPtr mMoveBaseClient;
     ros::ServiceClient mSetInitRobotStateClient;
-    ros::ServiceClient setPointCloudClient;
-    ros::ServiceClient getPointCloudClient;
-    ros::ServiceClient getNextBestViewClient;
-    ros::ServiceClient updatePointCloudClient;
+    ros::ServiceClient mSetPointCloudClient;
+    ros::ServiceClient mGetPointCloudClient;
+    ros::ServiceClient mGetNextBestViewClient;
+    ros::ServiceClient mUpdatePointCloudClient;
+    ros::ServiceClient mResetCalculatorClient;
+    bool silent;
 public:
     BaseTest();
 
+    BaseTest(bool useRos, bool silent);
+
     ~BaseTest();
 
-    void evaluateS2CandC2S();
-
-    void solveLinearProblem();
-
-    void visualizeSingleObjectWithNormals();
+    void initRosServices();
 
     void setInitialPose(const geometry_msgs::Pose &initialPose);
 
-    virtual void setInitialRobotState(const geometry_msgs::Pose &initialPose);
-
     MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
-
-    void moveToPose(const geometry_msgs::Pose &pose);
-
-    void visualizeSpaceSampling();
 
     void waitForEnter();
 

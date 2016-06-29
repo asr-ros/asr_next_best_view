@@ -24,12 +24,12 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 mSigma: 1.0
-radius: 0.15
-sampleSizeUnitSphereSampler: 384
-colThresh: 10 # höhere Werte führen in der Simulation zu Problemen mit der Navigation
+radius: 0.15 # hexagon space sample radius
+sampleSizeUnitSphereSampler: 384 # anzahl von samples erstellt durch SpiralApproxUnitSphereSampler. Höher -> genauere Orientierung.
+colThresh: 10 # höhere Werte führen in der Simulation zu Problemen mit der Navigation. Kleiner -> mehr Abstand zu Hindernissen.
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
-enableCropBoxFiltering : false
+enableCropBoxFiltering : true
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler

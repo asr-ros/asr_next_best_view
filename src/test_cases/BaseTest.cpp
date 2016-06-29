@@ -11,15 +11,27 @@
 using namespace next_best_view;
 
     BaseTest::BaseTest() {
-        mMoveBaseClient = MoveBaseClientPtr(new MoveBaseClient("move_base", true));
-        mSetInitRobotStateClient = mNodeHandle.serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
-        setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
-        getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
-        getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
-        updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
+        initRosServices();
+    }
+
+    BaseTest::BaseTest(bool useRos, bool silent) {
+        this->silent = silent;
+        if (useRos) {
+            initRosServices();
+        }
     }
 
     BaseTest::~BaseTest() {}
+
+    void BaseTest::initRosServices() {
+        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+        mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
+        mSetPointCloudClient = mNodeHandle->serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
+        mGetPointCloudClient = mNodeHandle->serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
+        mGetNextBestViewClient = mNodeHandle->serviceClient<GetNextBestView>("/nbv/next_best_view");
+        mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
+        mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
+    }
 
     void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose) {
         MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
@@ -31,6 +43,7 @@ using namespace next_best_view;
         sirb.request.robotState.x = statePtr->x;
         sirb.request.robotState.y = statePtr->y;
 
+        ros::service::waitForService("/nbv/set_init_robot_state", -1);
         if (!mSetInitRobotStateClient.call(sirb)) {
             ROS_ERROR("Failed to call service SetInitRobotState.");
         }
@@ -48,6 +61,9 @@ using namespace next_best_view;
     }
 
     void BaseTest::waitForEnter() {
+        if (silent) {
+            return;
+        }
         std::string dummy;
         std::cout << "Press ENTER to continue.." << std::endl << ">";
         std::getline(std::cin, dummy);

@@ -129,11 +129,22 @@ namespace next_best_view {
         /*!
          * \brief returns the proximity utility of a given object point for a given camera viewport.
          * The proximizy utility is always between 0.0 and 1.0.
+         * Depends on the distance between the object and the camera.
          * \param viewport the camera viewport
          * \param objectPoint the object point
          * \return the proximity utility
          */
         float getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint);
+
+        /*!
+         * \brief returns the side utility of a given object point for a given camera viewport.
+         * The side utility is always between 0.0 and 1.0.
+         * Depends on how far the object is to the side of the camera view/srustum.
+         * \param viewport the camera viewport
+         * \param objectPoint objectPoint the object point
+         * \return the side utility
+         */
+        float getSideUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint);
 
 		/*!
          * \brief returns the weighted rating of a rating object.
@@ -153,6 +164,15 @@ namespace next_best_view {
          * \return the angle threshold.
 		 */
         double getNormalAngleThreshold();
+
+        /*!
+         * \brief returns a rating for the difference between the two given normals.
+         * \param v1 first normal
+         * \param v2 second normal
+         * \param angleThreshold
+         * \return rating for the difference of v1 and v2
+         */
+        float getNormalizedAngleUtility(const SimpleVector3 v1, const SimpleVector3 v2, double angleThreshold);
 
         void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
 

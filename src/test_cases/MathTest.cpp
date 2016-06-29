@@ -15,7 +15,7 @@ using namespace boost::unit_test;
 
 class MathTest : public BaseTest {
 public:
-    MathTest() : BaseTest() {}
+    MathTest() : BaseTest(false, true) {}
 
     virtual ~MathTest() {}
 
@@ -49,9 +49,7 @@ public:
 
                 double cerror = (ccoords - reccoords).lpNorm<2>();
 
-                // error has to be minimal.
-                if (cerror > tolerance) {ROS_INFO("Error was over tolerance.");}
-                //BOOST_REQUIRE(cerror <= tolerance);
+                BOOST_CHECK_MESSAGE(cerror < tolerance, "error has to be minimal.");
             }
         }
     }
@@ -62,11 +60,6 @@ public:
 };
 
 test_suite* init_unit_test_suite( int argc, char* argv[] ) {
-    ros::init(argc, argv, "nbv_test");
-    ros::start();
-
-    ros::Duration(5).sleep();
-
     test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV");
 
     boost::shared_ptr<MathTest> testPtr(new MathTest());
