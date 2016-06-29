@@ -383,27 +383,25 @@ public:
             if (responsePtr_ObjectData) {
                 // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
                 int normalVectorCount = 0;
+                // in cropbox filtering we don't use the normals of the point clouds. Instead we use the ones defined in the xml
                 if (mEnableCropBoxFiltering)
                 {
-                    int i = 0;
-                    for (std::vector<CropBoxPtr>::const_iterator it=mCropBoxPtrList.begin(); it!=mCropBoxPtrList.end(); ++it)
+                    for (std::vector<CropBoxPtr>::size_type i = 0; i != mCropBoxPtrList.size(); ++i)
                     {
-                        Eigen::Vector4f max = (*it)->getMax();
-                        Eigen::Vector3f translation = (*it)->getTranslation();
-                        // check if pointCloudPoint is in cropbox
+                        Eigen::Vector4f max = mCropBoxPtrList.at(i)->getMax();
+                        Eigen::Vector3f translation = mCropBoxPtrList.at(i)->getTranslation();
+                        // check if pointCloudPoint is in the cropbox
                         if ((pointCloudPoint.getPosition()(0,0) >= translation(0,0) && pointCloudPoint.getPosition()(0,0) <= (translation(0,0) + max(0,0))) &&
                                 (pointCloudPoint.getPosition()(1,0) >= translation(1,0) && pointCloudPoint.getPosition()(1,0) <= (translation(1,0) + max(1,0))) &&
                                 (pointCloudPoint.getPosition()(2,0) >= translation(2,0) && pointCloudPoint.getPosition()(2,0) <= (translation(2,0) + max(2,0))))
                         {
-                            std::vector<SimpleVector3> normals = mCropBoxNormalsList.at(i);
-                            for (std::vector<SimpleVector3>::iterator itNor = normals.begin(); itNor != normals.end(); ++itNor) {
-                                (*itNor) = rotationMatrix * (*itNor);
+                            BOOST_FOREACH(SimpleVector3 normal, mCropBoxNormalsList.at(i)) {
                                 pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-                                pointCloudPoint.normal_vectors->push_back((*itNor));
+                                SimpleVector3 rotatedNormal = rotationMatrix * normal;
+                                pointCloudPoint.normal_vectors->push_back(rotatedNormal);
                                 ++normalVectorCount;
                             }
                         }
-                        ++i;
                     }
                 } else {
                     BOOST_FOREACH(geometry_msgs::Point point, responsePtr_ObjectData->normal_vectors) {
@@ -761,9 +759,9 @@ public:
                             normals.push_back(normal);
                         }
                         ++normalsCount;
-                        char search2[100];
-                        sprintf(search2, "normal_%d", normalsCount);
-                        normalsXML = child_node->first_node(search2);
+                        std::fill(search, search + sizeof(search)/sizeof(search[0]), 0);
+                        sprintf(search, "normal_%d", normalsCount);
+                        normalsXML = child_node->first_node(search);
                     }
                     mCropBoxNormalsList.push_back(normals);
 
