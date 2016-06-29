@@ -1,4 +1,4 @@
-mOmegaUtility: 70 #Gewichtungsfaktor für den Nutzen-Faktor 
+mOmegaUtility: 210 #Gewichtungsfaktor für den Nutzen-Faktor 
 mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 10 #Gewichtungsfaktor für die Rotation der Basis
@@ -10,7 +10,7 @@ useGlobalPlanner: false
 fovx: 30
 fovy: 20
 ncp: 0.7 #Entfernung der NearClippingPlane in meter
-fcp: 1.1 ##Entfernung der FarClippingPlane in meter
+fcp: 1.2 ##Entfernung der FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
@@ -26,7 +26,7 @@ tiltMax: 25
 mSigma: 1.0
 radius: 0.15
 sampleSizeUnitSphereSampler: 384
-colThresh: 40
+colThresh: 20
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 enableCropBoxFiltering : false
