@@ -114,8 +114,6 @@ private:
 
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
-    ObjectPointCloudPtr mPointCloudPtr;
-    KdTreePtr mKdTreePtr;
     DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
     SetupVisualizationRequest mVisualizationSettings;
@@ -125,6 +123,8 @@ private:
     bool mEnableIntermediateObjectWeighting;
     bool mEnableCropBoxFiltering;
 
+    boost::shared_ptr<boost::thread> mVisualizationThread;
+
 public:
     /*!
          * \brief Creates an instance of the NextBestView class.
@@ -133,7 +133,6 @@ public:
     {
         mGlobalNodeHandle = ros::NodeHandle();
         mNodeHandle = ros::NodeHandle(ros::this_node::getName());
-        mGetPointCloud2ServiceServer = mNodeHandle.advertiseService("get_point_cloud2", &NextBestView::processGetPointCloud2ServiceCall, this);
         mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
         mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
         mSetPointCloudServiceServer = mNodeHandle.advertiseService("set_point_cloud", &NextBestView::processSetPointCloudServiceCall, this);
@@ -154,7 +153,9 @@ public:
     }
 
     //dtor
-    virtual ~NextBestView() { }
+    virtual ~NextBestView() {
+        this->mVisualizationThread->join();
+    }
 
     void initialize()
     {
@@ -162,7 +163,6 @@ public:
 
         mDebugHelperPtr->write(std::stringstream() << "debugLevels: " << mDebugHelperPtr->getLevelString(), DebugHelper::PARAMETERS);
 
-        mPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
         mCurrentlyPublishingVisualization = false;
 
         // setup the visualization defaults
@@ -442,21 +442,6 @@ public:
         }
     }
 
-    bool processGetPointCloud2ServiceCall(GetPointCloud2::Request &request, GetPointCloud2::Response &response) {
-        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        pcl::toROSMsg(*mCalculator.getPointCloudPtr(), response.point_cloud);
-        response.point_cloud.header.frame_id = "/map";
-
-        sensor_msgs::PointField rgb;
-        rgb.name = "rgb";
-        rgb.datatype = sensor_msgs::PointField::UINT32;
-        rgb.offset = offsetof(ObjectPoint, rgb);
-        response.point_cloud.fields.push_back(rgb);
-
-        mDebugHelperPtr->writeNoticeably("ENDING NBV GET-POINT-CLOUD2 SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        return true;
-    }
-
     bool processGetPointCloudServiceCall(GetAttributedPointCloud::Request &request, GetAttributedPointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         convertObjectPointCloudToAttributedPointCloud(*mCalculator.getPointCloudPtr(), response.point_cloud);
@@ -683,7 +668,7 @@ public:
 
         mCurrentlyPublishingVisualization = true;
 
-        boost::thread t = boost::thread(&NextBestView::publishVisualization, this, viewport, true);
+        this->mVisualizationThread = boost::shared_ptr<boost::thread>(new boost::thread(&NextBestView::publishVisualization, this, viewport, true));
         return true;
     }
 

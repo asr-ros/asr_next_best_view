@@ -581,19 +581,6 @@ public:
         return element;
     }
 
-    void setInitialRobotState(const geometry_msgs::Pose &initialPose) {
-        MILDRobotStatePtr state = this->getRobotState(initialPose);
-
-        SetInitRobotState sirb;
-        sirb.request.robotState.pan = state->pan;
-        sirb.request.robotState.tilt = state->tilt;
-        sirb.request.robotState.rotation = state->rotation;
-        sirb.request.robotState.x = state->x;
-        sirb.request.robotState.y = state->y;
-
-        NBV.processSetInitRobotStateServiceCall(sirb.request, sirb.response);
-    }
-
 };
 
 test_suite* init_unit_test_suite( int argc, char* argv[] )

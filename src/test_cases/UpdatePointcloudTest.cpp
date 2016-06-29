@@ -8,7 +8,6 @@
 #define BOOST_TEST_STATIC_LINK
 
 #include <boost/test/included/unit_test.hpp>
-#include <map>
 #include "next_best_view/test_cases/BaseTest.h"
 #include "next_best_view/GetAttributedPointCloud.h"
 
@@ -22,13 +21,57 @@ public:
 
     virtual ~UpdatePointCloudTest() {}
 
-    void iterationTest() {
-        ros::ServiceClient setPointCloudClient = mNodeHandle.serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
-        ros::ServiceClient getPointCloudClient = mNodeHandle.serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
-        ros::ServiceClient getNextBestViewClient = mNodeHandle.serviceClient<GetNextBestView>("/nbv/next_best_view");
-        ros::ServiceClient updatePointCloudClient = mNodeHandle.serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
+    int test(SetAttributedPointCloud apc, std::vector<std::string> object_type_name_list) {
+        ROS_INFO("Setze initiale Pose");
+        geometry_msgs::Pose initialPose;
+        initialPose.position.x = -0.383223;
+        initialPose.position.y = 0.157997;
+        initialPose.position.z = 1.32;
+        initialPose.orientation.x = -0.17266;
+        initialPose.orientation.y = 0.2115588;
+        initialPose.orientation.z = 0.60825979;
+        initialPose.orientation.w = 0.74528563;
+        this->setInitialPose(initialPose);
+
+        // Setze PointCloud
+        if (!setPointCloudClient.call(apc.request, apc.response)) {
+            ROS_ERROR("Could not set initial point cloud.");
+        }
 
         GetAttributedPointCloud gpc;
+        if (!getPointCloudClient.call(gpc)) {
+            ROS_ERROR("Could not get initial point cloud.");
+        }
+
+        GetNextBestView nbv;
+        nbv.request.current_pose = initialPose;
+
+        int i = 0;
+        int deactivatedNormals = 0;
+        while(ros::ok() && i < 3) {
+            ROS_INFO_STREAM("Kalkuliere NBV " << i);
+            if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+                ROS_ERROR("Something went wrong in next best view");
+                break;
+            }
+
+            UpdatePointCloud upc_req;
+            upc_req.request.object_type_name_list = object_type_name_list;
+            upc_req.request.pose_for_update = nbv.response.resulting_pose;
+            if(!updatePointCloudClient.call(upc_req)) {
+                ROS_ERROR("Update Point Cloud failed!");
+                break;
+            }
+            if (i == 0) {
+                deactivatedNormals = upc_req.response.deactivated_object_normals;
+            }
+            this->waitForEnter();
+            i++;
+        }
+        return deactivatedNormals;
+    }
+
+    void iterationTest() {
         SetAttributedPointCloud apc;
 
         ROS_INFO("Generiere Häufungspunkte");
@@ -70,58 +113,12 @@ public:
             }
         }
 
-        ROS_INFO("Setze initiale Pose");
-        geometry_msgs::Pose initialPose;
-        initialPose.position.x = -0.6833919;
-        initialPose.position.y = -0.2539510;
-        initialPose.position.z = 1.32;
-        initialPose.orientation.x = -0.17266;
-        initialPose.orientation.y = 0.2115588;
-        initialPose.orientation.z = 0.60825979;
-        initialPose.orientation.w = 0.74528563;
-        this->setInitialPose(initialPose);
-
-        // Setze PointCloud
-        if (!setPointCloudClient.call(apc.request, apc.response)) {
-            ROS_ERROR("Could not set initial point cloud.");
-        }
-
-        if (!getPointCloudClient.call(gpc)) {
-            ROS_ERROR("Could not get initial point cloud.");
-        }
-
-        GetNextBestView nbv;
-        nbv.request.current_pose = initialPose;
-
-        int i = 0;
-        while(ros::ok() && i < 3) {
-            ROS_INFO_STREAM("Kalkuliere NBV " << i);
-            if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
-                ROS_ERROR("Something went wrong in next best view");
-                break;
-            }
-
-            UpdatePointCloud upc_req;
-            upc_req.request.object_type_name_list = { "Smacks" };
-            upc_req.request.pose_for_update.position.x = -0.6833919;
-            upc_req.request.pose_for_update.position.y = -0.2539510;
-            upc_req.request.pose_for_update.position.z = 1.32;
-            upc_req.request.pose_for_update.orientation.x = -0.17266;
-            upc_req.request.pose_for_update.orientation.y = 0.2115588;
-            upc_req.request.pose_for_update.orientation.z = 0.60825979;
-            upc_req.request.pose_for_update.orientation.w = 0.74528563;
-            if(!updatePointCloudClient.call(upc_req)) {
-                ROS_ERROR("Update Point Cloud failed!");
-                break;
-            }
-            if(upc_req.response.deactivated_object_normals == 0 && i == 0) {
-                ROS_ERROR("update didn't deactivate normals at first run!");
-            }
-            if(upc_req.response.deactivated_object_normals > 0 && i > 0) {
-                ROS_ERROR("update deactivated normal after first run!");
-            }
-            this->waitForEnter();
-            i++;
+        int deactivatedSmacksNormals = test(apc, {"Smacks"});
+        int deactivatedSmacksPlateDeepNormals = test(apc, {"Smacks", "PlateDeep"});
+        if (deactivatedSmacksNormals >= deactivatedSmacksPlateDeepNormals) {
+            ROS_ERROR("Update deactivated the same or more normals without PlateDeep");
+            ROS_ERROR("deactivated normals [Smacks, PlateDeep]: %d", deactivatedSmacksPlateDeepNormals);
+            ROS_ERROR("deactivated normals [Smacks]: %d", deactivatedSmacksNormals);
         }
     }
 };
