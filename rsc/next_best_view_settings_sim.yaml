@@ -1,4 +1,4 @@
-mOmegaUtility: 70 #Gewichtungsfaktor für den Nutzen-Faktor 
+mOmegaUtility: 210 #Gewichtungsfaktor für den Nutzen-Faktor 
 mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
 mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 10 #Gewichtungsfaktor für die Rotation der Basis
