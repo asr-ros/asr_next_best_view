@@ -199,6 +199,10 @@ namespace next_best_view {
             return true;
         }
 	} EIGEN_ALIGN16;
+    typedef boost::shared_ptr<DefaultViewportPoint> DefaultViewportPointPtr;
+
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultViewportPoint &p);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultViewportPointPtr &p);
 }
 //Comment?
 POINT_CLOUD_REGISTER_POINT_STRUCT (next_best_view::ViewportPoint,

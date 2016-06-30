@@ -9,6 +9,7 @@
 #define DEFAULTSCORECONTAINER_HPP_
 
 #include <map>
+#include <boost/make_shared.hpp>
 #include "next_best_view/rating/BaseScoreContainer.hpp"
 
 namespace next_best_view {
@@ -56,7 +57,7 @@ namespace next_best_view {
          * \brief returns the inverse movement costs for the base translation
          * \return the inverse movement costs for the base translation
          */
-        float getUnweightedInverseMovementCostsBaseTranslation() {
+        float getUnweightedInverseMovementCostsBaseTranslation() const {
             return mMovementCostsBaseTranslation;
         }
 
@@ -72,7 +73,7 @@ namespace next_best_view {
          * \brief returns the inverse movement costs for the base rotation
          * \return the movement inverse costs for the base rotation
          */
-        float getUnweightedInverseMovementCostsBaseRotation() {
+        float getUnweightedInverseMovementCostsBaseRotation() const {
             return mMovementCostsBaseRotation;
         }
 
@@ -88,7 +89,7 @@ namespace next_best_view {
          * \brief returns the inverse costs for the PTU movement
          * \return the inverse costs for the PTU movement
          */
-        float getUnweightedInverseMovementCostsPTU() {
+        float getUnweightedInverseMovementCostsPTU() const {
             return mMovementCostsPTU;
         }
 
@@ -104,7 +105,7 @@ namespace next_best_view {
          * \brief returns the inverse costs for the recognition of the objects
          * \return the inverse costs for the recognition of the objects
          */
-        float getUnweightedInverseRecognitionCosts() {
+        float getUnweightedInverseRecognitionCosts() const {
             return mRecognitionCosts;
         }
 
@@ -120,7 +121,7 @@ namespace next_best_view {
          * \brief returns the weighted unnormalized utility
          * \return the utility
          */
-        float getWeightedUnnormalizedUtility() {
+        float getWeightedUnnormalizedUtility() const {
             return mUtility;
         }
 
@@ -138,11 +139,11 @@ namespace next_best_view {
          * \param objectType the object type
          * \return the utility
          */
-        float getUnweightedUnnormalizedObjectUtility(std::string objectType) {
+        float getUnweightedUnnormalizedObjectUtility(std::string objectType) const {
             if (mObjectUtilities.count(objectType) == 0) {
                 return 0;
             }
-            return mObjectUtilities[objectType];
+            return mObjectUtilities.at(objectType);
         }
 
         /*!
@@ -157,8 +158,22 @@ namespace next_best_view {
          * \brief returns the utility normalization
          * \return the utility normalization
          */
-        float getUtilityNormalization() {
+        float getUtilityNormalization() const {
             return mUtilityNormalization;
+        }
+
+        /*!
+         * \brief getObjectTypes
+         * \return a vector of object types which contain a object utility.
+         */
+        boost::shared_ptr<std::vector<std::string>> getObjectTypes() const{
+            auto objectTypes = boost::make_shared<std::vector<std::string>>();
+            if (mObjectUtilities.size() == 0)
+                return objectTypes;
+            for (auto object : mObjectUtilities) {
+                objectTypes->push_back(object.first);
+            }
+            return objectTypes;
         }
 	};
 
@@ -166,6 +181,9 @@ namespace next_best_view {
 	 * \brief Definition for the shared pointer type of the class.
 	 */
 	typedef boost::shared_ptr<DefaultScoreContainer> DefaultScoreContainerPtr;
+
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultScoreContainer &score);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultScoreContainerPtr &score);
 }
 
 

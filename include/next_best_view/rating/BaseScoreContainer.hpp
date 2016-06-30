@@ -28,7 +28,7 @@ namespace next_best_view {
 			mUtility = value;
 		}
 
-        float getWeightedNormalizedUtility() {
+        float getWeightedNormalizedUtility() const {
 			return mUtility;
 		}
 
@@ -36,7 +36,7 @@ namespace next_best_view {
             mInverseCosts = value;
 		}
 
-        float getWeightedInverseCosts() {
+        float getWeightedInverseCosts() const {
             return mInverseCosts;
 		}
 	public:
