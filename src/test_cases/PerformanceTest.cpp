@@ -221,9 +221,7 @@ public:
 
 test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 	ros::init(argc, argv, "nbv_test");
-	ros::start();
-
-	ros::Duration(5).sleep();
+    ros::start();
 
 	test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV");
 

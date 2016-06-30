@@ -102,6 +102,7 @@ public:
                 return;
 
             world_model::EmptyViewportList empty;
+            ros::service::waitForService("/env/world_model/empty_viewport_list", -1);
             ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
 
             ROS_INFO("Generiere Häufungspunkte");
@@ -221,6 +222,7 @@ public:
             return;
 
         world_model::EmptyViewportList empty;
+        ros::service::waitForService("/env/world_model/empty_viewport_list", -1);
         ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
 
         // object poses
@@ -587,8 +589,6 @@ test_suite* init_unit_test_suite( int argc, char* argv[] )
 {
     ros::init(argc, argv, "nbv");
     ros::start();
-
-    ros::Duration(5).sleep();
 
     test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV with different scenes");
 
