@@ -128,7 +128,6 @@ test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 
     bool silent = false;
     if (argc >= 2) {
-        cout << argv[1];
         // caseinsensitive comparison
         if (boost::iequals(argv[1], "silent") || boost::iequals(argv[1], "s")) {
             silent = true;
