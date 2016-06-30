@@ -18,12 +18,21 @@ namespace next_best_view {
 
     void CropBoxFilter::doFiltering(IndicesPtr &indicesPtr) {
 
+        ObjectPointCloudPtr inputObjectPointCloudPtr = this->getInputCloud();
+        ObjectPointCloudPtr processingPointCloudPtr = nullptr;
+
+        if (getIndices() == nullptr) {
+            processingPointCloudPtr = inputObjectPointCloudPtr;
+        } else {
+            processingPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*inputObjectPointCloudPtr, *getIndices()));
+        }
+
         //Filter the point cloud
         auto result = boost::make_shared<std::set<int>>();
         for (CropBoxWrapperPtr cropBoxWrapper : *mCropBoxPtrList) {
             IndicesPtr filteredObjectIndices = IndicesPtr(new Indices());
             CropBoxPtr cropBoxPtr = cropBoxWrapper->getCropBox();
-            cropBoxPtr->setInputCloud(this->getInputCloud());
+            cropBoxPtr->setInputCloud(processingPointCloudPtr);
             cropBoxPtr->filter(*filteredObjectIndices);
             // put all filtered objects into the result set
             result->insert(filteredObjectIndices->begin(), filteredObjectIndices->end());
