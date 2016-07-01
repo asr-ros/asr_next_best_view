@@ -29,7 +29,7 @@ sampleSizeUnitSphereSampler: 384 # anzahl von samples erstellt durch SpiralAppro
 colThresh: 10 # höhere Werte führen in der Simulation zu Problemen mit der Navigation. Kleiner -> mehr Abstand zu Hindernissen.
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
-enableCropBoxFiltering : true
+enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
