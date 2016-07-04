@@ -386,9 +386,7 @@ public:
                         Eigen::Vector4f max = cropBoxPtr->getMax();
                         Eigen::Vector3f translation = cropBoxPtr->getTranslation();
                         // check if pointCloudPoint is in the cropbox
-                        if ((pointCloudPoint.getPosition()(0,0) >= translation(0,0) && pointCloudPoint.getPosition()(0,0) <= (translation(0,0) + max(0,0))) &&
-                                (pointCloudPoint.getPosition()(1,0) >= translation(1,0) && pointCloudPoint.getPosition()(1,0) <= (translation(1,0) + max(1,0))) &&
-                                (pointCloudPoint.getPosition()(2,0) >= translation(2,0) && pointCloudPoint.getPosition()(2,0) <= (translation(2,0) + max(2,0))))
+                        if (isPointInCropbox(pointCloudPoint.getPosition(), translation, max))
                         {
                             for (SimpleVector3 normal : *cropBoxWrapper->getCropBoxNormalsList()) {
                                 pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
@@ -482,6 +480,16 @@ public:
 
         this->setPointCloudPtr(outputPointCloudPtr);
         return true;
+    }
+
+    bool isPointInCropbox(SimpleVector3 position, Eigen::Vector3f translation, Eigen::Vector4f max) {
+        return isPointInRange(position(0,0), translation(0,0), max(0,0)) &&
+                isPointInRange(position(1,0), translation(1,0), max(1,0)) &&
+                isPointInRange(position(2,0), translation(2,0), max(2,0));
+    }
+
+    bool isPointInRange(float point, float min, float lenght) {
+        return point >= min && point <= (min + lenght);
     }
 
     /**
