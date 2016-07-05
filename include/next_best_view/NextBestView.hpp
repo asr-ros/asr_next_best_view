@@ -324,8 +324,8 @@ public:
         int cameraFilterId;
         mNodeHandle.param("cameraFilterId", cameraFilterId, 2);
         CameraModelFilterPtr cameraModelFilter;
-        SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067 , 0.04);
-        SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, -0.067 , 0.04);
+        SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
+        SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
         SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
         switch (cameraFilterId) {
         case 1:
