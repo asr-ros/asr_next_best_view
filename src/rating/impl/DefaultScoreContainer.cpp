@@ -28,8 +28,9 @@ namespace next_best_view {
              << "weightedNormalizedUtility: " << score.getWeightedNormalizedUtility() << endl
              << "weightedInverseCosts: " << score.getWeightedInverseCosts() << endl
              << "objectUtility: {" << endl;
-        for (auto objType : *score.getObjectTypes()) {
-            strm << objType << " -> " << score.getUnweightedUnnormalizedObjectUtility(objType) << endl;
+        auto ratedObjects = score.getObjectTypes();
+        for (auto objType : *ratedObjects) {
+            strm << *objType << " -> " << score.getUnweightedUnnormalizedObjectUtility(*objType) << endl;
         }
         return strm << "}" << endl;
     }

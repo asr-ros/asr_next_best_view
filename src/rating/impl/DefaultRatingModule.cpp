@@ -110,7 +110,8 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
         mDebugHelperPtr->write(std::stringstream() << "THIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.",
                     DebugHelper::RATING);
         ViewportPoint viewport = viewports->at(i);
-        viewport.print(this->getRating(viewport.score), DebugHelper::RATING);
+        mDebugHelperPtr->write(std::stringstream() << viewport, DebugHelper::RATING);
+        mDebugHelperPtr->write(std::stringstream() << "rating: " << this->getRating(viewport.score), DebugHelper::RATING);
     }
 
     // set best viewport
@@ -118,7 +119,8 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
 
     // output best viewport
     mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE SORTED LIST.", DebugHelper::RATING);
-    bestViewport.print(this->getRating(bestViewport.score), DebugHelper::RATING);
+    mDebugHelperPtr->write(std::stringstream() << bestViewport, DebugHelper::RATING);
+    mDebugHelperPtr->write(std::stringstream() << "rating: " << this->getRating(bestViewport.score), DebugHelper::RATING);
 
     mDebugHelperPtr->writeNoticeably("ENDING DEFAULTRATINGMODULE::GET-BEST-VIEWPORT METHOD",
                 DebugHelper::RATING);

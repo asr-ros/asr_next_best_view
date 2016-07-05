@@ -18,7 +18,7 @@ using namespace boost::unit_test;
 
 class StreamTest : public BaseTest {
 public:
-    StreamTest() : BaseTest(true, true) {}
+    StreamTest() : BaseTest(false, true) {}
 
     virtual ~StreamTest() {}
 
@@ -35,6 +35,7 @@ public:
         MILDRobotState mildRobotState = MILDRobotState(1.0, 2.0, 3.0, 4.0, 5.0);
         DefaultScoreContainer defaultScoreContainer = DefaultScoreContainer();
         defaultScoreContainer.setUnweightedInverseMovementCostsBaseRotation(1.7);
+        defaultScoreContainer.setUnweightedUnnormalizedObjectUtilitiy("PlateDeep", 0.1);
         defaultScoreContainer.setUtilityNormalization(42);
 
         std::stringstream objectPointSs;
@@ -85,7 +86,9 @@ public:
             "utilityNormalization: 42",
             "unweightedInverseMovementCostsBaseRotation: 1.7",
             "objectUtility:",
-            "weightedInverseCosts:"
+            "weightedInverseCosts:",
+            "objectUtility:",
+            "PlateDeep -> 0.1"
         };
 
         testString(objectPointStr, objectPointAttrs);

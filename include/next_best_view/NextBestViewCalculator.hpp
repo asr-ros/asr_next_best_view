@@ -163,7 +163,8 @@ private:
             float rating = mRatingModulePtr->getRating(intermediateResultViewport.score);
             mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
                             DebugHelper::CALCULATION);
-            intermediateResultViewport.print(rating, DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << intermediateResultViewport, DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << "rating: " << rating, DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep, DebugHelper::CALCULATION);
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
@@ -174,7 +175,8 @@ private:
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
                 mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.",
                             DebugHelper::CALCULATION);
-                resultViewport.print(rating, DebugHelper::CALCULATION);
+                mDebugHelperPtr->write(std::stringstream() << resultViewport, DebugHelper::CALCULATION);
+                mDebugHelperPtr->write(std::stringstream() << "rating: " << rating, DebugHelper::CALCULATION);
                 mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
                             DebugHelper::CALCULATION);
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);

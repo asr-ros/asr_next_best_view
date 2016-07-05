@@ -166,12 +166,13 @@ namespace next_best_view {
          * \brief getObjectTypes
          * \return a vector of object types which contain a object utility.
          */
-        boost::shared_ptr<std::vector<std::string>> getObjectTypes() const{
-            auto objectTypes = boost::make_shared<std::vector<std::string>>();
+        boost::shared_ptr<std::vector<boost::shared_ptr<std::string>>> getObjectTypes() const {
+            auto objectTypes = boost::make_shared<std::vector<boost::shared_ptr<std::string>>>();
             if (mObjectUtilities.size() == 0)
                 return objectTypes;
             for (auto object : mObjectUtilities) {
-                objectTypes->push_back(object.first);
+                auto objectType = boost::shared_ptr<std::string>(new std::string(object.first));
+                objectTypes->push_back(objectType);
             }
             return objectTypes;
         }
