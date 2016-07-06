@@ -29,7 +29,7 @@ private:
     std::string mOutputPath;
 
 public:
-    ParametersTest() : BaseTest(), mNodeHandle("~") {
+    ParametersTest() : BaseTest(false, false), mNodeHandle("~") {
         mNodeHandle.param("output_path", mOutputPath, std::string(""));
         ROS_INFO_STREAM("output_path: " << mOutputPath);
     }
@@ -155,9 +155,20 @@ public:
             initialPose.orientation.y = orientation.y();
             initialPose.orientation.z = orientation.z();
 
-            this->setInitialPose(initialPose);
-
             GetNextBestView getNBV;
+
+            SetInitRobotStateRequest request;
+            SetInitRobotStateResponse response;
+            MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
+
+            request.robotState.pan = statePtr->pan;
+            request.robotState.tilt = statePtr->tilt;
+            request.robotState.rotation = statePtr->rotation;
+            request.robotState.x = statePtr->x;
+            request.robotState.y = statePtr->y;
+
+            NBV.processSetInitRobotStateServiceCall(request, response);
+            //this->setInitialPose(initialPose);
 
             emptyViewportsClient.call(empty);
 
