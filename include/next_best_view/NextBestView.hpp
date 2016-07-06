@@ -32,6 +32,8 @@
 #include <world_model/GetViewportList.h>
 #include <world_model/PushViewport.h>
 #include <std_msgs/ColorRGBA.h>
+#include <dynamic_reconfigure/server.h>
+#include <next_best_view/DynamicParametersConfig.h>
 
 // Local Includes
 #include "typedef.hpp"
@@ -121,6 +123,8 @@ private:
     bool mEnableIntermediateObjectWeighting;
     bool mEnableCropBoxFiltering;
 
+    dynamic_reconfigure::Server<next_best_view::DynamicParametersConfig> mDynamicReconfigServer;
+
     boost::shared_ptr<boost::thread> mVisualizationThread;
 
 public:
@@ -133,6 +137,9 @@ public:
 
         mGlobalNodeHandle = ros::NodeHandle();
         mNodeHandle = ros::NodeHandle(ros::this_node::getName());
+
+        dynamic_reconfigure::Server<next_best_view::DynamicParametersConfig>::CallbackType f = boost::bind(&NextBestView::dynamicReconfigureCallback, this, _1, _2);
+        mDynamicReconfigServer.setCallback(f);
 
         initialize();
 
@@ -163,12 +170,11 @@ public:
         mCurrentlyPublishingVisualization = false;
 
         // setup the visualization defaults
-        bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
+        bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array;
         mNodeHandle.param("show_space_sampling", show_space_sampling, false);
         mNodeHandle.param("show_point_cloud", show_point_cloud, false);
         mNodeHandle.param("show_frustum_point_cloud", show_frustum_point_cloud, false);
         mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
-        mNodeHandle.param("move_robot", move_robot, false);
 
         //get XML path
         std::string mCropBoxListFilePath;
@@ -183,7 +189,6 @@ public:
         mVisualizationSettings.point_cloud = show_point_cloud;
         mVisualizationSettings.frustum_point_cloud = show_frustum_point_cloud;
         mVisualizationSettings.frustum_marker_array = show_frustum_marker_array;
-        mVisualizationSettings.move_robot = move_robot;
 
         /* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
          * be defined in the CameraModelFilter specialization class.
@@ -805,6 +810,12 @@ public:
             }
         }
         return typeToMeshResource;
+    }
+
+    void dynamicReconfigureCallback(next_best_view::DynamicParametersConfig &config, uint32_t level) {
+        // TODO split this up
+        // TODO consider that services and this and other stuff is called parallel
+        initialize();
     }
 };
 }
