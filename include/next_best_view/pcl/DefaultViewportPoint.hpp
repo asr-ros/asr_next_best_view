@@ -123,52 +123,6 @@ namespace next_best_view {
 		}
 
         /*!
-         * \brief prints the viewport point as debug output
-         * \param rating of this viewport
-         * \param level the debug level of the output
-         */
-        void print(float rating, DebugHelper::DebugLevel level) {
-            // viewport position
-            mDebugHelperPtr->write(std::stringstream() << "Viewport position: (x = " << x << ", y = " << y << ", z = " << z << ")",
-                        level);
-            // viewport orientation
-            mDebugHelperPtr->write(std::stringstream() << "Viewport orienation: (qw = " << qw << ", qx = " << qx << ", qy = " << qy << ", qz = " << qz << ")",
-                        level);
-            // viewport object types
-            std::string types = "";
-            for (ObjectTypeSet::iterator objectIter = object_type_set->begin(); objectIter != object_type_set->end(); objectIter++) {
-                if (types.size() > 0) {
-                    types += ", ";
-                }
-                types += *objectIter;
-            }
-            mDebugHelperPtr->write(std::stringstream() << "Viewport object types: " << types, level);
-            // viewport utility and costs
-            mDebugHelperPtr->write(std::stringstream() << "Viewport weighted normalized utility: " << score->getWeightedNormalizedUtility()
-                                    << " weighted inverse costs: " << score->getWeightedInverseCosts(),
-                        level);
-
-            BOOST_FOREACH(std::string objectType, *object_type_set) {
-                mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted unnormalized utility for " << objectType << ": "
-                                    << score->getUnweightedUnnormalizedObjectUtility(objectType),
-                        level);
-            }
-
-            mDebugHelperPtr->write(std::stringstream() << "Viewport utility normalization: " << score->getUtilityNormalization(),
-                        level);
-            mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted inverse costs base translation: " << score->getUnweightedInverseMovementCostsBaseTranslation()
-                                    << " unweighted inverse costs base rotation: " << score->getUnweightedInverseMovementCostsBaseRotation(),
-                        level);
-            mDebugHelperPtr->write(std::stringstream() << "Viewport unweighted inverse costs PTU movement: " << score->getUnweightedInverseMovementCostsPTU()
-                                   << " unweighted inverse costs recognition: " << score->getUnweightedInverseRecognitionCosts(),
-                        level);
-            // viewport rating
-            mDebugHelperPtr->write(std::stringstream() << "Viewport rating: " << rating,
-                        level);
-            mDebugHelperPtr->write("", level);
-        }
-
-        /*!
          * \brief filters all the objects in this viewport with one of the given types and puts them in a new viewport.
          * \param objectTypeSetPtr [in] the object type names that shall be put in the new viewport
          * \param viewportPoint [out] the new viewport only containing the objects with the given types
@@ -199,6 +153,10 @@ namespace next_best_view {
             return true;
         }
 	} EIGEN_ALIGN16;
+    typedef boost::shared_ptr<DefaultViewportPoint> DefaultViewportPointPtr;
+
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultViewportPoint &p);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultViewportPointPtr &p);
 }
 //Comment?
 POINT_CLOUD_REGISTER_POINT_STRUCT (next_best_view::ViewportPoint,

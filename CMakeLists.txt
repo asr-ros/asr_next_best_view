@@ -141,6 +141,9 @@ add_library(
         src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
         src/crop_box/CropBoxFilter.cpp
         src/crop_box/CropBoxWrapper.cpp
+        src/pcl/DefaultViewportPoint.cpp
+        src/pcl/RealObjectPoint.cpp
+        src/pcl/SpaceSamplePoint.cpp
 )
 target_link_libraries(
         ${PROJECT_NAME}_packages_impl
@@ -176,7 +179,6 @@ target_link_libraries(
 
 #TEST CASES
 #SET VARIABLES TO ENABLE/DISABLE TEST BUILDING
-
 set (BUILD_TEST FALSE) #ToDo: Change Name
 set (BUILD_PARAMETERS_TEST FALSE)
 set (BUILD_IK_TEST FALSE)
@@ -185,6 +187,7 @@ set (BUILD_MULTI_ID_SCENE_TEST FALSE)
 set (BUILD_PERFORMANCE_TEST FALSE)
 set (BUILD_UPDATE_POINTCLOUD_TEST FALSE)
 set (BUILD_MATH_TEST FALSE)
+set (BUILD_STREAM_TEST FALSE)
 
 set (TEST_LINK_LIBRARIES 
         ${PROJECT_NAME}_test_core
@@ -196,7 +199,7 @@ set (TEST_LINK_LIBRARIES
         ${catkin_LIBRARIES}
 )
 
-if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST)
+if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST)
 MESSAGE ("Building Tests:")
 add_library(
         ${PROJECT_NAME}_test_core
@@ -206,7 +209,7 @@ add_library(
 target_link_libraries(
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST)
+endif ()
 
 #ToDo: Change Name
 if (BUILD_TEST)
@@ -220,7 +223,7 @@ target_link_libraries(
         ${PROJECT_NAME}_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_TEST)
+endif ()
 
 
 if (BUILD_SINGLE_SCENE_TEST)
@@ -234,7 +237,7 @@ target_link_libraries(
         ${PROJECT_NAME}_single_scene_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_SINGLE_SCENE_TEST)
+endif ()
 
 
 if (BUILD_MULTI_ID_SCENE_TEST)
@@ -248,7 +251,7 @@ target_link_libraries(
         ${PROJECT_NAME}_multi_id_scene_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_MULTI_ID_SCENE_TEST)
+endif ()
 
 
 if (BUILD_PARAMETERS_TEST)
@@ -262,7 +265,7 @@ target_link_libraries(
         ${PROJECT_NAME}_parameters_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_PARAMETERS_TEST)
+endif ()
 
 if (BUILD_IK_TEST)
 MESSAGE (" - IK Test")
@@ -275,7 +278,7 @@ target_link_libraries(
        ${PROJECT_NAME}_ik_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_IK_TEST)
+endif ()
 
 
 if (BUILD_PERFORMANCE_TEST)
@@ -289,7 +292,7 @@ target_link_libraries(
         ${PROJECT_NAME}_performance_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_PERFORMANCE_TEST)
+endif ()
 
 
 if (BUILD_UPDATE_POINTCLOUD_TEST)
@@ -303,7 +306,7 @@ target_link_libraries(
         ${PROJECT_NAME}_update_pointcloud_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_UPDATE_POINTCLOUD_TEST)
+endif ()
 
 
 if (BUILD_MATH_TEST)
@@ -317,7 +320,20 @@ target_link_libraries(
         ${PROJECT_NAME}_math_test
         ${TEST_LINK_LIBRARIES}
 )
-endif (BUILD_MATH_TEST)
+endif ()
+
+if (BUILD_STREAM_TEST)
+MESSAGE (" - Stream Test")
+add_executable(
+        ${PROJECT_NAME}_stream_test
+        src/test_cases/StreamTest.cpp
+)
+
+target_link_libraries(
+        ${PROJECT_NAME}_stream_test
+        ${TEST_LINK_LIBRARIES}
+)
+endif ()
 
 
 add_executable(

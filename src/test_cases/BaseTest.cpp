@@ -25,11 +25,17 @@ using namespace next_best_view;
 
     void BaseTest::initRosServices() {
         this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+        ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
+        ros::service::waitForService("/nbv/set_point_cloud", -1);
         mSetPointCloudClient = mNodeHandle->serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
+        ros::service::waitForService("/nbv/get_point_cloud", -1);
         mGetPointCloudClient = mNodeHandle->serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
+        ros::service::waitForService("/nbv/next_best_view", -1);
         mGetNextBestViewClient = mNodeHandle->serviceClient<GetNextBestView>("/nbv/next_best_view");
+        ros::service::waitForService("/nbv/update_point_cloud", -1);
         mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
+        ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
     }
 
@@ -43,7 +49,6 @@ using namespace next_best_view;
         sirb.request.robotState.x = statePtr->x;
         sirb.request.robotState.y = statePtr->y;
 
-        ros::service::waitForService("/nbv/set_init_robot_state", -1);
         if (!mSetInitRobotStateClient.call(sirb)) {
             ROS_ERROR("Failed to call service SetInitRobotState.");
         }

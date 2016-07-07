@@ -24,6 +24,9 @@ namespace next_best_view {
 	};
 
 	typedef boost::shared_ptr<MILDRobotState> MILDRobotStatePtr;
+
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::MILDRobotState &r);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::MILDRobotStatePtr &r);
 }
 
 

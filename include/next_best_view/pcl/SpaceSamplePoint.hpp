@@ -69,6 +69,10 @@ namespace next_best_view {
 			return SimpleVector3(x, y, z);
 		}
 	} EIGEN_ALIGN16;
+    typedef boost::shared_ptr<SpaceSamplePoint> SpaceSamplePointPtr;
+
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::SpaceSamplePoint &p);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::SpaceSamplePointPtr &p);
 }
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (next_best_view::SpaceSamplePoint,

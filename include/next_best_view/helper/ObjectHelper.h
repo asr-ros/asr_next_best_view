@@ -51,15 +51,15 @@ namespace next_best_view {
         ObjectMetaDataResponsePtr getObjectMetaData(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
 
-            if (!statePtr->object_metadata_service_client.exists()) {
-                return ObjectMetaDataResponsePtr();
-            }
-
             ObjectMetaDataResponsePtr responsePtr = statePtr->object_metadata_cache[objectTypeName];
 
             if (!responsePtr) {
                 world_model::GetRecognizerName getRecognizerName;
                 getRecognizerName.request.object_type = objectTypeName;
+
+                if (!statePtr->recognizer_name_service_client.exists()) {
+                    ROS_ERROR_STREAM("/env/world_model/get_recognizer_name service is not available");
+                }
                 statePtr->recognizer_name_service_client.call(getRecognizerName);
 
                 std::string recognizer = getRecognizerName.response.recognizer_name;
@@ -71,8 +71,15 @@ namespace next_best_view {
                 object_database::ObjectMetaData objectMetaData;
                 objectMetaData.request.object_type = objectTypeName;
                 objectMetaData.request.recognizer = recognizer;
+
+                if (!statePtr->object_metadata_service_client.exists()) {
+                    ROS_ERROR_STREAM("/object_database/object_meta_data service is not available");
+                    return ObjectMetaDataResponsePtr();
+                }
                 statePtr->object_metadata_service_client.call(objectMetaData);
+
                 if (!objectMetaData.response.is_valid) {
+                    ROS_ERROR_STREAM("objectMetadata response is not valid for object type " << objectTypeName);
                     return ObjectMetaDataResponsePtr();
                 }
 
@@ -86,16 +93,18 @@ namespace next_best_view {
         IntermediateObjectWeightResponsePtr getIntermediateObjectValue(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
 
-            if (!statePtr->intermediate_object_weight_service_client.exists()) {
-                return IntermediateObjectWeightResponsePtr();
-            }
-
             IntermediateObjectWeightResponsePtr responsePtr = statePtr->intermediate_object_cache[objectTypeName];
 
             if (!responsePtr) {
                 world_model::GetIntermediateObjectWeight getIntermediateObjectWeight;
                 getIntermediateObjectWeight.request.object_type = objectTypeName;
+
+                if (!statePtr->intermediate_object_weight_service_client.exists()) {
+                    ROS_ERROR_STREAM("/env/world_model/get_intermediate_object_weight service is not available");
+                    return IntermediateObjectWeightResponsePtr();
+                }
                 statePtr->intermediate_object_weight_service_client.call(getIntermediateObjectWeight);
+
                 ROS_ERROR_STREAM("GOT WEIGHT FROM WORLD MODEL " << getIntermediateObjectWeight.response.value);
 
                 responsePtr = IntermediateObjectWeightResponsePtr(new IntermediateObjectWeightResponse(getIntermediateObjectWeight.response));

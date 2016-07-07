@@ -15,23 +15,41 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
-useNewIK: true
 visualizeIK: false
-useRaytracing: false #useRaytracing == true => MapBasedStereoCameraModelFilter, useRaytracing == false => StereoCameraModelFilter
+# cameraFilterId == 1 => MapBasedStereoCameraModelFilter
+# cameraFilterId == 2 => StereoCameraModelFilter
+# cameraFilterId == 3 => MapBasedSingleCameraModelFilter
+# cameraFilterId == 4 => SingleCameraModelFilter
+# Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
+# Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
+cameraFilterId: 2
+# ratingModuleId == 1 => DefaultRatingModule
+ratingModuleId: 1
+# hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
+hypothesisUpdaterId: 1
+# robotModelId == 1 => MILDRobotModelWithExactIK
+# robotModelId == 2 => MILDRobotModelWithApproximatedIK
+robotModelId: 1
 move_robot: true
 panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
 mSigma: 1.0
-radius: 0.15
-sampleSizeUnitSphereSampler: 384
+radius: 0.15 # hexagon space sample radius
+sampleSizeUnitSphereSampler: 384 # anzahl von samples erstellt durch SpiralApproxUnitSphereSampler. Höher -> genauere Orientierung.
 colThresh: 20
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
-spaceSamplerId: 1 #spaceSamplerId == 1 => MapBasedHexagonSpaceSampler, spaceSamplerId == 2 => MapBasedRandomSpaceSampler
+# spaceSamplerId == 1 => MapBasedHexagonSpaceSampler
+# spaceSamplerId == 2 => MapBasedRandomSpaceSampler
+# spaceSamplerId == 3 => PlaneSubSpaceSampler
+# spaceSamplerId == 4 => Raytracing2DBasedSpaceSampler
+spaceSamplerId: 1
+# sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
+sphereSamplerId: 1
 maxIterationSteps: 20
 debugLevels: [NONE] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

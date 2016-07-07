@@ -186,11 +186,11 @@ public:
         mVisualizationSettings.move_robot = move_robot;
 
         /* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
-            * be defined in the CameraModelFilter specialization class.
-            * TODO: Export these parameters to the specialization of the CameraModelFilter class. This makes sense, because you have to
-            * keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
-            * able to adjust the parameters for each camera separateley.
-            */
+         * be defined in the CameraModelFilter specialization class.
+         * TODO: Export these parameters to the specialization of the CameraModelFilter class. This makes sense, because you have to
+         * keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
+         * able to adjust the parameters for each camera separateley.
+         */
         double fovx, fovy, ncp, fcp, speedFactorRecognizer;
         double radius,sampleSizeUnitSphereSampler,colThresh;
         mNodeHandle.param("fovx", fovx, 62.5);
@@ -214,45 +214,59 @@ public:
         // HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
         //////////////////////////////////////////////////////////////////
         /* The NextBestViewCalculator consists of multiple modules which interact w/ each other. By this
-             * interaction we get a result for the next best view which suites our constraints best.
-             *
-             * The modules namely are:
-             * - UnitSphereSampler (unit_sphere_sampler/UnitSphereSampler.hpp)
-             * - SpaceSampler (space_sampler/SpaceSampler.hpp)
-             * - CameraModelFilter (camera_model_filter/CameraModelFilter.hpp)
-             * - RobotModel (robot_model/RobotModel.hpp)
-             * - RatingModule (rating_module/RatingModule.hpp)
-             * - HypothesisUpdater (hypothesis_updater/HypothesisUpdater.hpp)
-             *
-             * Every of these modules is an abstract class which provides an interface to interact with.
-             * These interfaces are, right now, far from final and can therefore be change as you want to change them.
-             * Side-effects are expected just in the next_best_view node.
-             */
+         * interaction we get a result for the next best view which suites our constraints best.
+         *
+         * The modules namely are:
+         * - UnitSphereSampler (unit_sphere_sampler/UnitSphereSampler.hpp)
+         * - SpaceSampler (space_sampler/SpaceSampler.hpp)
+         * - CameraModelFilter (camera_model_filter/CameraModelFilter.hpp)
+         * - RobotModel (robot_model/RobotModel.hpp)
+         * - RatingModule (rating_module/RatingModule.hpp)
+         * - HypothesisUpdater (hypothesis_updater/HypothesisUpdater.hpp)
+         *
+         * Every of these modules is an abstract class which provides an interface to interact with.
+         * These interfaces are, right now, far from final and can therefore be change as you want to change them.
+         * Side-effects are expected just in the next_best_view node.
+         */
 
         /* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
-             * It picks a given number of samples out of the unit sphere. These samples should be uniform
-             * distributed on the sphere's surface which is - by the way - no easy problem to solve.
-             * Therefore we used an approximation algorithm which approximates the surface with a
-             * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
-             */
-        SpiralApproxUnitSphereSamplerPtr unitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
-        unitSphereSamplerPtr->setSamples(sampleSizeUnitSphereSampler);
+         * It picks a given number of samples out of the unit sphere. These samples should be uniform
+         * distributed on the sphere's surface which is - by the way - no easy problem to solve.
+         * Therefore we used an approximation algorithm which approximates the surface with a
+         * projection of a spiral on the sphere's surface. Resulting in this wonderful sounding name.
+         * - sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
+         */
+        int sphereSamplerId;
+        mNodeHandle.param("sphereSamplerId", sphereSamplerId, 1);
+
+        UnitSphereSamplerPtr unitSphereSampler;
+        switch (sphereSamplerId) {
+        case 1:
+            unitSphereSampler = SpiralApproxUnitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
+            break;
+        default:
+            std::stringstream ss;
+            ss << sphereSamplerId << " is not a valid sphere sampler ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+        unitSphereSampler->setSamples(sampleSizeUnitSphereSampler);
 
         /* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
-             * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
-             * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
-             * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
-             */
+         * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
+         * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
+         * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
+         */
         MapHelperPtr mapHelperPtr(new MapHelper());
         mapHelperPtr->setCollisionThreshold(colThresh);
 
 
-        /*
-             * Intializes SpaceSampler spaceSampler with the SpaceSampler sublcass specified by the parameter samplerId :
-             * - samplerId == 1 => MapBasedHexagonSpaceSampler
-             * - smaplerId == 2 => MapBasedRandomSpaceSampler
-             */
-
+        /* Intializes spaceSampler with a SpaceSampler subclass specified by the parameter samplerId :
+         * - samplerId == 1 => MapBasedHexagonSpaceSampler
+         * - samplerId == 2 => MapBasedRandomSpaceSampler
+         * - samplerId == 3 => PlaneSubSpaceSampler
+         * - samplerId == 4 => Raytracing2DBasedSpaceSampler
+         */
         int sampleSizeMapBasedRandomSpaceSampler, spaceSamplerId;
         mNodeHandle.param("sampleSizeMapBasedRandomSpaceSampler", sampleSizeMapBasedRandomSpaceSampler, 100);
         mNodeHandle.param("spaceSamplerId", spaceSamplerId, 1);
@@ -260,55 +274,90 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "sampleSizeMapBasedRandomSpaceSampler: " << sampleSizeMapBasedRandomSpaceSampler, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "spaceSamplerId: " << spaceSamplerId, DebugHelper::PARAMETERS);
 
-        SpaceSamplerPtr spaceSamplerPtr;
-        MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler;
+        SpaceSamplerPtr spaceSampler;
         MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler;
+        MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler;
+        PlaneSubSpaceSamplerPtr planeSubSpaceSampler;
+        MapBasedSpaceSamplerPtr raytracing2DBasedSpaceSampler;
         switch (spaceSamplerId)
         {
         case 1:
             /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
-                 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
-                 * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
-                 * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
-                 * the map and calculate the points which are contained in the feasible map space.
-                 */
+             * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
+             * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
+             * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
+             * the map and calculate the points which are contained in the feasible map space.
+             */
             mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperPtr));
             mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
-            spaceSamplerPtr = mapBasedHexagonSpaceSampler;
+            spaceSampler = mapBasedHexagonSpaceSampler;
             break;
         case 2:
             mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mapHelperPtr, sampleSizeMapBasedRandomSpaceSampler));
-            spaceSamplerPtr = mapBasedRandomSpaceSampler;
+            spaceSampler = mapBasedRandomSpaceSampler;
+            break;
+        case 3:
+            planeSubSpaceSampler = PlaneSubSpaceSamplerPtr(new PlaneSubSpaceSampler());
+            spaceSampler = planeSubSpaceSampler;
+            break;
+        case 4:
+            raytracing2DBasedSpaceSampler = MapBasedSpaceSamplerPtr(new Raytracing2DBasedSpaceSampler(mapHelperPtr));
+            spaceSampler = raytracing2DBasedSpaceSampler;
             break;
         default:
             std::stringstream ss;
-            ss << spaceSamplerId << " is not a valid sampler ID";
+            ss << spaceSamplerId << " is not a valid space sampler ID";
             ROS_ERROR_STREAM(ss.str());
             throw std::runtime_error(ss.str());
-            break;
 
         }
 
-        /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
+        /*
+         * Intializes cameraModelFilter with a CameraModelFilter subclass specified by the parameter cameraFilterId :
+         * - cameraFilterId == 1 => MapBasedStereoCameraModelFilter
+         * - cameraFilterId == 2 => StereoCameraModelFilter
+         * - cameraFilterId == 3 => MapBasedSingleCameraModelFilter
+         * - cameraFilterId == 4 => SingleCameraModelFilter
+         * Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
+         * Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
+         */
+        int cameraFilterId;
+        mNodeHandle.param("cameraFilterId", cameraFilterId, 2);
+        CameraModelFilterPtr cameraModelFilter;
+        SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
+        SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
+        SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
+        switch (cameraFilterId) {
+        case 1:
+            cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperPtr, leftCameraPivotPointOffset, rightCameraPivotPointOffset));
+            break;
+        case 2:
+            cameraModelFilter = CameraModelFilterPtr(new StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset));
+            break;
+        case 3:
+            /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
              * The camera model filter takes account for the fact, that there are different cameras around in the real world.
              * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
              * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
              * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
              */
-        //MapBasedSingleCameraModelFilterPtr cameraModelFilterPtr(new MapBasedSingleCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, 0.0, 0.1)));
-        bool useRaytracing;
-        mNodeHandle.param("useRaytracing", useRaytracing, false);
-        CameraModelFilterPtr cameraModelFilterPtr;
-        if (useRaytracing)
-            cameraModelFilterPtr = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperPtr, SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
-        else
-            cameraModelFilterPtr = CameraModelFilterPtr(new StereoCameraModelFilter(SimpleVector3(0.0, -0.067 , 0.04), SimpleVector3(0, 0.086, 0.04)));
+            cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedSingleCameraModelFilter(mapHelperPtr, oneCameraPivotPointOffset));
+            break;
+        case 4:
+            cameraModelFilter = CameraModelFilterPtr(new SingleCameraModelFilter(oneCameraPivotPointOffset));
+            break;
+        default:
+            std::stringstream ss;
+            ss << cameraFilterId << " is not a valid camera filter ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
 
-        cameraModelFilterPtr->setHorizontalFOV(fovx);
-        cameraModelFilterPtr->setVerticalFOV(fovy);
-        cameraModelFilterPtr->setNearClippingPlane(ncp);
-        cameraModelFilterPtr->setFarClippingPlane(fcp);
-        cameraModelFilterPtr->setRecognizerCosts((float)speedFactorRecognizer, "");
+        cameraModelFilter->setHorizontalFOV(fovx);
+        cameraModelFilter->setVerticalFOV(fovy);
+        cameraModelFilter->setNearClippingPlane(ncp);
+        cameraModelFilter->setFarClippingPlane(fcp);
+        cameraModelFilter->setRecognizerCosts((float)speedFactorRecognizer, "");
 
         double panMin, panMax, tiltMin, tiltMax;
         mNodeHandle.param("panMin", panMin, -60.);
@@ -321,34 +370,45 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "tiltMax: " << tiltMax, DebugHelper::PARAMETERS);
 
         /* MILDRobotModel is a specialization of the abstract RobotModel class.
-             * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
-             * non-reachable configurations of the robot which can therefore be ignored during calculation.
-             */
-        bool useNewIK;
-        mNodeHandle.param("useNewIK", useNewIK, false);
-        RobotModelPtr robotModelPtr;
+         * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
+         * non-reachable configurations of the robot which can therefore be ignored during calculation.
+         * - robotModelId == 1 => MILDRobotModelWithExactIK
+         * - robotModelId == 2 => MILDRobotModelWithApproximatedIK
+         */
+        int robotModelId;
+        mNodeHandle.param("robotModelId", robotModelId, 1);
+        RobotModelPtr robotModel;
         MILDRobotModel *tempRobotModel;
-        if (useNewIK)
-        {
+        switch (robotModelId) {
+        case 1:
             mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
             tempRobotModel = new MILDRobotModelWithExactIK();
-        }
-        else
-        {
+            break;
+        case 2:
             mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
             tempRobotModel = new MILDRobotModelWithApproximatedIK();
+            break;
+        default:
+            std::stringstream ss;
+            ss << robotModelId << " is not a valid robot model ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
         }
         tempRobotModel->setTiltAngleLimits(tiltMin, tiltMax);
         tempRobotModel->setPanAngleLimits(panMin, panMax);
-        robotModelPtr = MILDRobotModelPtr(tempRobotModel);
+        robotModel = MILDRobotModelPtr(tempRobotModel);
 
 
         /* DefaultRatingModule is a specialization of the abstract RatingModule class.
-             * The rating module calculates the use and the costs of an operation.
-             */
-        DefaultRatingModulePtr ratingModulePtr(new DefaultRatingModule(fovx,fovy,fcp,ncp,robotModelPtr, cameraModelFilterPtr));
-        ratingModulePtr->setNormalAngleThreshold(45 / 180.0 * M_PI);
+         * The rating module calculates the use and the costs of an operation.
+         * - ratingModuleId == 1 => DefaultRatingModule
+         */
+        int ratingModuleId;
+        mNodeHandle.param("ratingModuleId", ratingModuleId, 1);
+        RatingModulePtr ratingModule;
+        DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(fovx, fovy, fcp, ncp, robotModel, cameraModelFilter));
 
+        defaultRatingModule->setNormalAngleThreshold(45 / 180.0 * M_PI);
         double mOmegaUtility, mOmegaTilt, mOmegaPan, mOmegaRot, mOmegaBase, mOmegaRecognizer;
         mNodeHandle.param("mOmegaUtility", mOmegaUtility, 1.0);
         mNodeHandle.param("mOmegaTilt", mOmegaTilt, 1.0);
@@ -357,20 +417,46 @@ public:
         mNodeHandle.param("mOmegaBase", mOmegaBase, 1.0);
         mNodeHandle.param("mOmegaRecognizer", mOmegaRecognizer, 1.0);
 
-        ratingModulePtr->setOmegaParameters(mOmegaUtility, mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
+        defaultRatingModule->setOmegaParameters(mOmegaUtility, mOmegaPan, mOmegaTilt, mOmegaRot,mOmegaBase, mOmegaRecognizer);
+
+        switch (ratingModuleId) {
+        case 1:
+            ratingModule = defaultRatingModule;
+            break;
+        default:
+            std::stringstream ss;
+            ss << ratingModuleId << " is not a valid rating module ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
 
         /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
-             */
-        PerspectiveHypothesisUpdaterPtr hypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
-        hypothesisUpdaterPtr->setDefaultRatingModule(ratingModulePtr);
+         * - hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
+         */
+        int hypothesisUpdaterId;
+        mNodeHandle.param("hypothesisUpdaterId", hypothesisUpdaterId, 1);
+        HypothesisUpdaterPtr hypothesisUpdater;
+        PerspectiveHypothesisUpdaterPtr perspectiveHypothesisUpdater;
+        switch (hypothesisUpdaterId) {
+        case 1:
+            perspectiveHypothesisUpdater = PerspectiveHypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
+            perspectiveHypothesisUpdater->setDefaultRatingModule(defaultRatingModule);
+            hypothesisUpdater = perspectiveHypothesisUpdater;
+            break;
+        default:
+            std::stringstream ss;
+            ss << hypothesisUpdaterId << " is not a valid hypothesis module ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
 
         // The setting of the modules.
-        mCalculator.setHypothesisUpdater(hypothesisUpdaterPtr);
-        mCalculator.setUnitSphereSampler(unitSphereSamplerPtr);
-        mCalculator.setSpaceSampler(spaceSamplerPtr);
-        mCalculator.setCameraModelFilter(cameraModelFilterPtr);
-        mCalculator.setRobotModel(robotModelPtr);
-        mCalculator.setRatingModule(ratingModulePtr);
+        mCalculator.setHypothesisUpdater(hypothesisUpdater);
+        mCalculator.setUnitSphereSampler(unitSphereSampler);
+        mCalculator.setSpaceSampler(spaceSampler);
+        mCalculator.setCameraModelFilter(cameraModelFilter);
+        mCalculator.setRobotModel(robotModel);
+        mCalculator.setRatingModule(ratingModule);
         mCalculator.loadCropBoxListFromFile(mCropBoxListFilePath);
         mCalculator.setEnableCropBoxFiltering(mEnableCropBoxFiltering);
         mCalculator.setEnableIntermediateObjectWeighting(mEnableIntermediateObjectWeighting);

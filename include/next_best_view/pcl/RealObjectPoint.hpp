@@ -108,6 +108,10 @@ namespace next_best_view {
 			return SimpleQuaternion(qw, qx, qy, qz);
 		}
 	} EIGEN_ALIGN16;
+    typedef boost::shared_ptr<RealObjectPoint> RealObjectPointPtr;
+
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::RealObjectPoint &p);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::RealObjectPointPtr &p);
 }
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (next_best_view::RealObjectPoint,

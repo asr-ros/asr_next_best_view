@@ -109,6 +109,10 @@ public:
                     }
                     std::cout << "point cloud size " << apc.request.point_cloud.elements.size() << std::endl;
 
+
+                    //Resete den calculator vor jedem test
+                    mResetCalculatorClient.call(reca.request, reca.response);
+
                     ROS_INFO("Setze initiale Pose");
                     geometry_msgs::Pose initialPose;
                     initialPose.position.x = 1.64;
@@ -121,8 +125,7 @@ public:
                     initialPose.orientation.z = -0.265640665651;
                     this->setInitialPose(initialPose);
 
-                    //Resete den calculator vor jedem test
-                    mResetCalculatorClient.call(reca.request, reca.response);
+                    //ros::Duration(5).sleep();
                     // Setze PointCloud
                     if (!mSetPointCloudClient.call(apc.request, apc.response))
                     {
@@ -221,9 +224,7 @@ public:
 
 test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 	ros::init(argc, argv, "nbv_test");
-	ros::start();
-
-	ros::Duration(5).sleep();
+    ros::start();
 
 	test_suite* evaluation = BOOST_TEST_SUITE("Evaluation NBV");
 
