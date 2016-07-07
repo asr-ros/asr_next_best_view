@@ -380,25 +380,7 @@ public:
                 // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
                 int normalVectorCount = 0;
                 // in cropbox filtering we don't use the normals of the point clouds. Instead we use the ones defined in the xml
-                if (mEnableCropBoxFiltering)
-                {
-                    auto cropBoxPtrList = mCropBoxFilterPtr->getCropBoxWrapperPtrList();
-                    for (CropBoxWrapperPtr cropBoxWrapper : *cropBoxPtrList) {
-                        CropBoxPtr cropBoxPtr = cropBoxWrapper->getCropBox();
-                        Eigen::Vector4f max = cropBoxPtr->getMax();
-                        Eigen::Vector3f translation = cropBoxPtr->getTranslation();
-                        // check if pointCloudPoint is in the cropbox
-                        if (isPointInCropbox(pointCloudPoint.getPosition(), translation, max))
-                        {
-                            for (SimpleVector3 normal : *cropBoxWrapper->getCropBoxNormalsList()) {
-                                pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-                                SimpleVector3 rotatedNormal = rotationMatrix * normal;
-                                pointCloudPoint.normal_vectors->push_back(rotatedNormal);
-                                ++normalVectorCount;
-                            }
-                        }
-                    }
-                } else {
+                if (!mEnableCropBoxFiltering) {
                     for (geometry_msgs::Point point : responsePtr_ObjectData->normal_vectors) {
                         SimpleVector3 normal(point.x, point.y, point.z);
                         normal = rotationMatrix * normal;
@@ -457,6 +439,27 @@ public:
             mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
 
             outputPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*originalPointCloudPtr, *filteredObjectIndices));
+
+            // we have to set now the object hypothesis normals
+            for (ObjectPoint& pointCloudPoint : *outputPointCloudPtr) {
+                auto cropBoxPtrList = mCropBoxFilterPtr->getCropBoxWrapperPtrList();
+                SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
+                int normalVectorCount = 0;
+                for (CropBoxWrapperPtr cropBoxWrapper : *cropBoxPtrList) {
+                    CropBoxPtr cropBoxPtr = cropBoxWrapper->getCropBox();
+                    Eigen::Vector4f max = cropBoxPtr->getMax();
+                    Eigen::Vector3f translation = cropBoxPtr->getTranslation();
+                    // check if pointCloudPoint is in the cropbox
+                    if (isPointInCropbox(pointCloudPoint.getPosition(), translation, max)) {
+                        for (SimpleVector3 normal : *cropBoxWrapper->getCropBoxNormalsList()) {
+                            pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                            SimpleVector3 rotatedNormal = rotationMatrix * normal;
+                            pointCloudPoint.normal_vectors->push_back(rotatedNormal);
+                            ++normalVectorCount;
+                        }
+                    }
+                }
+            }
         }
         else
         {
