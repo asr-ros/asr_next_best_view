@@ -37,12 +37,9 @@
 
 // Local Includes
 #include "typedef.hpp"
-#include "next_best_view/SetupVisualization.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
-#include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/GetNextBestView.h"
-#include "next_best_view/GetSpaceSampling.h"
 #include "next_best_view/SetAttributedPointCloud.h"
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
