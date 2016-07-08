@@ -373,32 +373,15 @@ public:
             // Get the rotation matrix to translate the normal vectors of the object.
             SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
-            // get object type information
-            ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
+            // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
+            if (mEnableCropBoxFiltering) {
+                setNormalsInCropBoxMode(pointCloudPoint, rotationMatrix);
+            } else {
+                // get object type information
+                ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
 
-            if (responsePtr_ObjectData) {
-                // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
-                int normalVectorCount = 0;
-                // in cropbox filtering we don't use the normals of the point clouds. Instead we use the ones defined in the xml
-                if (mEnableCropBoxFiltering)
-                {
-                    auto cropBoxPtrList = mCropBoxFilterPtr->getCropBoxWrapperPtrList();
-                    for (CropBoxWrapperPtr cropBoxWrapper : *cropBoxPtrList) {
-                        CropBoxPtr cropBoxPtr = cropBoxWrapper->getCropBox();
-                        Eigen::Vector4f max = cropBoxPtr->getMax();
-                        Eigen::Vector3f translation = cropBoxPtr->getTranslation();
-                        // check if pointCloudPoint is in the cropbox
-                        if (isPointInCropbox(pointCloudPoint.getPosition(), translation, max))
-                        {
-                            for (SimpleVector3 normal : *cropBoxWrapper->getCropBoxNormalsList()) {
-                                pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
-                                SimpleVector3 rotatedNormal = rotationMatrix * normal;
-                                pointCloudPoint.normal_vectors->push_back(rotatedNormal);
-                                ++normalVectorCount;
-                            }
-                        }
-                    }
-                } else {
+                if (responsePtr_ObjectData) {
+                    int normalVectorCount = 0;
                     for (geometry_msgs::Point point : responsePtr_ObjectData->normal_vectors) {
                         SimpleVector3 normal(point.x, point.y, point.z);
                         normal = rotationMatrix * normal;
@@ -406,14 +389,13 @@ public:
                         pointCloudPoint.normal_vectors->push_back(normal);
                         ++normalVectorCount;
                     }
+                } else {
+                    ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
+                    return false;
                 }
-            } else {
-                ROS_ERROR("Invalid object name '%s' in point cloud or object_database node not started. Point Cloud not set!", pointCloudPoint.type.c_str());
-                return false;
+                //Insert the meshpath
+                objectsResources[pointCloudPoint.type] = responsePtr_ObjectData->object_mesh_resource;
             }
-
-            //Insert the meshpath
-            objectsResources[pointCloudPoint.type] = responsePtr_ObjectData->object_mesh_resource;
 
             //Insert color
             std_msgs::ColorRGBA colorByID = VisualizationHelper::getMeshColor(element.identifier);
@@ -484,16 +466,41 @@ public:
         return true;
     }
 
-    bool isPointInCropbox(SimpleVector3 position, Eigen::Vector3f translation, Eigen::Vector4f max) {
+private:
+    void setNormalsInCropBoxMode(const ObjectPoint& pointCloudPoint, const SimpleMatrix3& rotationMatrix) {
+        // in cropbox filtering we don't use the normals of the point clouds. Instead we use the ones defined in the xml
+        auto cropBoxPtrList = mCropBoxFilterPtr->getCropBoxWrapperPtrList();
+        int normalVectorCount = 0;
+        for (CropBoxWrapperPtr cropBoxWrapper : *cropBoxPtrList) {
+            CropBoxPtr cropBoxPtr = cropBoxWrapper->getCropBox();
+            Eigen::Vector4f max = cropBoxPtr->getMax();
+            Eigen::Vector3f translation = cropBoxPtr->getTranslation();
+            // check if pointCloudPoint is in the cropbox
+            if (isPointInCropbox(pointCloudPoint.getPosition(), translation, max))
+            {
+                for (SimpleVector3 normal : *cropBoxWrapper->getCropBoxNormalsList()) {
+                    pointCloudPoint.active_normal_vectors->push_back(normalVectorCount);
+                    SimpleVector3 rotatedNormal = rotationMatrix * normal;
+                    pointCloudPoint.normal_vectors->push_back(rotatedNormal);
+                    ++normalVectorCount;
+                }
+            }
+        }
+        //Insert the meshpath
+        objectsResources[pointCloudPoint.type] = "package://next_best_view/rsc/sphere.dae";
+    }
+
+    bool isPointInCropbox(const SimpleVector3& position, const Eigen::Vector3f& translation, const Eigen::Vector4f& max) const {
         return isPointInRange(position(0,0), translation(0,0), max(0,0)) &&
                 isPointInRange(position(1,0), translation(1,0), max(1,0)) &&
                 isPointInRange(position(2,0), translation(2,0), max(2,0));
     }
 
-    bool isPointInRange(float point, float min, float lenght) {
+    bool isPointInRange(float point, float min, float lenght) const {
         return point >= min && point <= (min + lenght);
     }
 
+public:
     /**
          * Returns the path to a meshs resource file
          */
