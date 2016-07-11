@@ -1,21 +1,21 @@
 /*
- * DefaultIKRatingModule.cpp
+ * NavigationPathIKRatingModule.cpp
  *
  *  Created on: Dez 23, 2015
  *      Author: florianaumann
  */
-#include "next_best_view/rating/impl/DefaultIKRatingModule.h"
+#include "next_best_view/rating/impl/NavigationPathIKRatingModule.h"
 #include <ros/ros.h>
 
 namespace next_best_view {
-    DefaultIKRatingModule::DefaultIKRatingModule(RobotModelPtr robotModel) : IKRatingModule()
+    NavigationPathIKRatingModule::NavigationPathIKRatingModule(RobotModelPtr robotModel) : IKRatingModule()
     {
         mRobotModel = robotModel;
         mDebugHelperPtr = DebugHelper::getInstance();
     }
-    DefaultIKRatingModule::~DefaultIKRatingModule() { }
+    NavigationPathIKRatingModule::~NavigationPathIKRatingModule() { }
 
-    double DefaultIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
+    double NavigationPathIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
         nav_msgs::Path navigationPath = this->mRobotModel->getNavigationPath(sourcePosition, targetPosition, sourceRotationBase, targetRotationBase);
 

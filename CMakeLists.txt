@@ -127,8 +127,9 @@ add_library(
         src/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
-        src/rating/impl/DefaultIKRatingModule.cpp
+        src/rating/impl/NavigationPathIKRatingModule.cpp
         src/rating/impl/SimpleIKRatingModule.cpp
+        src/rating/impl/AngleApproximationIKRatingModule.cpp
         src/rating/impl/DefaultScoreContainer.cpp
         src/robot_model/impl/MILDRobotModel.cpp
         src/robot_model/impl/MILDRobotModelWithExactIK.cpp

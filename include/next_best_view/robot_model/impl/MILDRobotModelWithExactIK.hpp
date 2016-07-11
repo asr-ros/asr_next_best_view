@@ -14,8 +14,7 @@
 #include "geometry_msgs/Pose.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
-#include "next_best_view/rating/impl/DefaultIKRatingModule.h"
-#include "next_best_view/rating/impl/SimpleIKRatingModule.h"
+#include "next_best_view/rating/IKRatingModule.h"
 #include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {

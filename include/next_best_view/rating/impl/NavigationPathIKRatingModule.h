@@ -1,5 +1,5 @@
 /*
- * IKRatingModule.h
+ * NavigationPathIKRatingModule.h
  *
  *  Created on: Dez 23, 2015
  *      Author: florianaumann
@@ -13,24 +13,24 @@
 
 namespace next_best_view {
     /*!
-     * \brief DefaultIKRatingModule implements the functionlities offered by IKRatingModule.
+     * \brief NavigationPathIKRatingModule implements the functionlities offered by IKRatingModule.
      * \author Florian Aumann
      * \date 2015
      * \version 1.0
      * \copyright GNU Public License
-     * \sa DefaultIKRatingModule
+     * \sa NavigationPathIKRatingModule
      */
-    class DefaultIKRatingModule : public IKRatingModule {
+    class NavigationPathIKRatingModule : public IKRatingModule {
     public:
         /*!
-         * \brief constructor of the DefaultIKRatingModule object
+         * \brief constructor of the NavigationPathIKRatingModule object
          */
-        DefaultIKRatingModule(RobotModelPtr robotModel);
+        NavigationPathIKRatingModule(RobotModelPtr robotModel);
 
         /*!
-         * \brief destructor of the DefaultIKRatingModule object.
+         * \brief destructor of the NavigationPathIKRatingModule object.
          */
-        virtual ~DefaultIKRatingModule();
+        virtual ~NavigationPathIKRatingModule();
 
         /*!
          * \brief
@@ -49,5 +49,5 @@ namespace next_best_view {
     /*!
      * \brief Definition for the shared pointer type of the class.
      */
-    typedef boost::shared_ptr<DefaultIKRatingModule> DefaultIKRatingModulePtr;
+    typedef boost::shared_ptr<NavigationPathIKRatingModule> NavigationPathIKRatingModulePtr;
 }

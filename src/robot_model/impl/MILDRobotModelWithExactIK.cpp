@@ -13,6 +13,9 @@
 #include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/rating/impl/AngleApproximationIKRatingModule.h"
+#include "next_best_view/rating/impl/NavigationPathIKRatingModule.h"
+#include "next_best_view/rating/impl/SimpleIKRatingModule.h"
 
 #include "nav_msgs/GetPlan.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -31,6 +34,8 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <tf_conversions/tf_eigen.h>
 
+#include <locale>
+
 #include <visualization_msgs/Marker.h>
 
 namespace next_best_view {
@@ -43,6 +48,7 @@ namespace next_best_view {
         double inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
         bool visualizeIK_;
+        std::string IKAngleRating_;
         n.getParam("panAngleSamplingStepsPerIteration", panAngleSamplingStepsPerIteration_);
         n.getParam("inverseKinematicIterationAccuracy", inverseKinematicIterationAccuracy_);
         n.getParam("visualizeIK", visualizeIK_);
@@ -68,9 +74,28 @@ namespace next_best_view {
         n.getParam("IKVisualization", IKVisualization);
         vis_pub = n.advertise<visualization_msgs::Marker>(IKVisualization, 1000);
         tfParametersInitialized = setUpTFParameters();
-        //RobotModelPtr modelPtr(this);
-        //ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));
-        ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+        n.getParam("IKAngleRating", IKAngleRating_);
+        //IKAngleRating_ = std::toupper(IKAngleRating_);
+        if (IKAngleRating_ == "ANGLE_APPROXIMATION")
+        {
+            ikRatingModule = AngleApproximationIKRatingModulePtr(new AngleApproximationIKRatingModule());
+            mDebugHelperPtr->write(std::stringstream() << "Using AngleApproximation as IK angle rating algorithm", DebugHelper::PARAMETERS);
+        }
+        else if (IKAngleRating_ == "NAVIGATION_PATH")
+        {
+            ikRatingModule = NavigationPathIKRatingModulePtr(new NavigationPathIKRatingModule(RobotModelPtr(this)));
+            mDebugHelperPtr->write(std::stringstream() << "Using NavigationPath as IK angle rating algorithm", DebugHelper::PARAMETERS);
+        }
+        else if (IKAngleRating_ == "SIMPLE")
+        {
+            ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+            mDebugHelperPtr->write(std::stringstream() << "Using SimpleIKRating as IK angle rating algorithm", DebugHelper::PARAMETERS);
+        }
+        else
+        {
+            ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+            ROS_WARN_STREAM("'" << IKAngleRating_ << "' is not a valid IK rating algorithm! Using the SimpleIKRating algorithm instead.");
+        }
         mNumberIKCalls = 0;
         mnTotalIKTime = 0.0;
 	}
