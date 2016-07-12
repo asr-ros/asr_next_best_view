@@ -1,6 +1,0 @@
-bool space_sampling
-bool point_cloud
-bool frustum_point_cloud
-bool frustum_marker_array
-bool move_robot
----

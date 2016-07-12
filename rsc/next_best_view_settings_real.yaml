@@ -30,7 +30,6 @@ hypothesisUpdaterId: 1
 # robotModelId == 1 => MILDRobotModelWithExactIK
 # robotModelId == 2 => MILDRobotModelWithApproximatedIK
 robotModelId: 1
-move_robot: true
 panMin: -20
 panMax: 20
 tiltMin: -45

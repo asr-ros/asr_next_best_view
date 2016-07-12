@@ -1,4 +1,0 @@
-float64 contractor
-geometry_msgs/Point position
----
-sensor_msgs/PointCloud2 point_cloud
