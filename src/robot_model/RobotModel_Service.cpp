@@ -1,4 +1,5 @@
 #include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotModelWithApproximatedIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 #include "next_best_view/robot_model/RobotState.hpp"
@@ -21,7 +22,10 @@
 
 
 using namespace next_best_view;
-MILDRobotModelWithExactIKPtr robotModelPtr;
+//Since not all functionalities are implemented in the robot model with approximated IK,
+//two pointers are used for the basic functionalies implemented all child classes and the advanced functionalities only implmented in the RobotModelWithExactIK class
+MILDRobotModelPtr basicFunctionRobotModelPtr;
+MILDRobotModelWithExactIKPtr advancedFunctionRobotModelPtr;
 
 bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
@@ -31,14 +35,14 @@ bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMove
     MILDRobotStatePtr currentStatePtr(currentState);
     MILDRobotStatePtr targetStatePtr(targetState);
 
-    costs = robotModelPtr->getBase_TranslationalMovementCosts(currentStatePtr, targetStatePtr);
+    costs = basicFunctionRobotModelPtr->getBase_TranslationalMovementCosts(currentStatePtr, targetStatePtr);
     res.costs = costs;
     return true;
 }
 
 bool getDistance(GetDistance::Request &req, GetDistance::Response &res)
 {
-      res.distance = robotModelPtr->getDistance(req.sourcePosition, req.targetPosition);
+      res.distance = basicFunctionRobotModelPtr->getDistance(req.sourcePosition, req.targetPosition);
       return true;
 }
 
@@ -56,7 +60,7 @@ bool calculateRobotState(CalculateRobotState::Request  &req, CalculateRobotState
       SimpleVector3 positionF = position.cast<float>();
       SimpleQuaternion orientationF = orientation.cast<float>();
 
-      MILDRobotStatePtr newRobotState = boost::static_pointer_cast<MILDRobotState>(robotModelPtr->calculateRobotState(sourceRobotStatePtr, positionF, orientationF));
+      MILDRobotStatePtr newRobotState = boost::static_pointer_cast<MILDRobotState>(basicFunctionRobotModelPtr->calculateRobotState(sourceRobotStatePtr, positionF, orientationF));
 
       RobotStateMessage newRobotStateMessage;
       newRobotStateMessage.pan = newRobotState->pan;
@@ -73,31 +77,31 @@ bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose:
 {
     MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
     RobotStatePtr sourceRobotStatePtr(sourceRobotState);
-    res.cameraFrame = robotModelPtr->calculateCameraPose(sourceRobotStatePtr);
+    res.cameraFrame = basicFunctionRobotModelPtr->calculateCameraPose(sourceRobotStatePtr);
     return true;
 }
 
 bool isPositionAllowed(IsPositionAllowed::Request &req, IsPositionAllowed::Response &res)
 {
-  res.isAllowed = robotModelPtr->isPositionAllowed(req.targetPosition);
+  res.isAllowed = basicFunctionRobotModelPtr->isPositionAllowed(req.targetPosition);
   return true;
 }
 
 bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
 {
-  res.isReachable = robotModelPtr->isPositionReachable(req.sourcePosition, req.targetPosition);
+  res.isReachable = basicFunctionRobotModelPtr->isPositionReachable(req.sourcePosition, req.targetPosition);
   return true;
 }
 
 bool getRobotPose(GetPose::Request &req, GetPose::Response &res)
 {
-  res.pose = robotModelPtr->getRobotPose();
+  res.pose = basicFunctionRobotModelPtr->getRobotPose();
   return true;
 }
 
 bool getCameraPose(GetPose::Request &req, GetPose::Response &res)
 {
-  res.pose = robotModelPtr->getCameraPose();
+  res.pose = basicFunctionRobotModelPtr->getCameraPose();
   return true;
 }
 
@@ -107,7 +111,7 @@ bool calculateCameraPoseCorrection(CalculateCameraPoseCorrection::Request &req, 
   RobotStatePtr sourceRobotStatePtr(sourceRobotState);
   SimpleVector3 position(req.position.x, req.position.y, req.position.z);
   SimpleQuaternion orientation(req.orientation.w, req.orientation.x, req.orientation.y, req.orientation.z);
-  PTUConfig resultConfig = robotModelPtr->calculateCameraPoseCorrection(sourceRobotStatePtr, position, orientation);
+  PTUConfig resultConfig = advancedFunctionRobotModelPtr->calculateCameraPoseCorrection(sourceRobotStatePtr, position, orientation);
   res.pan = std::get<0>(resultConfig);
   res.tilt = std::get<1>(resultConfig);
   return true;
@@ -118,21 +122,40 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "getMovementCosts");
     ros::NodeHandle n = ros::NodeHandle(ros::this_node::getName());
 
-    ROS_INFO_STREAM("NBV Service: Using new IK model.");
-
     double panMin, panMax, tiltMin, tiltMax;
+    int robotModelId;
     n.param("panMin", panMin, -60.);
     n.param("panMax", panMax, 60.);
     n.param("tiltMin", tiltMin, -45.);
     n.param("tiltMax", tiltMax, 45.);
+    n.param("robotModelId", robotModelId, 1);
     ROS_INFO_STREAM("panMin: " << panMin);
     ROS_INFO_STREAM("panMax: " << panMax);
     ROS_INFO_STREAM("tiltMin: " << tiltMin);
     ROS_INFO_STREAM("tiltMax: " << tiltMax);
 
-    robotModelPtr = MILDRobotModelWithExactIKPtr(new MILDRobotModelWithExactIK());
-    robotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
-    robotModelPtr->setPanAngleLimits(panMin, panMax);
+    advancedFunctionRobotModelPtr = MILDRobotModelWithExactIKPtr(new MILDRobotModelWithExactIK());
+    advancedFunctionRobotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
+    advancedFunctionRobotModelPtr->setPanAngleLimits(panMin, panMax);
+    switch (robotModelId) {
+    case 1:
+        ROS_INFO_STREAM("NBV Service: Using new IK model");
+        //Use the same robot model with exact IK for basic and advanced functionalities
+        basicFunctionRobotModelPtr = advancedFunctionRobotModelPtr;
+        break;
+    case 2:
+        ROS_INFO_STREAM("NBV Service:: Using old IK model");
+        //Use  robot model with exact IK for advanced functionalities only, create a new robot model with approximated IK for basic functionality
+        basicFunctionRobotModelPtr = MILDRobotModelWithApproximatedIKPtr(new MILDRobotModelWithApproximatedIK());
+        basicFunctionRobotModelPtr->setTiltAngleLimits(tiltMin, tiltMax);
+        basicFunctionRobotModelPtr->setPanAngleLimits(panMin, panMax);
+        break;
+    default:
+        std::stringstream ss;
+        ss << robotModelId << " is not a valid robot model ID";
+        ROS_ERROR_STREAM(ss.str());
+        throw std::runtime_error(ss.str());
+    }
 
     ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getBase_TranslationalMovementCosts);
     ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
