@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   costmap_2d
   rapidxml
   dynamic_reconfigure
+  voxel_grid
 )
 
 find_package(PCL REQUIRED)
@@ -82,7 +83,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper
-  CATKIN_DEPENDS roscpp roslib message_runtime
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid
   DEPENDS system_lib
 )
 
@@ -93,7 +94,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-
 ## Declare a cpp library
 
 add_library(
@@ -102,6 +102,7 @@ add_library(
         src/helper/MarkerHelper.cpp
         src/helper/TypeHelper.cpp
         src/helper/DebugHelper.cpp
+        src/helper/WorldHelper.cpp
 )
 
 add_library(
@@ -126,6 +127,8 @@ add_library(
         src/camera_model_filter/impl/StereoCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.cpp
+        src/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.cpp
+        src/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
         src/rating/impl/DefaultIKRatingModule.cpp
         src/rating/impl/SimpleIKRatingModule.cpp
@@ -152,6 +155,13 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
 )
+
+target_link_libraries(
+        ${PROJECT_NAME}_helper
+        ${catkin_LIBRARIES}
+        ${PCL_LIBRARIES}
+)
+
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
 ## Declare a cpp executable
 add_executable(

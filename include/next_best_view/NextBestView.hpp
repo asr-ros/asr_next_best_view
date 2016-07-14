@@ -45,13 +45,16 @@
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/helper/MapHelper.hpp"
+#include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
@@ -325,9 +328,23 @@ public:
         SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
         SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
         SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
+
+        // data for 3D raytracing
+        // TODO only initialize world helper if needed
+        std::string worldFilePath;
+        double voxelSize, worldHeight;
+
+        mNodeHandle.param("worldFilePath", worldFilePath, std::string(""));
+        mNodeHandle.param("voxelSize", voxelSize, 0.01);
+        mNodeHandle.param("worldHeight", worldHeight, 3.0);
+
+        WorldHelperPtr worldHelperPtr(new WorldHelper(mapHelperPtr, worldFilePath, voxelSize, worldHeight));
+
         switch (cameraFilterId) {
         case 1:
-            cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperPtr, leftCameraPivotPointOffset, rightCameraPivotPointOffset));
+            cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperPtr,
+                                                                                                  leftCameraPivotPointOffset,
+                                                                                                  rightCameraPivotPointOffset));
             break;
         case 2:
             cameraModelFilter = CameraModelFilterPtr(new StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset));
@@ -343,6 +360,14 @@ public:
             break;
         case 4:
             cameraModelFilter = CameraModelFilterPtr(new SingleCameraModelFilter(oneCameraPivotPointOffset));
+            break;
+        case 5:
+            cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedStereoCameraModelFilter(worldHelperPtr,
+                                                                                                  leftCameraPivotPointOffset,
+                                                                                                  rightCameraPivotPointOffset));
+            break;
+        case 6:
+            cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedSingleCameraModelFilter(worldHelperPtr, oneCameraPivotPointOffset));
             break;
         default:
             std::stringstream ss;

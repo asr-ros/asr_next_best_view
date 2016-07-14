@@ -9,5 +9,6 @@
           <rosparam file="$(find next_best_view)/rsc/costmap_params.yaml" command="load"/>
           <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxListHighResolutionRearrangedTableFitWithNormals.xml"/>
 	  <param name="mMapsImagePath" value="$(find next_best_view)/rsc"/>
+          <param name="worldFilePath" value="$(find next_best_view)/rsc/world_point_cloud.pcd"/>
 	</node>
 </launch>

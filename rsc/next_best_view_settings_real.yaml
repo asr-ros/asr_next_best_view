@@ -20,9 +20,14 @@ visualizeIK: false
 # cameraFilterId == 2 => StereoCameraModelFilter
 # cameraFilterId == 3 => MapBasedSingleCameraModelFilter
 # cameraFilterId == 4 => SingleCameraModelFilter
+# TODO: change numeration and comment
+# cameraFilterId == 5 => Raytracing3DBasedStereoCameraModelFilter
+# cameraFilterId == 6 => Raytracing3DBasedSingleCameraModelFilter
 # Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
 # Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
-cameraFilterId: 2
+cameraFilterId: 6
+voxelSize: 1
+worldHeight: 3
 # ratingModuleId == 1 => DefaultRatingModule
 ratingModuleId: 1
 # hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
