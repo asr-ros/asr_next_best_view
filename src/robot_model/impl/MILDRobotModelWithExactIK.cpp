@@ -261,13 +261,10 @@ namespace next_best_view {
         }
         Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
         Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
-        Eigen::Vector3d planeNormal = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitY();
-        //Avoid rotation around the camera view axis
-        if (fabs(planeNormal[2]) > 0.0001)
-        {
-            ROS_WARN("The camera pose is rotated around the camera view axis in a way that is not reachable. The pose will be corrected automatically.");
-            planeNormal[2] = 0.0;
-        }
+
+        //The plane normal is now defined as the negative cross product of the camera view vector and the z axis.
+        //Any rotation around the view axis will be ignored to ensure that the resulting target camera pose is valid
+        Eigen::Vector3d planeNormal = -targetViewVector.cross(Eigen::Vector3d::UnitZ());
         planeNormal.normalize(); targetViewVector.normalize();
 
         mDebugHelperPtr->write(std::stringstream() << "Source state: (Pan: " << sourceMILDRobotState->pan
@@ -489,10 +486,9 @@ namespace next_best_view {
                     basePoint2 = basePoint+baseOrientation*0.15;
                     targetRobotPosition.x = baseFrame(0,3);
                     targetRobotPosition.y = baseFrame(1,3);
-                    //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                    //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
-                    currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                    mDebugHelperPtr->write(std::stringstream() << "Angle: " << currentIterationAngle << " with rating: " << currentRating,
+                    float baseAngle = getBaseAngleFromBaseFrame(baseFrame);
+                    currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, baseAngle);
+                    mDebugHelperPtr->write(std::stringstream() << "PTU-Angle: " << currentIterationAngle << " with base angle: " << baseAngle << " and rating: " << currentRating,
                                 DebugHelper::ROBOT_MODEL);
                     if (currentRating > newBestRating)
                     {
@@ -513,6 +509,7 @@ namespace next_best_view {
             currentAngleRange = currentAngleRange / 2.0;
             iterationCount++;
         } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy);
+
         mIKVisualizationLastMarkerCount = iterationCount;
         if (currentBestRating < 0.0) {ROS_ERROR_STREAM("No valid solution found for this pan frame.");}
         return -currentBestAngle;
@@ -791,6 +788,8 @@ namespace next_best_view {
         Eigen::Vector3d xAxis(baseFrame(0,0), baseFrame(1,0), 0.0);
         Eigen::Vector3d yAxis(baseFrame(0,1), baseFrame(1,1), 0.0);
         xAxis.normalize();
+        yAxis.normalize();
+
         if (yAxis[0] >= 0)
         {
             return acos(xAxis[0]);
