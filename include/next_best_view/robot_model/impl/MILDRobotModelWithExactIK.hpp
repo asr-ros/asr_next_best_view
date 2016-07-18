@@ -29,6 +29,9 @@ namespace next_best_view {
     class MILDRobotModelWithExactIK : public MILDRobotModel {
 	private:
 
+         //Maximum number of iterations for the IK angle iteration method
+         const unsigned int IKVisualizationMaximunIterationCount = 6;
+
          float mInverseKinematicIterationAccuracy;
 
          /*!
@@ -46,7 +49,7 @@ namespace next_best_view {
          double viewTriangleZPlane_sideB;
          double viewTriangleXYPlane_sideC;
          unsigned int mPanAngleSamplingStepsPerIteration;
-         unsigned int mIKVisualizationLastMarkerCount = 0;
+         unsigned int mIKVisualizationLastIterationCount = 0;
          double mTiltAngleOffset;
          double mPanAngleOffset;
          double mViewPointDistance;

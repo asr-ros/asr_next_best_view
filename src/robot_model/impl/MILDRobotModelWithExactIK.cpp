@@ -98,6 +98,7 @@ namespace next_best_view {
         }
         mNumberIKCalls = 0;
         mnTotalIKTime = 0.0;
+        mIKVisualizationLastIterationCount = IKVisualizationMaximunIterationCount;
 	}
 
     MILDRobotModelWithExactIK::~MILDRobotModelWithExactIK() {}
@@ -349,7 +350,6 @@ namespace next_best_view {
 
 		// set rotation
         targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
-        //targetMILDRobotState->rotation = targetMILDRobotState->rotation; //M_PI/2.0 -
 		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
 		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
 
@@ -508,9 +508,10 @@ namespace next_best_view {
                         DebugHelper::ROBOT_MODEL);
             currentAngleRange = currentAngleRange / 2.0;
             iterationCount++;
-        } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy);
+        //Loop while there is still significant change in the angle rating and while the maximum number of iterations has not yet been reached
+        } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy && iterationCount <= IKVisualizationMaximunIterationCount);
 
-        mIKVisualizationLastMarkerCount = iterationCount;
+        mIKVisualizationLastIterationCount = iterationCount;
         if (currentBestRating < 0.0) {ROS_ERROR_STREAM("No valid solution found for this pan frame.");}
         return -currentBestAngle;
     }
@@ -621,51 +622,63 @@ namespace next_best_view {
         visualization_msgs::Marker resetMarker = visualization_msgs::Marker();
         resetMarker.id = 0;
         resetMarker.header.frame_id = "/map";
-        resetMarker.type = visualization_msgs::Marker::DELETE;
+        resetMarker.action = visualization_msgs::Marker::DELETE;
+        resetMarker.lifetime = ros::Duration();
         resetMarker.scale.x = 0.02;
         resetMarker.scale.y = 0.02;
         resetMarker.scale.z = 0.02;
 
         //Reset camToActualViewCenterVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "camToActualViewCenterVector";
         vis_pub.publish(resetMarker);
         //Reset tiltToCamVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "tiltToCamVector";
         vis_pub.publish(resetMarker);
         //Reset tiltBaseVectorProjected
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "tiltBaseVectorProjected";
         vis_pub.publish(resetMarker);
         //Reset tiltBaseVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "tiltBaseVector";
         vis_pub.publish(resetMarker);
         //Reset panToTiltVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "panToTiltVector";
         vis_pub.publish(resetMarker);
         //Reset panBaseVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "panBaseVector";
         vis_pub.publish(resetMarker);
         //Reset baseToPanVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "baseToPanVector";
         vis_pub.publish(resetMarker);
         //Reset targetCameraVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "targetCameraVector";
         vis_pub.publish(resetMarker);
         //Reset basePose
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "basePose";
         vis_pub.publish(resetMarker);
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
+        resetMarker.header.stamp = ros::Time::now();
         resetMarker.id = 1;
         vis_pub.publish(resetMarker);
-        for (unsigned int i = 1; i < mIKVisualizationLastMarkerCount + 1; i++)
+        ROS_INFO_STREAM("Deleting markers for " << mIKVisualizationLastIterationCount << " iterations");
+        for (unsigned int i = 1; i < mIKVisualizationLastIterationCount + 1; i++)
         {
             std::ostringstream converter;
             converter << i;
@@ -674,11 +687,12 @@ namespace next_best_view {
             {
                 resetMarker.ns = nsIterationVector;
                 resetMarker.id = j;
-                resetMarker.header.stamp = ros::Time();
+                resetMarker.header.stamp = ros::Time::now();
                 vis_pub.publish(resetMarker);
             }
         }
-        mIKVisualizationLastMarkerCount = 0;
+        ros::spinOnce();
+        mIKVisualizationLastIterationCount = 0;
     }
 
     void MILDRobotModelWithExactIK::visualizeIKCameraTarget(Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point)
