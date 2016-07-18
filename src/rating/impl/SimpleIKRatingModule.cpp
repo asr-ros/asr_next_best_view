@@ -13,10 +13,10 @@ namespace next_best_view {
 
     double SimpleIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
+        //Substract the difference between source and target rotation
         float rotDiff = fmod(targetRotationBase - sourceRotationBase, 2.0*M_PI);
         if (rotDiff <= 0) {rotDiff += 2.0*M_PI;}
         rotDiff = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)));
-
         double rating = pow(0.6, rotDiff);
         return rating;
     }
