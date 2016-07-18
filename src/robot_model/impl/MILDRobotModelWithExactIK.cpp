@@ -13,6 +13,9 @@
 #include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
 #include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/rating/impl/AngleApproximationIKRatingModule.h"
+#include "next_best_view/rating/impl/NavigationPathIKRatingModule.h"
+#include "next_best_view/rating/impl/SimpleIKRatingModule.h"
 
 #include "nav_msgs/GetPlan.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -31,6 +34,8 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <tf_conversions/tf_eigen.h>
 
+#include <locale>
+
 #include <visualization_msgs/Marker.h>
 
 namespace next_best_view {
@@ -43,6 +48,7 @@ namespace next_best_view {
         double inverseKinematicIterationAccuracy_, ncp_, fcp_;
         int panAngleSamplingStepsPerIteration_;
         bool visualizeIK_;
+        std::string IKAngleRating_;
         n.getParam("panAngleSamplingStepsPerIteration", panAngleSamplingStepsPerIteration_);
         n.getParam("inverseKinematicIterationAccuracy", inverseKinematicIterationAccuracy_);
         n.getParam("visualizeIK", visualizeIK_);
@@ -68,11 +74,31 @@ namespace next_best_view {
         n.getParam("IKVisualization", IKVisualization);
         vis_pub = n.advertise<visualization_msgs::Marker>(IKVisualization, 1000);
         tfParametersInitialized = setUpTFParameters();
-        //RobotModelPtr modelPtr(this);
-        //ikRatingModule = DefaultIKRatingModulePtr(new DefaultIKRatingModule(modelPtr));
-        ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+        n.getParam("IKAngleRating", IKAngleRating_);
+        //IKAngleRating_ = std::toupper(IKAngleRating_);
+        if (IKAngleRating_ == "ANGLE_APPROXIMATION")
+        {
+            ikRatingModule = AngleApproximationIKRatingModulePtr(new AngleApproximationIKRatingModule());
+            mDebugHelperPtr->write(std::stringstream() << "Using AngleApproximation as IK angle rating algorithm", DebugHelper::PARAMETERS);
+        }
+        else if (IKAngleRating_ == "NAVIGATION_PATH")
+        {
+            ikRatingModule = NavigationPathIKRatingModulePtr(new NavigationPathIKRatingModule(RobotModelPtr(this)));
+            mDebugHelperPtr->write(std::stringstream() << "Using NavigationPath as IK angle rating algorithm", DebugHelper::PARAMETERS);
+        }
+        else if (IKAngleRating_ == "SIMPLE")
+        {
+            ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+            mDebugHelperPtr->write(std::stringstream() << "Using SimpleIKRating as IK angle rating algorithm", DebugHelper::PARAMETERS);
+        }
+        else
+        {
+            ikRatingModule = SimpleIKRatingModulePtr(new SimpleIKRatingModule());
+            ROS_WARN_STREAM("'" << IKAngleRating_ << "' is not a valid IK rating algorithm! Using the SimpleIKRating algorithm instead.");
+        }
         mNumberIKCalls = 0;
         mnTotalIKTime = 0.0;
+        mIKVisualizationLastIterationCount = IKVisualizationMaximunIterationCount;
 	}
 
     MILDRobotModelWithExactIK::~MILDRobotModelWithExactIK() {}
@@ -236,13 +262,10 @@ namespace next_best_view {
         }
         Eigen::Quaterniond targetOrientation(orientation.w(), orientation.x(), orientation.y(), orientation.z());
         Eigen::Vector3d targetViewVector = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitX();
-        Eigen::Vector3d planeNormal = targetOrientation.toRotationMatrix() * Eigen::Vector3d::UnitY();
-        //Avoid rotation around the camera view axis
-        if (fabs(planeNormal[2]) > 0.0001)
-        {
-            ROS_WARN("The camera pose is rotated around the camera view axis in a way that is not reachable. The pose will be corrected automatically.");
-            planeNormal[2] = 0.0;
-        }
+
+        //The plane normal is now defined as the negative cross product of the camera view vector and the z axis.
+        //Any rotation around the view axis will be ignored to ensure that the resulting target camera pose is valid
+        Eigen::Vector3d planeNormal = -targetViewVector.cross(Eigen::Vector3d::UnitZ());
         planeNormal.normalize(); targetViewVector.normalize();
 
         mDebugHelperPtr->write(std::stringstream() << "Source state: (Pan: " << sourceMILDRobotState->pan
@@ -327,7 +350,6 @@ namespace next_best_view {
 
 		// set rotation
         targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
-        //targetMILDRobotState->rotation = targetMILDRobotState->rotation; //M_PI/2.0 -
 		while (targetMILDRobotState->rotation < 0) { targetMILDRobotState->rotation += 2 * M_PI; };
 		while (targetMILDRobotState->rotation > 2 * M_PI) { targetMILDRobotState->rotation -= 2 * M_PI; };
 
@@ -464,10 +486,9 @@ namespace next_best_view {
                     basePoint2 = basePoint+baseOrientation*0.15;
                     targetRobotPosition.x = baseFrame(0,3);
                     targetRobotPosition.y = baseFrame(1,3);
-                    //nav_msgs::Path navigationPath = getNavigationPath(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                    //currentRating = ikRatingModule->getPanAngleRating(panJointFrame, currentIterationAngle, navigationPath);
-                    currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, getBaseAngleFromBaseFrame(baseFrame));
-                    mDebugHelperPtr->write(std::stringstream() << "Angle: " << currentIterationAngle << " with rating: " << currentRating,
+                    float baseAngle = getBaseAngleFromBaseFrame(baseFrame);
+                    currentRating = ikRatingModule->getPanAngleRating(actualRobotPosition, targetRobotPosition, robotState->rotation, baseAngle);
+                    mDebugHelperPtr->write(std::stringstream() << "PTU-Angle: " << currentIterationAngle << " with base angle: " << baseAngle << " and rating: " << currentRating,
                                 DebugHelper::ROBOT_MODEL);
                     if (currentRating > newBestRating)
                     {
@@ -487,8 +508,10 @@ namespace next_best_view {
                         DebugHelper::ROBOT_MODEL);
             currentAngleRange = currentAngleRange / 2.0;
             iterationCount++;
-        } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy);
-        mIKVisualizationLastMarkerCount = iterationCount;
+        //Loop while there is still significant change in the angle rating and while the maximum number of iterations has not yet been reached
+        } while(fabs(currentBestRating-newBestRating) > mInverseKinematicIterationAccuracy && iterationCount <= IKVisualizationMaximunIterationCount);
+
+        mIKVisualizationLastIterationCount = iterationCount;
         if (currentBestRating < 0.0) {ROS_ERROR_STREAM("No valid solution found for this pan frame.");}
         return -currentBestAngle;
     }
@@ -599,51 +622,63 @@ namespace next_best_view {
         visualization_msgs::Marker resetMarker = visualization_msgs::Marker();
         resetMarker.id = 0;
         resetMarker.header.frame_id = "/map";
-        resetMarker.type = visualization_msgs::Marker::DELETE;
+        resetMarker.action = visualization_msgs::Marker::DELETE;
+        resetMarker.lifetime = ros::Duration();
         resetMarker.scale.x = 0.02;
         resetMarker.scale.y = 0.02;
         resetMarker.scale.z = 0.02;
 
         //Reset camToActualViewCenterVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "camToActualViewCenterVector";
         vis_pub.publish(resetMarker);
         //Reset tiltToCamVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "tiltToCamVector";
         vis_pub.publish(resetMarker);
         //Reset tiltBaseVectorProjected
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "tiltBaseVectorProjected";
         vis_pub.publish(resetMarker);
         //Reset tiltBaseVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "tiltBaseVector";
         vis_pub.publish(resetMarker);
         //Reset panToTiltVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "panToTiltVector";
         vis_pub.publish(resetMarker);
         //Reset panBaseVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "panBaseVector";
         vis_pub.publish(resetMarker);
         //Reset baseToPanVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "baseToPanVector";
         vis_pub.publish(resetMarker);
         //Reset targetCameraVector
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
         resetMarker.ns = "targetCameraVector";
         vis_pub.publish(resetMarker);
         //Reset basePose
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.header.stamp = ros::Time::now();
+        resetMarker.type = visualization_msgs::Marker::SPHERE;
         resetMarker.ns = "basePose";
         vis_pub.publish(resetMarker);
-        resetMarker.header.stamp = ros::Time();
+        resetMarker.type = visualization_msgs::Marker::ARROW;
+        resetMarker.header.stamp = ros::Time::now();
         resetMarker.id = 1;
         vis_pub.publish(resetMarker);
-        for (unsigned int i = 1; i < mIKVisualizationLastMarkerCount + 1; i++)
+        ROS_INFO_STREAM("Deleting markers for " << mIKVisualizationLastIterationCount << " iterations");
+        for (unsigned int i = 1; i < mIKVisualizationLastIterationCount + 1; i++)
         {
             std::ostringstream converter;
             converter << i;
@@ -652,11 +687,12 @@ namespace next_best_view {
             {
                 resetMarker.ns = nsIterationVector;
                 resetMarker.id = j;
-                resetMarker.header.stamp = ros::Time();
+                resetMarker.header.stamp = ros::Time::now();
                 vis_pub.publish(resetMarker);
             }
         }
-        mIKVisualizationLastMarkerCount = 0;
+        ros::spinOnce();
+        mIKVisualizationLastIterationCount = 0;
     }
 
     void MILDRobotModelWithExactIK::visualizeIKCameraTarget(Eigen::Vector3d &target_view_center_point, Eigen::Vector3d &target_camera_point)
@@ -766,6 +802,8 @@ namespace next_best_view {
         Eigen::Vector3d xAxis(baseFrame(0,0), baseFrame(1,0), 0.0);
         Eigen::Vector3d yAxis(baseFrame(0,1), baseFrame(1,1), 0.0);
         xAxis.normalize();
+        yAxis.normalize();
+
         if (yAxis[0] >= 0)
         {
             return acos(xAxis[0]);

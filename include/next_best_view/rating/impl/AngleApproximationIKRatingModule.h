@@ -1,12 +1,12 @@
 /*
- * IKRatingModule.h
+ * AngleApproximationIKRatingModule.h
  *
- *  Created on: Dez 23, 2015
+ *  Created on: Jul 05, 2016
  *      Author: florianaumann
  */
 
-#ifndef SIMPLEIKRATINGMODULE_H
-#define SIMPLEIKRATINGMODULE_H
+#ifndef ANGLEAPPROXIMATIONIKRATINGMODULE_H
+#define ANGLEAPPROXIMATIONIKRATINGMODULE_H
 
 #include "next_best_view/rating/IKRatingModule.h"
 
@@ -14,24 +14,24 @@
 
 namespace next_best_view {
     /*!
-     * \brief SimpleIKRatingModule uses the difference between the start and target angle for the rating
+     * \brief AngleApproximationIKRatingModule uses an approximation of the total angle delta during the mild movement for the rating
      * \author Florian Aumann
      * \date 2016
      * \version 1.0
      * \copyright GNU Public License
-     * \sa DefaultIKRatingModule
+     * \sa AngleApproximationIKRatingModule
      */
-    class SimpleIKRatingModule : public IKRatingModule {
+    class AngleApproximationIKRatingModule : public IKRatingModule {
     public:
         /*!
-         * \brief constructor of the SimpleDefaultIKRatingModule object
+         * \brief constructor of the AngleApproximationIKRatingModule object
          */
-        SimpleIKRatingModule();
+        AngleApproximationIKRatingModule();
 
         /*!
-         * \brief destructor of the SimpleDefaultIKRatingModule object.
+         * \brief destructor of the AngleApproximationIKRatingModule object.
          */
-        virtual ~SimpleIKRatingModule();
+        virtual ~AngleApproximationIKRatingModule();
 
         /*!
          * \brief
@@ -47,7 +47,7 @@ namespace next_best_view {
     /*!
      * \brief Definition for the shared pointer type of the class.
      */
-    typedef boost::shared_ptr<SimpleIKRatingModule> SimpleIKRatingModulePtr;
+    typedef boost::shared_ptr<AngleApproximationIKRatingModule> AngleApproximationIKRatingModulePtr;
 }
 
-#endif /* SIMPLEIKRATINGMODULE_H */
+#endif /* ANGLEAPPROXIMATIONIKRATINGMODULE_H */
