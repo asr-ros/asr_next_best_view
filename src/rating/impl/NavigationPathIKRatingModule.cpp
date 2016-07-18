@@ -17,6 +17,7 @@ namespace next_best_view {
 
     double NavigationPathIKRatingModule::getPanAngleRating(const geometry_msgs::Point &sourcePosition, const geometry_msgs::Point &targetPosition, double sourceRotationBase, double targetRotationBase)
     {
+        targetRotationBase = fmod(targetRotationBase + M_PI, 2.0 * M_PI);
         nav_msgs::Path navigationPath = this->mRobotModel->getNavigationPath(sourcePosition, targetPosition, sourceRotationBase, targetRotationBase);
 
         if (navigationPath.poses.size() > 2)
