@@ -42,19 +42,19 @@ public:
         targetCameraOrientations.push_back(ZXZ2Quaternion(-180, -30.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.4));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-190, -50.0, 0));
-        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.4));
+        targetCameraPositions.push_back(SimpleVector3(-0.404993116856, -0.28920769691, 1.4));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-120, -20.0, 0));
-        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.4));
+        targetCameraPositions.push_back(SimpleVector3(0.804993116856, 0.98920769691, 1.4));
         targetCameraOrientations.push_back(ZXZ2Quaternion(120, -20.0, 0));
-        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.5));
+        targetCameraPositions.push_back(SimpleVector3(0.004993116856, 2.08920769691, 1.5));
         targetCameraOrientations.push_back(ZXZ2Quaternion(20, -20.0, 0));
-        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 0.8));
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, 0.28920769691, 0.8));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-10, 0.0, 0));
         targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.7));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 0.0, 0 ));
-        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 0.4));
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -1.28920769691, 0.4));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 80.0, 0));
-        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 0.5));
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -1.28920769691, 0.5));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-180, 100.0, 0 ));
         targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.0));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-200, 40.0, 0));
@@ -84,7 +84,7 @@ public:
         //Initialize robot model
         MILDRobotModelWithExactIK *myRobotModel = new MILDRobotModelWithExactIK();
         MILDRobotModelWithExactIKPtr myRobotModelPtr(myRobotModel);
-        double position_x = 0.013948535919;
+        double position_x = -0.113948535919;
         double position_y = -1.60322499275;
         double rotationAngle = -1.57;
 
@@ -109,7 +109,7 @@ public:
         pose_pub.publish(startPoseStamped);
 
 
-        myRobotModelPtr->setPanAngleLimits(-180, 180);
+        myRobotModelPtr->setPanAngleLimits(-60, 60);
         myRobotModelPtr->setTiltAngleLimits(-180, 180);
         ROS_INFO_STREAM("Running test...");
         ros::spinOnce();
@@ -118,8 +118,8 @@ public:
             ROS_INFO_STREAM("Testpose " << (i+1));
             SimpleVector3 currentPosition = targetCameraPositions[i];
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
-            //ROS_INFO_STREAM("Calculating inverse kinematics...");
-            //RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            ROS_INFO_STREAM("Calculating inverse kinematics...");
+            RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
             ROS_INFO_STREAM("Calculating camera pose correction...");
             PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
             ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);
