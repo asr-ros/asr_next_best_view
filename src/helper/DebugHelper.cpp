@@ -116,6 +116,7 @@ bool DebugHelper::checkLevel(DebugLevel level) {
 }
 
 void DebugHelper::setLevels() {
+    // TODO add parameter levels from dyn config
     std::vector<std::string> levels;
     mNodeHandle.param("debugLevels", levels, std::vector<std::string>());
     mLevels = parseLevels(levels);
