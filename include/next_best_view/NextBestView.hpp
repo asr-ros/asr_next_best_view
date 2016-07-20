@@ -481,6 +481,7 @@ public:
         configLevel = numeric_limits<uint32_t>::max();
         initialize();
 
+        response.succeeded = true;
         mDebugHelperPtr->writeNoticeably("ENDING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
