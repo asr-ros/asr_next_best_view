@@ -32,15 +32,14 @@
 #include <world_model/GetViewportList.h>
 #include <world_model/PushViewport.h>
 #include <std_msgs/ColorRGBA.h>
+#include <dynamic_reconfigure/server.h>
+#include <next_best_view/DynamicParametersConfig.h>
 
 // Local Includes
 #include "typedef.hpp"
-#include "next_best_view/SetupVisualization.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
-#include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/GetNextBestView.h"
-#include "next_best_view/GetSpaceSampling.h"
 #include "next_best_view/SetAttributedPointCloud.h"
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
@@ -114,12 +113,17 @@ private:
     ViewportPoint mCurrentCameraViewport;
     DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
-    SetupVisualizationRequest mVisualizationSettings;
+    /*!
+     * visualization settings
+     */
+    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray;
     bool mCurrentlyPublishingVisualization;
 
     // Bool for set point cloud flags
     bool mEnableIntermediateObjectWeighting;
     bool mEnableCropBoxFiltering;
+
+    dynamic_reconfigure::Server<next_best_view::DynamicParametersConfig> mDynamicReconfigServer;
 
     boost::shared_ptr<boost::thread> mVisualizationThread;
 
@@ -133,6 +137,9 @@ public:
 
         mGlobalNodeHandle = ros::NodeHandle();
         mNodeHandle = ros::NodeHandle(ros::this_node::getName());
+
+        dynamic_reconfigure::Server<next_best_view::DynamicParametersConfig>::CallbackType f = boost::bind(&NextBestView::dynamicReconfigureCallback, this, _1, _2);
+        mDynamicReconfigServer.setCallback(f);
 
         initialize();
 
@@ -163,12 +170,10 @@ public:
         mCurrentlyPublishingVisualization = false;
 
         // setup the visualization defaults
-        bool show_space_sampling, show_point_cloud, show_frustum_point_cloud, show_frustum_marker_array, move_robot;
-        mNodeHandle.param("show_space_sampling", show_space_sampling, false);
-        mNodeHandle.param("show_point_cloud", show_point_cloud, false);
-        mNodeHandle.param("show_frustum_point_cloud", show_frustum_point_cloud, false);
-        mNodeHandle.param("show_frustum_marker_array", show_frustum_marker_array, false);
-        mNodeHandle.param("move_robot", move_robot, false);
+        mNodeHandle.param("show_space_sampling", mShowSpaceSampling, false);
+        mNodeHandle.param("show_point_cloud", mShowPointcloud, false);
+        mNodeHandle.param("show_frustum_point_cloud", mShowFrustumPointCloud, false);
+        mNodeHandle.param("show_frustum_marker_array", mShowFrustumMarkerArray, false);
 
         //get XML path
         std::string mCropBoxListFilePath;
@@ -177,13 +182,6 @@ public:
         //Set point cloud parameters flags
         mNodeHandle.param("enableCropBoxFiltering", mEnableCropBoxFiltering, false);
         mNodeHandle.param("enableIntermediateObjectWeighting", mEnableIntermediateObjectWeighting, false);
-
-        // assign the values to the settings struct
-        mVisualizationSettings.space_sampling = show_space_sampling;
-        mVisualizationSettings.point_cloud = show_point_cloud;
-        mVisualizationSettings.frustum_point_cloud = show_frustum_point_cloud;
-        mVisualizationSettings.frustum_marker_array = show_frustum_marker_array;
-        mVisualizationSettings.move_robot = move_robot;
 
         /* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
          * be defined in the CameraModelFilter specialization class.
@@ -575,7 +573,7 @@ public:
         if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
             //No points from input cloud in any nbv candidate or iterative search aborted (by user).
             mDebugHelperPtr->write("No more next best view found.", DebugHelper::SERVICE_CALLS);
-            if (mVisualizationSettings.frustum_marker_array)
+            if (mShowFrustumMarkerArray)
             {
                 mVisHelper.clearFrustumVisualization();
             }
@@ -736,11 +734,11 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Object points in the viewport: " << viewport.child_indices->size(),
                     DebugHelper::VISUALIZATION);
 
-        if (mVisualizationSettings.point_cloud)
+        if (mShowPointcloud)
         {
             // publish object point cloud
             Indices pointCloudIndices;
-            if (mVisualizationSettings.frustum_point_cloud) {
+            if (mShowFrustumPointCloud) {
                 // if the frustum point cloud is published seperately only publish points outside frustum
                 this->getIndicesOutsideFrustum(viewport, pointCloudIndices);
             } else {
@@ -752,7 +750,7 @@ public:
 
             mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
         }
-        if (mVisualizationSettings.frustum_point_cloud)
+        if (mShowFrustumPointCloud)
         {
             // publish frustum object point cloud
             ObjectPointCloud frustumObjectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices);
@@ -760,7 +758,7 @@ public:
 
             mVisHelper.triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);
         }
-        if (mVisualizationSettings.frustum_marker_array && publishFrustum)
+        if (mShowFrustumMarkerArray && publishFrustum)
         {
             // publish furstums visualization
             mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
@@ -771,7 +769,7 @@ public:
     void publishPointCloudVisualization() {
         mDebugHelperPtr->write("Publishing Visualization without viewport", DebugHelper::VISUALIZATION);
 
-        if (mVisualizationSettings.point_cloud)
+        if (mShowPointcloud)
         {
             // publish object point cloud
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
@@ -805,6 +803,12 @@ public:
             }
         }
         return typeToMeshResource;
+    }
+
+    void dynamicReconfigureCallback(next_best_view::DynamicParametersConfig &config, uint32_t level) {
+        // TODO split this up
+        // TODO consider that services and this and other stuff is called parallel
+        initialize();
     }
 };
 }

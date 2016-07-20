@@ -14,8 +14,7 @@
 #include "geometry_msgs/Pose.h"
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
-#include "next_best_view/rating/impl/DefaultIKRatingModule.h"
-#include "next_best_view/rating/impl/SimpleIKRatingModule.h"
+#include "next_best_view/rating/IKRatingModule.h"
 #include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
@@ -29,6 +28,9 @@ namespace next_best_view {
     typedef std::tuple<double,double> PTUConfig;    //Pan and tilt angle of the ptu
     class MILDRobotModelWithExactIK : public MILDRobotModel {
 	private:
+
+         //Maximum number of iterations for the IK angle iteration method
+         const unsigned int IKVisualizationMaximunIterationCount = 6;
 
          float mInverseKinematicIterationAccuracy;
 
@@ -47,7 +49,7 @@ namespace next_best_view {
          double viewTriangleZPlane_sideB;
          double viewTriangleXYPlane_sideC;
          unsigned int mPanAngleSamplingStepsPerIteration;
-         unsigned int mIKVisualizationLastMarkerCount = 0;
+         unsigned int mIKVisualizationLastIterationCount = 0;
          double mTiltAngleOffset;
          double mPanAngleOffset;
          double mViewPointDistance;

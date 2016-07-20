@@ -1,5 +1,5 @@
 mOmegaUtility: 210 #Gewichtungsfaktor für den Nutzen-Faktor 
-mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
+mOmegaPan: 1  #Gewichtungsfaktor für die Rotation der Pan-Achse der PTU
 mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
 mOmegaRot: 10 #Gewichtungsfaktor für die Rotation der Basis
 mOmegaBase: 250 #Gewichtungsfaktor für die Bewegung der Basis
@@ -16,6 +16,7 @@ show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
 visualizeIK: false
+IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientation angle sampling in the MILDRobotModelWithExactIK module. Available algorithms are: ANGLE_APPROXIMATION, NAVIGATION_PATH, SIMPLE
 # cameraFilterId == 1 => MapBasedStereoCameraModelFilter
 # cameraFilterId == 2 => StereoCameraModelFilter
 # cameraFilterId == 3 => MapBasedSingleCameraModelFilter
@@ -30,7 +31,6 @@ hypothesisUpdaterId: 1
 # robotModelId == 1 => MILDRobotModelWithExactIK
 # robotModelId == 2 => MILDRobotModelWithApproximatedIK
 robotModelId: 1
-move_robot: true
 panMin: -20
 panMax: 20
 tiltMin: -45

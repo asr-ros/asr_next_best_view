@@ -374,9 +374,7 @@ public:
             SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
 
             // translating from std::vector<geometry_msgs::Point> to std::vector<SimpleVector3>
-            if (mEnableCropBoxFiltering) {
-                setNormalsInCropBoxMode(pointCloudPoint, rotationMatrix);
-            } else {
+            if (!mEnableCropBoxFiltering) {
                 // get object type information
                 ObjectMetaDataResponsePtr responsePtr_ObjectData = objectHelper.getObjectMetaData(pointCloudPoint.type);
 
@@ -439,6 +437,12 @@ public:
             mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
 
             outputPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*originalPointCloudPtr, *filteredObjectIndices));
+
+            // we have to set now the object hypothesis normals
+            for (ObjectPoint& pointCloudPoint : *outputPointCloudPtr) {
+                SimpleMatrix3 rotationMatrix = pointCloudPoint.getSimpleQuaternion().toRotationMatrix();
+                setNormalsInCropBoxMode(pointCloudPoint, rotationMatrix);
+            }
         }
         else
         {
