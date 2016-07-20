@@ -44,6 +44,7 @@ private:
     CameraModelFilterPtr mCameraModelFilterPtr;
     RatingModulePtr mRatingModulePtr;
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
+    MapHelperPtr mMapHelperPtr;
     float mEpsilon;
     ObjectTypeSetPtr mObjectTypeSetPtr;
     DebugHelperPtr mDebugHelperPtr;
@@ -59,13 +60,15 @@ public:
                            const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
                            const RobotModelPtr &robotModelPtr = RobotModelPtr(),
                            const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr(),
-                           const RatingModulePtr &ratingModulePtr = RatingModulePtr())
+                           const RatingModulePtr &ratingModulePtr = RatingModulePtr(),
+                           const MapHelperPtr &mapHelperPtr = MapHelperPtr())
         : objectsResources(),
           mUnitSphereSamplerPtr(unitSphereSamplerPtr),
           mSpaceSamplerPtr(spaceSamplerPtr),
           mRobotModelPtr(robotModelPtr),
           mCameraModelFilterPtr(cameraModelFilterPtr),
           mRatingModulePtr(ratingModulePtr),
+          mMapHelperPtr(mapHelperPtr),
           mEpsilon(10E-3),
           mVisHelper() {
 
@@ -650,6 +653,21 @@ public:
          */
     RatingModulePtr getRatingModule() {
         return mRatingModulePtr;
+    }
+
+    /**
+      * sets the map helper
+      * @param mapHelperPtr - the pointer to map helper.
+      */
+    void setMapHelper(const MapHelperPtr &mapHelperPtr) {
+        mMapHelperPtr = mapHelperPtr;
+    }
+
+    /**
+      *@return the map helper ptr
+      */
+    MapHelperPtr getMapHelper() {
+        return mMapHelperPtr;
     }
 
     void setHypothesisUpdater(const HypothesisUpdaterPtr &hypothesisUpdaterPtr) {
