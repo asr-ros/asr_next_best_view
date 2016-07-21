@@ -222,6 +222,55 @@ target_link_libraries(
 )
 endif ()
 
+function(addTest TEST_NAME)
+  # TEST_NAME_LIST contains each single word in uppercase
+  string(REPLACE "_" ";" TEST_NAME_LIST ${TEST_NAME})
+  
+  # convert TEST_NAME to lower case and camel case
+  set(CAMEL_CASE "")
+  set(LOWER_UNDERSCORE "")
+  set(UPPER_UNDERSCORE "")
+  
+  FOREACH(WORD ${TEST_NAME_LIST})
+    # lower case
+    string(TOLOWER ${WORD} BFR)
+    set(LOWER_UNDERSCORE "${LOWER_UNDERSCORE}_${BFR}")
+    
+    # upper case
+    string(TOUPPER ${WORD} BFR)
+    set(UPPER_UNDERSCORE "${UPPER_UNDERSCORE}_${BFR}")
+    
+    # camel case
+    string(SUBSTRING ${WORD} 1 -1 REST)
+    string(SUBSTRING ${WORD} 0  1 FIRST_CHAR)
+    string(TOLOWER ${REST} REST)
+    string(TOUPPER ${FIRST_CHAR} FIRST_CHAR)
+    set(CAMEL_CASE "${CAMEL_CASE}${FIRST_CHAR}${REST}")
+  ENDFOREACH()
+  # remove first char (_)
+  string(SUBSTRING ${LOWER_UNDERSCORE} 1 -1 LOWER_UNDERSCORE)
+  string(SUBSTRING ${UPPER_UNDERSCORE} 1 -1 UPPER_UNDERSCORE)
+  
+  set(TEST_FILE "src/test_cases/${CAMEL_CASE}Test.cpp")
+  set(TEST_NAME "_${LOWER_UNDERSCORE}_test")
+  set(TEST_MESSAGE " - ${CAMEL_CASE} Test")
+
+  if (${BUILD_${UPPER_UNDERSCORE}_TEST})
+  
+    MESSAGE(${TEST_MESSAGE})
+    
+    add_executable(
+	    ${PROJECT_NAME}${TEST_NAME}
+	    ${TEST_FILE}
+    )
+
+    target_link_libraries(
+	    ${PROJECT_NAME}${TEST_NAME}
+	    ${TEST_LINK_LIBRARIES}
+    )
+  endif()
+endfunction()
+
 #ToDo: Change Name
 if (BUILD_TEST)
 MESSAGE (" - Test")
@@ -236,47 +285,11 @@ target_link_libraries(
 )
 endif ()
 
+addTest(SINGLE_SCENE)
 
-if (BUILD_SINGLE_SCENE_TEST)
-MESSAGE (" - Single Scene Test")
-add_executable(
-        ${PROJECT_NAME}_single_scene_test
-        src/test_cases/SingleSceneTest.cpp
-)
+addTest(MULTI_ID_SCENE)
 
-target_link_libraries(
-        ${PROJECT_NAME}_single_scene_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
-
-
-if (BUILD_MULTI_ID_SCENE_TEST)
-MESSAGE (" - Multi ID Scene Test")
-add_executable(
-        ${PROJECT_NAME}_multi_id_scene_test
-        src/test_cases/MultiIdSceneTest.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_multi_id_scene_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
-
-
-if (BUILD_PARAMETERS_TEST)
-MESSAGE (" - Parameter Test")
-add_executable(
-        ${PROJECT_NAME}_parameters_test
-        src/test_cases/ParametersTest.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_parameters_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
+addTest(PARAMETERS)
 
 if (BUILD_IK_TEST)
 MESSAGE (" - IK Test")
@@ -291,60 +304,13 @@ target_link_libraries(
 )
 endif ()
 
+addTest(PERFORMANCE)
 
-if (BUILD_PERFORMANCE_TEST)
-MESSAGE (" - Performance Test")
-add_executable(
-         ${PROJECT_NAME}_performance_test
-        src/test_cases/PerformanceTest.cpp
-)
+addTest(UPDATE_POINTCLOUD)
 
-target_link_libraries(
-        ${PROJECT_NAME}_performance_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
+addTest(MATH)
 
-
-if (BUILD_UPDATE_POINTCLOUD_TEST)
-MESSAGE (" - UpdatePointcloud Test")
-add_executable(
-        ${PROJECT_NAME}_update_pointcloud_test
-        src/test_cases/UpdatePointcloudTest.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_update_pointcloud_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
-
-
-if (BUILD_MATH_TEST)
-MESSAGE (" - Math Test")
-add_executable(
-        ${PROJECT_NAME}_math_test
-        src/test_cases/MathTest.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_math_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
-
-if (BUILD_STREAM_TEST)
-MESSAGE (" - Stream Test")
-add_executable(
-        ${PROJECT_NAME}_stream_test
-        src/test_cases/StreamTest.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_stream_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
+addTest(STREAM)
 
 
 add_executable(
