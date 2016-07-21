@@ -24,7 +24,6 @@
 
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/GetNextBestView.h"
-#include "next_best_view/GetPointCloud2.h"
 #include "next_best_view/SetAttributedPointCloud.h"
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
@@ -44,8 +43,6 @@
 #include <Eigen/Geometry>
 
 #include <ros/master.h>
-
-#include "next_best_view/GetSpaceSampling.h"
 
 using namespace next_best_view;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;

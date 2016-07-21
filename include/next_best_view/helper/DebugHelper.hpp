@@ -97,6 +97,12 @@ public:
      */
     std::string getLevelString();
 
+
+    /*!
+     * \brief sets the allowed debug levels
+     */
+    void setLevels();
+
 private:
 
     DebugHelper();
@@ -122,11 +128,6 @@ private:
      * true if it is allowed and false if it is not.
      */
     bool checkLevel(DebugLevel level);
-
-    /*!
-     * \brief sets the allowed debug levels
-     */
-    void setLevels();
 
 };
 
