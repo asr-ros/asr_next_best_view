@@ -107,6 +107,9 @@ std::string DebugHelper::getLevelString()
     if (mLevels & HYPOTHESIS_UPDATER) {
         addToString(level, "HYPOTHESIS_UPDATER");
     }
+    if (mLevels & WORLD) {
+        addToString(level, "WORLD");
+    }
 
     return level;
 }
@@ -166,6 +169,9 @@ int DebugHelper::parseLevels(std::vector<std::string> levels) {
         }
         else if (levels.at(i).compare("HYPOTHESIS_UPDATER") == 0) {
             level += HYPOTHESIS_UPDATER;
+        }
+        else if (levels.at(i).compare("WORLD") == 0) {
+            level += WORLD;
         }
         else {
             ROS_ERROR_STREAM("Invalid debug level: " << levels.at(i));
