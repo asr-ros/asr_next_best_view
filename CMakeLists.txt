@@ -25,7 +25,11 @@ find_package(catkin REQUIRED COMPONENTS
   rapidxml
   dynamic_reconfigure
   voxel_grid
+  # temporary workaround as assimp does not provide a .cmake file but just a .pc file
+  #  assimp
 )
+
+message(WARNING "Object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -92,6 +96,8 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  # temporary workaround as assimp does not provide a .cmake file but just a .pc file
+  /opt/ros/indigo/include/assimp_devel
 )
 
 ## Declare a cpp library
@@ -161,6 +167,8 @@ target_link_libraries(
         ${PROJECT_NAME}_helper
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
+        # assimp
+        /opt/ros/indigo/lib/libassimp_devel.so
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")

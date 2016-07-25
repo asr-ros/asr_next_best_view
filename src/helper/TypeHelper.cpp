@@ -41,6 +41,12 @@ namespace next_best_view {
         return SimpleVector3(vector[0], vector[1], vector[2]);
     }
 
+
+    SimpleVector3 TypeHelper::getSimpleVector3(const aiVector3D &vector)
+    {
+        return SimpleVector3(vector.x, vector.y, vector.z);
+    }
+
     SimpleVector4 TypeHelper::getSimpleVector4(const std::vector<double> &vector) {
         return SimpleVector4(vector[0], vector[1], vector[2], vector[3]);
     }
@@ -67,6 +73,11 @@ namespace next_best_view {
         return result;
     }
 
+    aiVector3D TypeHelper::getAiVector3D(const SimpleVector3 &vector)
+    {
+        return aiVector3D(vector[0], vector[1], vector[2]);
+    }
+
     std_msgs::ColorRGBA TypeHelper::getColor(const SimpleVector4 &vector) {
         std_msgs::ColorRGBA result;
 
@@ -77,4 +88,5 @@ namespace next_best_view {
 
         return result;
     }
+
 }

@@ -1,21 +1,32 @@
 #pragma once
 
-#include <pcl/io/pcd_io.h>
+#include <ros/package.h>
+#include <voxel_grid/voxel_grid.h>
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
+#include <assimp_devel/Importer.hpp>
+#include <assimp_devel/scene.h>
+#include <assimp_devel/postprocess.h>
 #include "next_best_view/helper/MapHelper.hpp"
+#include "next_best_view/helper/TypeHelper.hpp"
+#include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "typedef.hpp"
 
 namespace next_best_view {
     class WorldHelper {
     private:
+        const double EPSILON = 10e-6;
+
         MapHelperPtr mMapHelperPtr;
         VoxelGridPtr mVoxelGridPtr;
+        VisualizationHelper mVisHelper;
+        DebugHelperPtr mDebugHelper;
 
-        double mVoxelSize;
+        double mMapVoxelSize, mWorldVoxelSize;
 
     public:
-        WorldHelper(MapHelperPtr mapHelperPtr, std::string pcdFilePath, double voxelSize, double worldHeight);
+        WorldHelper(MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight);
 
         bool isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectPosition);
 
@@ -25,11 +36,36 @@ namespace next_best_view {
 
         bool isMarked(GridVector3 gridPosition);
 
-        void mapToVoxelGridCoordinates(const SimpleVector3 &mapPos, GridVector3 &result);
+        void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result);
+
+        void mapToWorldCoordinates(const SimpleVector3 &worldPos, SimpleVector3 &result);
 
         void initializeVoxelGrid(double worldHeight);
 
-        void loadVoxelGrid(std::string pcdFilePath);
+        void loadVoxelGrid(std::string filePath);
+
+        void loadOBJFile(std::string filePath, SimpleVector3 position, SimpleQuaternion orientation);
+
+        void addPoint(const SimpleVector3& point);
+
+        void addTriangle(const std::vector<SimpleVector3> vertices);
+
+        void markVoxel(const GridVector3& gridPos);
+
+        void voxelToWorldBox(const GridVector3& gridPos, SimpleVector3& min, SimpleVector3& max);
+
+        bool voxelVerticesAreNeighbours(const SimpleVector3 &vertexA, const SimpleVector3 &vertexB);
+
+        bool lineIntersectsVoxel(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const SimpleVector3 &voxelMin, const SimpleVector3 &voxelMax);
+
+        bool lineIntersectsVoxelHelper(const SimpleVector3 &startPos, const SimpleVector3 &direction, const SimpleVector3 &voxelCoord,
+                                                                            const SimpleVector3 &voxelMin, const SimpleVector3 &voxelMax);
+
+        bool lineIntersectsTriangle(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const std::vector<SimpleVector3> triangleVertices);
+
+        bool inVoxelGrid(const GridVector3& gridPos);
+
+        bool equalVoxels(const GridVector3& a, const GridVector3& b);
 
     };
 
