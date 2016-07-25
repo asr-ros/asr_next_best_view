@@ -151,6 +151,23 @@ namespace next_best_view {
         return marker;
     }
 
+    visualization_msgs::Marker MarkerHelper::getTriangleListMarker(int id, std::vector<SimpleVector3> vertices,
+                                                                    std::vector<SimpleVector4> colors, string ns)
+    {
+        visualization_msgs::Marker marker = getBasicMarker(id, SimpleVector3(0,0,0), SimpleQuaternion(0,0,0,1),
+                                                                SimpleVector3(1,1,1), SimpleVector4(0,0,0,1), ns);
+
+        marker.type = visualization_msgs::Marker::TRIANGLE_LIST;
+
+        for (unsigned int i = 0; i < vertices.size(); i++)
+        {
+            marker.points.push_back(TypeHelper::getPointMSG(vertices[i]));
+            marker.colors.push_back(TypeHelper::getColor(colors[i]));
+        }
+
+        return marker;
+    }
+
 	void MarkerHelper::getRainbowColor(visualization_msgs::Marker &marker, double x, double alpha) {
         // clamping value to [0.0, 1.0):125
 		if (x >= 1.0) {
