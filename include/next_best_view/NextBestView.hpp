@@ -136,7 +136,8 @@ private:
         sphereSamplingConfig       = 0b1 << 5,
         hypothesisUpdaterConfig    = 0b1 << 6,
         cropboxFileConfig          = 0b1 << 7,
-        mapHelperConfig            = 0b1 << 8
+        mapHelperConfig            = 0b1 << 8,
+        worldHelperConfig          = 0b1 << 8
     };
 
     boost::shared_ptr<boost::thread> mVisualizationThread;
@@ -296,11 +297,13 @@ public:
             mCalculator.setSpaceSampler(spaceSampler);
         }
 
+        mDebugHelperPtr->write(std::stringstream() << "cameraFilterId: " << config.cameraFilterId, DebugHelper::PARAMETERS);
+
         /*
          * Intializes cameraModelFilter with a CameraModelFilter subclass specified by the parameter cameraFilterId :
-         * - cameraFilterId == 1 => MapBasedStereoCameraModelFilter
+         * - cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
          * - cameraFilterId == 2 => StereoCameraModelFilter
-         * - cameraFilterId == 3 => MapBasedSingleCameraModelFilter
+         * - cameraFilterId == 3 => Raytracing3DBasedSingleCameraModelFilter
          * - cameraFilterId == 4 => SingleCameraModelFilter
          * Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
          * Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
@@ -312,33 +315,35 @@ public:
             SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
             MapHelperPtr mapHelperPtr = mCalculator.getMapHelper();
 
+            mDebugHelperPtr->write(std::stringstream() << "worldFilePath: " << config.worldFilePath, DebugHelper::PARAMETERS);
+            mDebugHelperPtr->write(std::stringstream() << "voxelSize: " << config.voxelSize, DebugHelper::PARAMETERS);
+            mDebugHelperPtr->write(std::stringstream() << "worldHeight: " << config.worldHeight, DebugHelper::PARAMETERS);
+
+            // data for 3D raytracing
+            // TODO only initialize world helper if needed
+            WorldHelperPtr worldHelperPtr(new WorldHelper(mapHelperPtr, config.worldFilePath, config.voxelSize, config.worldHeight));
+
             switch (config.cameraFilterId) {
 		    case 1:
-		        cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperPtr, leftCameraPivotPointOffset, rightCameraPivotPointOffset));
+                cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedStereoCameraModelFilter(worldHelperPtr,
+                                                                                                      leftCameraPivotPointOffset,
+                                                                                                      rightCameraPivotPointOffset));
 		        break;
 		    case 2:
 		        cameraModelFilter = CameraModelFilterPtr(new StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset));
 		        break;
 		    case 3:
-		        /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
+                /* Raytracing3DBasedCameraModelFilter is a specialization of the abstract CameraModelFilter class.
 		         * The camera model filter takes account for the fact, that there are different cameras around in the real world.
 		         * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
-		         * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
-		         * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
+                 * the 3D-raytracing version of the camera filter also uses the knowledge of obstacles or walls between the camera and
+                 * the object to be observed. So, 3D-raytracing-based in this context means that the way from the lens to the object is ray-traced.
 		         */
-		        cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedSingleCameraModelFilter(mapHelperPtr, oneCameraPivotPointOffset));
+                cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedSingleCameraModelFilter(worldHelperPtr, oneCameraPivotPointOffset));
 		        break;
 		    case 4:
 		        cameraModelFilter = CameraModelFilterPtr(new SingleCameraModelFilter(oneCameraPivotPointOffset));
-		        break;
-			case 5:
-		        cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedStereoCameraModelFilter(worldHelperPtr,
-		                                                                                              leftCameraPivotPointOffset,
-		                                                                                              rightCameraPivotPointOffset));
-		        break;
-		    case 6:
-		        cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedSingleCameraModelFilter(worldHelperPtr, oneCameraPivotPointOffset));
-		        break;
+                break;
 		    default:
 		        std::stringstream ss;
 		        ss << config.cameraFilterId << " is not a valid camera filter ID";
@@ -825,9 +830,13 @@ public:
         return typeToMeshResource;
     }
 
-    void dynamicReconfigureCallback(next_best_view::DynamicParametersConfig &config, uint32_t level) {
+    void dynamicReconfigureCallback(DynamicParametersConfig &config, uint32_t level) {
         // TODO split this up
         // TODO consider that services and this and other stuff is called parallel
+        ROS_INFO_STREAM("Parameters updated");
+        ROS_INFO_STREAM("level: " << level);
+        this->config = config;
+        this->configLevel = level;
         initialize();
     }
 };
