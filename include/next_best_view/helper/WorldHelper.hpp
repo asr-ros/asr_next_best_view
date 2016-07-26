@@ -38,6 +38,8 @@ namespace next_best_view {
 
         void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result);
 
+        void worldToVoxelGridCoordinates(const std::vector<SimpleVector3> &worldPositions, std::vector<GridVector3> &results);
+
         void mapToWorldCoordinates(const SimpleVector3 &worldPos, SimpleVector3 &result);
 
         void initializeVoxelGrid(double worldHeight);
@@ -48,13 +50,19 @@ namespace next_best_view {
 
         void addPoint(const SimpleVector3& point);
 
-        void addTriangle(const std::vector<SimpleVector3> vertices);
+        void addLine(const std::vector<SimpleVector3>& vertices);
+
+        void addTriangle(const std::vector<SimpleVector3>& vertices);
 
         void markVoxel(const GridVector3& gridPos);
 
         void voxelToWorldBox(const GridVector3& gridPos, SimpleVector3& min, SimpleVector3& max);
 
+        void voxelGridBox(const std::vector<GridVector3> &gridPositions, GridVector3 &min, GridVector3 &max);
+
         bool voxelVerticesAreNeighbours(const SimpleVector3 &vertexA, const SimpleVector3 &vertexB);
+
+        bool lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const GridVector3& gridPos);
 
         bool lineIntersectsVoxel(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const SimpleVector3 &voxelMin, const SimpleVector3 &voxelMax);
 

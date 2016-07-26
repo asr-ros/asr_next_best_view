@@ -99,6 +99,20 @@ void WorldHelper::worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, Gri
     }
 }
 
+void WorldHelper::worldToVoxelGridCoordinates(const std::vector<SimpleVector3> &worldPositions, std::vector<GridVector3> &results)
+{
+    // get grid positions of vertices
+    results.clear();
+
+    for (unsigned int i = 0; i < worldPositions.size(); i++)
+    {
+        SimpleVector3 worldPos = worldPositions[i];
+        GridVector3 gridPos;
+        worldToVoxelGridCoordinates(worldPos, gridPos);
+        results.push_back(gridPos);
+    }
+}
+
 void WorldHelper::mapToWorldCoordinates(const SimpleVector3 &worldPos, SimpleVector3 &result)
 {
     mMapHelperPtr->mapToWorldCoordinates(worldPos, result);
@@ -140,10 +154,8 @@ void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, Simpl
     const aiScene* currentScene = NULL;
     Assimp::Importer meshImporter;
 
-    meshImporter.SetPropertyInteger("AI_CONFIG_PP_SBP_REMOVE", aiPrimitiveType_LINE);
     currentScene = meshImporter.ReadFile(filePath, aiProcess_Triangulate |
-                                                   aiProcess_ValidateDataStructure |
-                                                   aiProcess_SortByPType);
+                                                   aiProcess_ValidateDataStructure);
 
     if (!currentScene)
     {
@@ -155,8 +167,6 @@ void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, Simpl
 
     mDebugHelper->write(std::stringstream() << "Loaded mesh with " << mesh->mNumVertices << " vertices.",
                                                                                         DebugHelper::WORLD);
-
-
 
     // transform mesh and put new vertices in vertices vector
     std::vector<SimpleVector3> vertices;
@@ -188,6 +198,8 @@ void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, Simpl
 
         if (face.mNumIndices == 3)
             addTriangle(faceVertices);
+        else if (face.mNumIndices == 2)
+            addLine(faceVertices);
         else if (face.mNumIndices == 1)
             addPoint(faceVertices[0]);
     }
@@ -205,40 +217,96 @@ void WorldHelper::addPoint(const SimpleVector3 &point)
     markVoxel(gridPos);
 }
 
-void WorldHelper::addTriangle(const std::vector<SimpleVector3> vertices)
+void WorldHelper::addLine(const std::vector<SimpleVector3> &vertices)
+{
+    mDebugHelper->write("Adding line to voxel grid.", DebugHelper::WORLD);
+    mDebugHelper->write(std::stringstream() << "Line vertices: " << vertices[0] << ", " << vertices[1], DebugHelper::WORLD);
+
+    std::vector<GridVector3> verticesGridPositions;
+    worldToVoxelGridCoordinates(vertices, verticesGridPositions);
+
+    mDebugHelper->write(std::stringstream() << "Line vertices grid positions: " << verticesGridPositions[0] << ", "
+                                                        << verticesGridPositions[1] << ", " << verticesGridPositions[2],
+                                                        DebugHelper::WORLD);
+
+    // get voxel bounding box of triangle spanning from minPos to maxPos
+    GridVector3 minPos, maxPos;
+
+    voxelGridBox(verticesGridPositions, minPos, maxPos);
+
+    mDebugHelper->write(std::stringstream() << "Bounding box of line spanning from " << minPos << " to " << maxPos, DebugHelper::WORLD);
+
+    // go through each voxel in bounding box and check if it intersects the line
+    for (int i = minPos[0]; i <= maxPos[0]; i++)
+        for (int j = minPos[1]; j <= maxPos[1]; j++)
+            for (int k = minPos[2]; k <= maxPos[2]; k++)
+            {
+                GridVector3 voxel(i,j,k);
+
+                /*
+                 * ------------------------------------------------
+                 * voxel already marked => continue with next voxel
+                 * ------------------------------------------------
+                 */
+                if (isMarked(voxel))
+                    continue;
+
+                /*
+                 * ----------------------------------------
+                 * 1 vertex in voxel => intersection
+                 * ----------------------------------------
+                 */
+                unsigned int count = 0;
+
+                for (unsigned int i = 0; i < 2; i++)
+                {
+                    GridVector3 vertexGridPos = verticesGridPositions[i];
+                    if (equalVoxels(voxel, vertexGridPos))
+                        count++;
+                }
+
+                if (count == 1)
+                {
+                    markVoxel(voxel);
+                    continue;
+                }
+
+                /*
+                 * --------------------------------------
+                 * 2 vertices in voxel => no intersection
+                 * --------------------------------------
+                 */
+                if (count == 2)
+                    continue;
+
+                /*
+                 * -------------------------------
+                 * general check for interesection
+                 * -------------------------------
+                 */
+                if (lineIntersectsVoxel(vertices[0], vertices[1], voxel))
+                    markVoxel(voxel);
+            }
+}
+
+void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 {
     mDebugHelper->write("Adding triangle to voxel grid.", DebugHelper::WORLD);
     mDebugHelper->write(std::stringstream() << "Triangle vertices: " << vertices[0] << ", " << vertices[1] << ", " << vertices[2],
                                                                                                                 DebugHelper::WORLD);
     // get grid positions of vertices
-    GridVector3 verticesGridPositions[3];
+    std::vector<GridVector3> verticesGridPositions;
 
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        SimpleVector3 vertex = vertices[i];
-        GridVector3 gridPos;
-        worldToVoxelGridCoordinates(vertex, gridPos);
-        verticesGridPositions[i] = gridPos;
-    }
+    worldToVoxelGridCoordinates(vertices, verticesGridPositions);
 
     mDebugHelper->write(std::stringstream() << "Triangle vertices grid positions: " << verticesGridPositions[0] << ", "
                                                         << verticesGridPositions[1] << ", " << verticesGridPositions[2],
                                                         DebugHelper::WORLD);
 
     // get voxel bounding box of triangle spanning from minPos to maxPos
-    GridVector3 minPos(mVoxelGridPtr->sizeX() - 1, mVoxelGridPtr->sizeY() - 1, mVoxelGridPtr->sizeZ() - 1);
-    GridVector3 maxPos(0,0,0);
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        GridVector3 gridPos = verticesGridPositions[i];
-        for (unsigned int j = 0; j < 3; j++)
-        {
-            if (gridPos[j] < minPos[j])
-                minPos[j] = gridPos[j];
-            if (gridPos[j] > maxPos[j])
-                maxPos[j] = gridPos[j];
-        }
-    }
+    GridVector3 minPos, maxPos;
+
+    voxelGridBox(verticesGridPositions, minPos, maxPos);
 
     mDebugHelper->write(std::stringstream() << "Bounding box of triangle spanning from " << minPos << " to " << maxPos, DebugHelper::WORLD);
 
@@ -408,6 +476,24 @@ void WorldHelper::voxelToWorldBox(const GridVector3 &gridPos, SimpleVector3 &min
     mapToWorldCoordinates(tempMax, max);
 }
 
+void WorldHelper::voxelGridBox(const std::vector<GridVector3> &gridPositions, GridVector3 &min, GridVector3 &max)
+{
+    min = GridVector3(mVoxelGridPtr->sizeX() - 1, mVoxelGridPtr->sizeY() - 1, mVoxelGridPtr->sizeZ() - 1);
+    max = GridVector3(0,0,0);
+
+    for (unsigned int i = 0; i < gridPositions.size(); i++)
+    {
+        GridVector3 gridPos = gridPositions[i];
+        for (unsigned int j = 0; j < 3; j++)
+        {
+            if (gridPos[j] < min[j])
+                min[j] = gridPos[j];
+            if (gridPos[j] > max[j])
+                max[j] = gridPos[j];
+        }
+    }
+}
+
 bool WorldHelper::voxelVerticesAreNeighbours(const SimpleVector3& vertexA, const SimpleVector3& vertexB)
 {
     int count = 0;
@@ -419,6 +505,13 @@ bool WorldHelper::voxelVerticesAreNeighbours(const SimpleVector3& vertexA, const
     }
 
     return count == 1;
+}
+
+bool WorldHelper::lineIntersectsVoxel(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const GridVector3 &gridPos)
+{
+    SimpleVector3 min, max;
+    voxelToWorldBox(gridPos, min, max);
+    return lineIntersectsVoxel(lineStartPos, lineEndPos, min, max);
 }
 
 bool WorldHelper::lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos,
