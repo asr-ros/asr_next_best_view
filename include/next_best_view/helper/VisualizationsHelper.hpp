@@ -488,8 +488,6 @@ public:
         bool showVoxelGridNotMarkedMarker;
         mNodeHandle.getParam("/nbv/showVoxelGridNotMarkedMarker", showVoxelGridNotMarkedMarker);
 
-        visualization_msgs::MarkerArray voxelGridMarkerArray;
-
         double mapVoxelSize;
         mapHelperPtr->worldToMapSize(worldVoxelSize, mapVoxelSize);
 
@@ -514,13 +512,13 @@ public:
                     SimpleVector3 scale(worldVoxelSize,worldVoxelSize,worldVoxelSize);
                     std::string ns = "VoxelGrid";
                     visualization_msgs::Marker voxelMarker = MarkerHelper::getCubeMarker(count, worldPosition, orientation, scale, color, ns);
-                    voxelGridMarkerArray.markers.push_back(voxelMarker);
+                    mVoxelGridMarkerArrayPtr.markers.push_back(voxelMarker);
                     count++;
                 }
 
         mDebugHelperPtr->write(std::stringstream() << "Publishing " << count << " voxels.", DebugHelper::VISUALIZATION);
 
-        mVoxelGridPublisher.publish(voxelGridMarkerArray);
+        mVoxelGridPublisher.publish(mVoxelGridMarkerArrayPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING VOXEL GRID VISUALIZATION", DebugHelper::VISUALIZATION);
     }
