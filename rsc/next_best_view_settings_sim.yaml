@@ -24,9 +24,9 @@ IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientatio
 # Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
 # Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
 cameraFilterId: 3
-voxelSize: 1
+voxelSize: 0.04
 worldHeight: 3
-worldFilePath: package://object_database/rsc/databases/environment/LabTable/LabTable.obj
+worldFilePath: package://visualization_server/config/markers_mild.xml
 # ratingModuleId == 1 => DefaultRatingModule
 ratingModuleId: 1
 # hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
@@ -55,4 +55,4 @@ spaceSamplerId: 1
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
-debugLevels: [NONE] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
+debugLevels: [NONE] #[PARAMETERS, VISUALIZATION, WORLD] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

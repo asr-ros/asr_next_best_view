@@ -5,11 +5,11 @@ namespace next_best_view {
 WorldHelper::WorldHelper(next_best_view::MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight) :
     mMapHelperPtr(mapHelperPtr), mWorldVoxelSize(voxelSize)
 {
-    mDebugHelper = DebugHelper::getInstance();
+    mDebugHelperPtr = DebugHelper::getInstance();
 
     mMapHelperPtr->worldToMapSize(voxelSize, mMapVoxelSize);
 
-    initializeVoxelGrid(worldHeight);
+    initializeVoxelGridHelper(worldHeight);
     loadVoxelGrid(filePath);
 }
 
@@ -27,7 +27,7 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
                              GridVector3 currGridPos, GridVector3 objectGridPos,
                              double tStart)
 {
-    if (isMarked(currGridPos))
+    if (mVoxelGridHelperPtr->isMarked(currGridPos))
         return true;
 
     if (equalVoxels(currGridPos, objectGridPos))
@@ -77,15 +77,6 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
     return isOccluded(cameraPos, objectPos, nextGrid, objectGridPos, tMin);
 }
 
-bool WorldHelper::isMarked(GridVector3 gridPosition)
-{
-    if (!inVoxelGrid(gridPosition))
-        return false;
-
-    voxel_grid::VoxelStatus vs = mVoxelGridPtr->getVoxel(gridPosition[0], gridPosition[1], gridPosition[2]);
-    return vs == voxel_grid::VoxelStatus::MARKED;
-}
-
 void WorldHelper::worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result)
 {
     // world to map
@@ -118,37 +109,172 @@ void WorldHelper::mapToWorldCoordinates(const SimpleVector3 &worldPos, SimpleVec
     mMapHelperPtr->mapToWorldCoordinates(worldPos, result);
 }
 
-void WorldHelper::initializeVoxelGrid(double worldHeight)
+void WorldHelper::initializeVoxelGridHelper(double worldHeight)
 {
-    mDebugHelper->write("Initializing voxel grid.", DebugHelper::WORLD);
+    mDebugHelperPtr->write("Initializing voxel grid.", DebugHelper::WORLD);
     unsigned int size_x, size_y, size_z;
     size_x = ceil((double) mMapHelperPtr->getMetricWidth() / mWorldVoxelSize);
     size_y = ceil((double) mMapHelperPtr->getMetricHeight() / mWorldVoxelSize);
     size_z = ceil(worldHeight / mWorldVoxelSize);
-    mVoxelGridPtr = VoxelGridPtr(new VoxelGrid(size_x, size_y, size_z));
-    mDebugHelper->write(std::stringstream() << "Initialized voxel grid with size " << size_x << "x" << size_y << "x" << size_z << ".",
+
+    mVoxelGridHelperPtr = VoxelGridHelperPtr(new VoxelGridHelper(GridVector3(size_x, size_y, size_z)));
+
+    mDebugHelperPtr->write(std::stringstream() << "Initialized voxel grid with size " << size_x << "x" << size_y << "x" << size_z << ".",
                                                                                                                     DebugHelper::WORLD);
 }
 
 void WorldHelper::loadVoxelGrid(std::string filePath)
 {
-    loadOBJFile(filePath, SimpleVector3(0,0,1), SimpleQuaternion(1,0,0,0));
+    std::vector<std::string> meshResources;
+    std::vector<SimpleVector3> positions;
+    std::vector<SimpleQuaternion> orientations;
+    std::vector<SimpleVector3> scales;
 
-    mVisHelper.triggerVoxelGridVisualization(mVoxelGridPtr, mWorldVoxelSize, mMapHelperPtr);
+    parseXMLFile(filePath, meshResources, positions, orientations, scales);
+
+    mVisHelper.triggerWorldMeshesVisualization(meshResources, positions, orientations, scales);
+
+    std::vector<std::vector<SimpleVector3>> faces;
+
+    for (unsigned int i = 0; i < meshResources.size(); i++)
+    {
+        loadMeshFile(meshResources[i], positions[i], orientations[i], scales[i], faces);
+    }
+
+    mVisHelper.triggerWorldTrianglesVisualization(faces);
+
+    mVisHelper.triggerVoxelGridVisualization(mVoxelGridHelperPtr, mWorldVoxelSize, mMapHelperPtr);
 }
 
-void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, SimpleQuaternion orientation)
+void WorldHelper::parseXMLFile(const string &filePath, std::vector<std::string> &meshResources,
+                                                            std::vector<SimpleVector3> &positions,
+                                                            std::vector<SimpleQuaternion> &orientations,
+                                                            std::vector<SimpleVector3> &scales)
 {
-    mDebugHelper->write(std::stringstream() << "Loading OBJ file " << meshResource, DebugHelper::WORLD);
+    meshResources.clear();
+    positions.clear();
+    orientations.clear();
 
-    mVisHelper.triggerWorldMeshVisualization(meshResource, position, orientation);
+    std::string absFilePath = getAbsolutePath(filePath);
+
+    mDebugHelperPtr->write(std::stringstream() << "Parsing XML file: " << absFilePath, DebugHelper::WORLD);
+
+    try
+    {
+        rapidxml::file<> xmlFile(absFilePath.c_str());
+        rapidxml::xml_document<> xmlDoc;
+        xmlDoc.parse<0>(xmlFile.data());
+
+        rapidxml::xml_node<> *rootNode = xmlDoc.first_node();
+        if (rootNode)
+        {
+            rapidxml::xml_node<> *childNode = rootNode->first_node();
+
+            while (childNode)
+            {
+                rapidxml::xml_attribute<> *scaleAttribute = childNode->first_attribute("scale");
+                rapidxml::xml_attribute<> *meshAttribute = childNode->first_attribute("mesh");
+                if (scaleAttribute && meshAttribute)
+                {
+                    std::string meshResource = meshAttribute->value();
+                    std::string scale = scaleAttribute->value();
+                    std::string poseString = childNode->value();
+                    std::vector<double> poseVec;
+                    std::vector<double> scaleVec;
+                    if (parsePoseString(poseString, poseVec) && poseVec.size() == 7)
+                    {
+                        if (parsePoseString(scale, scaleVec) && scaleVec.size() == 3)
+                        {
+                            SimpleVector3 position(poseVec[0], poseVec[1], poseVec[2]);
+                            SimpleQuaternion orientation(poseVec[3], poseVec[4], poseVec[5], poseVec[6]);
+                            SimpleVector3 scale(scaleVec[0], scaleVec[1], scaleVec[2]);
+
+                            meshResources.push_back(meshResource);
+                            positions.push_back(position);
+                            orientations.push_back(orientation);
+                            scales.push_back(scale);
+                        }
+                    }
+
+                }
+                childNode = childNode->next_sibling();
+            }
+        }
+    }
+    catch(std::runtime_error err)
+    {
+        ROS_ERROR_STREAM("Can't parse xml-file. Runtime error: " << err.what());
+    }
+    catch (rapidxml::parse_error err)
+    {
+        ROS_ERROR_STREAM("Can't parse xml-file Parse error: " << err.what());
+    }
+    catch (boost::bad_lexical_cast err)
+    {
+        ROS_ERROR_STREAM("Can't cast use_mat. Cast error: " << err.what());
+    }
+
+    assert(meshResources.size() == positions.size() && positions.size() == orientations.size() && orientations.size() == scales.size());
+
+    mDebugHelperPtr->write(std::stringstream() << "Got " << meshResources.size() << " objects from XML file.", DebugHelper::WORLD);
+
+}
+
+bool WorldHelper::parsePoseString(const string &poseString, std::vector<double> &poseVec)
+{
+    poseVec.clear();
+
+    std::vector<std::string> strVec;
+    boost::algorithm::split(strVec, poseString, boost::algorithm::is_any_of(","));
+
+    BOOST_FOREACH(std::string str, strVec)
+    {
+        try
+        {
+            poseVec.push_back(boost::lexical_cast<double>(str));
+        }
+        catch (boost::bad_lexical_cast err)
+        {
+            ROS_ERROR_STREAM("Can't cast node-value. Cast error: " << err.what());
+            poseVec.clear();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+string WorldHelper::getAbsolutePath(string filePath)
+{
+    std::string result;
+    if (boost::starts_with(filePath, "package://"))
+    {
+        result = filePath.substr(10);
+        std::vector<std::string> split;
+        boost::split(split, result, boost::is_any_of("/"));
+        std::string packagePath = ros::package::getPath(split[0]);
+        result = packagePath.substr(0, packagePath.length() - split[0].length()) + result;
+    }
+    else if (boost::starts_with(filePath, "."))
+    {
+        result = ros::package::getPath("next_best_view") + filePath.substr(1);
+    }
+    else
+    {
+        result = filePath;
+    }
+
+    return result;
+}
+
+void WorldHelper::loadMeshFile(const std::string &meshResource, const SimpleVector3 &position,
+                                const SimpleQuaternion &orientation, const SimpleVector3 &scale,
+                                std::vector<std::vector<SimpleVector3>> &faces)
+{
+    mDebugHelperPtr->write(std::stringstream() << "Loading OBJ file " << meshResource, DebugHelper::WORLD);
 
     // get file path
-    std::string filePath = meshResource.substr(10, meshResource.size() - 10);
-    std::vector<std::string> split;
-    boost::split(split, filePath, boost::is_any_of("/"));
-    std::string packagePath = ros::package::getPath(split[0]);
-    filePath = packagePath.substr(0, packagePath.length() - split[0].length()) + filePath;
+    std::string filePath = getAbsolutePath(meshResource);
 
     // import mesh
     const aiScene* currentScene = NULL;
@@ -165,7 +291,7 @@ void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, Simpl
 
     aiMesh* mesh = currentScene->mMeshes[0];
 
-    mDebugHelper->write(std::stringstream() << "Loaded mesh with " << mesh->mNumVertices << " vertices.",
+    mDebugHelperPtr->write(std::stringstream() << "Loaded mesh with " << mesh->mNumVertices << " vertices.",
                                                                                         DebugHelper::WORLD);
 
     // transform mesh and put new vertices in vertices vector
@@ -174,14 +300,14 @@ void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, Simpl
     {
         aiVector3D aiVertex = mesh->mVertices[i];
         SimpleVector3 vertex = TypeHelper::getSimpleVector3(aiVertex);
-        vertex += position;
+        vertex = vertex.cwiseProduct(scale);
         vertex = orientation.toRotationMatrix() * vertex;
+        vertex += position;
         vertices.push_back(vertex);
     }
 
     // load mesh into voxel grid
-    mDebugHelper->write("Adding mesh to voxel grid.", DebugHelper::WORLD);
-    std::vector<std::vector<SimpleVector3>> faces;
+    mDebugHelperPtr->write("Adding mesh to voxel grid.", DebugHelper::WORLD);
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -204,28 +330,26 @@ void WorldHelper::loadOBJFile(string meshResource, SimpleVector3 position, Simpl
             addPoint(faceVertices[0]);
     }
 
-    mVisHelper.triggerWorldTrianglesVisualization(faces);
-
-    mDebugHelper->write(std::stringstream() << "Loaded OBJ file " << filePath, DebugHelper::WORLD);
+    mDebugHelperPtr->write(std::stringstream() << "Loaded OBJ file " << filePath, DebugHelper::WORLD);
 }
 
 void WorldHelper::addPoint(const SimpleVector3 &point)
 {
-    mDebugHelper->write("Adding point to voxel grid.", DebugHelper::WORLD);
+    mDebugHelperPtr->write("Adding point to voxel grid.", DebugHelper::WORLD);
     GridVector3 gridPos;
     worldToVoxelGridCoordinates(point, gridPos);
-    markVoxel(gridPos);
+    mVoxelGridHelperPtr->markVoxel(gridPos);
 }
 
 void WorldHelper::addLine(const std::vector<SimpleVector3> &vertices)
 {
-    mDebugHelper->write("Adding line to voxel grid.", DebugHelper::WORLD);
-    mDebugHelper->write(std::stringstream() << "Line vertices: " << vertices[0] << ", " << vertices[1], DebugHelper::WORLD);
+    mDebugHelperPtr->write("Adding line to voxel grid.", DebugHelper::WORLD);
+    mDebugHelperPtr->write(std::stringstream() << "Line vertices: " << vertices[0] << ", " << vertices[1], DebugHelper::WORLD);
 
     std::vector<GridVector3> verticesGridPositions;
     worldToVoxelGridCoordinates(vertices, verticesGridPositions);
 
-    mDebugHelper->write(std::stringstream() << "Line vertices grid positions: " << verticesGridPositions[0] << ", "
+    mDebugHelperPtr->write(std::stringstream() << "Line vertices grid positions: " << verticesGridPositions[0] << ", "
                                                         << verticesGridPositions[1] << ", " << verticesGridPositions[2],
                                                         DebugHelper::WORLD);
 
@@ -234,7 +358,7 @@ void WorldHelper::addLine(const std::vector<SimpleVector3> &vertices)
 
     voxelGridBox(verticesGridPositions, minPos, maxPos);
 
-    mDebugHelper->write(std::stringstream() << "Bounding box of line spanning from " << minPos << " to " << maxPos, DebugHelper::WORLD);
+    mDebugHelperPtr->write(std::stringstream() << "Bounding box of line spanning from " << minPos << " to " << maxPos, DebugHelper::WORLD);
 
     // go through each voxel in bounding box and check if it intersects the line
     for (int i = minPos[0]; i <= maxPos[0]; i++)
@@ -244,11 +368,19 @@ void WorldHelper::addLine(const std::vector<SimpleVector3> &vertices)
                 GridVector3 voxel(i,j,k);
 
                 /*
+                 * -----------------------------------------------------------
+                 * voxel outside voxel grid bounds => continue with next voxel
+                 * -----------------------------------------------------------
+                 */
+                if (!mVoxelGridHelperPtr->inVoxelGrid(voxel))
+                    continue;
+
+                /*
                  * ------------------------------------------------
                  * voxel already marked => continue with next voxel
                  * ------------------------------------------------
                  */
-                if (isMarked(voxel))
+                if (mVoxelGridHelperPtr->isMarked(voxel))
                     continue;
 
                 /*
@@ -267,7 +399,8 @@ void WorldHelper::addLine(const std::vector<SimpleVector3> &vertices)
 
                 if (count == 1)
                 {
-                    markVoxel(voxel);
+                    mDebugHelperPtr->write("One vertex in voxel.", DebugHelper::WORLD);
+                    mVoxelGridHelperPtr->markVoxel(voxel);
                     continue;
                 }
 
@@ -285,21 +418,24 @@ void WorldHelper::addLine(const std::vector<SimpleVector3> &vertices)
                  * -------------------------------
                  */
                 if (lineIntersectsVoxel(vertices[0], vertices[1], voxel))
-                    markVoxel(voxel);
+                {
+                    mDebugHelperPtr->write("Line intersects voxel.", DebugHelper::WORLD);
+                    mVoxelGridHelperPtr->markVoxel(voxel);
+                }
             }
 }
 
 void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 {
-    mDebugHelper->write("Adding triangle to voxel grid.", DebugHelper::WORLD);
-    mDebugHelper->write(std::stringstream() << "Triangle vertices: " << vertices[0] << ", " << vertices[1] << ", " << vertices[2],
+    mDebugHelperPtr->write("Adding triangle to voxel grid.", DebugHelper::WORLD);
+    mDebugHelperPtr->write(std::stringstream() << "Triangle vertices: " << vertices[0] << ", " << vertices[1] << ", " << vertices[2],
                                                                                                                 DebugHelper::WORLD);
     // get grid positions of vertices
     std::vector<GridVector3> verticesGridPositions;
 
     worldToVoxelGridCoordinates(vertices, verticesGridPositions);
 
-    mDebugHelper->write(std::stringstream() << "Triangle vertices grid positions: " << verticesGridPositions[0] << ", "
+    mDebugHelperPtr->write(std::stringstream() << "Triangle vertices grid positions: " << verticesGridPositions[0] << ", "
                                                         << verticesGridPositions[1] << ", " << verticesGridPositions[2],
                                                         DebugHelper::WORLD);
 
@@ -308,7 +444,7 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 
     voxelGridBox(verticesGridPositions, minPos, maxPos);
 
-    mDebugHelper->write(std::stringstream() << "Bounding box of triangle spanning from " << minPos << " to " << maxPos, DebugHelper::WORLD);
+    mDebugHelperPtr->write(std::stringstream() << "Bounding box of triangle spanning from " << minPos << " to " << maxPos, DebugHelper::WORLD);
 
     // go through each voxel in bounding box and check if it intersects the triangle
     for (int i = minPos[0]; i <= maxPos[0]; i++)
@@ -318,11 +454,19 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
                 GridVector3 voxel(i,j,k);
 
                 /*
+                 * -----------------------------------------------------------
+                 * voxel outside voxel grid bounds => continue with next voxel
+                 * -----------------------------------------------------------
+                 */
+                if (!mVoxelGridHelperPtr->inVoxelGrid(voxel))
+                    continue;
+
+                /*
                  * ------------------------------------------------
                  * voxel already marked => continue with next voxel
                  * ------------------------------------------------
                  */
-                if (isMarked(voxel))
+                if (mVoxelGridHelperPtr->isMarked(voxel))
                     continue;
 
                 /*
@@ -341,7 +485,8 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 
                 if (0 < count && count < 3)
                 {
-                    markVoxel(voxel);
+                    mDebugHelperPtr->write("One or two vertices in voxel.", DebugHelper::WORLD);
+                    mVoxelGridHelperPtr->markVoxel(voxel);
                     continue;
                 }
 
@@ -374,7 +519,8 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 
                         if (lineIntersectsVoxel(vertex1, vertex2, min, max))
                         {
-                            markVoxel(voxel);
+                            mDebugHelperPtr->write("At least one edge of triangle intersects voxel.", DebugHelper::WORLD);
+                            mVoxelGridHelperPtr->markVoxel(voxel);
                             marked = true;
                             break;
                         }
@@ -439,7 +585,8 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
                         {
                             if (lineIntersectsTriangle(voxelVertices[l], voxelVertices[m], vertices))
                             {
-                                markVoxel(voxel);
+                                mDebugHelperPtr->write("At least one edge of voxel intersects triangle.", DebugHelper::WORLD);
+                                mVoxelGridHelperPtr->markVoxel(voxel);
                                 marked = true;
                                 break;
                             }
@@ -456,14 +603,6 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 
 }
 
-void WorldHelper::markVoxel(const GridVector3 &gridPos)
-{
-    if (!inVoxelGrid(gridPos))
-        return;
-    mDebugHelper->write(std::stringstream() << "Marking voxel " << gridPos << ".", DebugHelper::WORLD);
-    mVoxelGridPtr->markVoxel(gridPos[0], gridPos[1], gridPos[2]);
-}
-
 void WorldHelper::voxelToWorldBox(const GridVector3 &gridPos, SimpleVector3 &min, SimpleVector3 &max)
 {
     SimpleVector3 tempMin;
@@ -478,7 +617,8 @@ void WorldHelper::voxelToWorldBox(const GridVector3 &gridPos, SimpleVector3 &min
 
 void WorldHelper::voxelGridBox(const std::vector<GridVector3> &gridPositions, GridVector3 &min, GridVector3 &max)
 {
-    min = GridVector3(mVoxelGridPtr->sizeX() - 1, mVoxelGridPtr->sizeY() - 1, mVoxelGridPtr->sizeZ() - 1);
+    GridVector3 gridSize = mVoxelGridHelperPtr->getVoxelGridSize();
+    min = GridVector3(gridSize[0] - 1, gridSize[1] - 1, gridSize[2] - 1);
     max = GridVector3(0,0,0);
 
     for (unsigned int i = 0; i < gridPositions.size(); i++)
@@ -612,18 +752,6 @@ bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, cons
         if (v1.cross(v2).dot(v3) < 0)
             return false;
     }
-
-    return true;
-}
-
-bool WorldHelper::inVoxelGrid(const GridVector3 &gridPos)
-{
-    if (gridPos[0] < 0 || gridPos[1] < 0 || gridPos[2] < 0)
-        return false;
-
-    if (gridPos[0] >= mVoxelGridPtr->sizeX() || gridPos[1] >= mVoxelGridPtr->sizeY() ||
-            gridPos[2] >= mVoxelGridPtr->sizeZ())
-        return false;
 
     return true;
 }

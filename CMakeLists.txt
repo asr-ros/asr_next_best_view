@@ -109,6 +109,7 @@ add_library(
         src/helper/TypeHelper.cpp
         src/helper/DebugHelper.cpp
         src/helper/WorldHelper.cpp
+        src/helper/VoxelGridHelper.cpp
 )
 
 add_library(
