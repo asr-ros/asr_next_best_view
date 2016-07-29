@@ -48,7 +48,7 @@ private:
     float mEpsilon;
     ObjectTypeSetPtr mObjectTypeSetPtr;
     DebugHelperPtr mDebugHelperPtr;
-    VisualizationHelper mVisHelper;
+    VisualizationHelperPtr mVisHelperPtr;
     bool mEnableCropBoxFiltering;
     bool mEnableIntermediateObjectWeighting;
 
@@ -68,10 +68,10 @@ public:
           mRobotModelPtr(robotModelPtr),
           mCameraModelFilterPtr(cameraModelFilterPtr),
           mRatingModulePtr(ratingModulePtr),
-          mMapHelperPtr(mapHelperPtr),
           mEpsilon(10E-3),
-          mVisHelper() {
+          mVisHelperPtr() {
 
+        setMapHelper(mapHelperPtr);
         mDebugHelperPtr = DebugHelper::getInstance();
     }
 
@@ -260,7 +260,7 @@ private:
         }
 
         //Visualize iteration step and its result.
-        mVisHelper.triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
+        mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
                                                     feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
@@ -437,7 +437,7 @@ public:
             mDebugHelperPtr->write("setPointCloudFromMessage::Filtering point cloud finished.",
                         DebugHelper::CALCULATION);
 
-            mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
+            mVisHelperPtr->triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
 
             outputPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*originalPointCloudPtr, *filteredObjectIndices));
 
@@ -661,6 +661,7 @@ public:
       */
     void setMapHelper(const MapHelperPtr &mapHelperPtr) {
         mMapHelperPtr = mapHelperPtr;
+        mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mMapHelperPtr));
     }
 
     /**

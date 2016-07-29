@@ -15,3 +15,6 @@ CropBoxMarker_RGBA: [1, 1, 0, 0.3]
 VoxelGridMarkedMarker_RGBA: [0, 0, 1, 0.5]
 showVoxelGridNotMarkedMarker: false
 VoxelGridNotMarkedMarker_RGBA: [0, 0, 0, 0.1]
+RaytracingRayMarker_RGBA: [0, 1, 1, 1]
+RaytracingTraversedNotMarkedVoxelMarker_RGBA: [0, 1, 0, 0.5]
+RaytracingTraversedMarkedVoxelMarker_RGBA: [1, 0, 0, 0.5]

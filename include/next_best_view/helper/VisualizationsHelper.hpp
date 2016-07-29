@@ -7,6 +7,7 @@
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/shared_ptr.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 
@@ -48,6 +49,7 @@ private:
     ros::Publisher mWorldMeshesPublisher;
     ros::Publisher mWorldTriangleListPublisher;
     ros::Publisher mVoxelGridPublisher;
+    ros::Publisher mRaytracingPublisher;
 
     ros::NodeHandle mNodeHandle;
 
@@ -60,7 +62,9 @@ private:
     visualization_msgs::MarkerArray::Ptr mFrustumObjectNormalsMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mCropBoxMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mVoxelGridMarkerArrayPtr;
+    visualization_msgs::MarkerArray::Ptr mRaytracingMarkerArrayPtr;
 
+    MapHelperPtr mMapHelperPtr;
     DebugHelperPtr mDebugHelperPtr;
 
     int m_i;
@@ -70,7 +74,7 @@ private:
 
 public:
 
-    VisualizationHelper():m_i(0),m_j(0),mIterationStep(0) {
+    VisualizationHelper(MapHelperPtr mapHelperPtr):mMapHelperPtr(mapHelperPtr),m_i(0),m_j(0),mIterationStep(0) {
         mDebugHelperPtr = DebugHelper::getInstance();
 
         std::string iterationVisualization;
@@ -84,6 +88,7 @@ public:
         std::string worldMeshesVisualization;
         std::string worldTriangleListVisualization;
         std::string voxelGridVisualization;
+        std::string raytracingVisualization;
 
         mNodeHandle.getParam("/nbv/iterationVisualization", iterationVisualization);
         mNodeHandle.getParam("/nbv/frustumVisualization", frustumVisualization);
@@ -96,6 +101,7 @@ public:
         mNodeHandle.getParam("/nbv/worldMeshesVisualization", worldMeshesVisualization);
         mNodeHandle.getParam("/nbv/worldTriangleListVisualization", worldTriangleListVisualization);
         mNodeHandle.getParam("/nbv/voxelGridVisualization", voxelGridVisualization);
+        mNodeHandle.getParam("/nbv/raytracingVisualization", raytracingVisualization);
 
         // initialize publishers
         mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(iterationVisualization, 1000);
@@ -108,6 +114,7 @@ public:
         mWorldMeshesPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(worldMeshesVisualization, 100, false);
         mWorldTriangleListPublisher = mNodeHandle.advertise<visualization_msgs::Marker>(worldTriangleListVisualization, 100, false);
         mVoxelGridPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(voxelGridVisualization, 100, false);
+        mRaytracingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(raytracingVisualization, 100, false);
 
         if (!mIterationMarkerArrayPublisher) {
             ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
@@ -142,7 +149,8 @@ public:
         visualization_msgs::MarkerArray* frustumObjectMeshMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* frustumObjectNormalsMarkerArray = new visualization_msgs::MarkerArray();
         visualization_msgs::MarkerArray* mCropBoxMarkerArray = new visualization_msgs::MarkerArray();
-        visualization_msgs::MarkerArray* mVoxelGridMarkerArray = new visualization_msgs::MarkerArray();
+        visualization_msgs::MarkerArray* voxelGridMarkerArray = new visualization_msgs::MarkerArray();
+        visualization_msgs::MarkerArray* raytracingMarkerArray = new visualization_msgs::MarkerArray();
 
         mIterationMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*iterationMarkerArray);
         mNewFrustumMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*newFrustumMarkerArray);
@@ -152,7 +160,8 @@ public:
         mFrustumObjectMeshMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*frustumObjectMeshMarkerArray);
         mFrustumObjectNormalsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*frustumObjectNormalsMarkerArray);
         mCropBoxMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*mCropBoxMarkerArray);
-        mVoxelGridMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*mVoxelGridMarkerArray);
+        mVoxelGridMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*voxelGridMarkerArray);
+        mRaytracingMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>(*raytracingMarkerArray);
     }
 
     bool getBoolClearBetweenIterations() {
@@ -475,7 +484,7 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING WORLD TRIANGLES VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
-    void triggerVoxelGridVisualization(VoxelGridHelperPtr voxelGridHelperPtr, double worldVoxelSize, MapHelperPtr mapHelperPtr)
+    void triggerVoxelGridVisualization(VoxelGridHelperPtr voxelGridHelperPtr, double worldVoxelSize)
     {
         mDebugHelperPtr->writeNoticeably("STARTING VOXEL GRID VISUALIZATION", DebugHelper::VISUALIZATION);
 
@@ -498,31 +507,29 @@ public:
         bool showVoxelGridNotMarkedMarker;
         mNodeHandle.getParam("/nbv/showVoxelGridNotMarkedMarker", showVoxelGridNotMarkedMarker);
 
-        double mapVoxelSize;
-        mapHelperPtr->worldToMapSize(worldVoxelSize, mapVoxelSize);
-
+        int id = 0;
         int count = 0;
 
         for (int i = 0; i < voxelGridSize[0]; i++)
             for (int j = 0; j < voxelGridSize[1]; j++)
                 for (int k = 0; k < voxelGridSize[2]; k++)
                 {
+                    GridVector3 voxelPos(i, j, k);
+
                     SimpleVector4 color = colorNotMarked;
 
-                    if (voxelGridHelperPtr->isMarked(GridVector3(i, j, k)))
+                    if (voxelGridHelperPtr->isMarked(voxelPos))
                         color = colorMarked;
                     else if (!showVoxelGridNotMarkedMarker)
+                    {
+                        id++;
                         continue;
+                    }
 
-                    SimpleVector3 mapPosition(((double) i + 0.5) * mapVoxelSize, ((double) j + 0.5) * mapVoxelSize, ((double) k + 0.5) * mapVoxelSize);
-                    SimpleVector3 worldPosition;
-                    mapHelperPtr->mapToWorldCoordinates(mapPosition, worldPosition);
-
-                    SimpleQuaternion orientation(1,0,0,0);
-                    SimpleVector3 scale(worldVoxelSize,worldVoxelSize,worldVoxelSize);
                     std::string ns = "VoxelGrid";
-                    visualization_msgs::Marker voxelMarker = MarkerHelper::getCubeMarker(count, worldPosition, orientation, scale, color, ns);
+                    visualization_msgs::Marker voxelMarker = getVoxelMarker(voxelPos, worldVoxelSize, color, id, ns);
                     mVoxelGridMarkerArrayPtr->markers.push_back(voxelMarker);
+                    id++;
                     count++;
                 }
 
@@ -531,6 +538,51 @@ public:
         mVoxelGridPublisher.publish(mVoxelGridMarkerArrayPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING VOXEL GRID VISUALIZATION", DebugHelper::VISUALIZATION);
+    }
+
+
+    void triggerRaytracingVisualization(SimpleVector3 rayStartPos, SimpleVector3 rayEndPos, std::vector<GridVector3> traversedVoxels,
+                                                                                                    bool occluded, double worldVoxelSize)
+    {
+        mDebugHelperPtr->writeNoticeably("STARTING RAYTRACING VISUALIZATION", DebugHelper::VISUALIZATION);
+
+        deleteMarkerArray(mRaytracingMarkerArrayPtr, mRaytracingPublisher);
+
+        // get paramters
+        std::vector<double> RaytracingRayMarkerRGBA;
+        mNodeHandle.getParam("/nbv/RaytracingRayMarker_RGBA", RaytracingRayMarkerRGBA);
+        SimpleVector4 rayColor = TypeHelper::getSimpleVector4(RaytracingRayMarkerRGBA);
+
+        std::vector<double> RaytracingTraversedNotMarkedVoxelMarkerRGBA;
+        mNodeHandle.getParam("/nbv/RaytracingTraversedNotMarkedVoxelMarker_RGBA", RaytracingTraversedNotMarkedVoxelMarkerRGBA);
+        SimpleVector4 voxelNotMarkedColor = TypeHelper::getSimpleVector4(RaytracingTraversedNotMarkedVoxelMarkerRGBA);
+
+        std::vector<double> RaytracingTraversedMarkedVoxelMarkerRGBA;
+        mNodeHandle.getParam("/nbv/RaytracingTraversedMarkedVoxelMarker_RGBA", RaytracingTraversedMarkedVoxelMarkerRGBA);
+        SimpleVector4 voxelMarkedColor = TypeHelper::getSimpleVector4(RaytracingTraversedMarkedVoxelMarkerRGBA);
+
+        // visualize ray
+        visualization_msgs::Marker rayMarker = MarkerHelper::getArrowMarker(0, rayStartPos, rayEndPos, SimpleVector3(1,1,1), rayColor, "Ray");
+
+        mRaytracingMarkerArrayPtr->markers.push_back(rayMarker);
+
+        // visualize traversed voxels
+        for (int i = 0; i < traversedVoxels.size(); i++)
+        {
+            SimpleVector4 color = voxelNotMarkedColor;
+            if (occluded && i == traversedVoxels.size()-1)
+                color = voxelMarkedColor;
+
+            std::string ns = "VoxelGrid";
+            visualization_msgs::Marker voxelMarker = getVoxelMarker(traversedVoxels[i], worldVoxelSize, color, i, ns);
+            mRaytracingMarkerArrayPtr->markers.push_back(voxelMarker);
+        }
+
+        mDebugHelperPtr->write(std::stringstream() << "Publishing " << traversedVoxels.size() << " voxels.", DebugHelper::VISUALIZATION);
+
+        mRaytracingPublisher.publish(mRaytracingMarkerArrayPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING RAYTRACING VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     /* only working because the shape-based recognizer sets the observedId with the object color */
@@ -776,6 +828,19 @@ private:
         mIterationMarkerArrayPtr->markers.push_back(GridMarker);
     }
 
+    visualization_msgs::Marker getVoxelMarker(GridVector3 voxelPos, double worldVoxelSize, SimpleVector4 color, int id, std::string ns) {
+        double mapVoxelSize;
+        mMapHelperPtr->worldToMapSize(worldVoxelSize, mapVoxelSize);
+
+        SimpleVector3 mapPosition(((double) voxelPos[0] + 0.5) * mapVoxelSize, ((double) voxelPos[1] + 0.5) * mapVoxelSize, ((double) voxelPos[2] + 0.5) * mapVoxelSize);
+        SimpleVector3 worldPosition;
+        mMapHelperPtr->mapToWorldCoordinates(mapPosition, worldPosition);
+
+        SimpleQuaternion orientation(1,0,0,0);
+        SimpleVector3 scale(worldVoxelSize,worldVoxelSize,worldVoxelSize);
+        return MarkerHelper::getCubeMarker(id, worldPosition, orientation, scale, color, ns);
+    }
+
     static void visualizePointCloud(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource,
                                         visualization_msgs::MarkerArray::Ptr objectMarkerArrayPtr, ros::Publisher& objectPublisher,
                                         visualization_msgs::MarkerArray::Ptr objectNormalsMarkerArrayPtr, ros::Publisher& objectNormalsPublisher,
@@ -904,4 +969,7 @@ private:
     }
 
 };
+
+typedef boost::shared_ptr<VisualizationHelper> VisualizationHelperPtr;
+
 }

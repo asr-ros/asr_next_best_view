@@ -9,3 +9,4 @@ IKVisualization: /nbv/IK_Visualization
 worldMeshesVisualization: /nbv/worldMeshesVisualization
 worldTriangleListVisualization: /nbv/worldTriangleListVisualization
 voxelGridVisualization: /nbv/voxelGridVisualization
+raytracingVisualization: /nbv/raytracingVisualization

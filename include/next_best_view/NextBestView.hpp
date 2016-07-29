@@ -115,7 +115,7 @@ private:
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
     DebugHelperPtr mDebugHelperPtr;
-    VisualizationHelper mVisHelper;
+    VisualizationHelperPtr mVisHelperPtr;
     /*!
      * visualization settings
      */
@@ -243,7 +243,11 @@ public:
             MapHelperPtr mapHelperPtr(new MapHelper());
             mapHelperPtr->setCollisionThreshold(config.colThresh);
             mCalculator.setMapHelper(mapHelperPtr);
+
+            mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mapHelperPtr));
         }
+
+
 
 
         /* Intializes spaceSampler with a SpaceSampler subclass specified by the parameter samplerId :
@@ -472,7 +476,7 @@ public:
 
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelperPtr->getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
 
@@ -600,7 +604,7 @@ public:
             mDebugHelperPtr->write("No more next best view found.", DebugHelper::SERVICE_CALLS);
             if (mShowFrustumMarkerArray)
             {
-                mVisHelper.clearFrustumVisualization();
+                mVisHelperPtr->clearFrustumVisualization();
             }
             response.found = false;
             mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
@@ -708,7 +712,7 @@ public:
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
         mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-        mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter());
+        mVisHelperPtr->triggerNewFrustumVisualization(mCalculator.getCameraModelFilter());
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -723,7 +727,7 @@ public:
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
         mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-        mVisHelper.triggerOldFrustumVisualization(this->mCalculator.getCameraModelFilter());
+        mVisHelperPtr->triggerOldFrustumVisualization(this->mCalculator.getCameraModelFilter());
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-OLD-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -773,7 +777,7 @@ public:
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
-            mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+            mVisHelperPtr->triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
         }
         if (mShowFrustumPointCloud)
         {
@@ -781,12 +785,12 @@ public:
             ObjectPointCloud frustumObjectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(frustumObjectPointCloud);
 
-            mVisHelper.triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);
+            mVisHelperPtr->triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);
         }
         if (mShowFrustumMarkerArray && publishFrustum)
         {
             // publish furstums visualization
-            mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
+            mVisHelperPtr->triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
         }
         mCurrentlyPublishingVisualization = false;
     }
@@ -800,7 +804,7 @@ public:
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
-            mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+            mVisHelperPtr->triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
         }
     }
 

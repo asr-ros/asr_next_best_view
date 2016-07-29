@@ -5,6 +5,7 @@ namespace next_best_view {
 WorldHelper::WorldHelper(next_best_view::MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight) :
     mMapHelperPtr(mapHelperPtr), mWorldVoxelSize(voxelSize)
 {
+    mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mMapHelperPtr));
     mDebugHelperPtr = DebugHelper::getInstance();
 
     mMapHelperPtr->worldToMapSize(voxelSize, mMapVoxelSize);
@@ -132,7 +133,7 @@ void WorldHelper::loadVoxelGrid(std::string filePath)
 
     parseXMLFile(filePath, meshResources, positions, orientations, scales);
 
-    mVisHelper.triggerWorldMeshesVisualization(meshResources, positions, orientations, scales);
+    mVisHelperPtr->triggerWorldMeshesVisualization(meshResources, positions, orientations, scales);
 
     std::vector<std::vector<SimpleVector3>> faces;
 
@@ -141,9 +142,9 @@ void WorldHelper::loadVoxelGrid(std::string filePath)
         loadMeshFile(meshResources[i], positions[i], orientations[i], scales[i], faces);
     }
 
-    mVisHelper.triggerWorldTrianglesVisualization(faces);
+    mVisHelperPtr->triggerWorldTrianglesVisualization(faces);
 
-    mVisHelper.triggerVoxelGridVisualization(mVoxelGridHelperPtr, mWorldVoxelSize, mMapHelperPtr);
+    mVisHelperPtr->triggerVoxelGridVisualization(mVoxelGridHelperPtr, mWorldVoxelSize);
 }
 
 void WorldHelper::parseXMLFile(const string &filePath, std::vector<std::string> &meshResources,

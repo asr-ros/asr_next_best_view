@@ -23,7 +23,7 @@ namespace next_best_view {
 
         MapHelperPtr mMapHelperPtr;
         VoxelGridHelperPtr mVoxelGridHelperPtr;
-        VisualizationHelper mVisHelper;
+        VisualizationHelperPtr mVisHelperPtr;
         DebugHelperPtr mDebugHelperPtr;
 
         double mMapVoxelSize, mWorldVoxelSize;
