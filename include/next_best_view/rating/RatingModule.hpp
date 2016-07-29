@@ -10,7 +10,7 @@
 
 #include "next_best_view/common/CommonClass.hpp"
 #include "next_best_view/rating/BaseScoreContainer.hpp"
-
+#include "next_best_view/robot_model/RobotState.hpp"
 
 namespace next_best_view {
 	/*!
@@ -93,6 +93,11 @@ namespace next_best_view {
 	 */
         virtual float getRating(const BaseScoreContainerPtr &a) = 0;
 
+        /**
+         * @brief setRobotState sets the robot state, which might have an influence on the rating.
+         * @param robotState the robot state.
+         */
+        virtual void setRobotState(RobotStatePtr robotState) = 0;
     };
 
 	/*!

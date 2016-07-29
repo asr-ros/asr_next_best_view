@@ -86,6 +86,7 @@ public:
         RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
+        mRatingModulePtr->setRobotState(currentState);
 
         mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
                         DebugHelper::CALCULATION);
@@ -267,6 +268,17 @@ private:
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
+    }
+
+    void ratingThread(int threadId, boost::mutex &mutex,
+                      // space sampling
+                      const SamplePointCloudPtr &sampledSpacePointCloud, const IndicesPtr &feasibleIndices,
+                      // sphere sampling
+                      const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
+                      // current camera viewport for rating and a vector to save results to
+                      const ViewportPoint &currentCameraViewport, const ViewportPointCloudPtr &nextBestViewports) {
+
+
     }
 
 public:

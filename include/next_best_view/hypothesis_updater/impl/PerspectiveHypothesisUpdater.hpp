@@ -22,7 +22,7 @@ namespace next_best_view {
 
         unsigned int update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint);
 
-		void setDefaultRatingModule(const DefaultRatingModulePtr &defaultRatingModulePtr);
+        void setDefaultRatingModule(DefaultRatingModulePtr defaultRatingModulePtr);
 
 		DefaultRatingModulePtr getDefaultRatingModule();
 	};

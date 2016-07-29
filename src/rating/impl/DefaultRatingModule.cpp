@@ -455,5 +455,9 @@ void DefaultRatingModule::resetCache() {
     mTargetState = NULL;
 }
 
+void DefaultRatingModule::setRobotState(RobotStatePtr robotState) {
+    mRobotModelPtr->setCurrentRobotState(robotState);
+}
+
 }
 
