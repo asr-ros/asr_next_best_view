@@ -462,7 +462,7 @@ public:
         mWorldMeshesPublisher.publish(worldMeshesMarker);
     }
 
-    void triggerWorldTrianglesVisualization(std::vector<std::vector<SimpleVector3>> faces)
+    void triggerWorldTrianglesVisualization(const std::vector<std::vector<SimpleVector3>>& faces)
     {
         mDebugHelperPtr->writeNoticeably("STARTING WORLD TRIANGLES VISUALIZATION", DebugHelper::VISUALIZATION);
         std::vector<SimpleVector3> vertices;
@@ -541,7 +541,7 @@ public:
     }
 
 
-    void triggerRaytracingVisualization(SimpleVector3 rayStartPos, SimpleVector3 rayEndPos, std::vector<GridVector3> traversedVoxels,
+    void triggerRaytracingVisualization(SimpleVector3 rayStartPos, SimpleVector3 rayEndPos, const std::vector<GridVector3>& traversedVoxels,
                                                                                                     bool occluded, double worldVoxelSize)
     {
         mDebugHelperPtr->writeNoticeably("STARTING RAYTRACING VISUALIZATION", DebugHelper::VISUALIZATION);

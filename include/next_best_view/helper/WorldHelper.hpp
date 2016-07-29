@@ -35,7 +35,7 @@ namespace next_best_view {
 
     private:
         bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
-                            GridVector3 currGridPos, GridVector3 objectGridPos, double tStart);
+                            GridVector3 currVoxelPos, GridVector3 objectGridPos, double tStart, std::vector<GridVector3> &traversedVoxels);
 
         void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result);
 

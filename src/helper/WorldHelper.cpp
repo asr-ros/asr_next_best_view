@@ -21,17 +21,25 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectP
     worldToVoxelGridCoordinates(cameraPosition, cameraGridPos);
     worldToVoxelGridCoordinates(objectPosition, objectGridPos);
 
-    return isOccluded(cameraPosition, objectPosition, cameraGridPos, objectGridPos, 0);
+    std::vector<GridVector3> traversedVoxels;
+
+    bool occluded = isOccluded(cameraPosition, objectPosition, cameraGridPos, objectGridPos, 0, traversedVoxels);
+
+    mVisHelperPtr->triggerRaytracingVisualization(cameraPosition, objectPosition, traversedVoxels, occluded, mWorldVoxelSize);
+
+    return occluded;
 }
 
 bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
-                             GridVector3 currGridPos, GridVector3 objectGridPos,
-                             double tStart)
+                             GridVector3 currVoxelPos, GridVector3 objectGridPos,
+                             double tStart, std::vector<GridVector3>& traversedVoxels)
 {
-    if (mVoxelGridHelperPtr->isMarked(currGridPos))
+    traversedVoxels.push_back(currVoxelPos);
+
+    if (mVoxelGridHelperPtr->isMarked(currVoxelPos))
         return true;
 
-    if (equalVoxels(currGridPos, objectGridPos))
+    if (equalVoxels(currVoxelPos, objectGridPos))
         return false;
 
     // get next grid
@@ -39,10 +47,10 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
 
     SimpleVector3 min, max;
 
-    voxelToWorldBox(currGridPos, min, max);
+    voxelToWorldBox(currVoxelPos, min, max);
 
     double tMin = 2 * mWorldVoxelSize;
-    GridVector3 nextGrid = currGridPos;
+    GridVector3 nextGrid = currVoxelPos;
 
     for(int i = 0; i < min.rows(); i++)
     {
@@ -56,7 +64,7 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
         else if (tStart < tCurrent && tCurrent < tMin)
         {
             tMin = tCurrent;
-            nextGrid = currGridPos;
+            nextGrid = currVoxelPos;
             nextGrid[i]--;
         }
     }
@@ -70,12 +78,12 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
         else if (tStart < tCurrent && tCurrent < tMin)
         {
             tMin = tCurrent;
-            nextGrid = currGridPos;
+            nextGrid = currVoxelPos;
             nextGrid[i]++;
         }
     }
 
-    return isOccluded(cameraPos, objectPos, nextGrid, objectGridPos, tMin);
+    return isOccluded(cameraPos, objectPos, nextGrid, objectGridPos, tMin, traversedVoxels);
 }
 
 void WorldHelper::worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result)
