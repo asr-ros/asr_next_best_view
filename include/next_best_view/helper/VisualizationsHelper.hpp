@@ -463,15 +463,11 @@ public:
             for (unsigned int j = 0; j < 3; j++)
             {
                 SimpleVector3 vertex = faces[i][j];
-                // vertices must be rotated by 180° by the y-axis in order to be shown correctly (why??)
-                SimpleQuaternion orientation = MathHelper::getQuaternionByAngles(M_PI, 0, 0);
-                vertex = orientation.toRotationMatrix() * vertex;
                 vertices.push_back(vertex);
                 colors.push_back(SimpleVector4(0,1,0,1.0));
             }
 
         mDebugHelperPtr->write(std::stringstream() << "Vertices size: " << vertices.size(), DebugHelper::VISUALIZATION);
-        mDebugHelperPtr->write(std::stringstream() << "Colors size: " << colors.size(), DebugHelper::VISUALIZATION);
 
         visualization_msgs::Marker facesMarker = MarkerHelper::getTriangleListMarker(0, vertices, colors, "WorldTriangles");
         mWorldTriangleListPublisher.publish(facesMarker);
