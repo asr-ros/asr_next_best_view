@@ -147,6 +147,7 @@ private:
         int iterationStep = 0;
         //Best viewport at the end of each iteration step and starting point for optimization (grid alignment) for each following step.
         ViewportPoint currentBestViewport = currentCameraViewport;
+        float currentBestRating = 0;
         
 		//Enables to interrupt iterating if it takes too long.
         while (ros::ok()) {
@@ -172,7 +173,7 @@ private:
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
             if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-                    (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
+                    (rating - currentBestRating) <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
                 //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
                 resultViewport = intermediateResultViewport;
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
@@ -187,6 +188,7 @@ private:
             }
 
             currentBestViewport = intermediateResultViewport;
+            currentBestRating = rating;
 
         }
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
