@@ -26,7 +26,7 @@ IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientatio
 cameraFilterId: 3
 voxelSize: 0.04
 worldHeight: 3
-worldFilePath: package://visualization_server/config/markers_mild.xml
+worldFilePath: ./rsc/world/world.xml
 # ratingModuleId == 1 => DefaultRatingModule
 ratingModuleId: 1
 # hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
