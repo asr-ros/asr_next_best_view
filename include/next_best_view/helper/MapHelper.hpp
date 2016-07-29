@@ -109,6 +109,8 @@ namespace next_best_view {
                                                                                 << this->getOrientation().y() << ", "
                                                                                 << this->getOrientation().z(),
                                                                                                         DebugHelper::MAP);
+            mDebugHelperPtr->write(std::stringstream() << "Map metric width: " << this->getMetricWidth(), DebugHelper::MAP);
+            mDebugHelperPtr->write(std::stringstream() << "Map metric height: " << this->getMetricHeight(), DebugHelper::MAP);
 		}
 
         void setCostmap() {
