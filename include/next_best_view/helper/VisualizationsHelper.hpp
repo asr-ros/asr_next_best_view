@@ -553,6 +553,10 @@ public:
         mNodeHandle.getParam("/nbv/RaytracingRayMarker_RGBA", RaytracingRayMarkerRGBA);
         SimpleVector4 rayColor = TypeHelper::getSimpleVector4(RaytracingRayMarkerRGBA);
 
+        std::vector<double> RaytracingRayMarkerScale;
+        mNodeHandle.getParam("/nbv/RaytracingRayMarker_Scale", RaytracingRayMarkerScale);
+        SimpleVector3 scale = TypeHelper::getSimpleVector3(RaytracingRayMarkerScale);
+
         std::vector<double> RaytracingTraversedNotMarkedVoxelMarkerRGBA;
         mNodeHandle.getParam("/nbv/RaytracingTraversedNotMarkedVoxelMarker_RGBA", RaytracingTraversedNotMarkedVoxelMarkerRGBA);
         SimpleVector4 voxelNotMarkedColor = TypeHelper::getSimpleVector4(RaytracingTraversedNotMarkedVoxelMarkerRGBA);
@@ -562,7 +566,7 @@ public:
         SimpleVector4 voxelMarkedColor = TypeHelper::getSimpleVector4(RaytracingTraversedMarkedVoxelMarkerRGBA);
 
         // visualize ray
-        visualization_msgs::Marker rayMarker = MarkerHelper::getArrowMarker(0, rayStartPos, rayEndPos, SimpleVector3(0.025, 0.05, 0.05), rayColor, "Ray");
+        visualization_msgs::Marker rayMarker = MarkerHelper::getArrowMarker(0, rayStartPos, rayEndPos, scale, rayColor, "Ray");
 
         mRaytracingMarkerArrayPtr->markers.push_back(rayMarker);
 
