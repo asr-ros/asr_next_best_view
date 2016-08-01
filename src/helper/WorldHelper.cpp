@@ -49,7 +49,7 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
 
     voxelToWorldBox(currVoxelPos, min, max);
 
-    double tMin = 2 * mWorldVoxelSize;
+    double tMin = 1.1;
     GridVector3 nextGrid = currVoxelPos;
 
     for(int i = 0; i < min.rows(); i++)
@@ -61,7 +61,7 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
 
         if (abs(tCurrent - tMin) < EPSILON)
             nextGrid[i]--;
-        else if (tStart < tCurrent && tCurrent < tMin)
+        else if (tCurrent - tStart >= EPSILON && tCurrent < tMin)
         {
             tMin = tCurrent;
             nextGrid = currVoxelPos;
@@ -75,7 +75,7 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
 
         if (abs(tCurrent - tMin) < EPSILON)
             nextGrid[i]++;
-        else if (tStart < tCurrent && tCurrent < tMin)
+        else if (tCurrent - tStart >= EPSILON && tCurrent < tMin)
         {
             tMin = tCurrent;
             nextGrid = currVoxelPos;
