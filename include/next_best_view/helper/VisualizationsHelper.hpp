@@ -562,7 +562,7 @@ public:
         SimpleVector4 voxelMarkedColor = TypeHelper::getSimpleVector4(RaytracingTraversedMarkedVoxelMarkerRGBA);
 
         // visualize ray
-        visualization_msgs::Marker rayMarker = MarkerHelper::getArrowMarker(0, rayStartPos, rayEndPos, SimpleVector3(1,1,1), rayColor, "Ray");
+        visualization_msgs::Marker rayMarker = MarkerHelper::getArrowMarker(0, rayStartPos, rayEndPos, SimpleVector3(0.025, 0.05, 0.05), rayColor, "Ray");
 
         mRaytracingMarkerArrayPtr->markers.push_back(rayMarker);
 
