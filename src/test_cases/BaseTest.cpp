@@ -24,7 +24,7 @@ using namespace next_best_view;
     BaseTest::~BaseTest() {}
 
     void BaseTest::initRosServices() {
-        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle("~"));
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
         ros::service::waitForService("/nbv/set_point_cloud", -1);
@@ -100,4 +100,3 @@ using namespace next_best_view;
         SimpleQuaternion q = Z1_Angle*X_Angle*Z2_Angle;
         return q;
     }
-

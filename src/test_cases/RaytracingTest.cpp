@@ -17,8 +17,17 @@ public:
 
     void raytracingTest()
     {
-        ros::ServiceClient setPointCloudClient = mNodeHandle->serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
-        ros::ServiceClient getNextBestViewClient = mNodeHandle->serviceClient<GetNextBestView>("/nbv/next_best_view");
+        // get parameters
+        std::vector<double> positionList, orientationList;
+        if (!this->getParameter("position", positionList))
+            return;
+
+        SimpleVector3 position = TypeHelper::getSimpleVector3(positionList);
+
+        if (!this->getParameter("orientation", orientationList))
+            return;
+
+        SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(orientationList);
 
         ROS_INFO("Setze initiale Pose");
         geometry_msgs::Pose initialPose;
@@ -36,8 +45,6 @@ public:
 
         pbd_msgs::PbdAttributedPoint element;
 
-        SimpleQuaternion orientation(0.0, 0.0, 0.711, 0.703);
-
         SimpleMatrix3 rotation;
         rotation = Eigen::AngleAxis<Precision>(180.0 * (M_PI / 180.0), SimpleVector3::UnitX())
                     * Eigen::AngleAxis<Precision>(0.0 * (M_PI / 180.0), SimpleVector3::UnitY())
@@ -48,9 +55,9 @@ public:
         orientation = rotation;
 
         geometry_msgs::Pose pose;
-        pose.position.x = 0.62;
-        pose.position.y = -2.759;
-        pose.position.z = 1.4;
+        pose.position.x = position[0];
+        pose.position.y = position[1];
+        pose.position.z = position[2];
         pose.orientation.x = orientation.x();
         pose.orientation.y = orientation.y();
         pose.orientation.z = orientation.z();
@@ -63,7 +70,7 @@ public:
         SetAttributedPointCloud apc;
         apc.request.point_cloud.elements.push_back(element);
 
-        if (!setPointCloudClient.call(apc.request, apc.response))
+        if (!mSetPointCloudClient.call(apc.request, apc.response))
         {
             ROS_ERROR("Could not set point cloud");
             return;
@@ -72,7 +79,7 @@ public:
         GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 
-        if (!getNextBestViewClient.call(nbv.request, nbv.response)) {
+        if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
             ROS_ERROR("Something went wrong in next best view");
             return;
         }

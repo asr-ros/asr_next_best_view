@@ -38,7 +38,7 @@ namespace next_best_view {
 	}
 
     SimpleVector3 TypeHelper::getSimpleVector3(const std::vector<double> &vector) {
-        return SimpleVector3(vector[0], vector[1], vector[2]);
+        return SimpleVector3(vector.at(0), vector.at(1), vector.at(2));
     }
 
 
@@ -60,8 +60,13 @@ namespace next_best_view {
 	}
 
 	SimpleQuaternion TypeHelper::getSimpleQuaternion(const geometry_msgs::Quaternion &quaternion) {
-		return SimpleQuaternion(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
-	}
+        return SimpleQuaternion(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+    }
+
+    SimpleQuaternion TypeHelper::getSimpleQuaternion(const std::vector<double> &vector)
+    {
+        return SimpleQuaternion(vector.at(0), vector.at(1), vector.at(2), vector.at(3));
+    }
 
     geometry_msgs::Vector3 TypeHelper::getVector3(const SimpleVector3 &vector) {
         geometry_msgs::Vector3 result;

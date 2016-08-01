@@ -3,5 +3,8 @@
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
         <include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
-	<node pkg="next_best_view" type="next_best_view_raytracing_test" name="test" output="screen" launch-prefix="xterm -e gdb --args"/>
+	<node pkg="next_best_view" type="next_best_view_raytracing_test" name="test" output="screen">
+		<rosparam param="position">[0.62, -2.759, 1.4]</rosparam>
+		<rosparam param="orientation">[0.0, 0.0, 0.711, 0.703]</rosparam>
+	</node>
 </launch>
