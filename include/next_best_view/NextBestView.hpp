@@ -241,17 +241,7 @@ public:
             if (sphereSamplerFactory) {
                 sphereSamplerFactory.reset();
             }
-
-            switch (config.sphereSamplerId) {
-            case 1:
-                sphereSamplerFactory = UnitSphereSamplerAbstractFactoryPtr(new SpiralApproxUnitSphereSamplerFactory(config.sampleSizeUnitSphereSampler));
-                break;
-            default:
-                std::stringstream ss;
-                ss << config.sphereSamplerId << " is not a valid sphere sampler ID";
-                ROS_ERROR_STREAM(ss.str());
-                throw std::runtime_error(ss.str());
-            }
+            sphereSamplerFactory = createSphereSamplerFromConfig(config.sphereSamplerId);
             mCalculator.setUnitSphereSampler(sphereSamplerFactory->createUnitSphereSampler());
         }
 
@@ -282,34 +272,7 @@ public:
             if (spaceSampleFactory) {
                 spaceSampleFactory.reset();
             }
-            MapHelperFactoryPtr mapHelperFactory = MapHelperFactoryPtr(new MapHelperFactory(config.colThresh));
-
-            switch (config.spaceSamplerId)
-            {
-            case 1:
-                /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
-                 * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
-                 * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
-                 * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
-                 * the map and calculate the points which are contained in the feasible map space.
-                 */
-                spaceSampleFactory = SpaceSamplerAbstractFactoryPtr(new MapBasedHexagonSpaceSamplerFactory(mapHelperFactory, config.radius));
-                break;
-            case 2:
-                spaceSampleFactory = SpaceSamplerAbstractFactoryPtr(new MapBasedRandomSpaceSamplerFactory(mapHelperFactory, config.sampleSizeMapBasedRandomSpaceSampler));
-                break;
-            case 3:
-                spaceSampleFactory = SpaceSamplerAbstractFactoryPtr(new PlaneSubSpaceSamplerFactory());
-                break;
-            case 4:
-                spaceSampleFactory = SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mapHelperFactory));
-                break;
-            default:
-                std::stringstream ss;
-                ss << config.spaceSamplerId << " is not a valid space sampler ID";
-                ROS_ERROR_STREAM(ss.str());
-                throw std::runtime_error(ss.str());
-            }
+            spaceSampleFactory = createSpaceSamplerFromConfig(config.spaceSamplerId);
             mCalculator.setSpaceSampler(spaceSampleFactory->createSpaceSampler());
         }
 
@@ -326,54 +289,7 @@ public:
             if (cameraModelFactory) {
                 cameraModelFactory.reset();
             }
-            SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
-            SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
-            SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
-            MapHelperFactoryPtr mapHelperFactory = MapHelperFactoryPtr(new MapHelperFactory(config.colThresh));
-
-            switch (config.cameraFilterId) {
-            case 1:
-                cameraModelFactory = CameraModelFilterAbstractFactoryPtr(
-                            new Raytracing2DBasedStereoCameraModelFilterFactory(mapHelperFactory,
-                                                                                leftCameraPivotPointOffset, rightCameraPivotPointOffset,
-                                                                                config.fovx, config.fovy,
-                                                                                config.fcp, config.ncp,
-                                                                                config.speedFactorRecognizer));
-                break;
-            case 2:
-                cameraModelFactory = CameraModelFilterAbstractFactoryPtr(
-                            new StereoCameraModelFilterFactory(leftCameraPivotPointOffset, rightCameraPivotPointOffset,
-                                                               config.fovx, config.fovy,
-                                                               config.fcp, config.ncp,
-                                                               config.speedFactorRecognizer));
-                break;
-            case 3:
-                /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
-                 * The camera model filter takes account for the fact, that there are different cameras around in the real world.
-                 * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
-                 * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
-                 * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
-                 */
-                cameraModelFactory = CameraModelFilterAbstractFactoryPtr(
-                            new Raytracing2DBasedSingleCameraModelFilterFactory(mapHelperFactory,
-                                                                                oneCameraPivotPointOffset,
-                                                                                config.fovx, config.fovy,
-                                                                                config.fcp, config.ncp,
-                                                                                config.speedFactorRecognizer));
-                break;
-            case 4:
-                cameraModelFactory = CameraModelFilterAbstractFactoryPtr(
-                            new SingleCameraModelFilterFactory(oneCameraPivotPointOffset,
-                                                               config.fovx, config.fovy,
-                                                               config.fcp, config.ncp,
-                                                               config.speedFactorRecognizer));
-                break;
-            default:
-                std::stringstream ss;
-                ss << config.cameraFilterId << " is not a valid camera filter ID";
-                ROS_ERROR_STREAM(ss.str());
-                throw std::runtime_error(ss.str());
-            }
+            cameraModelFactory = createCameraModelFromConfig(config.cameraFilterId);
             mCalculator.setCameraModelFilter(cameraModelFactory->createCameraModelFilter());
         }
 
@@ -393,25 +309,9 @@ public:
             if (robotModelFactory) {
                 robotModelFactory.reset();
             }
-
-            switch (config.robotModelId) {
-            case 1:
-                mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
-                robotModelFactory = RobotModelAbstractFactoryPtr(new MILDRobotModelWithExactIKFactory(config.tiltMin, config.tiltMax, config.panMin, config.panMax));
-                break;
-            case 2:
-                mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
-                robotModelFactory = RobotModelAbstractFactoryPtr(new MILDRobotModelWithApproximatedIKFactory(config.tiltMin, config.tiltMax, config.panMin, config.panMax));
-                break;
-            default:
-                std::stringstream ss;
-                ss << config.robotModelId << " is not a valid robot model ID";
-                ROS_ERROR_STREAM(ss.str());
-                throw std::runtime_error(ss.str());
-            }
+            robotModelFactory = createRobotModelFromConfig(config.robotModelId);
             mCalculator.setRobotModel(robotModelFactory->createRobotModel());
         }
-
 
         /* DefaultRatingModule is a specialization of the abstract RatingModule class.
          * The rating module calculates the use and the costs of an operation.
@@ -421,23 +321,7 @@ public:
             if (ratingModuleFactory) {
                 ratingModuleFactory.reset();
             }
-
-            switch (config.ratingModuleId) {
-            case 1:
-                ratingModuleFactory = RatingModuleAbstractFactoryPtr(
-                            new DefaultRatingModuleFactory(config.fovx, config.fovy,
-                                                           config.fcp, config.ncp,
-                                                           robotModelFactory, cameraModelFactory,
-                                                           45 / 180.0 * M_PI,
-                                                           config.mOmegaUtility, config.mOmegaPan, config.mOmegaTilt,
-                                                           config.mOmegaRot, config.mOmegaBase, config.mOmegaRecognizer));
-                break;
-            default:
-                std::stringstream ss;
-                ss << config.ratingModuleId << " is not a valid rating module ID";
-                ROS_ERROR_STREAM(ss.str());
-                throw std::runtime_error(ss.str());
-            }
+            ratingModuleFactory = createRatingModuleFromConfig(config.ratingModuleId);
             mCalculator.setRatingModule(ratingModuleFactory->createRatingModule());
         }
 
@@ -448,25 +332,7 @@ public:
             if (hypothesisUpdaterFactory) {
                 hypothesisUpdaterFactory.reset();
             }
-            DefaultRatingModuleFactoryPtr ratingModuleFactory;
-
-            switch (config.hypothesisUpdaterId) {
-            case 1:
-                ratingModuleFactory = DefaultRatingModuleFactoryPtr(
-                            new DefaultRatingModuleFactory(config.fovx, config.fovy,
-                                                           config.fcp, config.ncp,
-                                                           robotModelFactory, cameraModelFactory,
-                                                           45 / 180.0 * M_PI,
-                                                           config.mOmegaUtility, config.mOmegaPan, config.mOmegaTilt,
-                                                           config.mOmegaRot, config.mOmegaBase, config.mOmegaRecognizer));
-                hypothesisUpdaterFactory = HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactory));
-                break;
-            default:
-                std::stringstream ss;
-                ss << config.hypothesisUpdaterId << " is not a valid hypothesis module ID";
-                ROS_ERROR_STREAM(ss.str());
-                throw std::runtime_error(ss.str());
-            }
+            hypothesisUpdaterFactory = createHypothesisUpdaterFromConfig(config.hypothesisUpdaterId);
             mCalculator.setHypothesisUpdater(hypothesisUpdaterFactory->createHypothesisUpdater());
         }
 
@@ -491,6 +357,7 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
 
         if (firstRun) {
+            // at our first run we have to advertise services.
             firstRun = false;
             mGetPointCloudServiceServer = mNodeHandle.advertiseService("get_point_cloud", &NextBestView::processGetPointCloudServiceCall, this);
             mGetNextBestViewServiceServer = mNodeHandle.advertiseService("next_best_view", &NextBestView::processGetNextBestViewServiceCall, this);
@@ -504,6 +371,147 @@ public:
             mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
+    }
+
+    RatingModuleAbstractFactoryPtr createRatingModuleFromConfig(int moduleId) {
+        RobotModelAbstractFactoryPtr robotModelFactory;
+        CameraModelFilterAbstractFactoryPtr cameraModelFactory;
+        switch (moduleId) {
+        case 1:
+            robotModelFactory = createRobotModelFromConfig(config.robotModelId);
+            cameraModelFactory = createCameraModelFromConfig(config.cameraFilterId);
+            return RatingModuleAbstractFactoryPtr(
+                        new DefaultRatingModuleFactory(config.fovx, config.fovy,
+                                                       config.fcp, config.ncp,
+                                                       robotModelFactory, cameraModelFactory,
+                                                       45 / 180.0 * M_PI,
+                                                       config.mOmegaUtility, config.mOmegaPan, config.mOmegaTilt,
+                                                       config.mOmegaRot, config.mOmegaBase, config.mOmegaRecognizer));
+        default:
+            std::stringstream ss;
+            ss << config.ratingModuleId << " is not a valid rating module ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
+        switch (moduleId) {
+        case 1:
+            mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
+            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithExactIKFactory(config.tiltMin, config.tiltMax, config.panMin, config.panMax));
+        case 2:
+            mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
+            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithApproximatedIKFactory(config.tiltMin, config.tiltMax, config.panMin, config.panMax));
+        default:
+            std::stringstream ss;
+            ss << config.robotModelId << " is not a valid robot model ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    CameraModelFilterAbstractFactoryPtr createCameraModelFromConfig(int moduleId) {
+        SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
+        SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
+        SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
+        MapHelperFactoryPtr mapHelperFactory = createMapHelperFromConfig();
+        switch (moduleId) {
+        case 1:
+            return CameraModelFilterAbstractFactoryPtr(
+                        new Raytracing2DBasedStereoCameraModelFilterFactory(mapHelperFactory,
+                                                                            leftCameraPivotPointOffset, rightCameraPivotPointOffset,
+                                                                            config.fovx, config.fovy,
+                                                                            config.fcp, config.ncp,
+                                                                            config.speedFactorRecognizer));
+        case 2:
+            return CameraModelFilterAbstractFactoryPtr(
+                        new StereoCameraModelFilterFactory(leftCameraPivotPointOffset, rightCameraPivotPointOffset,
+                                                           config.fovx, config.fovy,
+                                                           config.fcp, config.ncp,
+                                                           config.speedFactorRecognizer));
+        case 3:
+            /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
+             * The camera model filter takes account for the fact, that there are different cameras around in the real world.
+             * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
+             * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
+             * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
+             */
+            return CameraModelFilterAbstractFactoryPtr(
+                        new Raytracing2DBasedSingleCameraModelFilterFactory(mapHelperFactory,
+                                                                            oneCameraPivotPointOffset,
+                                                                            config.fovx, config.fovy,
+                                                                            config.fcp, config.ncp,
+                                                                            config.speedFactorRecognizer));
+        case 4:
+            return CameraModelFilterAbstractFactoryPtr(
+                        new SingleCameraModelFilterFactory(oneCameraPivotPointOffset,
+                                                           config.fovx, config.fovy,
+                                                           config.fcp, config.ncp,
+                                                           config.speedFactorRecognizer));
+        default:
+            std::stringstream ss;
+            ss << config.cameraFilterId << " is not a valid camera filter ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    SpaceSamplerAbstractFactoryPtr createSpaceSamplerFromConfig(int moduleId) {
+        MapHelperFactoryPtr mapHelperFactory = createMapHelperFromConfig();
+        switch (moduleId)
+        {
+        case 1:
+            /* MapBasedHexagonSpaceSampler is a specialization of the abstract SpaceSampler class.
+             * By space we denote the area in which the robot is moving. In our case there are just two degrees of freedom
+             * in which the robot can move, namely the xy-plane. But we do also have a map on which we can base our sampling on.
+             * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
+             * the map and calculate the points which are contained in the feasible map space.
+             */
+            return SpaceSamplerAbstractFactoryPtr(new MapBasedHexagonSpaceSamplerFactory(mapHelperFactory, config.radius));
+        case 2:
+            return SpaceSamplerAbstractFactoryPtr(new MapBasedRandomSpaceSamplerFactory(mapHelperFactory, config.sampleSizeMapBasedRandomSpaceSampler));
+        case 3:
+            return SpaceSamplerAbstractFactoryPtr(new PlaneSubSpaceSamplerFactory());
+        case 4:
+            return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mapHelperFactory));
+        default:
+            std::stringstream ss;
+            ss << config.spaceSamplerId << " is not a valid space sampler ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFromConfig(int moduleId) {
+        switch (moduleId) {
+        case 1:
+            return UnitSphereSamplerAbstractFactoryPtr(new SpiralApproxUnitSphereSamplerFactory(config.sampleSizeUnitSphereSampler));
+        default:
+            std::stringstream ss;
+            ss << config.sphereSamplerId << " is not a valid sphere sampler ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    HypothesisUpdaterAbstractFactoryPtr createHypothesisUpdaterFromConfig(int moduleId) {
+        DefaultRatingModuleFactoryPtr ratingModuleFactory;
+        switch (moduleId) {
+        case 1:
+            // create a DefaultRatingModule from config
+            ratingModuleFactory = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
+            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactory));
+        default:
+            std::stringstream ss;
+            ss << config.hypothesisUpdaterId << " is not a valid hypothesis module ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    MapHelperFactoryPtr createMapHelperFromConfig() {
+        return MapHelperFactoryPtr(new MapHelperFactory(config.colThresh));
     }
 
     bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
