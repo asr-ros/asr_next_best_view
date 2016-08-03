@@ -291,6 +291,7 @@ public:
             }
             mCameraModelFactoryPtr = createCameraModelFromConfig(mConfig.cameraFilterId);
             mCalculator.setCameraModelFilter(mCameraModelFactoryPtr->createCameraModelFilter());
+            mCalculator.setCameraModelFilterAbstractFactoryPtr(mCameraModelFactoryPtr);
         }
 
         /* MILDRobotModel is a specialization of the abstract RobotModel class.
@@ -323,6 +324,7 @@ public:
             }
             mRatingModuleFactoryPtr = createRatingModuleFromConfig(mConfig.ratingModuleId);
             mCalculator.setRatingModule(mRatingModuleFactoryPtr->createRatingModule());
+            mCalculator.setRatingModuleAbstractFactoryPtr(mRatingModuleFactoryPtr);
         }
 
         // TODO: defaulthypothesisupdater is missing

@@ -14,14 +14,17 @@
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/range/irange.hpp>
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
 #include "next_best_view/crop_box/CropBoxFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/CameraModelFilterAbstractFactory.hpp"
 #include "next_best_view/unit_sphere_sampler/UnitSphereSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
+#include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
@@ -37,40 +40,54 @@ private:
     IndicesPtr mActiveIndicesPtr;
     KdTreePtr mKdTreePtr;
     std::map<std::string, std::string> objectsResources;
+
+    // modules
     UnitSphereSamplerPtr mUnitSphereSamplerPtr;
+    MapHelperPtr mMapHelperPtr;
     SpaceSamplerPtr mSpaceSamplerPtr;
     RobotModelPtr mRobotModelPtr;
-    CropBoxFilterPtr mCropBoxFilterPtr;
     CameraModelFilterPtr mCameraModelFilterPtr;
     RatingModulePtr mRatingModulePtr;
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
-    MapHelperPtr mMapHelperPtr;
+
+    RatingModuleAbstractFactoryPtr mRatingModuleAbstractFactoryPtr;
+    CameraModelFilterAbstractFactoryPtr mCameraModelFilterAbstractFactoryPtr;
+
+    CropBoxFilterPtr mCropBoxFilterPtr;
     float mEpsilon;
     ObjectTypeSetPtr mObjectTypeSetPtr;
     DebugHelperPtr mDebugHelperPtr;
     VisualizationHelper mVisHelper;
+
     bool mEnableCropBoxFiltering;
     bool mEnableIntermediateObjectWeighting;
 
     int mMaxIterationSteps;
 
+    int mNumberOfThreads;
+    std::vector<CameraModelFilterPtr> mThreadCameraModels;
+    std::vector<RatingModulePtr> mThreadRatingModules;
+
 public:
 
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
+                           const MapHelperPtr &mapHelperPtr = MapHelperPtr(),
                            const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
                            const RobotModelPtr &robotModelPtr = RobotModelPtr(),
                            const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr(),
-                           const RatingModulePtr &ratingModulePtr = RatingModulePtr(),
-                           const MapHelperPtr &mapHelperPtr = MapHelperPtr())
+                           const RatingModulePtr &ratingModulePtr = RatingModulePtr())
         : objectsResources(),
           mUnitSphereSamplerPtr(unitSphereSamplerPtr),
+          mMapHelperPtr(mapHelperPtr),
           mSpaceSamplerPtr(spaceSamplerPtr),
           mRobotModelPtr(robotModelPtr),
           mCameraModelFilterPtr(cameraModelFilterPtr),
           mRatingModulePtr(ratingModulePtr),
-          mMapHelperPtr(mapHelperPtr),
           mEpsilon(10E-3),
-          mVisHelper() {
+          mVisHelper(),
+          mNumberOfThreads(boost::thread::hardware_concurrency()),
+          mThreadCameraModels(mNumberOfThreads),
+          mThreadRatingModules(mNumberOfThreads) {
 
         mDebugHelperPtr = DebugHelper::getInstance();
     }
@@ -87,6 +104,9 @@ public:
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
         mRatingModulePtr->setRobotState(currentState);
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            mThreadRatingModules[i]->setRobotState(currentState);
+        }
 
         mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
                         DebugHelper::CALCULATION);
@@ -227,34 +247,18 @@ private:
         //Create list of all view ports that are checked during this iteration step.
         ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
-        //Go through all interesting space sample points for one iteration step to create candidate viewports.
-        BOOST_FOREACH(int activeIndex, *feasibleIndicesPtr) {
-            SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
-            SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
-            IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
-            //For each space sample point: Go through all interesting orientations.
-            mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
-                            DebugHelper::CALCULATION);
-            BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-                // get the corresponding viewport
-                ViewportPoint fullViewportPoint;
-                //Calculate which object points lie within frustum for given viewport.
-                if (!this->doFrustumCulling(samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
-                    //Skip viewport if no object point is within frustum.
-                    continue;
-                }
-                //For given viewport(combination of robot position and camera viewing direction)
-                // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
-                mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
-                            DebugHelper::RATING);
-                if (!mRatingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
-                    continue;
-                }
-                //Keep viewport with optimal subset of objects within frustum to search for.
-                nextBestViewports->push_back(fullViewportPoint);
-            }
+        // start threads
+        boost::thread_group threadGroup;
+        boost::mutex mutex;
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            threadGroup.add_thread(new boost::thread(&NextBestViewCalculator::ratingThread, this, i, boost::ref(mutex),
+                                                    boost::ref(sampledSpacePointCloudPtr), boost::ref(feasibleIndicesPtr),
+                                                    boost::ref(sampledOrientationsPtr),
+                                                    boost::ref(currentCameraViewport), boost::ref(nextBestViewports)));
         }
+        threadGroup.join_all();
+
         mDebugHelperPtr->write("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.",
                     DebugHelper::RATING);
         if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
@@ -272,13 +276,47 @@ private:
 
     void ratingThread(int threadId, boost::mutex &mutex,
                       // space sampling
-                      const SamplePointCloudPtr &sampledSpacePointCloud, const IndicesPtr &feasibleIndices,
+                      const SamplePointCloudPtr &sampledSpacePointCloudPtr, const IndicesPtr &feasibleIndicesPtr,
                       // sphere sampling
                       const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                       // current camera viewport for rating and a vector to save results to
                       const ViewportPoint &currentCameraViewport, const ViewportPointCloudPtr &nextBestViewports) {
+        int nSpaceSamples = feasibleIndicesPtr->size();
+        double startFactor = (double) threadId / mNumberOfThreads;
+        double endFactor = (threadId + 1.0) / mNumberOfThreads;
+        int startIdx = (int) (startFactor*nSpaceSamples);
+        int endIdx = (int) (endFactor*nSpaceSamples);
+        //Go through all interesting space sample points for one iteration step to create candidate viewports.
+        for (int i : boost::irange(startIdx, endIdx)) {
+            int activeIndex = (*feasibleIndicesPtr)[i];
+            SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
+            SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
+            IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
-
+            //For each space sample point: Go through all interesting orientations.
+            mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
+                            DebugHelper::CALCULATION);
+            BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+                // get the corresponding viewport
+                ViewportPoint fullViewportPoint;
+                //Calculate which object points lie within frustum for given viewport.
+                if (!this->doFrustumCulling(mThreadCameraModels[threadId], samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
+                    //Skip viewport if no object point is within frustum.
+                    continue;
+                }
+                //For given viewport(combination of robot position and camera viewing direction)
+                // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
+                mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
+                            DebugHelper::RATING);
+                if (!mThreadRatingModules[threadId]->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
+                    continue;
+                }
+                //Keep viewport with optimal subset of objects within frustum to search for.
+                mutex.lock();
+                nextBestViewports->push_back(fullViewportPoint);
+                mutex.unlock();
+            }
+        }
     }
 
 public:
@@ -297,13 +335,26 @@ public:
          * \return
          */
     bool doFrustumCulling(const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &viewportPoint) {
-        mCameraModelFilterPtr->setIndices(indices);
-        mCameraModelFilterPtr->setPivotPointPose(position, orientation);
+        return doFrustumCulling(mCameraModelFilterPtr, position, orientation, indices, viewportPoint);
+    }
+
+    /**
+     * @brief creates a new camera viewport with the given data
+     * @param cameraModelFilterPtr [in] the cameraModel used to filter objects
+     * @param position [in] the position of the camera
+     * @param orientation [in] the orientation of the camera
+     * @param indices [in] the object point indices to be used
+     * @param viewportPoint [out] the resulting camera viewport
+     * @return
+     */
+    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &viewportPoint) {
+        cameraModelFilterPtr->setIndices(indices);
+        cameraModelFilterPtr->setPivotPointPose(position, orientation);
 
         // do the frustum culling
         IndicesPtr frustumIndicesPtr;
         //Call wrapper (with next-best-view data structures) for PCL frustum culling call.
-        mCameraModelFilterPtr->filter(frustumIndicesPtr);
+        cameraModelFilterPtr->filter(frustumIndicesPtr);
 
         if (frustumIndicesPtr->size() == 0) {
             return false;
@@ -311,7 +362,7 @@ public:
 
         viewportPoint = ViewportPoint(position, orientation);
         viewportPoint.child_indices = frustumIndicesPtr;
-        viewportPoint.child_point_cloud = mCameraModelFilterPtr->getInputCloud();
+        viewportPoint.child_point_cloud = cameraModelFilterPtr->getInputCloud();
         viewportPoint.point_cloud = mPointCloudPtr;
         viewportPoint.object_type_set = mObjectTypeSetPtr;
 
@@ -548,6 +599,10 @@ public:
         mKdTreePtr->setInputCloud(mPointCloudPtr);
         mRatingModulePtr->setInputCloud(mPointCloudPtr);
         mCameraModelFilterPtr->setInputCloud(mPointCloudPtr);
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            mThreadRatingModules[i]->setInputCloud(mPointCloudPtr);
+            mThreadCameraModels[i]->setInputCloud(mPointCloudPtr);
+        }
         mSpaceSamplerPtr->setInputCloud(mPointCloudPtr);
     }
 
@@ -713,6 +768,50 @@ public:
     void setMaxIterationSteps(int maxIterationSteps)
     {
         mMaxIterationSteps  = maxIterationSteps;
+    }
+
+    /**
+     * @brief setRatingModuleAbstractFactoryPtr used to generate rating modules per thread.
+     * @param ratingModuleAbstractFactoryPtr
+     */
+    void setRatingModuleAbstractFactoryPtr(const RatingModuleAbstractFactoryPtr &ratingModuleAbstractFactoryPtr) {
+        mRatingModuleAbstractFactoryPtr = ratingModuleAbstractFactoryPtr;
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            if (mThreadRatingModules[i]) {
+                mThreadRatingModules[i].reset();
+            }
+            mThreadRatingModules[i] = mRatingModuleAbstractFactoryPtr->createRatingModule();
+        }
+    }
+
+    /**
+     * @brief getRatingModuleAbstractFactoryPtr
+     * @return
+     */
+    RatingModuleAbstractFactoryPtr getRatingModuleAbstractFactoryPtr() {
+        return mRatingModuleAbstractFactoryPtr;
+    }
+
+    /**
+     * @brief setCameraModelFilterAbstractFactoryPtr used to generate camera models per thread.
+     * @param cameraModelFilterAbstractFactoryPtr
+     */
+    void setCameraModelFilterAbstractFactoryPtr(const CameraModelFilterAbstractFactoryPtr &cameraModelFilterAbstractFactoryPtr) {
+        mCameraModelFilterAbstractFactoryPtr = cameraModelFilterAbstractFactoryPtr;
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            if (mThreadCameraModels[i]) {
+                mThreadCameraModels[i].reset();
+            }
+            mThreadCameraModels[i] = mCameraModelFilterAbstractFactoryPtr->createCameraModelFilter();
+        }
+    }
+
+    /**
+     * @brief getCameraModelFilterAbstractFactoryPtr
+     * @return
+     */
+    CameraModelFilterAbstractFactoryPtr getCameraModelFilterAbstractFactoryPtr() {
+        return mCameraModelFilterAbstractFactoryPtr;
     }
 };
 }
