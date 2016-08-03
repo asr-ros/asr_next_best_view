@@ -36,6 +36,7 @@ useOrientationUtility: true
 useProximityUtility: true
 useSideUtility: true
 # hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
+# hypothesisUpdaterId == 2 => DefaultHypothesisUpdater
 hypothesisUpdaterId: 1
 # robotModelId == 1 => MILDRobotModelWithExactIK
 # robotModelId == 2 => MILDRobotModelWithApproximatedIK

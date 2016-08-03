@@ -550,7 +550,9 @@ public:
             ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
             return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr,
                                                                                                mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
-        default:
+        case 2:
+            return HypothesisUpdaterAbstractFactoryPtr(new DefaultHypothesisUpdaterFactory());
+		default:
             std::stringstream ss;
             ss << mConfig.hypothesisUpdaterId << " is not a valid hypothesis module ID";
             ROS_ERROR_STREAM(ss.str());
