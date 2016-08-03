@@ -10,6 +10,7 @@
 #include "typedef.hpp"
 #include <vector>
 #include <map>
+#include <chrono>
 
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
@@ -96,7 +97,7 @@ public:
      * Calculates the next best view. Starting point of iterative calculations for getNextBestView() service call.
      */
     bool calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
-        std::clock_t begin = std::clock();
+        auto begin = std::chrono::high_resolution_clock::now();
         mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
@@ -122,9 +123,9 @@ public:
 			// create the next best view point cloud
             bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 
-            std::clock_t end = std::clock();
-            double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-            ROS_INFO_STREAM("Iteration took " << elapsed_secs << " seconds.");
+            auto finish = std::chrono::high_resolution_clock::now();
+            // cast timediff to flaot in seconds
+            ROS_INFO_STREAM("Iteration took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
             mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
             return success;
 		}
