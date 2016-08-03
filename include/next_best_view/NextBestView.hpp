@@ -62,7 +62,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/WorldHelper.hpp"
-#include "next_best_view/helper/MapHelperFactory.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
@@ -173,7 +172,7 @@ private:
 
     // module factory classes
     UnitSphereSamplerAbstractFactoryPtr mSphereSamplerFactoryPtr;
-    MapHelperFactoryPtr mMapHelperFactoryPtr;
+    MapHelperPtr mMapHelperPtr;
     SpaceSamplerAbstractFactoryPtr mSpaceSampleFactoryPtr;
     CameraModelFilterAbstractFactoryPtr mCameraModelFactoryPtr;
     RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
@@ -269,11 +268,9 @@ public:
          * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
          */
         if (mConfigLevel & mapHelperConfig) {
-            if (mMapHelperFactoryPtr) {
-                mMapHelperFactoryPtr.reset();
-            }
-            mMapHelperFactoryPtr = MapHelperFactoryPtr(new MapHelperFactory(mConfig.colThresh));
-            mCalculator.setMapHelper(mMapHelperFactoryPtr->createMapHelper());
+            mMapHelperPtr = MapHelperPtr(new MapHelper());
+            mMapHelperPtr->setCollisionThreshold(mConfig.colThresh);
+            mCalculator.setMapHelper(mMapHelperPtr);
 
 			mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mCalculator.getMapHelper()));
         }
@@ -425,12 +422,7 @@ public:
         }
     }
 
-    MapHelperFactoryPtr createMapHelperFromConfig() {
-        return MapHelperFactoryPtr(new MapHelperFactory(mConfig.colThresh));
-    }
-
     SpaceSamplerAbstractFactoryPtr createSpaceSamplerFromConfig(int moduleId) {
-        MapHelperFactoryPtr mapHelperFactoryPtr = createMapHelperFromConfig();
         switch (moduleId)
         {
         case 1:
@@ -440,13 +432,13 @@ public:
              * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
              * the map and calculate the points which are contained in the feasible map space.
              */
-            return SpaceSamplerAbstractFactoryPtr(new MapBasedHexagonSpaceSamplerFactory(mapHelperFactoryPtr, mConfig.radius));
+            return SpaceSamplerAbstractFactoryPtr(new MapBasedHexagonSpaceSamplerFactory(mMapHelperPtr, mConfig.radius));
         case 2:
-            return SpaceSamplerAbstractFactoryPtr(new MapBasedRandomSpaceSamplerFactory(mapHelperFactoryPtr, mConfig.sampleSizeMapBasedRandomSpaceSampler));
+            return SpaceSamplerAbstractFactoryPtr(new MapBasedRandomSpaceSamplerFactory(mMapHelperPtr, mConfig.sampleSizeMapBasedRandomSpaceSampler));
         case 3:
             return SpaceSamplerAbstractFactoryPtr(new PlaneSubSpaceSamplerFactory());
         case 4:
-            return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mapHelperFactoryPtr));
+            return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mMapHelperPtr));
         default:
             std::stringstream ss;
             ss << mConfig.spaceSamplerId << " is not a valid space sampler ID";
@@ -552,7 +544,7 @@ public:
                                                                                                mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
         case 2:
             return HypothesisUpdaterAbstractFactoryPtr(new DefaultHypothesisUpdaterFactory());
-		default:
+        default:
             std::stringstream ss;
             ss << mConfig.hypothesisUpdaterId << " is not a valid hypothesis module ID";
             ROS_ERROR_STREAM(ss.str());
