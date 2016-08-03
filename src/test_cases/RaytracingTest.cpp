@@ -46,8 +46,8 @@ public:
         pbd_msgs::PbdAttributedPoint element;
 
         SimpleMatrix3 rotation;
-        rotation = Eigen::AngleAxis<Precision>(180.0 * (M_PI / 180.0), SimpleVector3::UnitX())
-                    * Eigen::AngleAxis<Precision>(0.0 * (M_PI / 180.0), SimpleVector3::UnitY())
+        rotation = Eigen::AngleAxis<Precision>(-90.0 * (M_PI / 180.0), SimpleVector3::UnitX())
+                    * Eigen::AngleAxis<Precision>(-90.0 * (M_PI / 180.0), SimpleVector3::UnitY())
                     * Eigen::AngleAxis<Precision>(0.0, SimpleVector3::UnitZ());
 
         rotation = orientation.toRotationMatrix() * rotation;
