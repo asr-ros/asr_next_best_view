@@ -34,8 +34,8 @@ namespace next_best_view {
         bool isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectPosition);
 
     private:
-        bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
-                            GridVector3 currVoxelPos, GridVector3 objectGridPos, double tStart, std::vector<GridVector3> &traversedVoxels);
+        bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos, GridVector3 currVoxelPos, GridVector3 objectGridPos,
+                                                                        double tStart, std::vector<GridVector3> &traversedVoxels);
 
         void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result);
 
@@ -71,12 +71,14 @@ namespace next_best_view {
 
         bool lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const GridVector3& gridPos);
 
-        bool lineIntersectsVoxel(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const SimpleVector3 &voxelMin, const SimpleVector3 &voxelMax);
+        bool lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const GridVector3& gridPos,
+                                                                                                    double tLowerBound, double &tMin);
 
-        bool lineIntersectsVoxelHelper(const SimpleVector3 &startPos, const SimpleVector3 &direction, const SimpleVector3 &voxelCoord,
-                                                                            const SimpleVector3 &voxelMin, const SimpleVector3 &voxelMax);
+        bool lineIntersectsVoxelHelper(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const SimpleVector3 &voxelCoord,
+                                                const SimpleVector3 &voxelMin, const SimpleVector3 &voxelMax, double tLowerBound, double &tMin);
 
-        bool lineIntersectsTriangle(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const std::vector<SimpleVector3> triangleVertices);
+        bool lineIntersectsTriangle(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos,
+                                                        const std::vector<SimpleVector3> triangleVertices);
 
         bool equalVoxels(const GridVector3& a, const GridVector3& b);
 

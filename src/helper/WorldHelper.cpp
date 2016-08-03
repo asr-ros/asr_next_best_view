@@ -31,59 +31,66 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectP
 }
 
 bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
-                             GridVector3 currVoxelPos, GridVector3 objectGridPos,
+                             GridVector3 currVoxelPos, GridVector3 objectVoxelPos,
                              double tStart, std::vector<GridVector3>& traversedVoxels)
 {
     traversedVoxels.push_back(currVoxelPos);
 
+    if (traversedVoxels.size() >= 1000)
+        return false;
+
     if (mVoxelGridHelperPtr->isMarked(currVoxelPos))
         return true;
 
-    if (equalVoxels(currVoxelPos, objectGridPos))
+    if (equalVoxels(currVoxelPos, objectVoxelPos))
         return false;
 
-    // get next grid
-    SimpleVector3 direction = objectPos - cameraPos;
+    // go through all voxels surrounding this voxel
+    for (int i = -1; i < 2; i++)
+        for (int j = -1; j < 2; j++)
+            for (int k = -1; k < 2; k++)
+            {
+                if (i == 0 && j == 0 && k == 0)
+                    continue;
 
-    SimpleVector3 min, max;
+                GridVector3 voxel(i, j, k);
 
-    voxelToWorldBox(currVoxelPos, min, max);
+                voxel += currVoxelPos;
 
-    double tMin = 1.1;
-    GridVector3 nextGrid = currVoxelPos;
+                // check if voxel was already traversed
+                bool traversed = false;
+                for (unsigned int i = 0; i < traversedVoxels.size(); i++)
+                {
+                    if (equalVoxels(voxel, traversedVoxels[i]))
+                    {
+                        traversed = true;
+                        break;
+                    }
+                }
 
-    for(int i = 0; i < min.rows(); i++)
-    {
-        if (abs(direction[i]) < EPSILON)
-            continue;
+                if (traversed)
+                    continue;
 
-        double tCurrent = (min[i] - cameraPos[i]) / direction[i];
+                bool checkVoxel = false;
+                double t = -1;
 
-        if (abs(tCurrent - tMin) < EPSILON)
-            nextGrid[i]--;
-        else if (tCurrent - tStart >= EPSILON && tCurrent < tMin)
-        {
-            tMin = tCurrent;
-            nextGrid = currVoxelPos;
-            nextGrid[i]--;
-        }
-    }
+                if (lineIntersectsVoxel(cameraPos, objectPos, voxel, tStart, t))
+                    checkVoxel = true;
 
-    for(int i = 0; i < max.rows(); i++)
-    {
-        double tCurrent = (max[i] - cameraPos[i]) / direction[i];
+                if (!checkVoxel && equalVoxels(voxel, objectVoxelPos))
+                    checkVoxel = true;
 
-        if (abs(tCurrent - tMin) < EPSILON)
-            nextGrid[i]++;
-        else if (tCurrent - tStart >= EPSILON && tCurrent < tMin)
-        {
-            tMin = tCurrent;
-            nextGrid = currVoxelPos;
-            nextGrid[i]++;
-        }
-    }
+                if (checkVoxel)
+                {
+                    bool occluded = isOccluded(cameraPos, objectPos, voxel, objectVoxelPos, t, traversedVoxels);
 
-    return isOccluded(cameraPos, objectPos, nextGrid, objectGridPos, tMin, traversedVoxels);
+                    if (occluded)
+                        return true;
+                }
+
+            }
+
+    return false;
 }
 
 void WorldHelper::worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result)
@@ -509,7 +516,7 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
                         SimpleVector3 vertex1 = vertices[l];
                         SimpleVector3 vertex2 = vertices[m];
 
-                        if (lineIntersectsVoxel(vertex1, vertex2, min, max))
+                        if (lineIntersectsVoxel(vertex1, vertex2, voxel))
                         {
                             mVoxelGridHelperPtr->markVoxel(voxel);
                             marked = true;
@@ -639,65 +646,68 @@ bool WorldHelper::voxelVerticesAreNeighbours(const SimpleVector3& vertexA, const
 
 bool WorldHelper::lineIntersectsVoxel(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const GridVector3 &gridPos)
 {
-    SimpleVector3 min, max;
-    voxelToWorldBox(gridPos, min, max);
-    return lineIntersectsVoxel(lineStartPos, lineEndPos, min, max);
+    double t;
+    // choose tLowerBound = -2 * EPSILON so that only values t < -EPSILON are excluded
+    return lineIntersectsVoxel(lineStartPos, lineEndPos, gridPos, -2 * EPSILON, t);
 }
 
-bool WorldHelper::lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos,
-                                                const SimpleVector3& voxelMin, const SimpleVector3& voxelMax)
+bool WorldHelper::lineIntersectsVoxel(const SimpleVector3 &lineStartPos, const SimpleVector3 &lineEndPos, const GridVector3 &gridPos,
+                                                                                                        double tLowerBound, double &tMin)
+{
+    SimpleVector3 voxelMin, voxelMax;
+    voxelToWorldBox(gridPos, voxelMin, voxelMax);
+
+    double t1, t2;
+
+    bool intersectsMin = lineIntersectsVoxelHelper(lineStartPos, lineEndPos, voxelMin, voxelMin, voxelMax, tLowerBound, t1);
+    bool intersectsMax = lineIntersectsVoxelHelper(lineStartPos, lineEndPos, voxelMax, voxelMin, voxelMax, tLowerBound, t2);
+
+    tMin = std::min(t1, t2);
+
+    return intersectsMin || intersectsMax;
+}
+
+bool WorldHelper::lineIntersectsVoxelHelper(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const SimpleVector3& voxelCoord,
+                                                    const SimpleVector3& voxelMin, const SimpleVector3& voxelMax, double tLowerBound, double &tMin)
 {
     SimpleVector3 direction = lineEndPos - lineStartPos;
 
-    return lineIntersectsVoxelHelper(lineStartPos, direction, voxelMin, voxelMin, voxelMax)
-            || lineIntersectsVoxelHelper(lineStartPos, direction, voxelMax, voxelMin, voxelMax);
-}
-
-bool WorldHelper::lineIntersectsVoxelHelper(const SimpleVector3& startPos, const SimpleVector3& direction, const SimpleVector3& voxelCoord,
-                                                                                const SimpleVector3& voxelMin, const SimpleVector3& voxelMax)
-{
-    double t = -1.0;
+    bool intersection = false;
+    tMin = 1 + EPSILON;
     for(unsigned int i = 0; i < 3; i++)
     {
-        // coordinate number i does not change => check if it is in bounds
+        // coordinate number i does not change
         if (abs(direction[i]) < EPSILON)
-        {
-            if (startPos[i] >= voxelMin[i] - EPSILON && startPos[i] <= voxelMax[i] + EPSILON)
-                continue;
-            else
-            {
-                t = -1.0;
-                break;
-            }
-        }
-
-        // t was not set yet => set it now (i == 0 or the coordinates before did not change)
-        if (t < 0.0)
-        {
-            t = (voxelCoord[i] - startPos[i]) / direction[i];
-
-            if (t < -EPSILON || t > 1.0 + EPSILON)
-            {
-                t = -1.0;
-                break;
-            }
-            else
-                continue;
-        }
-
-        // t was set and coordinate number i does change => check if coordinate number i for given t is in bounds
-        double coordinate = startPos[i] + t * direction[i];
-
-        if (coordinate >= voxelMin[i] - EPSILON && coordinate <= voxelMax[i] + EPSILON)
             continue;
-        else
+
+        // set current t
+        double t = (voxelCoord[i] - lineStartPos[i]) / direction[i];
+
+        // check if t is candidate for tMin
+        if (t < tLowerBound + EPSILON || t > tMin)
+            continue;
+
+        // t was set => check if resulting coordinate is in voxel bounds
+        SimpleVector3 coordinate = lineStartPos + t * direction;
+
+        bool inBounds = true;
+        for (unsigned int j = 0; j < 3; j++)
         {
-            t = -1.0;
-            break;
+            if (j == i)
+                continue;
+
+            if (coordinate[j] < voxelMin[j] - EPSILON || coordinate[j] > voxelMax[j] + EPSILON)
+                inBounds = false;
+        }
+
+        if (inBounds)
+        {
+            tMin = t;
+            intersection = true;
         }
     }
 
-    return t >= -EPSILON;
+    return intersection;
 }
 
 bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const std::vector<SimpleVector3> triangleVertices)
