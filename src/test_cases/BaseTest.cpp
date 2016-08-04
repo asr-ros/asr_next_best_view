@@ -24,7 +24,7 @@ using namespace next_best_view;
     BaseTest::~BaseTest() {}
 
     void BaseTest::initRosServicesAndPublishers() {
-        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle("~"));
 
         // services
         ros::service::waitForService("/nbv/set_init_robot_state", -1);

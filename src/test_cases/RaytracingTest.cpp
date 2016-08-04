@@ -18,27 +18,37 @@ public:
     void raytracingTest()
     {
         // get parameters
-        std::vector<double> positionList, orientationList;
-        if (!this->getParameter("position", positionList))
+        std::vector<double> robotPositionList, robotOrientationList, objectPositionList, objectOrientationList;
+        if (!this->getParameter("robot_position", robotPositionList))
             return;
 
-        SimpleVector3 position = TypeHelper::getSimpleVector3(positionList);
+        SimpleVector3 robotPosition = TypeHelper::getSimpleVector3(robotPositionList);
 
-        if (!this->getParameter("orientation", orientationList))
+        if (!this->getParameter("robot_orientation", robotOrientationList))
             return;
 
-        SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(orientationList);
+        SimpleQuaternion robotOrientation = TypeHelper::getSimpleQuaternion(robotOrientationList);
+
+        if (!this->getParameter("object_position", objectPositionList))
+            return;
+
+        SimpleVector3 objectPosition = TypeHelper::getSimpleVector3(objectPositionList);
+
+        if (!this->getParameter("object_orientation", objectOrientationList))
+            return;
+
+        SimpleQuaternion objectOrientation = TypeHelper::getSimpleQuaternion(objectOrientationList);
 
         ROS_INFO("Setze initiale Pose");
         geometry_msgs::Pose initialPose;
-        initialPose.position.x = 0.0;
-        initialPose.position.y = 0.0;
-        initialPose.position.z = 1.32;
+        initialPose.position.x = robotPosition[0];
+        initialPose.position.y = robotPosition[1];
+        initialPose.position.z = robotPosition[2];
 
-        initialPose.orientation.x = 0.0;
-        initialPose.orientation.y = 0.0;
-        initialPose.orientation.z = 0.0;
-        initialPose.orientation.w = 1.0;
+        initialPose.orientation.x = robotOrientation.x();
+        initialPose.orientation.y = robotOrientation.y();
+        initialPose.orientation.z = robotOrientation.z();
+        initialPose.orientation.w = robotOrientation.w();
         this->setInitialPose(initialPose);
 
         ROS_INFO("Setze Objekt");
@@ -50,20 +60,20 @@ public:
                     * Eigen::AngleAxis<Precision>(-90.0 * (M_PI / 180.0), SimpleVector3::UnitY())
                     * Eigen::AngleAxis<Precision>(0.0, SimpleVector3::UnitZ());
 
-        rotation = orientation.toRotationMatrix() * rotation;
+        rotation = objectOrientation.toRotationMatrix() * rotation;
 
-        orientation = rotation;
+        objectOrientation = rotation;
 
         geometry_msgs::Pose pose;
-        pose.position.x = position[0];
-        pose.position.y = position[1];
-        pose.position.z = position[2];
-        pose.orientation.x = orientation.x();
-        pose.orientation.y = orientation.y();
-        pose.orientation.z = orientation.z();
-        pose.orientation.w = orientation.w();
+        pose.position.x = objectPosition[0];
+        pose.position.y = objectPosition[1];
+        pose.position.z = objectPosition[2];
+        pose.orientation.x = objectOrientation.x();
+        pose.orientation.y = objectOrientation.y();
+        pose.orientation.z = objectOrientation.z();
+        pose.orientation.w = objectOrientation.w();
 
-        element.type = "CeylonTea";
+        element.type = "Cup";
         element.pose = pose;
         element.identifier = "0";
 
