@@ -1,16 +1,16 @@
-mOmegaUtility: 210 #Gewichtungsfaktor für den Nutzen-Faktor 
-mOmegaPan: 1  #Gewichtungsfaktor für die Bewegung der Pan-Achse der PTU
-mOmegaTilt: 1 #Gewichtungsfaktor für die Rotation der Tilt-Achse der PTU
-mOmegaRot: 10 #Gewichtungsfaktor für die Rotation der Basis
-mOmegaBase: 250 #Gewichtungsfaktor für die Bewegung der Basis
+mOmegaUtility: 210 # weighting factor for the usage
+mOmegaPan: 1  # weighting factor for rotating the pan-axis of the PTU
+mOmegaTilt: 1 # weighting factor for rotating of the tilt-axis of the PTU
+mOmegaRot: 10 # weighting factor for rotating the base
+mOmegaBase: 250 # weighting factor for moving the base
 mOmegaRecognizer: 30
-speedFactorRecognizer: 2.0 #Zeitkosten für Objekterkennung in Sec/Objekt. Bitte nur nach Ruecksprache mit Pascal ändern.
-tolerance: 0.00003 #Toleranzwert für die Wegfindung des globalen Planers
+speedFactorRecognizer: 2.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
+tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
 fovx: 30
 fovy: 20
-ncp: 0.7 #Entfernung der NearClippingPlane in meter
-fcp: 1.2 ##Entfernung der FarClippingPlane in meter
+ncp: 0.7 # distance to NearClippingPlane in meter
+fcp: 1.2 # distance to FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
@@ -23,7 +23,7 @@ IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientatio
 # cameraFilterId == 4 => SingleCameraModelFilter
 # Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
 # Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
-cameraFilterId: 3
+cameraFilterId: 1
 voxelSize: 0.04
 worldHeight: 3
 worldFilePath: ./rsc/world/world.xml
@@ -40,8 +40,8 @@ tiltMin: -45
 tiltMax: 25
 mSigma: 1.0
 radius: 0.15 # hexagon space sample radius
-sampleSizeUnitSphereSampler: 384 # anzahl von samples erstellt durch SpiralApproxUnitSphereSampler. Höher -> genauere Orientierung.
-colThresh: 20
+sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler. Greater -> more precise orientation.
+colThresh: 20 # greater values results in problems during simulation in navigation. Smaller -> more distance to obstacles.
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 enableCropBoxFiltering : false
@@ -55,4 +55,4 @@ spaceSamplerId: 1
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
-debugLevels: [NONE] #ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
+debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

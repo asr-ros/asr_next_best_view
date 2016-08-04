@@ -11,20 +11,22 @@
 using namespace next_best_view;
 
     BaseTest::BaseTest() {
-        initRosServices();
+        initRosServicesAndPublishers();
     }
 
     BaseTest::BaseTest(bool useRos, bool silent) {
         this->silent = silent;
         if (useRos) {
-            initRosServices();
+            initRosServicesAndPublishers();
         }
     }
 
     BaseTest::~BaseTest() {}
 
-    void BaseTest::initRosServices() {
-        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle("~"));
+    void BaseTest::initRosServicesAndPublishers() {
+        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+
+        // services
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
         ros::service::waitForService("/nbv/set_point_cloud", -1);
@@ -37,9 +39,35 @@ using namespace next_best_view;
         mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
+
+        // publishers
+        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
     }
 
     void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose) {
+        // waiting for buffers to fill
+        ros::Duration(5.0).sleep();
+
+        geometry_msgs::PoseWithCovarianceStamped pose;
+        pose.header.frame_id = "map";
+        boost::array<double, 36> a =  {
+            // x, y, z, roll, pitch, yaw
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        };
+        pose.pose.covariance = a;
+        pose.pose.pose = initialPose;
+
+        mInitPosePub.publish(pose);
+
+        this->setInitialRobotState(initialPose);
+    }
+
+    void BaseTest::setInitialRobotState(const geometry_msgs::Pose &initialPose) {
         MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
 
         SetInitRobotState sirb;
@@ -100,3 +128,4 @@ using namespace next_best_view;
         SimpleQuaternion q = Z1_Angle*X_Angle*Z2_Angle;
         return q;
     }
+
