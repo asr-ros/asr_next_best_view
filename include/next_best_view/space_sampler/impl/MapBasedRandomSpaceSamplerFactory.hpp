@@ -27,17 +27,17 @@ namespace next_best_view {
 
     class MapBasedRandomSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperPtr mapHelper;
-        int sampleSize;
+        MapHelperPtr mMapHelperPtr;
+        int mSampleSize;
 
     public:
         MapBasedRandomSpaceSamplerFactory(MapHelperPtr mapHelper, int sampleSize)
-            : mapHelper(mapHelper),
-              sampleSize(sampleSize)
+            : mMapHelperPtr(mapHelper),
+              mSampleSize(sampleSize)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mapHelper, sampleSize));
+            MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mMapHelperPtr, mSampleSize));
             return mapBasedRandomSpaceSampler;
         }
     };

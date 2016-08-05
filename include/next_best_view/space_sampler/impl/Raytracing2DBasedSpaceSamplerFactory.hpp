@@ -27,15 +27,15 @@ namespace next_best_view {
 
     class Raytracing2DBasedSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperPtr mapHelper;
+        MapHelperPtr mMapHelperPtr;
 
     public:
         Raytracing2DBasedSpaceSamplerFactory(MapHelperPtr mapHelper)
-            : mapHelper(mapHelper)
+            : mMapHelperPtr(mapHelper)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            MapBasedSpaceSamplerPtr raytracing2DBasedSpaceSampler = MapBasedSpaceSamplerPtr(new Raytracing2DBasedSpaceSampler(mapHelper));
+            MapBasedSpaceSamplerPtr raytracing2DBasedSpaceSampler = MapBasedSpaceSamplerPtr(new Raytracing2DBasedSpaceSampler(mMapHelperPtr));
             return raytracing2DBasedSpaceSampler;
         }
     };

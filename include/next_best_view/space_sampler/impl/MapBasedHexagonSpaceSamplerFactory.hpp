@@ -27,18 +27,18 @@ namespace next_best_view {
 
     class MapBasedHexagonSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperPtr mapHelper;
-        double radius;
+        MapHelperPtr mMapHelperPtr;
+        double mRadius;
 
     public:
         MapBasedHexagonSpaceSamplerFactory(MapHelperPtr mapHelper, double radius)
-            : mapHelper(mapHelper),
-              radius(radius)
+            : mMapHelperPtr(mapHelper),
+              mRadius(radius)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelper));
-            mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
+            MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mMapHelperPtr));
+            mapBasedHexagonSpaceSampler->setHexagonRadius(mRadius);
             return mapBasedHexagonSpaceSampler;
         }
     };

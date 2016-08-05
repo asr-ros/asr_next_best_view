@@ -26,28 +26,28 @@ namespace next_best_view {
 
     class SingleCameraModelFilterFactory : public CameraModelFilterAbstractFactory {
     private:
-        SimpleVector3 oneCameraPivotPointOffset;
-        double fovx, fovy;
-        double fcp, ncp;
-        double speedFactorRecognizer;
+        SimpleVector3 mOneCameraPivotPointOffset;
+        double mFovx, mFovy;
+        double mFcp, mNcp;
+        double mSpeedFactorRecognizer;
 
     public:
         SingleCameraModelFilterFactory(SimpleVector3 oneCameraPivotPointOffset,
                                        double fovx, double fovy,
                                        double fcp, double ncp, double speedFactorRecognizer)
-            : oneCameraPivotPointOffset(oneCameraPivotPointOffset),
-              fovx(fovx), fovy(fovy),
-              fcp(fcp), ncp(ncp),
-              speedFactorRecognizer(speedFactorRecognizer)
+            : mOneCameraPivotPointOffset(oneCameraPivotPointOffset),
+              mFovx(fovx), mFovy(fovy),
+              mFcp(fcp), mNcp(ncp),
+              mSpeedFactorRecognizer(speedFactorRecognizer)
         { }
 
         CameraModelFilterPtr createCameraModelFilter() {
-            CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new SingleCameraModelFilter(oneCameraPivotPointOffset));
-            cameraModelFilter->setHorizontalFOV(fovx);
-            cameraModelFilter->setVerticalFOV(fovy);
-            cameraModelFilter->setNearClippingPlane(ncp);
-            cameraModelFilter->setFarClippingPlane(fcp);
-            cameraModelFilter->setRecognizerCosts((float) speedFactorRecognizer, "");
+            CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new SingleCameraModelFilter(mOneCameraPivotPointOffset));
+            cameraModelFilter->setHorizontalFOV(mFovx);
+            cameraModelFilter->setVerticalFOV(mFovy);
+            cameraModelFilter->setNearClippingPlane(mNcp);
+            cameraModelFilter->setFarClippingPlane(mFcp);
+            cameraModelFilter->setRecognizerCosts((float) mSpeedFactorRecognizer, "");
             return cameraModelFilter;
         }
     };
