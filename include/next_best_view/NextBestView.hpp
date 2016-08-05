@@ -346,6 +346,7 @@ public:
             mCalculator.loadCropBoxListFromFile(mConfig.mCropBoxListFilePath);
         }
         if (mConfigLevel & parameterConfig) {
+            mDebugHelperPtr->setLevels(mConfig.debugLevels);
             mCalculator.setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculator.setEnableIntermediateObjectWeighting(mConfig.enableIntermediateObjectWeighting);
             //Set the max amout of iterations

@@ -17,6 +17,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
+#include <boost/algorithm/string.hpp>
+#include <boost/range/irange.hpp>
+
 #include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
@@ -141,9 +144,20 @@ bool DebugHelper::checkLevel(DebugLevel level) {
 }
 
 void DebugHelper::setLevels() {
-    // TODO add parameter levels from dyn config
     std::vector<std::string> levels;
     mNodeHandle.param("debugLevels", levels, std::vector<std::string>());
+    mLevels = parseLevels(levels);
+}
+
+void DebugHelper::setLevels(std::string levelsStr) {
+    std::vector<std::string> levels;
+    boost::trim_if(levelsStr, boost::is_any_of("\"',[]{} "));
+    boost::split(levels, levelsStr, boost::is_any_of(", "), boost::token_compress_on);
+    // trim each split string and to uppercase
+    for (int i : boost::irange(0, (int) levels.size())) {
+        boost::trim_if(levels[i], boost::is_any_of("\"',[]{} "));
+        boost::to_upper(levels[i]);
+    }
     mLevels = parseLevels(levels);
 }
 
