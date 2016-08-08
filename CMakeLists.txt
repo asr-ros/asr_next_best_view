@@ -132,8 +132,6 @@ add_library(
         src/hypothesis_updater/impl/PerspectiveHypothesisUpdater.cpp
         src/camera_model_filter/impl/SingleCameraModelFilter.cpp
         src/camera_model_filter/impl/StereoCameraModelFilter.cpp
-        src/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.cpp
-        src/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
