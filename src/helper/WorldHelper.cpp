@@ -305,51 +305,55 @@ void WorldHelper::loadMeshFile(const std::string &meshResource, const SimpleVect
         return;
     }
 
-    aiMesh* mesh = currentScene->mMeshes[0];
-
-    mDebugHelperPtr->write(std::stringstream() << "Loaded mesh with " << mesh->mNumVertices << " vertices.",
-                                                                                        DebugHelper::WORLD);
-
-    SimpleQuaternion normalizedOrientation(0,0,0,0);
-    if (!(orientation.norm() < EPSILON))
-        normalizedOrientation = orientation.normalized();
-
-    // transform mesh and put new vertices in vertices vector
-    std::vector<SimpleVector3> vertices;
-    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+    for (unsigned int i = 0; i < currentScene->mNumMeshes; i++)
     {
-        aiVector3D aiVertex = mesh->mVertices[i];
-        SimpleVector3 vertex = TypeHelper::getSimpleVector3(aiVertex);
-        vertex = vertex.cwiseProduct(scale);
-        if (!orientation.norm() < EPSILON)
-            vertex = normalizedOrientation.toRotationMatrix() * vertex;
-        vertex += position;
-        vertices.push_back(vertex);
-    }
+        aiMesh* mesh = currentScene->mMeshes[i];
 
-    // load mesh into voxel grid
-    mDebugHelperPtr->write("Adding mesh to voxel grid.", DebugHelper::WORLD);
-    for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-    {
-        aiFace face = mesh->mFaces[i];
+        mDebugHelperPtr->write(std::stringstream() << "Loaded mesh with " << mesh->mNumVertices << " vertices.",
+                                                                                            DebugHelper::WORLD);
 
-        std::vector<SimpleVector3> faceVertices;
+        SimpleQuaternion normalizedOrientation(0,0,0,0);
+        if (!(orientation.norm() < EPSILON))
+            normalizedOrientation = orientation.normalized();
 
-        for (unsigned int j = 0; j < face.mNumIndices; j++)
+        // transform mesh and put new vertices in vertices vector
+        std::vector<SimpleVector3> vertices;
+        for (unsigned int j = 0; j < mesh->mNumVertices; j++)
         {
-            unsigned int index = face.mIndices[j];
-            faceVertices.push_back(vertices[index]);
+            aiVector3D aiVertex = mesh->mVertices[j];
+            SimpleVector3 vertex = TypeHelper::getSimpleVector3(aiVertex);
+            vertex = vertex.cwiseProduct(scale);
+            if (!orientation.norm() < EPSILON)
+                vertex = normalizedOrientation.toRotationMatrix() * vertex;
+            vertex += position;
+            vertices.push_back(vertex);
         }
 
-        faces.push_back(faceVertices);
+        // load mesh into voxel grid
+        mDebugHelperPtr->write("Adding mesh to voxel grid.", DebugHelper::WORLD);
+        for (unsigned int j = 0; j < mesh->mNumFaces; j++)
+        {
+            aiFace face = mesh->mFaces[j];
 
-        if (face.mNumIndices == 3)
-            addTriangle(faceVertices);
-        else if (face.mNumIndices == 2)
-            addLine(faceVertices);
-        else if (face.mNumIndices == 1)
-            addPoint(faceVertices[0]);
+            std::vector<SimpleVector3> faceVertices;
+
+            for (unsigned int j = 0; j < face.mNumIndices; j++)
+            {
+                unsigned int index = face.mIndices[j];
+                faceVertices.push_back(vertices[index]);
+            }
+
+            faces.push_back(faceVertices);
+
+            if (face.mNumIndices == 3)
+                addTriangle(faceVertices);
+            else if (face.mNumIndices == 2)
+                addLine(faceVertices);
+            else if (face.mNumIndices == 1)
+                addPoint(faceVertices[0]);
+        }
     }
+
 
     mDebugHelperPtr->write(std::stringstream() << "Loaded OBJ file " << filePath, DebugHelper::WORLD);
 }
