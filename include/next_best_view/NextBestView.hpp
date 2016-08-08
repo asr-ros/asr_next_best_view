@@ -315,33 +315,34 @@ public:
             SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
             SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
             SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
-            MapHelperPtr mapHelperPtr = mCalculator.getMapHelper();
-
-            mDebugHelperPtr->write(std::stringstream() << "worldFilePath: " << config.worldFilePath, DebugHelper::PARAMETERS);
-            mDebugHelperPtr->write(std::stringstream() << "voxelSize: " << config.voxelSize, DebugHelper::PARAMETERS);
-            mDebugHelperPtr->write(std::stringstream() << "worldHeight: " << config.worldHeight, DebugHelper::PARAMETERS);
-
-            // data for 3D raytracing
-            // TODO only initialize world helper if needed
-            WorldHelperPtr worldHelperPtr(new WorldHelper(mapHelperPtr, config.worldFilePath, config.voxelSize, config.worldHeight));
 
             switch (config.cameraFilterId) {
 		    case 1:
-                cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedStereoCameraModelFilter(worldHelperPtr,
-                                                                                                      leftCameraPivotPointOffset,
-                                                                                                      rightCameraPivotPointOffset));
-		        break;
+                {
+                    // data for 3D raytracing
+                    WorldHelperPtr worldHelperPtr = initializeWorldHelper();
+
+                    cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedStereoCameraModelFilter(worldHelperPtr,
+                                                                                                          leftCameraPivotPointOffset,
+                                                                                                          rightCameraPivotPointOffset));
+                }
+                break;
 		    case 2:
 		        cameraModelFilter = CameraModelFilterPtr(new StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset));
 		        break;
 		    case 3:
-                /* Raytracing3DBasedCameraModelFilter is a specialization of the abstract CameraModelFilter class.
-		         * The camera model filter takes account for the fact, that there are different cameras around in the real world.
-		         * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
-                 * the 3D-raytracing version of the camera filter also uses the knowledge of obstacles or walls between the camera and
-                 * the object to be observed. So, 3D-raytracing-based in this context means that the way from the lens to the object is ray-traced.
-		         */
-                cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedSingleCameraModelFilter(worldHelperPtr, oneCameraPivotPointOffset));
+                {
+                    // data for 3D raytracing
+                    WorldHelperPtr worldHelperPtr = initializeWorldHelper();
+
+                    /* Raytracing3DBasedCameraModelFilter is a specialization of the abstract CameraModelFilter class.
+                     * The camera model filter takes account for the fact, that there are different cameras around in the real world.
+                     * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
+                     * the 3D-raytracing version of the camera filter also uses the knowledge of obstacles or walls between the camera and
+                     * the object to be observed. So, 3D-raytracing-based in this context means that the way from the lens to the object is ray-traced.
+                     */
+                    cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedSingleCameraModelFilter(worldHelperPtr, oneCameraPivotPointOffset));
+                }
 		        break;
 		    case 4:
 		        cameraModelFilter = CameraModelFilterPtr(new SingleCameraModelFilter(oneCameraPivotPointOffset));
@@ -492,6 +493,16 @@ public:
             mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
+    }
+
+    WorldHelperPtr initializeWorldHelper() {
+        mDebugHelperPtr->write(std::stringstream() << "worldFilePath: " << config.worldFilePath, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "voxelSize: " << config.voxelSize, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "worldHeight: " << config.worldHeight, DebugHelper::PARAMETERS);
+
+        MapHelperPtr mapHelperPtr = mCalculator.getMapHelper();
+
+        return WorldHelperPtr(new WorldHelper(mapHelperPtr, config.worldFilePath, config.voxelSize, config.worldHeight));
     }
 
     bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
