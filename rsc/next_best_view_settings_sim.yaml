@@ -15,6 +15,7 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
+show_hypothesis: true
 visualizeIK: false
 IKAngleRating: ANGLE_APPROXIMATION # The rating algorithm used for the orientation angle sampling in the MILDRobotModelWithExactIK module. Available algorithms are: ANGLE_APPROXIMATION, NAVIGATION_PATH, SIMPLE
 # cameraFilterId == 1 => MapBasedStereoCameraModelFilter

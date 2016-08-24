@@ -343,6 +343,11 @@ public:
         this->deleteMarkerArray(mOldFrustumMarkerArrayPtr, mFrustumMarkerArrayPublisher);
     }
 
+    /**
+     * @brief triggerObjectPointCloudVisualization shows only objects without hypothesis
+     * @param objectPointCloud
+     * @param typeToMeshResource
+     */
     void triggerObjectPointCloudVisualization(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource) {
         mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
@@ -357,13 +362,17 @@ public:
             return;
         }
 
-        visualizePointCloud(objectPointCloud, typeToMeshResource,
-                                mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher,
-                                mObjectNormalsMarkerArrayPtr, mPointObjectNormalPublisher);
+        visualizePointCloudObjects(objectPointCloud, typeToMeshResource,
+                                   mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
 
         mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
+    /**
+     * @brief triggerFrustumObjectPointCloudVisualization shows only objects without hypothesis.
+     * @param frustumObjectPointCloud
+     * @param typeToMeshResource
+     */
     void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud& frustumObjectPointCloud, std::map<std::string, std::string>& typeToMeshResource) {
         mDebugHelperPtr->writeNoticeably("STARTING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
@@ -375,10 +384,9 @@ public:
 
         std_msgs::ColorRGBA::Ptr colorFrustumMeshMarkerPtr(new std_msgs::ColorRGBA(this->createColorRGBA(0, 0, 1, 0.8)));
 
-        visualizePointCloud(frustumObjectPointCloud, typeToMeshResource,
-                                mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher,
-                                mFrustumObjectNormalsMarkerArrayPtr, mFrustumObjectNormalPublisher,
-                                colorFrustumMeshMarkerPtr);
+        visualizePointCloudObjects(frustumObjectPointCloud, typeToMeshResource,
+                                   mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher,
+                                   colorFrustumMeshMarkerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
     }
@@ -436,6 +444,21 @@ public:
             id++;
         }
         mCropBoxMarkerPublisher.publish(*mCropBoxMarkerArrayPtr);
+    }
+
+    void triggerObjectPointCloudHypothesisVisualization(ObjectPointCloud& objectPointCloud) {
+        mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD HYPOTHESIS VISUALIZATION", DebugHelper::VISUALIZATION);
+
+        if(!mObjectNormalsMarkerArrayPtr){
+            ROS_ERROR("triggerObjectPointCloudHypothesisVisualization call with pointer mObjectNormalsMarkerArrayPtr being null.");
+            mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD HYPOTHESIS VISUALIZATION", DebugHelper::VISUALIZATION);
+            return;
+        }
+
+        visualizePointCloudNormals(objectPointCloud,
+                                   mObjectNormalsMarkerArrayPtr, mPointObjectNormalPublisher);
+
+        mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD HYPOTHESIS VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     /* only working because the shape-based recognizer sets the observedId with the object color */
@@ -681,10 +704,17 @@ private:
         mIterationMarkerArrayPtr->markers.push_back(GridMarker);
     }
 
-    static void visualizePointCloud(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource,
-                                        visualization_msgs::MarkerArray::Ptr objectMarkerArrayPtr, ros::Publisher& objectPublisher,
-                                        visualization_msgs::MarkerArray::Ptr objectNormalsMarkerArrayPtr, ros::Publisher& objectNormalsPublisher,
-                                        std_msgs::ColorRGBA::Ptr objectColorPtr = NULL) {
+    /**
+     * @brief visualizePointCloudObjects visualizes objects of objectPointCloud, using typeToMeshResource to get meshes.
+     * @param objectPointCloud contains objects
+     * @param typeToMeshResource contains mesh informations per object
+     * @param objectMarkerArrayPtr where to place new markers/current markers are located.
+     * @param objectPublisher where to publish the markers
+     * @param objectColorPtr color of objects, can be null/not set if object color should be used.
+     */
+    static void visualizePointCloudObjects(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource,
+                                           visualization_msgs::MarkerArray::Ptr objectMarkerArrayPtr, ros::Publisher& objectPublisher,
+                                           std_msgs::ColorRGBA::Ptr objectColorPtr = NULL) {
         DebugHelperPtr debugHelperPtr = DebugHelper::getInstance();
 
         debugHelperPtr->write("Deleting old object point cloud visualization", DebugHelper::VISUALIZATION);
@@ -713,16 +743,27 @@ private:
         }
 
         debugHelperPtr->write(std::stringstream() << "Publishing " << objectPointCloud.size() <<" object points",
-                    DebugHelper::VISUALIZATION);
+                              DebugHelper::VISUALIZATION);
         objectPublisher.publish(*objectMarkerArrayPtr);
+    }
+
+    /**
+     * @brief visualizePointCloudNormals visualizes all hypothesis of each object.
+     * @param objectPointCloud contains objects
+     * @param objectNormalsMarkerArrayPtr where to place new markers/current markers are located.
+     * @param objectNormalsPublisher where to publish the markers
+     */
+    static void visualizePointCloudNormals(ObjectPointCloud& objectPointCloud,
+                                           visualization_msgs::MarkerArray::Ptr objectNormalsMarkerArrayPtr, ros::Publisher& objectNormalsPublisher) {
+        DebugHelperPtr debugHelperPtr = DebugHelper::getInstance();
 
         debugHelperPtr->write("Deleting old object normals visualization", DebugHelper::VISUALIZATION);
         deleteMarkerArray(objectNormalsMarkerArrayPtr, objectNormalsPublisher);
 
-        index = 0;
+        unsigned int index = 0;
         SimpleVector4 color = SimpleVector4(1.0, 1.0, 0.0, 1.0);
         SimpleVector3 scale = SimpleVector3(0.005, 0.01, 0.005);
-        ns = "ObjectNormals";
+        std::string ns = "ObjectNormals";
 
         for(unsigned int i = 0; i < objectPointCloud.points.size(); i++)
         {
