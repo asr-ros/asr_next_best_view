@@ -403,9 +403,16 @@ namespace next_best_view {
         t3 = h_tilt - target_view_center_point[2];
         //Calculate t2 using abc-formula
         double a, b, c;
-        a = 1 + pow(planeNormal(1)/planeNormal(0), 2.0);
-        b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormal(0), 2.0);
-        c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormal(0), 2.0));
+
+        double planeNormalX = planeNormal[0];
+
+        // quick fix for division by 0
+        if (abs(planeNormalX) < 10e-6)
+            planeNormalX = 10e-6;
+
+        a = 1 + pow(planeNormal(1)/planeNormalX, 2.0);
+        b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormalX, 2.0);
+        c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormalX, 2.0));
         if (pow(b, 2.0)<4*a*c)
         {
             return false;
@@ -415,8 +422,8 @@ namespace next_best_view {
         t2_1 = (-b + sqrt(pow(b, 2.0)-4*a*c))/(2*a);
         t2_2 = (-b - sqrt(pow(b, 2.0)-4*a*c))/(2*a);
         //Calculate feasible t1
-        t1_1 = -(t2_1*planeNormal(1)+t3*planeNormal(2))/planeNormal(0);
-        t1_2 = -(t2_2*planeNormal(1)+t3*planeNormal(2))/planeNormal(0);
+        t1_1 = -(t2_1*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
+        t1_2 = -(t2_2*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
         //Choose t1, t2
         if (targetViewVector[0]*t1_1+targetViewVector[1]*t2_1 < 0)
         {
