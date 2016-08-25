@@ -6,7 +6,7 @@
 	<node pkg="next_best_view" type="next_best_view_raytracing_test" name="test" output="screen">
 		<rosparam param="robot_position">[0.390, -1.63, 1.32]</rosparam>
 		<rosparam param="robot_orientation">[0.0, 0.0, 0.0, 1.0]</rosparam>
-		<rosparam param="object_position">[-0.6, -1.65, 1.0]</rosparam>
+		<rosparam param="object_position">[-0.7, -1.65, 1.0]</rosparam>
 		<rosparam param="object_orientation">[0.697, 0.000, 0.000, 0.717]</rosparam>
 	</node>
 </launch>
