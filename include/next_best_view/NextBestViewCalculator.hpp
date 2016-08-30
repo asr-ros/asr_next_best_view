@@ -195,7 +195,7 @@ private:
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
             if (currentCameraViewport.getPosition() == intermediateResultViewport.getPosition() ||
-                    (rating - currentBestRating) <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
+                    abs(rating - currentBestRating) <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
                 //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
                 resultViewport = intermediateResultViewport;
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
