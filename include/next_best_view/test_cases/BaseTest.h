@@ -66,9 +66,11 @@ public:
 
     ~BaseTest();
 
-    void initRosServices();
+    void initRosServicesAndPublishers();
 
     void setInitialPose(const geometry_msgs::Pose &initialPose);
+
+    void setInitialRobotState(const geometry_msgs::Pose &initialPose);
 
     MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
 
