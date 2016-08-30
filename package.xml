@@ -1,11 +1,10 @@
 <package>
   <name>next_best_view</name>
   <description>next_best_view</description>
-  <author>Ralf Schleicher</author>
   <version>1.0.0</version>
-  <license>BSD</license>
-  <maintainer email="pascal.meissner@kit.edu">Pascal Meissner</maintainer>
-  <url>http://ros.org/wiki/next_best_view</url>
+  <license>BSD-derived</license>
+  <maintainer email="pascal.meissner@kit.edu">Pascal Meißner</maintainer>
+
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>roslib</build_depend>
