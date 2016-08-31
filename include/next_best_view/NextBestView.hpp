@@ -584,7 +584,7 @@ public:
         mGetViewportListServiceClient.call(getViewportListServiceCall);
 
         // convert to viewportPointCloud
-        std::vector<ViewportPoint> viewportPointList(getViewportListServiceCall.response.viewport_list.elements.size());
+        std::vector<ViewportPoint> viewportPointList;
         BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
         {
             ViewportPoint viewportConversionPoint(point.pose);
