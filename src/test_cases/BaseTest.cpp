@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/test_cases/BaseTest.h"
 
 using namespace next_best_view;
+using namespace dynamic_reconfigure;
 
     BaseTest::BaseTest() {
         initRosServicesAndPublishers();
@@ -50,6 +51,8 @@ using namespace next_best_view;
         mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
+        ros::service::waitForService("/nbv/set_parameters", -1);
+        mDynParametersClient = mNodeHandle->serviceClient<Reconfigure>("/nbv/set_parameters");
 
         // publishers
         mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);

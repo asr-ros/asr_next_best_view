@@ -33,6 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_datatypes.h>
+#include <dynamic_reconfigure/Reconfigure.h>
 
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/GetNextBestView.h"
@@ -70,6 +71,7 @@ protected:
     ros::ServiceClient mGetNextBestViewClient;
     ros::ServiceClient mUpdatePointCloudClient;
     ros::ServiceClient mResetCalculatorClient;
+    ros::ServiceClient mDynParametersClient;
     bool silent;
 public:
     BaseTest();
