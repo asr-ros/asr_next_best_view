@@ -415,37 +415,49 @@ namespace next_best_view {
         t3 = h_tilt - target_view_center_point[2];
         //Calculate t2 using abc-formula
         double a, b, c;
-
         double planeNormalX = planeNormal[0];
 
-        // quick fix for division by 0
+        // in case planeNormalX is zero, calculation can be done in an easier way
         if (abs(planeNormalX) < 10e-6)
-            planeNormalX = 10e-6;
-
-        a = 1 + pow(planeNormal(1)/planeNormalX, 2.0);
-        b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormalX, 2.0);
-        c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormalX, 2.0));
-        if (pow(b, 2.0)<4*a*c)
         {
-            return false;
+            //Note: I will assume here, that x and y cannot both be zero, since the plane normal has to lie in the XY-plane
+            t2 = (t3*planeNormal[2])/planeNormal[1];
+            t1 = sqrt(pow(viewTriangleZPlane_sideA, 2.0) - pow(t2, 2.0) - pow(t3, 2.0));
+            //Note: The equation solved above has a positive and negative solution. The correct one is whichever points in the same direction as the targetViewvector
+            if (targetViewVector[0]*t1+targetViewVector[1]*t2 > 0)
+            {
+                //-> Flip sign if needed
+                t1 *= -1.0;
+            }
         }
+        else // in any other case, a quadratic equation needs to be solved for t2 and t1 will be derived from the result
+        {
+            ROS_INFO_STREAM("planNormalX NOT equal 0");
+            a = 1 + pow(planeNormal(1)/planeNormalX, 2.0);
+            b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormalX, 2.0);
+            c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormalX, 2.0));
+            if (pow(b, 2.0)<4*a*c)
+            {
+                return false;
+            }
 
-        double t2_1, t2_2, t1_1, t1_2;
-        t2_1 = (-b + sqrt(pow(b, 2.0)-4*a*c))/(2*a);
-        t2_2 = (-b - sqrt(pow(b, 2.0)-4*a*c))/(2*a);
-        //Calculate feasible t1
-        t1_1 = -(t2_1*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
-        t1_2 = -(t2_2*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
-        //Choose t1, t2
-        if (targetViewVector[0]*t1_1+targetViewVector[1]*t2_1 < 0)
-        {
-            t1 = t1_1;
-            t2 = t2_1;
-        }
-        else
-        {
-            t1 = t1_2;
-            t2 = t2_2;
+            double t2_1, t2_2, t1_1, t1_2;
+            t2_1 = (-b + sqrt(pow(b, 2.0)-4*a*c))/(2*a);
+            t2_2 = (-b - sqrt(pow(b, 2.0)-4*a*c))/(2*a);
+            //Calculate feasible t1
+            t1_1 = -(t2_1*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
+            t1_2 = -(t2_2*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
+            //Choose t1, t2
+            if (targetViewVector[0]*t1_1+targetViewVector[1]*t2_1 < 0)
+            {
+                t1 = t1_1;
+                t2 = t2_1;
+            }
+            else
+            {
+                t1 = t1_2;
+                t2 = t2_2;
+            }
         }
 
         //get projected tilt base point

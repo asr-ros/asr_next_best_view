@@ -32,7 +32,7 @@ using namespace boost::unit_test;
 
 class IKTest : public BaseTest{
 public:
-    IKTest() : BaseTest (){
+    IKTest() : BaseTest (false, false){
     }
 
     virtual ~IKTest() {}
@@ -40,9 +40,20 @@ public:
     void cameraPoseTest() {
         std::vector<SimpleVector3> targetCameraPositions;
         std::vector<SimpleQuaternion> targetCameraOrientations;
+
         //Initialize Poses
         targetCameraPositions.push_back(SimpleVector3(0, 0, 0));
         targetCameraOrientations.push_back(ZXZ2Quaternion(0.0, 0.0, 0.0));
+        //Added some poses where the X or Y direction of the camera is exactly zero
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.3));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(0, 0.0, 0 ));
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.3));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(90, 0.0, 0 ));
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.3));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(180, 0.0, 0 ));
+        targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.3));
+        targetCameraOrientations.push_back(ZXZ2Quaternion(270, 0.0, 0 ));
+
         targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.4));
         targetCameraOrientations.push_back(ZXZ2Quaternion(-170, 0.0, 0 ));
         targetCameraPositions.push_back(SimpleVector3(0.404993116856, -2.28920769691, 1.4));
@@ -133,9 +144,9 @@ public:
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
             ROS_INFO_STREAM("Calculating inverse kinematics...");
             RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
-            ROS_INFO_STREAM("Calculating camera pose correction...");
+            /*ROS_INFO_STREAM("Calculating camera pose correction...");
             PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
-            ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);
+            ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);*/
             ros::spinOnce();
             waitForEnter();
             ros::Duration(2).sleep();
