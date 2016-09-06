@@ -21,27 +21,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 // Global Includes
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
-#include <boost/range/algorithm_ext/iota.hpp>
 #include <eigen3/Eigen/Dense>
 #include <pcl-1.7/pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <set>
 #include <vector>
 
 // ROS Main Include
 #include <ros/ros.h>
 
 // ROS Includes
-#include <actionlib/client/simple_action_client.h>
-#include <move_base_msgs/MoveBaseAction.h>
 #include <object_database/ObjectManager.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/PointField.h>
-#include <set>
-#include <std_srvs/Empty.h>
-#include <std_msgs/ColorRGBA.h>
 #include <dynamic_reconfigure/server.h>
 #include <next_best_view/DynamicParametersConfig.h>
 
@@ -104,10 +94,6 @@ namespace next_best_view {
 namespace viz = visualization_msgs;
 namespace odb = object_database;
 
-// Defining shorthandle for action client.
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseActionClient;
-typedef boost::shared_ptr<MoveBaseActionClient> MoveBaseActionClientPtr;
-
 /*!
      * \brief NextBestView is a configuration class of the related node.
      *
@@ -124,7 +110,6 @@ private:
     ros::NodeHandle mNodeHandle;
 
     // ServiceServer and Publisher
-    ros::ServiceServer mGetPointCloud2ServiceServer;
     ros::ServiceServer mGetPointCloudServiceServer;
     ros::ServiceServer mSetPointCloudServiceServer;
     ros::ServiceServer mSetInitRobotStateServiceServer;
@@ -137,8 +122,6 @@ private:
     ros::ServiceServer mRateViewportsServer;
     ros::ServiceServer mRemoveObjectsServer;
 
-    // Action Clients
-    MoveBaseActionClientPtr mMoveBaseActionClient;
 
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
@@ -1075,7 +1058,6 @@ public:
     }
 
     void dynamicReconfigureCallback(DynamicParametersConfig &config, uint32_t level) {
-        // TODO split this up
         // TODO consider that services and this and other stuff is called parallel
         ROS_INFO_STREAM("Parameters updated");
         ROS_INFO_STREAM("level: " << level);
