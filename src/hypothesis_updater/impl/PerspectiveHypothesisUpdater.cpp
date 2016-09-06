@@ -82,7 +82,7 @@ namespace next_best_view {
         return counter;
 	}
 
-	void PerspectiveHypothesisUpdater::setDefaultRatingModule(const DefaultRatingModulePtr &defaultRatingModulePtr) {
+    void PerspectiveHypothesisUpdater::setDefaultRatingModule(DefaultRatingModulePtr defaultRatingModulePtr) {
 		mDefaultRatingModulePtr = defaultRatingModulePtr;
 	}
 
