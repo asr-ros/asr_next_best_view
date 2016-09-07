@@ -38,6 +38,7 @@ add_message_files(
         msg
         FILES
         RobotStateMessage.msg
+	RatedViewport.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -60,6 +61,7 @@ add_service_files(
    TriggerFrustumVisualization.srv
    ResetCalculator.srv
    GetPose.srv
+   RateViewports.srv
 )
 
 ## Generate actions in the 'action' folder

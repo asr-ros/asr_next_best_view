@@ -5,5 +5,5 @@
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
 	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
-	<node pkg="next_best_view" type="next_best_view_update_pointcloud_test" name="test" output="screen" args="silent" />
+	<node pkg="next_best_view" type="next_best_view_update_pointcloud_test" name="test" output="screen" args="" />
 </launch>
