@@ -554,10 +554,13 @@ public:
 
         // convert geometry_msgs::Poses to ViewportPoints
         ViewportPointCloudPtr sampleViewportsPtr = ViewportPointCloudPtr(new ViewportPointCloud());
+        unsigned int i = 0;
         for (geometry_msgs::Pose viewport : request.viewports) {
             ViewportPoint sampleViewport(viewport);
             sampleViewport.object_type_set = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
+            sampleViewport.oldIdx = i;
             sampleViewportsPtr->push_back(sampleViewport);
+            i++;
         }
 
         // find nearby object hypothesis per sampleViewport
@@ -568,30 +571,44 @@ public:
         ViewportPointCloudPtr feasibleSampleViewportsPtr = ViewportPointCloudPtr(new ViewportPointCloud(*sampleViewportsPtr, *feasibleViewportsPtr));
 
         // rate
-        // TODO use object types
-        // TODO assert no sorting
         ViewportPointCloudPtr ratedSampleViewportsPtr;
         mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, true);
 
         // convert to response
-        int i = 0;
-        for (ViewportPoint& viewport : (*ratedSampleViewportsPtr)) {
-            RatedViewport ratedViewport;
-            ratedViewport.pose = viewport.getPose();
-            ratedViewport.oldIdx = i;
-            ratedViewport.object_type_name_list = std::vector<string>(viewport.object_type_set->size());
-            std::copy(viewport.object_type_set->begin(),
-                      viewport.object_type_set->end(),
-                      ratedViewport.object_type_name_list.begin());
-            ratedViewport.rating = mCalculator.getRatingModule()->getRating(viewport.score);
-            // set utility and inverse cost terms in rating for the given next best view.
-            ratedViewport.utility = viewport.score->getWeightedNormalizedUtility();
-            ratedViewport.inverse_costs = viewport.score->getWeightedInverseCosts();
-            ratedViewport.base_translation_inverse_costs = viewport.score->getUnweightedInverseMovementCostsBaseTranslation();
-            ratedViewport.base_rotation_inverse_costs = viewport.score->getUnweightedInverseMovementCostsBaseRotation();
-            ratedViewport.ptu_movement_inverse_costs = viewport.score->getUnweightedInverseMovementCostsPTU();
-            ratedViewport.recognition_inverse_costs = viewport.score->getUnweightedInverseRecognitionCosts();
-            response.sortedRatedViewports.push_back(ratedViewport);
+        unsigned int nextRatedViewportIdx = 0;
+        for (i = 0; i < sampleViewportsPtr->size(); i++) {
+            ViewportPoint& ratedViewport = ratedSampleViewportsPtr->at(nextRatedViewportIdx);
+            RatedViewport responseViewport;
+            if (i != ratedViewport.oldIdx) {
+                ViewportPoint unratedViewport = sampleViewportsPtr->at(i);
+                responseViewport.pose = unratedViewport.getPose();
+                responseViewport.oldIdx = i;
+                responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
+                std::copy(ratedViewport.object_type_set->begin(),
+                          ratedViewport.object_type_set->end(),
+                          responseViewport.object_type_name_list.begin());
+            } else {
+                responseViewport.pose = ratedViewport.getPose();
+                responseViewport.oldIdx = ratedViewport.oldIdx;
+                ROS_INFO_STREAM(ratedViewport);
+                responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
+                std::copy(ratedViewport.object_type_set->begin(),
+                          ratedViewport.object_type_set->end(),
+                          responseViewport.object_type_name_list.begin());
+                responseViewport.rating = mCalculator.getRatingModule()->getRating(ratedViewport.score);
+                // set utility and inverse cost terms in rating for the given next best view.
+                responseViewport.utility = ratedViewport.score->getWeightedNormalizedUtility();
+                responseViewport.inverse_costs = ratedViewport.score->getWeightedInverseCosts();
+                responseViewport.base_translation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseTranslation();
+                responseViewport.base_rotation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseRotation();
+                responseViewport.ptu_movement_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsPTU();
+                responseViewport.recognition_inverse_costs = ratedViewport.score->getUnweightedInverseRecognitionCosts();
+                if (nextRatedViewportIdx < ratedSampleViewportsPtr->size() - 1) {
+                    // we move to the last rated viewport and stay there, so other unrated viewports may come later
+                    nextRatedViewportIdx++;
+                }
+            }
+            response.sortedRatedViewports.push_back(responseViewport);
             i++;
         }
 

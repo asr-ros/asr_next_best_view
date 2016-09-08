@@ -141,6 +141,7 @@ public:
      * @param currentCameraViewport the camera viewport of the robot
      */
     void initializeRobotState(const ViewportPoint &currentCameraViewport) {
+        ROS_INFO_STREAM(currentCameraViewport);
         RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
@@ -240,7 +241,7 @@ public:
      * @brief rates given viewports, which must contain child_indices
      * @param sampleNextBestViewports [in] viewports to rate
      * @param currentCameraViewport [in] current camera viewport to rate
-     * @param ratedNextBestViewports [out] rated viewports
+     * @param ratedNextBestViewports [out] rated viewports, which might be fewer
      * @param objectTypeSetIsKnown
      * @return if valid result
      */

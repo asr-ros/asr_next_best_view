@@ -54,6 +54,7 @@ namespace next_best_view {
         }
         else
             strm << "object_type_set: nullptr" << endl;
+        strm << "oldIdx: " << p.oldIdx << endl;
         return strm;
     }
 
