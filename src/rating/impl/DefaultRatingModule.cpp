@@ -115,19 +115,25 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
     }
 
     // sort the viewports by rating
-    std::sort(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
+    if (mDebugHelperPtr->getLevel() & DebugHelper::RATING) {
+        // sorting all viewports
+        std::sort(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
 
-    // output the sorted list of viewports
-    for (unsigned int i = 0; i < viewports->size(); i++) {
-        mDebugHelperPtr->write(std::stringstream() << "THIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.",
-                    DebugHelper::RATING);
-        ViewportPoint viewport = viewports->at(i);
-        mDebugHelperPtr->write(std::stringstream() << viewport, DebugHelper::RATING);
-        mDebugHelperPtr->write(std::stringstream() << "rating: " << this->getRating(viewport.score), DebugHelper::RATING);
+        // output the sorted list of viewports
+        for (unsigned int i = 0; i < viewports->size(); i++) {
+            mDebugHelperPtr->write(std::stringstream() << "THIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.",
+                        DebugHelper::RATING);
+            ViewportPoint viewport = viewports->at(i);
+            mDebugHelperPtr->write(std::stringstream() << viewport, DebugHelper::RATING);
+            mDebugHelperPtr->write(std::stringstream() << "rating: " << this->getRating(viewport.score), DebugHelper::RATING);
+        }
+
+        // set best viewport
+        bestViewport = viewports->at(viewports->size() - 1);
+    } else {
+        // just getting the best viewport
+        bestViewport = *std::max_element(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
     }
-
-    // set best viewport
-    bestViewport = viewports->at(viewports->size() - 1);
 
     // output best viewport
     mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE SORTED LIST.", DebugHelper::RATING);
@@ -465,6 +471,10 @@ void DefaultRatingModule::resetCache() {
     mUnweightedInverseRecognitionCosts = -1;
     mOmegaPTU = -1;
     mTargetState = NULL;
+}
+
+void DefaultRatingModule::setRobotState(RobotStatePtr robotState) {
+    mRobotModelPtr->setCurrentRobotState(robotState);
 }
 
 }

@@ -265,6 +265,12 @@ namespace next_best_view {
          * \brief resets the cached data for a call of setBestScoreContainer
          */
         void resetCache();
+
+        /**
+         * @brief setRobotState sets mRobotModelPtr's state.
+         * @param robotState
+         */
+        void setRobotState(RobotStatePtr robotState);
 	};
 
     /*!
