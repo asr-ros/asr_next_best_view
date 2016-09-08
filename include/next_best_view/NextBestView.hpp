@@ -574,27 +574,36 @@ public:
         ViewportPointCloudPtr ratedSampleViewportsPtr;
         mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, true);
 
+
         // convert to response
-        unsigned int nextRatedViewportIdx = 0;
+        unsigned int nextRatedViewportIdx = 0; // to iterate through ratedSampleViewportsPtr
+        unsigned int nextRatedViewportOldIdx = -1; // oldIdx attribute of next ratedSampleViewport/nextRatedViewportIdx
+        if (nextRatedViewportIdx < ratedSampleViewportsPtr->size()) {
+            nextRatedViewportOldIdx = ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx;
+        }
         for (i = 0; i < sampleViewportsPtr->size(); i++) {
-            ViewportPoint& ratedViewport = ratedSampleViewportsPtr->at(nextRatedViewportIdx);
             RatedViewport responseViewport;
-            if (i != ratedViewport.oldIdx) {
+            if (i != nextRatedViewportOldIdx) {
                 ViewportPoint unratedViewport = sampleViewportsPtr->at(i);
                 responseViewport.pose = unratedViewport.getPose();
                 responseViewport.oldIdx = i;
-                responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
-                std::copy(ratedViewport.object_type_set->begin(),
-                          ratedViewport.object_type_set->end(),
-                          responseViewport.object_type_name_list.begin());
+                if (unratedViewport.object_type_set->size() > 0) {
+                    responseViewport.object_type_name_list = std::vector<string>(unratedViewport.object_type_set->size());
+                    std::copy(unratedViewport.object_type_set->begin(),
+                              unratedViewport.object_type_set->end(),
+                              responseViewport.object_type_name_list.begin());
+                }
             } else {
+                ViewportPoint& ratedViewport = ratedSampleViewportsPtr->at(nextRatedViewportIdx);
                 responseViewport.pose = ratedViewport.getPose();
-                responseViewport.oldIdx = ratedViewport.oldIdx;
+                responseViewport.oldIdx = i;
                 ROS_INFO_STREAM(ratedViewport);
-                responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
-                std::copy(ratedViewport.object_type_set->begin(),
-                          ratedViewport.object_type_set->end(),
-                          responseViewport.object_type_name_list.begin());
+                if (ratedViewport.object_type_set->size() > 0) {
+                    responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
+                    std::copy(ratedViewport.object_type_set->begin(),
+                              ratedViewport.object_type_set->end(),
+                              responseViewport.object_type_name_list.begin());
+                }
                 responseViewport.rating = mCalculator.getRatingModule()->getRating(ratedViewport.score);
                 // set utility and inverse cost terms in rating for the given next best view.
                 responseViewport.utility = ratedViewport.score->getWeightedNormalizedUtility();
@@ -603,13 +612,12 @@ public:
                 responseViewport.base_rotation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseRotation();
                 responseViewport.ptu_movement_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsPTU();
                 responseViewport.recognition_inverse_costs = ratedViewport.score->getUnweightedInverseRecognitionCosts();
-                if (nextRatedViewportIdx < ratedSampleViewportsPtr->size() - 1) {
-                    // we move to the last rated viewport and stay there, so other unrated viewports may come later
-                    nextRatedViewportIdx++;
+                nextRatedViewportIdx++;
+                if (nextRatedViewportIdx < ratedSampleViewportsPtr->size()) {
+                    nextRatedViewportOldIdx = ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx;
                 }
             }
             response.sortedRatedViewports.push_back(responseViewport);
-            i++;
         }
 
         // sort

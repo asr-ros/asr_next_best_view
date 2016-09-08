@@ -141,7 +141,6 @@ public:
      * @param currentCameraViewport the camera viewport of the robot
      */
     void initializeRobotState(const ViewportPoint &currentCameraViewport) {
-        ROS_INFO_STREAM(currentCameraViewport);
         RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
