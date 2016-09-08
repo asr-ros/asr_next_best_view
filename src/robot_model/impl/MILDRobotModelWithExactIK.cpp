@@ -1,9 +1,21 @@
-/*
- * PTURoboterState.hpp
- *
- *  Created on: Sep 23, 2014
- *      Author: ralfschleicher
- */
+/**
+
+Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+4. The use is explicitly not permitted to any application which deliberately try to kill or do harm to any living creature.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*/
 
 #include <glpk.h>
 #include <limits>
@@ -151,12 +163,7 @@ namespace next_best_view {
         panJointXAxis.normalize();
         panJointYAxis.normalize();
         panJointToCenterPointProjected.normalize();
-        double panAngle = acos(panJointToCenterPointProjected.dot(panJointXAxis));
-        // Flip sign if target is left of robot
-        if (panJointToCenterPointProjected.dot(panJointYAxis) < 0)
-        {
-            panAngle *= -1;
-        }
+        double panAngle = asin(panJointToCenterPointProjected.dot(panJointYAxis));
         panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB, DebugHelper::ROBOT_MODEL);
@@ -167,22 +174,24 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "mPanAngleOffset: " << mPanAngleOffset, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis),
                     DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << acos(panJointToCenterPointProjected.dot(panJointXAxis)),
-                    DebugHelper::ROBOT_MODEL);
         //Calculate TILT
         Eigen::Affine3d panJointRotatedEigen = panJointEigen * Eigen::AngleAxisd(panAngle, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d tiltJointEigen = panJointRotatedEigen * panToTiltEigen;
         Eigen::Vector3d tiltJointToViewCenter = target_view_center_point - Eigen::Vector3d(tiltJointEigen(0,3), tiltJointEigen(1,3), tiltJointEigen(2,3));
-        double viewTriangleZPlane_sideC = tiltJointToViewCenter.norm();
+        Eigen::Vector3d tiltJointYAxis(tiltJointEigen(0,1), tiltJointEigen(1,1), tiltJointEigen(2,1));
+        tiltJointYAxis.normalize();
+        Eigen::Vector3d tiltJointToViewCenterProjected = tiltJointToViewCenter - tiltJointYAxis.dot(tiltJointToViewCenter) * tiltJointYAxis;
+        double viewTriangleZPlane_sideA = tiltJointToViewCenterProjected.norm();
         double aTimesCos = viewTriangleZPlane_sideB*cos(viewTriangleZPlane_angleAlpha);
-        double viewTriangleZPlane_sideA = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideC,2.0));
+        double viewTriangleZPlane_sideC = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideA,2.0));
 
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideC: " << viewTriangleZPlane_sideC, DebugHelper::ROBOT_MODEL);
 
-        double tiltAngle = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideC, 2.0) - pow(viewTriangleZPlane_sideA, 2.0);
-        tiltAngle = -acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm()) +  acos(tiltAngle / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideC));// + mTiltAngleOffset;
+        double viewTriangleZPlane_angleGamma = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideA, 2.0) - pow(viewTriangleZPlane_sideC, 2.0);
+        viewTriangleZPlane_angleGamma = acos(viewTriangleZPlane_angleGamma / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideA));
+        double tiltAngle = viewTriangleZPlane_angleGamma - acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm());// + mTiltAngleOffset;
 
         //Check angle angle constrains and truncate values if neccessaire
         double tiltMin = mTiltLimits.get<0>();
@@ -403,30 +412,49 @@ namespace next_best_view {
         t3 = h_tilt - target_view_center_point[2];
         //Calculate t2 using abc-formula
         double a, b, c;
-        a = 1 + pow(planeNormal(1)/planeNormal(0), 2.0);
-        b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormal(0), 2.0);
-        c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormal(0), 2.0));
-        if (pow(b, 2.0)<4*a*c)
-        {
-            return false;
-        }
+        double planeNormalX = planeNormal[0];
 
-        double t2_1, t2_2, t1_1, t1_2;
-        t2_1 = (-b + sqrt(pow(b, 2.0)-4*a*c))/(2*a);
-        t2_2 = (-b - sqrt(pow(b, 2.0)-4*a*c))/(2*a);
-        //Calculate feasible t1
-        t1_1 = -(t2_1*planeNormal(1)+t3*planeNormal(2))/planeNormal(0);
-        t1_2 = -(t2_2*planeNormal(1)+t3*planeNormal(2))/planeNormal(0);
-        //Choose t1, t2
-        if (targetViewVector[0]*t1_1+targetViewVector[1]*t2_1 < 0)
+        // in case planeNormalX is zero, calculation can be done in an easier way
+        if (abs(planeNormalX) < 10e-6)
         {
-            t1 = t1_1;
-            t2 = t2_1;
+            //Note: I will assume here, that x and y cannot both be zero, since the plane normal has to lie in the XY-plane
+            t2 = (t3*planeNormal[2])/planeNormal[1];
+            t1 = sqrt(pow(viewTriangleZPlane_sideA, 2.0) - pow(t2, 2.0) - pow(t3, 2.0));
+            //Note: The equation solved above has a positive and negative solution. The correct one is whichever points in the same direction as the targetViewvector
+            if (targetViewVector[0]*t1+targetViewVector[1]*t2 > 0)
+            {
+                //-> Flip sign if needed
+                t1 *= -1.0;
+            }
         }
-        else
+        else // in any other case, a quadratic equation needs to be solved for t2 and t1 will be derived from the result
         {
-            t1 = t1_2;
-            t2 = t2_2;
+            ROS_INFO_STREAM("planNormalX NOT equal 0");
+            a = 1 + pow(planeNormal(1)/planeNormalX, 2.0);
+            b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormalX, 2.0);
+            c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormalX, 2.0));
+            if (pow(b, 2.0)<4*a*c)
+            {
+                return false;
+            }
+
+            double t2_1, t2_2, t1_1, t1_2;
+            t2_1 = (-b + sqrt(pow(b, 2.0)-4*a*c))/(2*a);
+            t2_2 = (-b - sqrt(pow(b, 2.0)-4*a*c))/(2*a);
+            //Calculate feasible t1
+            t1_1 = -(t2_1*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
+            t1_2 = -(t2_2*planeNormal(1)+t3*planeNormal(2))/planeNormalX;
+            //Choose t1, t2
+            if (targetViewVector[0]*t1_1+targetViewVector[1]*t2_1 < 0)
+            {
+                t1 = t1_1;
+                t2 = t2_1;
+            }
+            else
+            {
+                t1 = t1_2;
+                t2 = t2_2;
+            }
         }
 
         //get projected tilt base point
