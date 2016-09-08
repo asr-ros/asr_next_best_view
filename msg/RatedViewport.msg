@@ -1,5 +1,8 @@
 geometry_msgs/Pose pose
 
+# List of types of objects being searched in given nbv.
+string[] object_type_name_list
+
 # old index before sorting
 uint32 oldIdx
 

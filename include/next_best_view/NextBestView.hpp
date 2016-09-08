@@ -571,7 +571,7 @@ public:
         // TODO use object types
         // TODO assert no sorting
         ViewportPointCloudPtr ratedSampleViewportsPtr;
-        mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr);
+        mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, true);
 
         // convert to response
         int i = 0;
@@ -579,6 +579,10 @@ public:
             RatedViewport ratedViewport;
             ratedViewport.pose = viewport.getPose();
             ratedViewport.oldIdx = i;
+            ratedViewport.object_type_name_list = std::vector<string>(viewport.object_type_set->size());
+            std::copy(viewport.object_type_set->begin(),
+                      viewport.object_type_set->end(),
+                      ratedViewport.object_type_name_list.begin());
             ratedViewport.rating = mCalculator.getRatingModule()->getRating(viewport.score);
             // set utility and inverse cost terms in rating for the given next best view.
             ratedViewport.utility = viewport.score->getWeightedNormalizedUtility();
@@ -592,7 +596,10 @@ public:
         }
 
         // sort
-        // TODO
+        std::sort(response.sortedRatedViewports.begin(), response.sortedRatedViewports.end(), [](RatedViewport a, RatedViewport b)
+        {
+            return a.rating < b.rating;
+        });
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;

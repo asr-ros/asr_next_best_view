@@ -303,7 +303,7 @@ private:
         for (int i : boost::irange(startIdx, endIdx)) {
             ViewportPoint fullViewportPoint = sampleNextBestViewports->at(i);
             //Calculate which object points lie within frustum for given viewport.
-            if (!this->doFrustumCulling(mThreadCameraModels[threadId], fullViewportPoint, objectTypeSetIsKnown)) {
+            if (!this->doFrustumCulling(mThreadCameraModels[threadId], fullViewportPoint)) {
                 //Skip viewport if no object point is within frustum.
                 continue;
             }
@@ -345,7 +345,7 @@ private:
      * @param fullViewportPoint [out] resulting rated viewport
      * @return
      */
-    bool rateSingleViewportFixedObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint fullViewportPoint) {
+    bool rateSingleViewportFixedObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint) {
         return ratingModulePtr->setSingleScoreContainer(currentCameraViewport, fullViewportPoint);
     }
 
@@ -448,6 +448,7 @@ private:
                 ViewportPoint sampleViewport(samplePointCoords, orientation);
                 // nearby object hypothesis for good estimation of possible hypothesis in frustum
                 sampleViewport.child_indices = samplePointChildIndices;
+                sampleViewport.object_type_set = mObjectTypeSetPtr;
                 sampleNextBestViewports->push_back(sampleViewport);
             }
         }
@@ -503,10 +504,9 @@ public:
      * @brief creates a new camera viewport with the given data
      * @param cameraModelFilterPtr [in] the cameraModel used to filter objects
      * @param resultViewportPoint [out|in] the resulting camera viewport containg the camera position and orientation and the object point indices to be used
-     * @param objectTypeSetIsKnown
      * @return
      */
-    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, ViewportPoint &resultViewportPoint, bool objectTypeSetIsKnown = false) {
+    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, ViewportPoint &resultViewportPoint) {
         cameraModelFilterPtr->setIndices(resultViewportPoint.child_indices);
         cameraModelFilterPtr->setPivotPointPose(resultViewportPoint.getPosition(), resultViewportPoint.getSimpleQuaternion());
 
@@ -522,9 +522,6 @@ public:
         resultViewportPoint.child_indices = frustumIndicesPtr;
         resultViewportPoint.child_point_cloud = cameraModelFilterPtr->getInputCloud();
         resultViewportPoint.point_cloud = mPointCloudPtr;
-        if (!objectTypeSetIsKnown) {
-            resultViewportPoint.object_type_set = mObjectTypeSetPtr;
-        }
 
         return true;
     }
