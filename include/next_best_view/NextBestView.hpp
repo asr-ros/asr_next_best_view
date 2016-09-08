@@ -581,8 +581,10 @@ public:
 
         // convert to response
         unsigned int nextRatedViewportIdx = 0; // to iterate through ratedSampleViewportsPtr
-        unsigned int nextRatedViewportOldIdx = -1; // oldIdx attribute of next ratedSampleViewport/nextRatedViewportIdx
-        if (nextRatedViewportIdx < ratedSampleViewportsPtr->size()) {
+        unsigned int nextRatedViewportOldIdx = 0; // oldIdx attribute of next ratedSampleViewport/nextRatedViewportIdx
+        if (ratedSampleViewportsPtr->size() == 0) {
+            nextRatedViewportOldIdx = -1;
+        } else {
             nextRatedViewportOldIdx = ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx;
         }
         for (i = 0; i < sampleViewportsPtr->size(); i++) {
@@ -626,9 +628,9 @@ public:
         }
 
         // sort
-        std::sort(response.sortedRatedViewports.begin(), response.sortedRatedViewports.end(), [](RatedViewport a, RatedViewport b)
+        std::stable_sort(response.sortedRatedViewports.begin(), response.sortedRatedViewports.end(), [](RatedViewport a, RatedViewport b)
         {
-            return a.rating < b.rating;
+            return a.rating > b.rating;
         });
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
