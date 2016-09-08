@@ -546,6 +546,10 @@ public:
     bool processRateViewports(RateViewports::Request &request, RateViewports::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
+        if (request.viewports.empty()) {
+            return true;
+        }
+
         // Current camera view (frame of camera) of the robot.
         ViewportPoint currentCameraViewport(request.current_pose);
 
@@ -594,6 +598,7 @@ public:
                               responseViewport.object_type_name_list.begin());
                 }
             } else {
+                // assert(i == nextRatedViewportOldIdx) ^= ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx
                 ViewportPoint& ratedViewport = ratedSampleViewportsPtr->at(nextRatedViewportIdx);
                 responseViewport.pose = ratedViewport.getPose();
                 responseViewport.oldIdx = i;
