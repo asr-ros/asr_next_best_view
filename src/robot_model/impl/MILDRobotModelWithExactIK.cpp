@@ -163,12 +163,7 @@ namespace next_best_view {
         panJointXAxis.normalize();
         panJointYAxis.normalize();
         panJointToCenterPointProjected.normalize();
-        double panAngle = acos(panJointToCenterPointProjected.dot(panJointXAxis));
-        // Flip sign if target is left of robot
-        if (panJointToCenterPointProjected.dot(panJointYAxis) < 0)
-        {
-            panAngle *= -1;
-        }
+        double panAngle = asin(panJointToCenterPointProjected.dot(panJointYAxis));
         panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB, DebugHelper::ROBOT_MODEL);
@@ -179,22 +174,24 @@ namespace next_best_view {
         mDebugHelperPtr->write(std::stringstream() << "mPanAngleOffset: " << mPanAngleOffset, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis),
                     DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "acos(panJointToCenterPointProjected.dot(panJointXAxis)): " << acos(panJointToCenterPointProjected.dot(panJointXAxis)),
-                    DebugHelper::ROBOT_MODEL);
         //Calculate TILT
         Eigen::Affine3d panJointRotatedEigen = panJointEigen * Eigen::AngleAxisd(panAngle, Eigen::Vector3d::UnitZ());
         Eigen::Affine3d tiltJointEigen = panJointRotatedEigen * panToTiltEigen;
         Eigen::Vector3d tiltJointToViewCenter = target_view_center_point - Eigen::Vector3d(tiltJointEigen(0,3), tiltJointEigen(1,3), tiltJointEigen(2,3));
-        double viewTriangleZPlane_sideC = tiltJointToViewCenter.norm();
+        Eigen::Vector3d tiltJointYAxis(tiltJointEigen(0,1), tiltJointEigen(1,1), tiltJointEigen(2,1));
+        tiltJointYAxis.normalize();
+        Eigen::Vector3d tiltJointToViewCenterProjected = tiltJointToViewCenter - tiltJointYAxis.dot(tiltJointToViewCenter) * tiltJointYAxis;
+        double viewTriangleZPlane_sideA = tiltJointToViewCenterProjected.norm();
         double aTimesCos = viewTriangleZPlane_sideB*cos(viewTriangleZPlane_angleAlpha);
-        double viewTriangleZPlane_sideA = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideC,2.0));
+        double viewTriangleZPlane_sideC = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideA,2.0));
 
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideC: " << viewTriangleZPlane_sideC, DebugHelper::ROBOT_MODEL);
 
-        double tiltAngle = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideC, 2.0) - pow(viewTriangleZPlane_sideA, 2.0);
-        tiltAngle = -acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm()) +  acos(tiltAngle / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideC));// + mTiltAngleOffset;
+        double viewTriangleZPlane_angleGamma = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideA, 2.0) - pow(viewTriangleZPlane_sideC, 2.0);
+        viewTriangleZPlane_angleGamma = acos(viewTriangleZPlane_angleGamma / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideA));
+        double tiltAngle = viewTriangleZPlane_angleGamma - acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm());// + mTiltAngleOffset;
 
         //Check angle angle constrains and truncate values if neccessaire
         double tiltMin = mTiltLimits.get<0>();
