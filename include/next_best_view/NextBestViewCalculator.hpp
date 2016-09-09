@@ -346,6 +346,7 @@ private:
      * @return
      */
     bool rateSingleViewportFixedObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint) {
+        ratingModulePtr->resetCache();
         return ratingModulePtr->setSingleScoreContainer(currentCameraViewport, fullViewportPoint);
     }
 

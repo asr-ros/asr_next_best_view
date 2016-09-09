@@ -578,6 +578,11 @@ public:
         ViewportPointCloudPtr ratedSampleViewportsPtr;
         mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, true);
 
+        // threads mix up oldIdx
+        std::sort(ratedSampleViewportsPtr->begin(), ratedSampleViewportsPtr->end(), [](ViewportPoint a, ViewportPoint b)
+        {
+            return a.oldIdx < b.oldIdx;
+        });
 
         // convert to response
         unsigned int nextRatedViewportIdx = 0; // to iterate through ratedSampleViewportsPtr
@@ -604,7 +609,6 @@ public:
                 ViewportPoint& ratedViewport = ratedSampleViewportsPtr->at(nextRatedViewportIdx);
                 responseViewport.pose = ratedViewport.getPose();
                 responseViewport.oldIdx = i;
-                ROS_INFO_STREAM(ratedViewport);
                 if (ratedViewport.object_type_set->size() > 0) {
                     responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
                     std::copy(ratedViewport.object_type_set->begin(),
