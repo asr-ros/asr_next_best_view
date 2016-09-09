@@ -53,6 +53,13 @@ namespace next_best_view {
         double mOmegaRecognition;
 
         /*
+         *  parameters to disable / enable parts of utility calculation
+         */
+        bool mUseOrientationUtility = true;
+        bool mUseProximityUtility = true;
+        bool mUseSideUtility = true;
+
+        /*
          * help members
          */
         RobotModelPtr mRobotModelPtr;
@@ -187,6 +194,8 @@ namespace next_best_view {
         float getNormalizedAngleUtility(const SimpleVector3 v1, const SimpleVector3 v2, double angleThreshold);
 
         void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
+
+        void setUtilityParameters(bool useOrientationUtility = true, bool useProximityUtility = true, bool useSideUtility = true);
 
         bool setSingleScoreContainer(const ViewportPoint &currentViewport,
                                         ViewportPoint &candidateViewport);

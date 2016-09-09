@@ -523,7 +523,8 @@ public:
                                                        robotModelFactoryPtr, cameraModelFactoryPtr,
                                                        45 / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
-                                                       mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer));
+                                                       mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer,
+                                                       mConfig.useOrientationUtility, mConfig.useProximityUtility, mConfig.useSideUtility));
         default:
             std::stringstream ss;
             ss << mConfig.ratingModuleId << " is not a valid rating module ID";

@@ -169,6 +169,9 @@ BaseScoreContainerPtr DefaultRatingModule::getScoreContainerInstance() {
 }
 
 float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint) {
+    if (!mUseOrientationUtility)
+        return 1.0;
+
     float maxUtility = 0.0;
 
     // check the utilities for each normal and pick the best
@@ -189,6 +192,9 @@ float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const
 }
 
 float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
+    if (!mUseProximityUtility)
+        return 1.0;
+
     SimpleVector3 cameraPosition = viewport.getPosition();
     SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
     SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
@@ -209,6 +215,9 @@ float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, co
 }
 
 float DefaultRatingModule::getSideUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
+    if (!mUseSideUtility)
+        return 1.0;
+
     SimpleVector3 cameraPosition = viewport.getPosition();
     SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
     SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
@@ -303,6 +312,13 @@ void DefaultRatingModule::setOmegaParameters(double omegaUtility, double omegaPa
     this->mOmegaRecognition = omegaRecognition;
 
     this->setRatingNormalization();
+}
+
+void DefaultRatingModule::setUtilityParameters(bool useOrientationUtility, bool useProximityUtility, bool useSideUtility)
+{
+    this->mUseOrientationUtility = useOrientationUtility;
+    this->mUseProximityUtility = useProximityUtility;
+    this->mUseSideUtility = useSideUtility;
 }
 
 float DefaultRatingModule::getNormalizedRating(float deviation, float threshold) {

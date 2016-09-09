@@ -23,6 +23,7 @@ namespace next_best_view {
         double angleThreshold;
         double omegaUtility, omegaPan, omegaTilt;
         double omegaRot, omegaBase, omegaRecognizer;
+        bool useOrientationUtility, useProximityUtility, useSideUtility;
 
     public:
         DefaultRatingModuleFactory(double fovx, double fovy,
@@ -30,13 +31,15 @@ namespace next_best_view {
                                    RobotModelAbstractFactoryPtr robotModelFactory, CameraModelFilterAbstractFactoryPtr cameraModelFilterFactory,
                                    double angleThreshold,
                                    double omegaUtility, double omegaPan, double omegaTilt,
-                                   double omegaRot, double omegaBase, double omegaRecognizer)
+                                   double omegaRot, double omegaBase, double omegaRecognizer,
+                                   bool useOrientationUtility, bool useProximityUtility, bool useSideUtility)
             : fovx(fovx), fovy(fovy),
               fcp(fcp), ncp(ncp),
               robotModelFactory(robotModelFactory), cameraModelFilterFactory(cameraModelFilterFactory),
               angleThreshold(angleThreshold),
               omegaUtility(omegaUtility), omegaPan(omegaPan), omegaTilt(omegaTilt),
-              omegaRot(omegaRot), omegaBase(omegaBase), omegaRecognizer(omegaRecognizer)
+              omegaRot(omegaRot), omegaBase(omegaBase), omegaRecognizer(omegaRecognizer),
+              useOrientationUtility(useOrientationUtility), useProximityUtility(useProximityUtility), useSideUtility(useSideUtility)
 
         { }
 
@@ -44,6 +47,7 @@ namespace next_best_view {
             DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(fovx, fovy, fcp, ncp, robotModelFactory->createRobotModel(), cameraModelFilterFactory->createCameraModelFilter()));
             defaultRatingModule->setNormalAngleThreshold(angleThreshold);
             defaultRatingModule->setOmegaParameters(omegaUtility, omegaPan, omegaTilt, omegaRot, omegaBase, omegaRecognizer);
+            defaultRatingModule->setUtilityParameters(useOrientationUtility, useProximityUtility, useSideUtility);
             return defaultRatingModule;
         }
     };
