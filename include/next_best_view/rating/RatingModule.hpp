@@ -110,6 +110,11 @@ namespace next_best_view {
          * @param robotState the robot state.
          */
         virtual void setRobotState(RobotStatePtr robotState) = 0;
+
+        /*!
+         * \brief resets the cached data for a call of setBestScoreContainer
+         */
+        virtual void resetCache() = 0;
     };
 
 	/*!

@@ -1,11 +1,13 @@
-geometry_msgs/Pose current_pose
----
-# we might use here RatedViewport
-bool found
-#List of types of objects being searched in given nbv.
+geometry_msgs/Pose pose
+
+# List of types of objects being searched in given nbv.
 string[] object_type_name_list
-geometry_msgs/Pose resulting_pose
-next_best_view/RobotStateMessage robot_state
+
+# old index before sorting
+uint32 oldIdx
+
+# weighted rating
+float32 rating
 # utility and costs
 float32 utility
 float32 inverse_costs

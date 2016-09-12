@@ -1,0 +1,8 @@
+# same as in GetNextbestView
+geometry_msgs/Pose current_pose
+# the viewports to rate
+geometry_msgs/Pose[] viewports
+# object types which are searched for
+string[] object_type_name_list
+---
+RatedViewport[] sortedRatedViewports

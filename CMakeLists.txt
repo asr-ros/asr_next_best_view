@@ -43,6 +43,7 @@ add_message_files(
         msg
         FILES
         RobotStateMessage.msg
+	RatedViewport.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -65,6 +66,7 @@ add_service_files(
    TriggerFrustumVisualization.srv
    ResetCalculator.srv
    GetPose.srv
+   RateViewports.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -211,6 +213,7 @@ set (BUILD_UPDATE_POINTCLOUD_TEST ${BUILD_ALL_TESTS})
 set (BUILD_MATH_TEST ${BUILD_ALL_TESTS})
 set (BUILD_STREAM_TEST ${BUILD_ALL_TESTS})
 set (BUILD_RAYTRACING_TEST ${BUILD_ALL_TESTS})
+set (BUILD_RATE_VIEWPORTS_TEST ${BUILD_ALL_TESTS})
 
 set (TEST_LINK_LIBRARIES 
         ${PROJECT_NAME}_test_core
@@ -325,6 +328,8 @@ addTest(MATH)
 addTest(STREAM)
 
 addTest(RAYTRACING)
+
+addTest(RATE_VIEWPORTS)
 
 
 add_executable(

@@ -113,13 +113,7 @@ public:
         mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
-        RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
-        //Save it.
-        mRobotModelPtr->setCurrentRobotState(currentState);
-        mRatingModulePtr->setRobotState(currentState);
-        for (int i : boost::irange(0, mNumberOfThreads)) {
-            mThreadRatingModules[i]->setRobotState(currentState);
-        }
+        initializeRobotState(currentCameraViewport);
 
         mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
                         DebugHelper::CALCULATION);
@@ -142,38 +136,219 @@ public:
             return success;
 		}
 
-		void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &resultIndicesPtr) {
-			resultIndicesPtr = IndicesPtr(new Indices());
-			// get max radius by far clipping plane of camera. this marks the limit for the visible object distance.
-			double radius = mCameraModelFilterPtr->getFarClippingPlane();
-			//Go through all 
-			for(std::size_t index = 0; index < sampledSpacePointCloudPtr->size(); index++) {
-				// get the point
-				SamplePoint &spaceSamplePoint = sampledSpacePointCloudPtr->at(index);
-				ObjectPoint comparablePoint(spaceSamplePoint.getSimpleVector3());
-
-            // the resulting child indices will be written in here
-            IndicesPtr childIndicesPtr(new Indices());
-            // we don't need distances, but distances are written in here
-            SquaredDistances dismissDistances;
-
-            // this is a radius search - which reduces the complexity level for frustum culling.
-            int k = mKdTreePtr->radiusSearch(comparablePoint, radius, *childIndicesPtr, dismissDistances);
-
-            // if there is no result of neighboured points, no need to add this point.
-            if (k == 0) {
-                continue;
-            }
-
-            // set the indices
-            spaceSamplePoint.child_indices = childIndicesPtr;
-
-            // add the index to active indices.
-            resultIndicesPtr->push_back(index);
+    /**
+     * @brief initializeRobotState initializes the robotstate to the given viewport
+     * @param currentCameraViewport the camera viewport of the robot
+     */
+    void initializeRobotState(const ViewportPoint &currentCameraViewport) {
+        RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
+        //Save it.
+        mRobotModelPtr->setCurrentRobotState(currentState);
+        mRatingModulePtr->setRobotState(currentState);
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            mThreadRatingModules[i]->setRobotState(currentState);
         }
     }
 
+    void getFeasibleSamplePoints(const SamplePointCloudPtr &sampledSpacePointCloudPtr, IndicesPtr &resultIndicesPtr) {
+        resultIndicesPtr = IndicesPtr(new Indices());
+        //Go through all
+        for(std::size_t index = 0; index < sampledSpacePointCloudPtr->size(); index++) {
+            // get the point
+            SamplePoint &spaceSamplePoint = sampledSpacePointCloudPtr->at(index);
+
+
+            IndicesPtr childIndicesPtr;
+            if (getFeasibleHypothesis(spaceSamplePoint.getSimpleVector3(), childIndicesPtr)) {
+                // set the indices
+                spaceSamplePoint.child_indices = childIndicesPtr;
+
+                // add the index to active indices.
+                resultIndicesPtr->push_back(index);
+            }
+        }
+    }
+
+    /**
+     * @brief getFeasibleViewports returns a vector of indices/sampleViewports which contain nearby (hypothesis)
+     * @param sampleViewportsPtr viewports which may contain nearby object hypothesis
+     * @param resultIndicesPtr
+     */
+    void getFeasibleViewports(const ViewportPointCloudPtr &sampleViewportsPtr, IndicesPtr &resultIndicesPtr) {
+        resultIndicesPtr = IndicesPtr(new Indices());
+        //Go through all
+        for(std::size_t index = 0; index < sampleViewportsPtr->size(); index++) {
+            // get the point
+            ViewportPoint &spaceViewport = sampleViewportsPtr->at(index);
+
+            IndicesPtr childIndicesPtr;
+            if (getFeasibleHypothesis(spaceViewport.getPosition(), childIndicesPtr)) {
+                // set the indices
+                spaceViewport.child_indices = childIndicesPtr;
+
+                // add the index to active indices.
+                resultIndicesPtr->push_back(index);
+            }
+        }
+    }
+
+
+    /**
+     * @brief getFeasibleHypothesis finds object hypothesis near samplePoint
+     * @param samplePoint the point to find nearby hypothesis
+     * @param resultIndicesPtr nearby object hypothesis
+     * @return true if more than 0 object hypothesis are in range of samplePoint
+     */
+    bool getFeasibleHypothesis(SimpleVector3 samplePoint, IndicesPtr &resultIndicesPtr) {
+        // get max radius by far clipping plane of camera. this marks the limit for the visible object distance.
+        double radius = mCameraModelFilterPtr->getFarClippingPlane();
+
+        ObjectPoint comparablePoint(samplePoint);
+
+        // the resulting child indices will be written in here
+        IndicesPtr childIndicesPtr(new Indices());
+        // we don't need distances, but distances are written in here
+        SquaredDistances dismissDistances;
+
+        // this is a radius search - which reduces the complexity level for frustum culling.
+        int k = mKdTreePtr->radiusSearch(comparablePoint, radius, *childIndicesPtr, dismissDistances);
+
+        // if there is no result of neighboured points, no need to add this point.
+        if (k == 0) {
+            return false;
+        }
+
+        // set the indices
+        resultIndicesPtr = childIndicesPtr;
+        return true;
+    }
+
+    /**
+     * @brief rates given viewports, which must contain child_indices
+     * @param sampleNextBestViewports [in] viewports to rate
+     * @param currentCameraViewport [in] current camera viewport to rate
+     * @param resultViewport [out] viewport with best rating
+     * @param objectTypeSetIsKnown
+     * @return if valid result
+     */
+    bool rateViewports(const ViewportPointCloudPtr &sampleNextBestViewportsPtr, const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport, bool objectTypeSetIsKnown = false) {
+        ViewportPointCloudPtr ratedNextBestViewportsPtr = ViewportPointCloudPtr(new ViewportPointCloud());
+        return rateViewportsInternal(sampleNextBestViewportsPtr, currentCameraViewport, ratedNextBestViewportsPtr, resultViewport, objectTypeSetIsKnown);
+    }
+
+    /**
+     * @brief rates given viewports, which must contain child_indices
+     * @param sampleNextBestViewports [in] viewports to rate
+     * @param currentCameraViewport [in] current camera viewport to rate
+     * @param ratedNextBestViewports [out] rated viewports, which might be fewer
+     * @param objectTypeSetIsKnown
+     * @return if valid result
+     */
+    bool rateViewports(const ViewportPointCloudPtr &sampleNextBestViewports, const ViewportPoint &currentCameraViewport, ViewportPointCloudPtr &ratedNextBestViewportsPtr, bool objectTypeSetIsKnown = false) {
+        ratedNextBestViewportsPtr = ViewportPointCloudPtr(new ViewportPointCloud());
+        ViewportPoint resultViewport;
+        return rateViewportsInternal(sampleNextBestViewports, currentCameraViewport, ratedNextBestViewportsPtr, resultViewport, objectTypeSetIsKnown);
+    }
+
 private:
+
+    /**
+     * @brief rates viewports and returns vector with rated wiewports and the best rated viewport
+     * @param sampleNextBestViewports [in] viewports to rate
+     * @param currentCameraViewport [in] current camera viewport to rate
+     * @param ratedNextBestViewports [out] rated (unsorted in most cases) vector of viewports
+     * @param resultViewport [out] best viewport
+     * @param objectTypeSetIsKnown
+     * @return if valid result
+     */
+    bool rateViewportsInternal(const ViewportPointCloudPtr &sampleNextBestViewports, const ViewportPoint &currentCameraViewport,
+                               ViewportPointCloudPtr &ratedNextBestViewports, ViewportPoint &resultViewport, bool objectTypeSetIsKnown) {
+        // start threads
+        boost::thread_group threadGroup;
+        boost::mutex mutex;
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            threadGroup.add_thread(new boost::thread(&NextBestViewCalculator::ratingThread, this, i, boost::ref(mutex),
+                                                     boost::ref(sampleNextBestViewports),
+                                                     boost::ref(currentCameraViewport),
+                                                     boost::ref(ratedNextBestViewports),
+                                                     objectTypeSetIsKnown));
+        }
+        threadGroup.join_all();
+
+        mDebugHelperPtr->write("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.",
+                    DebugHelper::RATING);
+        return mRatingModulePtr->getBestViewport(ratedNextBestViewports, resultViewport);
+    }
+
+    /**
+     * @brief ratingThread
+     * @param threadId
+     * @param mutex
+     * @param sampleNextBestViewports viewport sampling, which contains a good estimation for nearby objects per viewport
+     * @param currentCameraViewport current camera viewport, used to rate
+     * @param ratedNextBestViewports results
+     * @param objectTypeSetIsKnown if object_types_set is set fixed and hould not be optimized
+     */
+    void ratingThread(int threadId, boost::mutex &mutex,
+                      const ViewportPointCloudPtr &sampleNextBestViewports,
+                      const ViewportPoint &currentCameraViewport,
+                      const ViewportPointCloudPtr &ratedNextBestViewports,
+                      bool objectTypeSetIsKnown) {
+        unsigned int nViewportSamples = sampleNextBestViewports->size();
+        double startFactor = (double) threadId / mNumberOfThreads;
+        double endFactor = (threadId + 1.0) / mNumberOfThreads;
+        unsigned int startIdx = (int) (startFactor * nViewportSamples);
+        unsigned int endIdx = (int) (endFactor * nViewportSamples);
+        //Go through all interesting space sample points for one iteration step to create candidate viewports.
+        for (int i : boost::irange(startIdx, endIdx)) {
+            ViewportPoint fullViewportPoint = sampleNextBestViewports->at(i);
+            //Calculate which object points lie within frustum for given viewport.
+            if (!this->doFrustumCulling(mThreadCameraModels[threadId], fullViewportPoint)) {
+                //Skip viewport if no object point is within frustum.
+                continue;
+            }
+            //For given viewport(combination of robot position and camera viewing direction)
+            // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
+            mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
+                        DebugHelper::RATING);
+            if (objectTypeSetIsKnown) {
+                if (!rateSingleViewportFixedObjectTypes(mThreadRatingModules[threadId], currentCameraViewport, fullViewportPoint))
+                    continue;
+            } else {
+                if (!rateSingleViewportOptimizeObjectTypes(mThreadRatingModules[threadId], currentCameraViewport, fullViewportPoint))
+                    continue;
+            }
+            //Keep viewport with optimal subset of objects within frustum to search for.
+            mutex.lock();
+            ratedNextBestViewports->push_back(fullViewportPoint);
+            mutex.unlock();
+        }
+    }
+
+    /**
+     * @brief uses setBestScoreContainer to optimize which objects should be recognized
+     * @param ratingModulePtr [in] used to rate
+     * @param currentCameraViewport [in] used to rate
+     * @param fullViewportPoint [out] resulting rated viewport
+     * @return
+     */
+    bool rateSingleViewportOptimizeObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint) {
+        mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
+                    DebugHelper::RATING);
+        return ratingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint);
+    }
+
+    /**
+     * @brief uses setSingleScoreContainer to use object_type_set of fullViewportPoint to rate.
+     * @param ratingModulePtr [in] used to rate
+     * @param currentCameraViewport [in] used to rate
+     * @param fullViewportPoint [out] resulting rated viewport
+     * @return
+     */
+    bool rateSingleViewportFixedObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint) {
+        ratingModulePtr->resetCache();
+        return ratingModulePtr->setSingleScoreContainer(currentCameraViewport, fullViewportPoint);
+    }
 
 	bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
@@ -258,50 +433,10 @@ private:
         }
 
         //Create list of all view ports that are checked during this iteration step.
-        ViewportPointCloudPtr nextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
+        ViewportPointCloudPtr sampleNextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
-
-        // start threads
-        boost::thread_group threadGroup;
-        boost::mutex mutex;
-        for (int i : boost::irange(0, mNumberOfThreads)) {
-            threadGroup.add_thread(new boost::thread(&NextBestViewCalculator::ratingThread, this, i, boost::ref(mutex),
-                                                    boost::ref(sampledSpacePointCloudPtr), boost::ref(feasibleIndicesPtr),
-                                                    boost::ref(sampledOrientationsPtr),
-                                                    boost::ref(currentCameraViewport), boost::ref(nextBestViewports)));
-        }
-        threadGroup.join_all();
-
-        mDebugHelperPtr->write("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.",
-                    DebugHelper::RATING);
-        if (!mRatingModulePtr->getBestViewport(nextBestViewports, resultViewport)) {
-            mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
-            return false;
-        }
-
-        //Visualize iteration step and its result.
-        mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
-                                                    feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
-
-        mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
-        return true;
-    }
-
-    void ratingThread(int threadId, boost::mutex &mutex,
-                      // space sampling
-                      const SamplePointCloudPtr &sampledSpacePointCloudPtr, const IndicesPtr &feasibleIndicesPtr,
-                      // sphere sampling
-                      const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
-                      // current camera viewport for rating and a vector to save results to
-                      const ViewportPoint &currentCameraViewport, const ViewportPointCloudPtr &nextBestViewports) {
-        int nSpaceSamples = feasibleIndicesPtr->size();
-        double startFactor = (double) threadId / mNumberOfThreads;
-        double endFactor = (threadId + 1.0) / mNumberOfThreads;
-        int startIdx = (int) (startFactor*nSpaceSamples);
-        int endIdx = (int) (endFactor*nSpaceSamples);
-        //Go through all interesting space sample points for one iteration step to create candidate viewports.
-        for (int i : boost::irange(startIdx, endIdx)) {
-            int activeIndex = (*feasibleIndicesPtr)[i];
+        // convert space sampling combined with sphere sampling to viewport sampling
+        for (int activeIndex : (*feasibleIndicesPtr)) {
             SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
             SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
             IndicesPtr samplePointChildIndices = samplePoint.child_indices;
@@ -311,25 +446,25 @@ private:
                             DebugHelper::CALCULATION);
             BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
                 // get the corresponding viewport
-                ViewportPoint fullViewportPoint;
-                //Calculate which object points lie within frustum for given viewport.
-                if (!this->doFrustumCulling(mThreadCameraModels[threadId], samplePointCoords, orientation, samplePointChildIndices, fullViewportPoint)) {
-                    //Skip viewport if no object point is within frustum.
-                    continue;
-                }
-                //For given viewport(combination of robot position and camera viewing direction)
-                // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
-                mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
-                            DebugHelper::RATING);
-                if (!mThreadRatingModules[threadId]->setBestScoreContainer(currentCameraViewport, fullViewportPoint)) {
-                    continue;
-                }
-                //Keep viewport with optimal subset of objects within frustum to search for.
-                mutex.lock();
-                nextBestViewports->push_back(fullViewportPoint);
-                mutex.unlock();
+                ViewportPoint sampleViewport(samplePointCoords, orientation);
+                // nearby object hypothesis for good estimation of possible hypothesis in frustum
+                sampleViewport.child_indices = samplePointChildIndices;
+                sampleViewport.object_type_set = mObjectTypeSetPtr;
+                sampleNextBestViewports->push_back(sampleViewport);
             }
         }
+
+
+        if (!rateViewports(sampleNextBestViewports, currentCameraViewport, resultViewport)) {
+            mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
+        }
+
+        //Visualize iteration step and its result.
+        mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
+                                                    feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
+        return true;
     }
 
 public:
@@ -360,9 +495,21 @@ public:
      * @param viewportPoint [out] the resulting camera viewport
      * @return
      */
-    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &viewportPoint) {
-        cameraModelFilterPtr->setIndices(indices);
-        cameraModelFilterPtr->setPivotPointPose(position, orientation);
+    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &resultViewport) {
+        resultViewport = ViewportPoint(position, orientation);
+        resultViewport.child_indices = indices;
+        return doFrustumCulling(cameraModelFilterPtr, resultViewport);
+    }
+
+    /**
+     * @brief creates a new camera viewport with the given data
+     * @param cameraModelFilterPtr [in] the cameraModel used to filter objects
+     * @param resultViewportPoint [out|in] the resulting camera viewport containg the camera position and orientation and the object point indices to be used
+     * @return
+     */
+    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, ViewportPoint &resultViewportPoint) {
+        cameraModelFilterPtr->setIndices(resultViewportPoint.child_indices);
+        cameraModelFilterPtr->setPivotPointPose(resultViewportPoint.getPosition(), resultViewportPoint.getSimpleQuaternion());
 
         // do the frustum culling
         IndicesPtr frustumIndicesPtr;
@@ -373,11 +520,9 @@ public:
             return false;
         }
 
-        viewportPoint = ViewportPoint(position, orientation);
-        viewportPoint.child_indices = frustumIndicesPtr;
-        viewportPoint.child_point_cloud = cameraModelFilterPtr->getInputCloud();
-        viewportPoint.point_cloud = mPointCloudPtr;
-        viewportPoint.object_type_set = mObjectTypeSetPtr;
+        resultViewportPoint.child_indices = frustumIndicesPtr;
+        resultViewportPoint.child_point_cloud = cameraModelFilterPtr->getInputCloud();
+        resultViewportPoint.point_cloud = mPointCloudPtr;
 
         return true;
     }
