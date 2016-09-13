@@ -39,6 +39,7 @@ mSigma: 1.0
 radius: 0.15 # hexagon space sample radius
 sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler. Greater -> more precise orientation.
 colThresh: 40 # greater values results in problems during simulation in navigation. Smaller -> more distance to obstacles.
+epsilon: 0.001
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
 enableCropBoxFiltering : false

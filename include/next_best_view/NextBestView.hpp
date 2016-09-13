@@ -364,6 +364,7 @@ public:
             //Set the max amout of iterations
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
+            mCalculator.setEpsilon(mConfig.epsilon);
             mShowSpaceSampling = mConfig.show_space_sampling;
             mShowPointcloud = mConfig.show_point_cloud;
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
