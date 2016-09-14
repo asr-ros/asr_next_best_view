@@ -456,6 +456,7 @@ private:
 
         if (!rateViewports(sampleNextBestViewports, currentCameraViewport, resultViewport)) {
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
+            return false;
         }
 
         //Visualize iteration step and its result.
