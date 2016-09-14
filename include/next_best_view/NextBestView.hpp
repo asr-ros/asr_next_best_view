@@ -508,7 +508,7 @@ public:
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
                                                        robotModelFactoryPtr, cameraModelFactoryPtr,
-                                                       45 / 180.0 * M_PI,
+                                                       mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
                                                        mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer));
         default:
@@ -525,7 +525,8 @@ public:
         case 1:
             // create a DefaultRatingModule from config
             ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
-            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr));
+            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr,
+                                                                                               mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
         default:
             std::stringstream ss;
             ss << mConfig.hypothesisUpdaterId << " is not a valid hypothesis module ID";

@@ -28,6 +28,7 @@ namespace next_best_view {
 	private:
 		DefaultRatingModulePtr mDefaultRatingModulePtr;
         DebugHelperPtr mDebugHelperPtr;
+        double mNormalAngleThreshold;
 	public:
 		PerspectiveHypothesisUpdater();
 		virtual ~PerspectiveHypothesisUpdater();
@@ -37,6 +38,10 @@ namespace next_best_view {
         void setDefaultRatingModule(DefaultRatingModulePtr defaultRatingModulePtr);
 
 		DefaultRatingModulePtr getDefaultRatingModule();
+
+        void setNormalAngleThreshold(double angle);
+
+        double getNormalAngleThreshold();
 	};
 
 	/*!

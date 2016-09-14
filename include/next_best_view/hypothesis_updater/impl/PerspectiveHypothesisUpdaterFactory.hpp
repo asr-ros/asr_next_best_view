@@ -28,16 +28,19 @@ namespace next_best_view {
     class PerspectiveHypothesisUpdaterFactory : public HypothesisUpdaterAbstractFactory {
     private:
         DefaultRatingModuleFactoryPtr defaultRatingModuleFactory;
+        double mNormalAngleThreshold;
 
     public:
-        PerspectiveHypothesisUpdaterFactory(DefaultRatingModuleFactoryPtr defaultRatingModuleFactory)
-            : defaultRatingModuleFactory(defaultRatingModuleFactory)
+        PerspectiveHypothesisUpdaterFactory(DefaultRatingModuleFactoryPtr defaultRatingModuleFactory, double angleThreshold)
+            : defaultRatingModuleFactory(defaultRatingModuleFactory),
+              mNormalAngleThreshold(angleThreshold)
         { }
 
         HypothesisUpdaterPtr createHypothesisUpdater() {
             PerspectiveHypothesisUpdaterPtr perspectiveHypothesisUpdater = PerspectiveHypothesisUpdaterPtr(new PerspectiveHypothesisUpdater());
             DefaultRatingModulePtr defaultRatingModule = boost::static_pointer_cast<DefaultRatingModule>(defaultRatingModuleFactory->createRatingModule());
             perspectiveHypothesisUpdater->setDefaultRatingModule(defaultRatingModule);
+            perspectiveHypothesisUpdater->setNormalAngleThreshold(mNormalAngleThreshold);
             return perspectiveHypothesisUpdater;
         }
     };

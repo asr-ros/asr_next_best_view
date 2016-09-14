@@ -37,5 +37,5 @@ namespace next_best_view {
 		}
 
         return count;
-	}
+    }
 }
