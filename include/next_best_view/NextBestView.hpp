@@ -828,7 +828,10 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
                                         << mCalculator.getActiveIndices()->size(),
                                     DebugHelper::SERVICE_CALLS);
-        mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
+        if (!mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint)) {
+            mDebugHelperPtr->write("no objects in frustum", DebugHelper::SERVICE_CALLS);
+            return true;
+        }
         mDebugHelperPtr->write("Do update object point cloud", DebugHelper::SERVICE_CALLS);
 
         // copy objects to be updated from list to set
