@@ -182,8 +182,8 @@ namespace next_best_view {
         tiltJointYAxis.normalize();
         Eigen::Vector3d tiltJointToViewCenterProjected = tiltJointToViewCenter - tiltJointYAxis.dot(tiltJointToViewCenter) * tiltJointYAxis;
         double viewTriangleZPlane_sideA = tiltJointToViewCenterProjected.norm();
-        double aTimesCos = viewTriangleZPlane_sideB*cos(viewTriangleZPlane_angleAlpha);
-        double viewTriangleZPlane_sideC = aTimesCos + sqrt(pow(aTimesCos,2.0)-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideA,2.0));
+        double bTimesCos = viewTriangleZPlane_sideB*cos(viewTriangleZPlane_angleAlpha);
+        double viewTriangleZPlane_sideC = - bTimesCos/2.0 + sqrt(pow(bTimesCos,2.0)/4.0-pow(viewTriangleZPlane_sideB,2.0)+pow(viewTriangleZPlane_sideA,2.0));
 
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideA: " << viewTriangleZPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleZPlane_sideB: " << viewTriangleZPlane_sideB, DebugHelper::ROBOT_MODEL);
@@ -191,7 +191,7 @@ namespace next_best_view {
 
         double viewTriangleZPlane_angleGamma = pow(viewTriangleZPlane_sideB, 2.0) + pow(viewTriangleZPlane_sideA, 2.0) - pow(viewTriangleZPlane_sideC, 2.0);
         viewTriangleZPlane_angleGamma = acos(viewTriangleZPlane_angleGamma / (2.0*viewTriangleZPlane_sideB*viewTriangleZPlane_sideA));
-        double tiltAngle = viewTriangleZPlane_angleGamma - acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm());// + mTiltAngleOffset;
+        double tiltAngle = viewTriangleZPlane_angleGamma - acos(tiltJointToViewCenter[2]/tiltJointToViewCenter.norm());
 
         //Check angle angle constrains and truncate values if neccessaire
         double tiltMin = mTiltLimits.get<0>();
