@@ -429,7 +429,7 @@ namespace next_best_view {
         }
         else // in any other case, a quadratic equation needs to be solved for t2 and t1 will be derived from the result
         {
-            ROS_INFO_STREAM("planNormalX NOT equal 0");
+            mDebugHelperPtr->write("planNormalX NOT equal 0", DebugHelper::ROBOT_MODEL);
             a = 1 + pow(planeNormal(1)/planeNormalX, 2.0);
             b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormalX, 2.0);
             c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormalX, 2.0));
