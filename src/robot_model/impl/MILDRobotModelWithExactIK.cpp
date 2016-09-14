@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -429,7 +429,7 @@ namespace next_best_view {
         }
         else // in any other case, a quadratic equation needs to be solved for t2 and t1 will be derived from the result
         {
-            ROS_INFO_STREAM("planNormalX NOT equal 0");
+            mDebugHelperPtr->write("planNormalX NOT equal 0", DebugHelper::ROBOT_MODEL);
             a = 1 + pow(planeNormal(1)/planeNormalX, 2.0);
             b = (2*t3*planeNormal(1)*planeNormal(2))/pow(planeNormalX, 2.0);
             c = -pow(viewTriangleZPlane_sideA, 2.0) + pow(t3, 2.0)*(1+pow(planeNormal(2)/planeNormalX, 2.0));

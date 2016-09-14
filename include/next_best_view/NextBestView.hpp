@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -146,7 +146,7 @@ private:
     /*!
      * visualization settings
      */
-    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray;
+    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray, mShowHypothesis;
     bool mCurrentlyPublishingVisualization;
 
     // dynconfig
@@ -369,6 +369,7 @@ public:
             mShowPointcloud = mConfig.show_point_cloud;
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;
+            mShowHypothesis = mConfig.show_hypothesis;
         }
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
@@ -508,7 +509,7 @@ public:
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
                                                        robotModelFactoryPtr, cameraModelFactoryPtr,
-                                                       45 / 180.0 * M_PI,
+                                                       mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
                                                        mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer));
         default:
@@ -525,7 +526,8 @@ public:
         case 1:
             // create a DefaultRatingModule from config
             ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
-            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr));
+            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr,
+                                                                                               mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
         default:
             std::stringstream ss;
             ss << mConfig.hypothesisUpdaterId << " is not a valid hypothesis module ID";
@@ -826,7 +828,10 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
                                         << mCalculator.getActiveIndices()->size(),
                                     DebugHelper::SERVICE_CALLS);
-        mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
+        if (!mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint)) {
+            mDebugHelperPtr->write("no objects in frustum", DebugHelper::SERVICE_CALLS);
+            return true;
+        }
         mDebugHelperPtr->write("Do update object point cloud", DebugHelper::SERVICE_CALLS);
 
         // copy objects to be updated from list to set
@@ -834,6 +839,8 @@ public:
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
         response.deactivated_object_normals = deactivatedNormals;
+
+        this->publishPointCloudHypothesis();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -941,6 +948,20 @@ public:
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
             mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+            if (mShowHypothesis) {
+                // show hypothesis
+                mVisHelper.triggerObjectPointCloudHypothesisVisualization(objectPointCloud);
+            }
+        }
+    }
+
+    void publishPointCloudHypothesis() {
+        mDebugHelperPtr->write("Publishing hypothesis", DebugHelper::VISUALIZATION);
+
+        if (mShowHypothesis) {
+            // show hypothesis
+            ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
+            mVisHelper.triggerObjectPointCloudHypothesisVisualization(objectPointCloud);
         }
     }
 

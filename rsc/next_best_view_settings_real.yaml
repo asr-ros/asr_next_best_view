@@ -15,6 +15,7 @@ show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
+show_hypothesis: true
 visualizeIK: false
 IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientation angle sampling in the MILDRobotModelWithExactIK module. Available algorithms are: ANGLE_APPROXIMATION, NAVIGATION_PATH, SIMPLE
 # cameraFilterId == 1 => MapBasedStereoCameraModelFilter
@@ -36,6 +37,8 @@ panMax: 20
 tiltMin: -45
 tiltMax: 25
 mSigma: 1.0
+mRatingNormalAngleThreshold: 45.0 # used to rate angles in rating module
+mHypothesisUpdaterAngleThreshold: 60.0 # used to rate angles in hypothesis updater module
 radius: 0.15 # hexagon space sample radius
 sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler. Greater -> more precise orientation.
 colThresh: 40 # greater values results in problems during simulation in navigation. Smaller -> more distance to obstacles.
