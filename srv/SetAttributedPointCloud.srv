@@ -1,4 +1,3 @@
 pbd_msgs/PbdAttributedPointCloud point_cloud
 ---
 bool is_valid
-bool is_empty

@@ -677,7 +677,6 @@ public:
 
         if(mCalculator.getPointCloudPtr()->size() == 0)
         {
-            response.is_empty = true;
             response.is_valid = false;
             mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
@@ -700,7 +699,6 @@ public:
         mCalculator.updateFromExternalObjectPointList(viewportPointList);
 
         response.is_valid = true;
-        response.is_empty = false;
 
         // publish the visualization
         this->publishPointCloudVisualization();
