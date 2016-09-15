@@ -58,6 +58,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
+#include "next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/MapHelperFactory.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
@@ -131,6 +132,7 @@ private:
     ros::ServiceServer mTriggerOldFrustumVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
     ros::ServiceServer mRateViewportsServer;
+    ros::ServiceServer mGetActiveNormalsServer;
 
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
@@ -388,6 +390,7 @@ public:
             mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
+            mGetActiveNormalsServer = mNodeHandle.advertiseService("get_active_normals", &NextBestView::processGetActiveNormals, this);
 
             mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
@@ -841,6 +844,18 @@ public:
         this->publishPointCloudHypothesis();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        return true;
+    }
+
+    bool processGetActiveNormals(GetActiveNormals::Request &request, GetActiveNormals::Response &response) {
+        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
+        for (ObjectPoint &objPoint : objectPointCloud) {
+            response.active_normals += objPoint.active_normal_vectors->size();
+        }
+
+        mDebugHelperPtr->writeNoticeably("ENDING NBV NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 

@@ -62,6 +62,7 @@ add_service_files(
    ResetCalculator.srv
    GetPose.srv
    RateViewports.srv
+   GetActiveNormals.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -50,6 +50,7 @@ namespace next_best_view {
 class NextBestViewCalculator {
 private:
     ObjectPointCloudPtr mPointCloudPtr;
+    // this is basically unused, but "might" be used to remove objects from mPointCloudPtr
     IndicesPtr mActiveIndicesPtr;
     KdTreePtr mKdTreePtr;
     std::map<std::string, std::string> objectsResources;
