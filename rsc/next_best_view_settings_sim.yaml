@@ -1,9 +1,9 @@
-mOmegaUtility: 210 # weighting factor for the usage
+mOmegaUtility: 60 # weighting factor for the usage
 mOmegaPan: 1  # weighting factor for rotating the pan-axis of the PTU
 mOmegaTilt: 1 # weighting factor for rotating of the tilt-axis of the PTU
 mOmegaRot: 10 # weighting factor for rotating the base
-mOmegaBase: 250 # weighting factor for moving the base
-mOmegaRecognizer: 30
+mOmegaBase: 270 # weighting factor for moving the base
+mOmegaRecognizer: 20
 speedFactorRecognizer: 2.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
 tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
