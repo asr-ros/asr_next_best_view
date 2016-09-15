@@ -101,17 +101,17 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
     float utilityNormalization = 0.0;
 
     BOOST_FOREACH(ViewportPoint viewport, *viewports) {
-        int objects = viewport.child_indices->size();
-        if (objects > utilityNormalization) {
-            utilityNormalization = objects;
+        float utility = viewport.score->getUnweightedUnnormalizedUtility();
+        if (utility > utilityNormalization) {
+            utilityNormalization = utility;
         }
     }
 
     BOOST_FOREACH(ViewportPoint viewport, *viewports) {
         viewport.score->setUtilityNormalization(utilityNormalization);
 
-        float normalizedUtility = viewport.score->getWeightedUnnormalizedUtility() / utilityNormalization;
-        viewport.score->setWeightedNormalizedUtility(normalizedUtility);
+        float weightedNormalizedUtility = mOmegaUtility * viewport.score->getUnweightedUnnormalizedUtility() / utilityNormalization;
+        viewport.score->setWeightedNormalizedUtility(weightedNormalizedUtility);
     }
 
     // sort the viewports by rating
@@ -259,13 +259,13 @@ bool DefaultRatingModule::setSingleScoreContainer(const ViewportPoint &currentVi
     DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
 
     // set the utility
-    float utility = this->getWeightedUnnormalizedUtility(candidateViewport);
+    float utility = this->getUnweightedUnnormalizedUtility(candidateViewport);
 
     if (utility <= 0) {
         return false;
     }
 
-    defRatingPtr->setWeightedUnnormalizedUtility(utility);
+    defRatingPtr->setUnweightedUnnormalizedUtility(utility);
 
     BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
         defRatingPtr->setUnweightedUnnormalizedObjectUtilitiy(objectType, mUnweightedUnnormalizedObjectUtilities[objectType]);
@@ -310,7 +310,7 @@ float DefaultRatingModule::getNormalizedRating(float deviation, float threshold)
     return 0.0;
 }
 
-double DefaultRatingModule::getWeightedUnnormalizedUtility(const ViewportPoint &candidateViewport) {
+double DefaultRatingModule::getUnweightedUnnormalizedUtility(const ViewportPoint &candidateViewport) {
     double utility = 0.0;
 
     // get the utility for each object type and sum them up
@@ -323,7 +323,7 @@ double DefaultRatingModule::getWeightedUnnormalizedUtility(const ViewportPoint &
         utility += mUnweightedUnnormalizedObjectUtilities[objectType];
     }
 
-    return mOmegaUtility * utility;
+    return utility;
 }
 
 void DefaultRatingModule::setUnweightedUnnormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {

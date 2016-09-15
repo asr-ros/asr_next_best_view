@@ -125,7 +125,7 @@ namespace next_best_view {
          * \brief sets the weighted unnormalized utility
          * \param value the utility
          */
-        void setWeightedUnnormalizedUtility(float value) {
+        void setUnweightedUnnormalizedUtility(float value) {
             mUtility = value;
         }
 
@@ -133,7 +133,7 @@ namespace next_best_view {
          * \brief returns the weighted unnormalized utility
          * \return the utility
          */
-        float getWeightedUnnormalizedUtility() const {
+        float getUnweightedUnnormalizedUtility() const {
             return mUtility;
         }
 
