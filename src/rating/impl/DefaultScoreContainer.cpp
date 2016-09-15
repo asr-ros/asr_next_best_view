@@ -36,7 +36,7 @@ namespace next_best_view {
              << "unweightedInverseMovementCostsPTU: " << score.getUnweightedInverseMovementCostsPTU() << endl
              << "unweightedInverseRecognitionCosts: " << score.getUnweightedInverseRecognitionCosts() << endl
              << "utilityNormalization: " << score.getUtilityNormalization() << endl
-             << "weightedUnnormalizedUtility: " << score.getWeightedUnnormalizedUtility() << endl
+             << "unweightedUnnormalizedUtility: " << score.getUnweightedUnnormalizedUtility() << endl
              << "weightedNormalizedUtility: " << score.getWeightedNormalizedUtility() << endl
              << "weightedInverseCosts: " << score.getWeightedInverseCosts() << endl
              << "objectUtility: {" << endl;
