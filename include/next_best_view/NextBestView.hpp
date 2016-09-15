@@ -699,9 +699,10 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-        mCalculator.updateFromExternalObjectPointList(viewportPointList);
+        unsigned int deactivatedNormals = mCalculator.updateFromExternalObjectPointList(viewportPointList);
 
         response.is_valid = true;
+        response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
         this->publishPointCloudVisualization();

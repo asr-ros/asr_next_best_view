@@ -528,7 +528,18 @@ public:
         return true;
     }
 
-    void updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewportPointList) {
+    /**
+     * @brief updates point cloud with external viewport point list
+     * @param viewportPointList the list of viewport points
+     * @return the number of deactivated normals
+     */
+    unsigned int updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewportPointList) {
+        mDebugHelperPtr->writeNoticeably("STARTING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
+
+        mDebugHelperPtr->write(std::stringstream() << "Number of viewports: " << viewportPointList.size(), DebugHelper::CALCULATION);
+
+        unsigned int deactivatedNormals = 0;
+
         BOOST_FOREACH(ViewportPoint viewportPoint, viewportPointList) {
             ViewportPoint culledViewportPoint;
             if (!this->doFrustumCulling(viewportPoint.getPosition(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
@@ -550,9 +561,13 @@ public:
             {
                 mDebugHelperPtr->write(std::stringstream() << "Object: " << *it, DebugHelper::CALCULATION);
             }
-            this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
+            deactivatedNormals += this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
             break;
         }
+
+        mDebugHelperPtr->writeNoticeably("ENDING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
+
+        return deactivatedNormals;
     }
 
     /*!
