@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -197,6 +197,11 @@ namespace next_best_view {
          */
         void setRobotState(RobotStatePtr robotState);
 
+        /*!
+         * \brief resets the cached data for a call of setBestScoreContainer
+         */
+        void resetCache();
+
     private:
         /*!
          * \brief returns the normalized rating for a given deviation from the optimum and a threshold for the deviation.
@@ -267,10 +272,6 @@ namespace next_best_view {
          */
         void setMaxRecognitionCosts();
 
-        /*!
-         * \brief resets the cached data for a call of setBestScoreContainer
-         */
-        void resetCache();
 	};
 
     /*!

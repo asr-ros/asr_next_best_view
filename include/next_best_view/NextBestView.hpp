@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -49,6 +49,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 // Local Includes
 #include "typedef.hpp"
+#include "next_best_view/RatedViewport.h"
+#include "next_best_view/RateViewports.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
 #include "next_best_view/GetNextBestView.h"
@@ -128,6 +130,7 @@ private:
     ros::ServiceServer mTriggerFrustumVisualizationServer;
     ros::ServiceServer mTriggerOldFrustumVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
+    ros::ServiceServer mRateViewportsServer;
 
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
@@ -143,7 +146,7 @@ private:
     /*!
      * visualization settings
      */
-    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray;
+    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray, mShowHypothesis;
     bool mCurrentlyPublishingVisualization;
 
     // dynconfig
@@ -361,10 +364,12 @@ public:
             //Set the max amout of iterations
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
+            mCalculator.setEpsilon(mConfig.epsilon);
             mShowSpaceSampling = mConfig.show_space_sampling;
             mShowPointcloud = mConfig.show_point_cloud;
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;
+            mShowHypothesis = mConfig.show_hypothesis;
         }
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
@@ -382,6 +387,7 @@ public:
             mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
             mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
+            mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
 
             mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
@@ -503,7 +509,7 @@ public:
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
                                                        robotModelFactoryPtr, cameraModelFactoryPtr,
-                                                       45 / 180.0 * M_PI,
+                                                       mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
                                                        mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer));
         default:
@@ -520,7 +526,8 @@ public:
         case 1:
             // create a DefaultRatingModule from config
             ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
-            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr));
+            return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr,
+                                                                                               mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
         default:
             std::stringstream ss;
             ss << mConfig.hypothesisUpdaterId << " is not a valid hypothesis module ID";
@@ -536,6 +543,104 @@ public:
 
         response.succeeded = true;
         mDebugHelperPtr->writeNoticeably("ENDING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        return true;
+    }
+
+    bool processRateViewports(RateViewports::Request &request, RateViewports::Response &response) {
+        mDebugHelperPtr->writeNoticeably("STARTING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        if (request.viewports.empty()) {
+            return true;
+        }
+
+        // Current camera view (frame of camera) of the robot.
+        ViewportPoint currentCameraViewport(request.current_pose);
+
+        // set robotstate
+        mCalculator.initializeRobotState(currentCameraViewport);
+
+        // convert geometry_msgs::Poses to ViewportPoints
+        ViewportPointCloudPtr sampleViewportsPtr = ViewportPointCloudPtr(new ViewportPointCloud());
+        unsigned int i = 0;
+        for (geometry_msgs::Pose viewport : request.viewports) {
+            ViewportPoint sampleViewport(viewport);
+            sampleViewport.object_type_set = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
+            sampleViewport.oldIdx = i;
+            sampleViewportsPtr->push_back(sampleViewport);
+            i++;
+        }
+
+        // find nearby object hypothesis per sampleViewport
+        IndicesPtr feasibleViewportsPtr;
+        mCalculator.getFeasibleViewports(sampleViewportsPtr, feasibleViewportsPtr);
+
+        // remove sampleViewports without nearby object hypothesis
+        ViewportPointCloudPtr feasibleSampleViewportsPtr = ViewportPointCloudPtr(new ViewportPointCloud(*sampleViewportsPtr, *feasibleViewportsPtr));
+
+        // rate
+        ViewportPointCloudPtr ratedSampleViewportsPtr;
+        mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, true);
+
+        // threads mix up oldIdx
+        std::sort(ratedSampleViewportsPtr->begin(), ratedSampleViewportsPtr->end(), [](ViewportPoint a, ViewportPoint b)
+        {
+            return a.oldIdx < b.oldIdx;
+        });
+
+        // convert to response
+        unsigned int nextRatedViewportIdx = 0; // to iterate through ratedSampleViewportsPtr
+        unsigned int nextRatedViewportOldIdx = 0; // oldIdx attribute of next ratedSampleViewport/nextRatedViewportIdx
+        if (ratedSampleViewportsPtr->size() == 0) {
+            nextRatedViewportOldIdx = -1;
+        } else {
+            nextRatedViewportOldIdx = ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx;
+        }
+        for (i = 0; i < sampleViewportsPtr->size(); i++) {
+            RatedViewport responseViewport;
+            if (i != nextRatedViewportOldIdx) {
+                ViewportPoint unratedViewport = sampleViewportsPtr->at(i);
+                responseViewport.pose = unratedViewport.getPose();
+                responseViewport.oldIdx = i;
+                if (unratedViewport.object_type_set->size() > 0) {
+                    responseViewport.object_type_name_list = std::vector<string>(unratedViewport.object_type_set->size());
+                    std::copy(unratedViewport.object_type_set->begin(),
+                              unratedViewport.object_type_set->end(),
+                              responseViewport.object_type_name_list.begin());
+                }
+            } else {
+                // assert(i == nextRatedViewportOldIdx) ^= ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx
+                ViewportPoint& ratedViewport = ratedSampleViewportsPtr->at(nextRatedViewportIdx);
+                responseViewport.pose = ratedViewport.getPose();
+                responseViewport.oldIdx = i;
+                if (ratedViewport.object_type_set->size() > 0) {
+                    responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
+                    std::copy(ratedViewport.object_type_set->begin(),
+                              ratedViewport.object_type_set->end(),
+                              responseViewport.object_type_name_list.begin());
+                }
+                responseViewport.rating = mCalculator.getRatingModule()->getRating(ratedViewport.score);
+                // set utility and inverse cost terms in rating for the given next best view.
+                responseViewport.utility = ratedViewport.score->getWeightedNormalizedUtility();
+                responseViewport.inverse_costs = ratedViewport.score->getWeightedInverseCosts();
+                responseViewport.base_translation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseTranslation();
+                responseViewport.base_rotation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseRotation();
+                responseViewport.ptu_movement_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsPTU();
+                responseViewport.recognition_inverse_costs = ratedViewport.score->getUnweightedInverseRecognitionCosts();
+                nextRatedViewportIdx++;
+                if (nextRatedViewportIdx < ratedSampleViewportsPtr->size()) {
+                    nextRatedViewportOldIdx = ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx;
+                }
+            }
+            response.sortedRatedViewports.push_back(responseViewport);
+        }
+
+        // sort
+        std::stable_sort(response.sortedRatedViewports.begin(), response.sortedRatedViewports.end(), [](RatedViewport a, RatedViewport b)
+        {
+            return a.rating > b.rating;
+        });
+
+        mDebugHelperPtr->writeNoticeably("ENDING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
@@ -723,7 +828,10 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
                                         << mCalculator.getActiveIndices()->size(),
                                     DebugHelper::SERVICE_CALLS);
-        mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint);
+        if (!mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint)) {
+            mDebugHelperPtr->write("no objects in frustum", DebugHelper::SERVICE_CALLS);
+            return true;
+        }
         mDebugHelperPtr->write("Do update object point cloud", DebugHelper::SERVICE_CALLS);
 
         // copy objects to be updated from list to set
@@ -731,6 +839,8 @@ public:
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
         response.deactivated_object_normals = deactivatedNormals;
+
+        this->publishPointCloudHypothesis();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -838,6 +948,20 @@ public:
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
             mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+            if (mShowHypothesis) {
+                // show hypothesis
+                mVisHelper.triggerObjectPointCloudHypothesisVisualization(objectPointCloud);
+            }
+        }
+    }
+
+    void publishPointCloudHypothesis() {
+        mDebugHelperPtr->write("Publishing hypothesis", DebugHelper::VISUALIZATION);
+
+        if (mShowHypothesis) {
+            // show hypothesis
+            ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
+            mVisHelper.triggerObjectPointCloudHypothesisVisualization(objectPointCloud);
         }
     }
 

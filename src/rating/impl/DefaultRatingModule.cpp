@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -117,23 +117,21 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
     // sort the viewports by rating
     if (mDebugHelperPtr->getLevel() & DebugHelper::RATING) {
         // sorting all viewports
-        std::sort(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
+        ViewportPointCloudPtr viewportsSorted(new ViewportPointCloud(*viewports));
+        std::sort(viewportsSorted->begin(), viewportsSorted->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
 
         // output the sorted list of viewports
-        for (unsigned int i = 0; i < viewports->size(); i++) {
+        for (unsigned int i = 0; i < viewportsSorted->size(); i++) {
             mDebugHelperPtr->write(std::stringstream() << "THIS IS VIEWPORT NR. " << i+1 << " IN THE SORTED LIST.",
                         DebugHelper::RATING);
-            ViewportPoint viewport = viewports->at(i);
+            ViewportPoint viewport = viewportsSorted->at(i);
             mDebugHelperPtr->write(std::stringstream() << viewport, DebugHelper::RATING);
             mDebugHelperPtr->write(std::stringstream() << "rating: " << this->getRating(viewport.score), DebugHelper::RATING);
         }
-
-        // set best viewport
-        bestViewport = viewports->at(viewports->size() - 1);
-    } else {
-        // just getting the best viewport
-        bestViewport = *std::max_element(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
     }
+    // just getting the best viewport
+    bestViewport = *std::max_element(viewports->begin(), viewports->end(), boost::bind(&RatingModule::compareViewports, *this, _1, _2));
+
 
     // output best viewport
     mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE SORTED LIST.", DebugHelper::RATING);

@@ -1,0 +1,39 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist{entry}{nty}
+    \entry{floau16}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=c58a74e20cd3d79f4af68dfb34a99567}{Aumann-Cleres}{A\bibinithyphendelim C\bibinitperiod}{Florian}{F\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=c58a74e20cd3d79f4af68dfb34a99567}{Aumann-Cleres}{A\bibinithyphendelim C\bibinitperiod}{Florian}{F\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{c58a74e20cd3d79f4af68dfb34a99567}
+      \strng{fullhash}{c58a74e20cd3d79f4af68dfb34a99567}
+      \field{sortinit}{A}
+      \field{labeltitle}{Markerbasiertes Kalibrieren der kinematischen Kette und Aufstellen der Rueckwaertstransformation zwischen der Basis und dem Sensorkopf eines mobilen Roboters}
+      \field{title}{Markerbasiertes Kalibrieren der kinematischen Kette und Aufstellen der Rueckwaertstransformation zwischen der Basis und dem Sensorkopf eines mobilen Roboters}
+      \field{year}{2016}
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+

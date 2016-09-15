@@ -38,6 +38,7 @@ add_message_files(
         msg
         FILES
         RobotStateMessage.msg
+	RatedViewport.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -60,6 +61,7 @@ add_service_files(
    TriggerFrustumVisualization.srv
    ResetCalculator.srv
    GetPose.srv
+   RateViewports.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -192,6 +194,7 @@ set (BUILD_PERFORMANCE_TEST ${BUILD_ALL_TESTS})
 set (BUILD_UPDATE_POINTCLOUD_TEST ${BUILD_ALL_TESTS})
 set (BUILD_MATH_TEST ${BUILD_ALL_TESTS})
 set (BUILD_STREAM_TEST ${BUILD_ALL_TESTS})
+set (BUILD_RATE_VIEWPORTS_TEST TRUE)
 
 set (TEST_LINK_LIBRARIES 
         ${PROJECT_NAME}_test_core
@@ -203,7 +206,7 @@ set (TEST_LINK_LIBRARIES
         ${catkin_LIBRARIES}
 )
 
-if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST)
+if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST)
 MESSAGE ("Building Tests:")
 add_library(
         ${PROJECT_NAME}_test_core
@@ -304,6 +307,8 @@ addTest(UPDATE_POINTCLOUD)
 addTest(MATH)
 
 addTest(STREAM)
+
+addTest(RATE_VIEWPORTS)
 
 
 add_executable(
