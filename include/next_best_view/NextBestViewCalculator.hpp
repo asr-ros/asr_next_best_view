@@ -569,8 +569,6 @@ public:
             mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << currentDeactivatedNormals, DebugHelper::CALCULATION);
 
             deactivatedNormals += currentDeactivatedNormals;
-
-            break;
         }
 
         mDebugHelperPtr->write(std::stringstream() << "Amount of active normals after update: " << getAmountActiveNormals(),
