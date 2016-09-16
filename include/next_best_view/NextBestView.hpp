@@ -42,7 +42,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <set>
 #include <std_srvs/Empty.h>
 #include <world_model/GetViewportList.h>
-#include <world_model/PushViewport.h>
 #include <std_msgs/ColorRGBA.h>
 #include <dynamic_reconfigure/server.h>
 #include <next_best_view/DynamicParametersConfig.h>
@@ -138,7 +137,6 @@ private:
     MoveBaseActionClientPtr mMoveBaseActionClient;
 
     // ServiceClients and Subscriber
-    ros::ServiceClient mPushViewportServiceClient;
     ros::ServiceClient mGetViewportListServiceClient;
 
     // Etcetera
@@ -392,7 +390,6 @@ public:
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
             mGetActiveNormalsServer = mNodeHandle.advertiseService("get_active_normals", &NextBestView::processGetActiveNormals, this);
 
-            mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
     }
@@ -789,13 +786,6 @@ public:
 
         this->triggerVisualization(resultingViewport);
 
-        //Save next best view in world model to present points within it to be considered in future next best view estimation runs.
-        world_model::PushViewport pushViewportServiceCall;
-        pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
-        BOOST_FOREACH(std::string objectType, *resultingViewport.object_type_set) {
-            pushViewportServiceCall.request.viewport.type = objectType;
-            mPushViewportServiceClient.call(pushViewportServiceCall);
-        }
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
