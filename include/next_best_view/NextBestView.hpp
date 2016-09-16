@@ -699,7 +699,7 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-        unsigned int deactivatedNormals = mCalculator.updateFromExternalObjectPointList(viewportPointList);
+        unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
         response.deactivated_object_normals = deactivatedNormals;
@@ -851,10 +851,7 @@ public:
     bool processGetActiveNormals(GetActiveNormals::Request &request, GetActiveNormals::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
-        ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
-        for (ObjectPoint &objPoint : objectPointCloud) {
-            response.active_normals += objPoint.active_normal_vectors->size();
-        }
+        response.active_normals = mCalculator.getAmountActiveNormals();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
