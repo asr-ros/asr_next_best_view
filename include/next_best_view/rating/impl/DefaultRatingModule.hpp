@@ -217,7 +217,7 @@ namespace next_best_view {
          * \param candidateViewport the candidate camera viewport
          * \return the utility
          */
-        double getWeightedUnnormalizedUtility(const ViewportPoint &candidateViewport);
+        double getUnweightedUnnormalizedUtility(const ViewportPoint &candidateViewport);
 
         /*!
          * \brief sets the mObjectUtilities member.

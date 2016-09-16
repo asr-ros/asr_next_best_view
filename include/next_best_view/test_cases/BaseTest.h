@@ -78,11 +78,13 @@ public:
 
     ~BaseTest();
 
-    void initRosServicesAndPublishers();
+    void init(bool useRos, bool silent);
 
-    void setInitialPose(const geometry_msgs::Pose &initialPose);
+    void initRosServices();
 
-    void setInitialRobotState(const geometry_msgs::Pose &initialPose);
+    void setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv = nullptr);
+
+    void setInitialRobotState(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv = nullptr);
 
     MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
 

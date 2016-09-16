@@ -50,6 +50,7 @@ namespace next_best_view {
 class NextBestViewCalculator {
 private:
     ObjectPointCloudPtr mPointCloudPtr;
+    // this is basically unused, but "might" be used to remove objects from mPointCloudPtr
     IndicesPtr mActiveIndicesPtr;
     KdTreePtr mKdTreePtr;
     std::map<std::string, std::string> objectsResources;
@@ -527,31 +528,57 @@ public:
         return true;
     }
 
-    void updateFromExternalObjectPointList(const std::vector<ViewportPoint> &viewportPointList) {
-        BOOST_FOREACH(ViewportPoint viewportPoint, viewportPointList) {
+    /**
+     * @brief updates point cloud with external viewport point list
+     * @param viewportPointList the list of viewport points
+     * @return the number of deactivated normals
+     */
+    unsigned int updateFromExternalViewportPointList(const std::vector<ViewportPoint> &viewportPointList) {
+        mDebugHelperPtr->writeNoticeably("STARTING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
+
+        mDebugHelperPtr->write(std::stringstream() << "Amount of active normals before update: " << getAmountActiveNormals(),
+                                DebugHelper::CALCULATION);
+
+        mDebugHelperPtr->write(std::stringstream() << "Number of viewports: " << viewportPointList.size(), DebugHelper::CALCULATION);
+
+        unsigned int deactivatedNormals = 0;
+
+        for (unsigned int i = 0; i < viewportPointList.size(); i++) {
+            ViewportPoint viewportPoint = viewportPointList.at(i);
+
+            mDebugHelperPtr->write(std::stringstream() << "THIS IS VIEWPORT NR. " << i+1 << " IN THE LIST OF EXTERNAL VIEWPORTS.",
+                        DebugHelper::CALCULATION);
+            mDebugHelperPtr->write(std::stringstream() << viewportPoint, DebugHelper::CALCULATION);
+
             ViewportPoint culledViewportPoint;
             if (!this->doFrustumCulling(viewportPoint.getPosition(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
-                mDebugHelperPtr->write(std::stringstream() << "Viewpoint SKIPPED by Culling: " << viewportPoint.getPosition(),
-                                DebugHelper::CALCULATION);
+                mDebugHelperPtr->write("Viewpoint SKIPPED by Culling", DebugHelper::CALCULATION);
                 continue;
             }
 
             ViewportPoint resultingViewportPoint;
-            if (!culledViewportPoint.filterObjectTypes(viewportPoint.object_type_set, resultingViewportPoint)) {
-                mDebugHelperPtr->write(std::stringstream() << "Viewpoint SKIPPED by NameFiltering: " << viewportPoint.getPosition(),
-                                DebugHelper::CALCULATION);
+            if (!culledViewportPoint.filterObjectPointCloudByTypes(viewportPoint.object_type_set, resultingViewportPoint)) {
+                mDebugHelperPtr->write("Viewpoint SKIPPED by NameFiltering", DebugHelper::CALCULATION);
                 continue;
             }
 
-            mDebugHelperPtr->write(std::stringstream() << "Viewpoint TAKEN: " << resultingViewportPoint.getPosition(),
+            mDebugHelperPtr->write(std::stringstream() << "Viewpoint TAKEN",
                                 DebugHelper::CALCULATION);
-            for (std::set<std::string>::iterator it=resultingViewportPoint.object_type_set->begin(); it!=resultingViewportPoint.object_type_set->end(); ++it)
-            {
-                mDebugHelperPtr->write(std::stringstream() << "Object: " << *it, DebugHelper::CALCULATION);
-            }
-            this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
+
+            unsigned int currentDeactivatedNormals = this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
+            mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << currentDeactivatedNormals, DebugHelper::CALCULATION);
+
+            deactivatedNormals += currentDeactivatedNormals;
+
             break;
         }
+
+        mDebugHelperPtr->write(std::stringstream() << "Amount of active normals after update: " << getAmountActiveNormals(),
+                                DebugHelper::CALCULATION);
+
+        mDebugHelperPtr->writeNoticeably("ENDING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
+
+        return deactivatedNormals;
     }
 
     /*!
@@ -798,6 +825,17 @@ public:
          */
     IndicesPtr getActiveIndices() {
         return mActiveIndicesPtr;
+    }
+
+    int getAmountActiveNormals() {
+        int result = 0;
+
+        ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
+        for (ObjectPoint &objPoint : objectPointCloud) {
+            result += objPoint.active_normal_vectors->size();
+        }
+
+        return result;
     }
 
     /**

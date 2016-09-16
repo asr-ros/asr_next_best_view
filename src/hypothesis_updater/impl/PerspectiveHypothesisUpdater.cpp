@@ -36,7 +36,7 @@ namespace next_best_view {
 
         unsigned int counter = 0;
 
-        mDebugHelperPtr->write(std::stringstream() << "Child indices in viewport: " << viewportPoint.child_indices->size(), DebugHelper::HYPOTHESIS_UPDATER);
+        mDebugHelperPtr->write(std::stringstream() << "Viewport: " << viewportPoint, DebugHelper::HYPOTHESIS_UPDATER);
 
         BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);

@@ -42,7 +42,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <set>
 #include <std_srvs/Empty.h>
 #include <world_model/GetViewportList.h>
-#include <world_model/PushViewport.h>
 #include <std_msgs/ColorRGBA.h>
 #include <dynamic_reconfigure/server.h>
 #include <next_best_view/DynamicParametersConfig.h>
@@ -58,6 +57,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
+#include "next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/MapHelperFactory.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
@@ -131,12 +131,12 @@ private:
     ros::ServiceServer mTriggerOldFrustumVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
     ros::ServiceServer mRateViewportsServer;
+    ros::ServiceServer mGetActiveNormalsServer;
 
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
 
     // ServiceClients and Subscriber
-    ros::ServiceClient mPushViewportServiceClient;
     ros::ServiceClient mGetViewportListServiceClient;
 
     // Etcetera
@@ -388,8 +388,8 @@ public:
             mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
+            mGetActiveNormalsServer = mNodeHandle.advertiseService("get_active_normals", &NextBestView::processGetActiveNormals, this);
 
-            mPushViewportServiceClient = mGlobalNodeHandle.serviceClient<world_model::PushViewport>("/env/world_model/push_viewport");
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
     }
@@ -677,7 +677,6 @@ public:
 
         if(mCalculator.getPointCloudPtr()->size() == 0)
         {
-            response.is_empty = true;
             response.is_valid = false;
             mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
@@ -697,10 +696,10 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-        mCalculator.updateFromExternalObjectPointList(viewportPointList);
+        unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
-        response.is_empty = false;
+        response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
         this->publishPointCloudVisualization();
@@ -787,13 +786,6 @@ public:
 
         this->triggerVisualization(resultingViewport);
 
-        //Save next best view in world model to present points within it to be considered in future next best view estimation runs.
-        world_model::PushViewport pushViewportServiceCall;
-        pushViewportServiceCall.request.viewport.pose = resultingViewport.getPose();
-        BOOST_FOREACH(std::string objectType, *resultingViewport.object_type_set) {
-            pushViewportServiceCall.request.viewport.type = objectType;
-            mPushViewportServiceClient.call(pushViewportServiceCall);
-        }
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
@@ -843,6 +835,15 @@ public:
         this->publishPointCloudHypothesis();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        return true;
+    }
+
+    bool processGetActiveNormals(GetActiveNormals::Request &request, GetActiveNormals::Response &response) {
+        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        response.active_normals = mCalculator.getAmountActiveNormals();
+
+        mDebugHelperPtr->writeNoticeably("ENDING NBV NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 

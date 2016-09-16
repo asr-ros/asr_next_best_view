@@ -42,13 +42,14 @@ class ParametersTest : public BaseTest
 private:
     ros::NodeHandle mNodeHandle;
     ros::NodeHandle mGlobalNodeHandle;
-    NextBestView NBV;
+    boost::shared_ptr<NextBestView> NBV;
     MapHelper mMapHelper;
 
     std::string mOutputPath;
 
 public:
     ParametersTest() : BaseTest(false, false), mNodeHandle("~") {
+        NBV = boost::shared_ptr<NextBestView>(new NextBestView());
         mNodeHandle.param("output_path", mOutputPath, std::string(""));
         ROS_INFO_STREAM("output_path: " << mOutputPath);
     }
@@ -176,25 +177,14 @@ public:
 
             GetNextBestView getNBV;
 
-            SetInitRobotStateRequest request;
-            SetInitRobotStateResponse response;
-            MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
-
-            request.robotState.pan = statePtr->pan;
-            request.robotState.tilt = statePtr->tilt;
-            request.robotState.rotation = statePtr->rotation;
-            request.robotState.x = statePtr->x;
-            request.robotState.y = statePtr->y;
-
-            NBV.processSetInitRobotStateServiceCall(request, response);
-            //this->setInitialPose(initialPose);
+            this->setInitialPose(initialPose, NBV);
 
             emptyViewportsClient.call(empty);
 
-            NBV.processSetPointCloudServiceCall(apc.request, apc.response);
+            NBV->processSetPointCloudServiceCall(apc.request, apc.response);
 
             getNBV.request.current_pose = initialPose;
-            NBV.processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
+            NBV->processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
 
             float robotX = getNBV.response.resulting_pose.position.x;
             float robotY = getNBV.response.resulting_pose.position.y;
@@ -326,17 +316,17 @@ public:
             initialPose.orientation.y = robotOrientations[i].y();
             initialPose.orientation.z = robotOrientations[i].z();
 
-            this->setInitialPose(initialPose);
+            this->setInitialPose(initialPose, NBV);
 
             // calculate NBV
             GetNextBestView getNBV;
 
             emptyViewportsClient.call(empty);
 
-            NBV.processSetPointCloudServiceCall(apc.request, apc.response);
+            NBV->processSetPointCloudServiceCall(apc.request, apc.response);
 
             getNBV.request.current_pose = initialPose;
-            NBV.processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
+            NBV->processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
 
             if (!getNBV.response.found) {
                 ROS_ERROR("No NBV found!");
@@ -421,7 +411,7 @@ public:
         initialPose.orientation.z = initialPoseList[5];
         initialPose.orientation.w = initialPoseList[6];
 
-        this->setInitialPose(initialPose);
+        this->setInitialPose(initialPose, NBV);
 
         for (int i = 0; i < stepNumber; i++)
         {
@@ -498,12 +488,12 @@ public:
 
             emptyViewportsClient.call(empty);
 
-            NBV.processSetPointCloudServiceCall(apc.request, apc.response);
+            NBV->processSetPointCloudServiceCall(apc.request, apc.response);
 
             getNBV.request.current_pose = initialPose;
 
             ROS_INFO("Asking for next best view");
-            NBV.processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
+            NBV->processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
 
             if (!getNBV.response.found)
             {
@@ -516,7 +506,7 @@ public:
             SimpleVector3 pos(initialPose.position.x, initialPose.position.y, initialPose.position.z);
             SimpleQuaternion q(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
 
-            NextBestViewCalculator nbvCalc = NBV.getCalculator();
+            NextBestViewCalculator nbvCalc = NBV->getCalculator();
             ViewportPoint viewport;
             nbvCalc.doFrustumCulling(pos, q, nbvCalc.getActiveIndices(), viewport);
 
@@ -533,7 +523,7 @@ public:
 
             TriggerFrustumVisualization triggerFrustumVis;
             triggerFrustumVis.request.current_pose = viewport.getPose();
-            NBV.processTriggerOldFrustumVisualization(triggerFrustumVis.request, triggerFrustumVis.response);
+            NBV->processTriggerOldFrustumVisualization(triggerFrustumVis.request, triggerFrustumVis.response);
 
             ROS_INFO_STREAM("Changes: pan " << getNBV.response.robot_state.pan << " tilt " << getNBV.response.robot_state.tilt
                                        << " rotation " << getNBV.response.robot_state.rotation

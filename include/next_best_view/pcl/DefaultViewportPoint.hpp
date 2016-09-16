@@ -142,7 +142,7 @@ namespace next_best_view {
          * \param viewportPoint [out] the new viewport only containing the objects with the given types
          * \return whether the result is valid
          */
-        bool filterObjectTypes(const ObjectTypeSetPtr &objectTypeSetPtr, ViewportPoint &viewportPoint) {
+        bool filterObjectPointCloudByTypes(const ObjectTypeSetPtr &objectTypeSetPtr, ViewportPoint &viewportPoint) {
             IndicesPtr objectTypeIndicesPtr(new Indices());
             BOOST_FOREACH(std::size_t index, *(this->child_indices)) {
                 ObjectPoint &point = point_cloud->at(index);
