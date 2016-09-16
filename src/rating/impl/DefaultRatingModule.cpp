@@ -64,7 +64,7 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     // do the filtering for each combination of object types
     for (ObjectTypePowerSet::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
         ViewportPoint viewport;
-        if (!candidateViewport.filterObjectTypes(*subSetIter, viewport)) {
+        if (!candidateViewport.filterObjectPointCloudByTypes(*subSetIter, viewport)) {
             continue;
         }
 

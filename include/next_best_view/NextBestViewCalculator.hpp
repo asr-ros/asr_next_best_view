@@ -557,7 +557,7 @@ public:
             }
 
             ViewportPoint resultingViewportPoint;
-            if (!culledViewportPoint.filterObjectTypes(viewportPoint.object_type_set, resultingViewportPoint)) {
+            if (!culledViewportPoint.filterObjectPointCloudByTypes(viewportPoint.object_type_set, resultingViewportPoint)) {
                 mDebugHelperPtr->write("Viewpoint SKIPPED by NameFiltering", DebugHelper::CALCULATION);
                 continue;
             }
