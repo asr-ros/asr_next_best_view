@@ -696,10 +696,21 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
+	//Give me the number of normals in point cloud before prefiltering with already reached views.
+	int numActiveNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
+
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before perfiltering: " << numActiveNormalsBeforeFiltering,
+                                DebugHelper::SERVICE_CALLS);
+
+	//Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
+        mDebugHelperPtr->write(std::stringstream() << "Number of normals, deactived during perfiltering: " << deactivatedNormals,
+                                DebugHelper::SERVICE_CALLS);
+
         response.is_valid = true;
-        response.deactivated_object_normals = deactivatedNormals;
+	//Return percentage of deactivated normals (after filtering).
+        response.percentage_deactivated_normals = static_cast<float>(deactivatedNormals) / static_cast<float>(numActiveNormalsBeforeFiltering);
 
         // publish the visualization
         this->publishPointCloudVisualization();
@@ -842,7 +853,7 @@ public:
     bool processGetActiveNormals(GetActiveNormals::Request &request, GetActiveNormals::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
-        response.active_normals = mCalculator.getAmountActiveNormals();
+        response.active_normals = mCalculator.getNumberActiveNormals();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;

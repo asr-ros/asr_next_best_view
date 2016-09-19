@@ -536,7 +536,7 @@ public:
     unsigned int updateFromExternalViewportPointList(const std::vector<ViewportPoint> &viewportPointList) {
         mDebugHelperPtr->writeNoticeably("STARTING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
 
-        mDebugHelperPtr->write(std::stringstream() << "Amount of active normals before update: " << getAmountActiveNormals(),
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
                                 DebugHelper::CALCULATION);
 
         mDebugHelperPtr->write(std::stringstream() << "Number of viewports: " << viewportPointList.size(), DebugHelper::CALCULATION);
@@ -571,7 +571,7 @@ public:
             deactivatedNormals += currentDeactivatedNormals;
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "Amount of active normals after update: " << getAmountActiveNormals(),
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberActiveNormals(),
                                 DebugHelper::CALCULATION);
 
         mDebugHelperPtr->writeNoticeably("ENDING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
@@ -825,7 +825,7 @@ public:
         return mActiveIndicesPtr;
     }
 
-    int getAmountActiveNormals() {
+    int getNumberActiveNormals() {
         int result = 0;
 
         ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
