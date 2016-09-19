@@ -620,7 +620,7 @@ public:
                 }
                 responseViewport.rating = mCalculator.getRatingModule()->getRating(ratedViewport.score);
                 // set utility and inverse cost terms in rating for the given next best view.
-                responseViewport.utility = ratedViewport.score->getWeightedNormalizedUtility();
+                responseViewport.utility = ratedViewport.score->getUnweightedUnnormalizedUtility();
                 responseViewport.inverse_costs = ratedViewport.score->getWeightedInverseCosts();
                 responseViewport.base_translation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseTranslation();
                 responseViewport.base_rotation_inverse_costs = ratedViewport.score->getUnweightedInverseMovementCostsBaseRotation();
@@ -771,7 +771,8 @@ public:
         response.robot_state = robotStateMsg;
 
         // set utility and inverse cost terms in rating for the given next best view.
-        response.utility = resultingViewport.score->getWeightedNormalizedUtility();
+        response.utility = resultingViewport.score->getUnweightedUnnormalizedUtility();
+        response.utility_normalization = resultingViewport.score->getUtilityNormalization();
         response.inverse_costs = resultingViewport.score->getWeightedInverseCosts();
         response.base_translation_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsBaseTranslation();
         response.base_rotation_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsBaseRotation();
