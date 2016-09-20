@@ -790,6 +790,8 @@ public:
         response.ptu_movement_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsPTU();
         response.recognition_inverse_costs = resultingViewport.score->getUnweightedInverseRecognitionCosts();
 
+        response.normals = mCalculator.updateObjectPointCloud(resultingViewport.object_type_set, resultingViewport, false);
+
         mCurrentCameraViewport = resultingViewport;
 
         SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);

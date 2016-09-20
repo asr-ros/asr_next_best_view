@@ -16,3 +16,5 @@ float32 base_translation_inverse_costs
 float32 base_rotation_inverse_costs
 float32 ptu_movement_inverse_costs
 float32 recognition_inverse_costs
+# number of normals in viewport
+int32 normals

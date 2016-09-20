@@ -583,10 +583,11 @@ public:
          * \brief Updates the point cloud under the assumption that the given viewport was chosen.
          * \param objectTypeSetPtr the object type names that shall be updated.
          * \param viewportPoint the viewport that was chosen
+         * \param removeNormals whether the normals should be removed
          * \return the number of deactivated normals
          */
-    unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) {
-        return mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint);
+    unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals = true) {
+        return mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint, removeNormals);
     }
 
     /////

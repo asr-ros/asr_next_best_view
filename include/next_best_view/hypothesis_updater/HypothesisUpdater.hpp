@@ -36,9 +36,10 @@ namespace next_best_view {
          * \brief Updates the point cloud under the assumption that the given viewport was chosen.
          * \param objectTypeSetPtr the object type names that shall be updated.
          * \param viewportPoint the viewport that was chosen
+         * \param removeNormals whether the normals should be removed
          * \return the number of deactivated normals
          */
-        virtual unsigned int update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) = 0;
+        virtual unsigned int update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals = true) = 0;
 	};
 
 	/*!
