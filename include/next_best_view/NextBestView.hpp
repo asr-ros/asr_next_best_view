@@ -786,7 +786,8 @@ public:
         response.ptu_movement_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsPTU();
         response.recognition_inverse_costs = resultingViewport.score->getUnweightedInverseRecognitionCosts();
 
-        response.normals = mCalculator.updateObjectPointCloud(resultingViewport.object_type_set, resultingViewport, false);
+        response.possibly_deactivated_object_normals = mCalculator.updateObjectPointCloud(resultingViewport.object_type_set, resultingViewport, false);
+        response.active_normals = mCalculator.getNumberActiveNormals();
 
         mCurrentCameraViewport = resultingViewport;
 
