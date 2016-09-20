@@ -699,18 +699,14 @@ public:
 	//Give me the number of normals in point cloud before prefiltering with already reached views.
 	int numActiveNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before perfiltering: " << numActiveNormalsBeforeFiltering,
-                                DebugHelper::SERVICE_CALLS);
-
 	//Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of normals, deactived during perfiltering: " << deactivatedNormals,
-                                DebugHelper::SERVICE_CALLS);
-
         response.is_valid = true;
-	//Return percentage of deactivated normals (after filtering).
-        response.percentage_deactivated_normals = static_cast<float>(deactivatedNormals) / static_cast<float>(numActiveNormalsBeforeFiltering);
+
+	//Return both values for checking in scene_exploration state machine.
+        response.active_normals_before_prefiltering = numActiveNormalsBeforeFiltering;
+        response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
         this->publishPointCloudVisualization();
@@ -827,6 +823,8 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
+	int numActiveNormalsBeforeUpdating = mCalculator.getNumberActiveNormals();
+
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.pose_for_update);
@@ -844,7 +842,8 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-        response.deactivated_object_normals = deactivatedNormals;
+	response.active_normals_before_update = numActiveNormalsBeforeUpdating;       
+	response.deactivated_object_normals = deactivatedNormals;
 
         this->publishPointCloudHypothesis();
 

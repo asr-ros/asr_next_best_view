@@ -536,9 +536,6 @@ public:
     unsigned int updateFromExternalViewportPointList(const std::vector<ViewportPoint> &viewportPointList) {
         mDebugHelperPtr->writeNoticeably("STARTING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
-                                DebugHelper::CALCULATION);
-
         mDebugHelperPtr->write(std::stringstream() << "Number of viewports: " << viewportPointList.size(), DebugHelper::CALCULATION);
 
         unsigned int deactivatedNormals = 0;
@@ -566,13 +563,9 @@ public:
                                 DebugHelper::CALCULATION);
 
             unsigned int currentDeactivatedNormals = this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
-            mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << currentDeactivatedNormals, DebugHelper::CALCULATION);
 
             deactivatedNormals += currentDeactivatedNormals;
         }
-
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberActiveNormals(),
-                                DebugHelper::CALCULATION);
 
         mDebugHelperPtr->writeNoticeably("ENDING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
 
@@ -587,7 +580,19 @@ public:
          * \return the number of deactivated normals
          */
     unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals = true) {
-        return mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint, removeNormals);
+
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
+                                DebugHelper::CALCULATION);
+
+        unsigned int deactivatedNormals = mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint, removeNormals);
+
+	mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << deactivatedNormals, DebugHelper::CALCULATION);
+
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberActiveNormals(),
+                                DebugHelper::CALCULATION);
+
+        return deactivatedNormals;
+
     }
 
     /////
