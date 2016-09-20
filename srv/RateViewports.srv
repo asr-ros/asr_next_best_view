@@ -4,5 +4,7 @@ geometry_msgs/Pose current_pose
 geometry_msgs/Pose[] viewports
 # object types which are searched for
 string[] object_type_name_list
+# whether object_type_name_list should be used to rate
+bool use_object_type_to_rate
 ---
 RatedViewport[] sortedRatedViewports

@@ -579,7 +579,7 @@ public:
 
         // rate
         ViewportPointCloudPtr ratedSampleViewportsPtr;
-        mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, true);
+        mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, request.use_object_type_to_rate);
 
         // threads mix up oldIdx
         std::sort(ratedSampleViewportsPtr->begin(), ratedSampleViewportsPtr->end(), [](ViewportPoint a, ViewportPoint b)
