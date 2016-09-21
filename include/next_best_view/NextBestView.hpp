@@ -133,7 +133,6 @@ private:
     ros::ServiceServer mTriggerFrustmsAndPointCloudVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
     ros::ServiceServer mRateViewportsServer;
-    ros::ServiceServer mGetActiveNormalsServer;
 
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
@@ -391,7 +390,6 @@ public:
             mTriggerFrustmsAndPointCloudVisualizationServer = mNodeHandle.advertiseService("trigger_frustums_and_point_cloud_visualization", &NextBestView::processTriggerFrustumsAndPointCloudVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
-            mGetActiveNormalsServer = mNodeHandle.advertiseService("get_active_normals", &NextBestView::processGetActiveNormals, this);
 
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
@@ -699,16 +697,16 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-        //Give me the number of normals in point cloud before prefiltering with already reached views.
-        int numActiveNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
+    //Give me the number of normals in point cloud before prefiltering with already reached views.
+    int numObjectNormalsBeforeFiltering = mCalculator.getNumberNormals();
 
         //Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
 
-        //Return both values for checking in scene_exploration state machine.
-        response.active_normals_before_prefiltering = numActiveNormalsBeforeFiltering;
+	//Return both values for checking in scene_exploration state machine.
+        response.object_normals_before_prefiltering = numObjectNormalsBeforeFiltering;
         response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
@@ -790,7 +788,7 @@ public:
         response.recognition_inverse_costs = resultingViewport.score->getUnweightedInverseRecognitionCosts();
 
         response.possibly_deactivated_object_normals = mCalculator.updateObjectPointCloud(resultingViewport.object_type_set, resultingViewport, false);
-        response.active_normals = mCalculator.getNumberActiveNormals();
+        response.object_normals = mCalculator.getNumberNormals();
 
         mCurrentCameraViewport = resultingViewport;
 
@@ -821,7 +819,7 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
-        int numActiveNormalsBeforeUpdating = mCalculator.getNumberActiveNormals();
+    int numObjectNormalsBeforeUpdating = mCalculator.getNumberNormals();
 
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
@@ -840,21 +838,12 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-        response.active_normals_before_update = numActiveNormalsBeforeUpdating;
-        response.deactivated_object_normals = deactivatedNormals;
+	response.object_normals_before_update = numObjectNormalsBeforeUpdating;       
+	response.deactivated_object_normals = deactivatedNormals;
 
         this->publishPointCloudHypothesis();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        return true;
-    }
-
-    bool processGetActiveNormals(GetActiveNormals::Request &request, GetActiveNormals::Response &response) {
-        mDebugHelperPtr->writeNoticeably("STARTING NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
-
-        response.active_normals = mCalculator.getNumberActiveNormals();
-
-        mDebugHelperPtr->writeNoticeably("ENDING NBV NBV GET-ACTIVE-NORMALS SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
 
