@@ -59,6 +59,7 @@ add_service_files(
    IsPositionAllowed.srv
    IsPositionReachable.srv
    TriggerFrustumVisualization.srv
+   TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
    GetPose.srv
    RateViewports.srv

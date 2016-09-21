@@ -117,25 +117,25 @@ public:
         initializeRobotState(currentCameraViewport);
 
         mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
-                        DebugHelper::CALCULATION);
+                                DebugHelper::CALCULATION);
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
         SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
 
-			BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
-				if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
-					feasibleOrientationsCollectionPtr->push_back(q);
-				}
-			}
-			// create the next best view point cloud
-            bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+        BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
+            if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
+                feasibleOrientationsCollectionPtr->push_back(q);
+            }
+        }
+        // create the next best view point cloud
+        bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 
-            auto finish = std::chrono::high_resolution_clock::now();
-            // cast timediff to flaot in seconds
-            ROS_INFO_STREAM("Iteration took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-            mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
-            return success;
-		}
+        auto finish = std::chrono::high_resolution_clock::now();
+        // cast timediff to flaot in seconds
+        ROS_INFO_STREAM("Iteration took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+        mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
+        return success;
+    }
 
     /**
      * @brief initializeRobotState initializes the robotstate to the given viewport
@@ -277,7 +277,7 @@ private:
         threadGroup.join_all();
 
         mDebugHelperPtr->write("Sorted list of all viewports (each best for pos & orient combi) in this iteration step.",
-                    DebugHelper::RATING);
+                                    DebugHelper::RATING);
         return mRatingModulePtr->getBestViewport(ratedNextBestViewports, resultViewport);
     }
 
@@ -311,7 +311,7 @@ private:
             //For given viewport(combination of robot position and camera viewing direction)
             // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
             mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
-                        DebugHelper::RATING);
+                                        DebugHelper::RATING);
             if (objectTypeSetIsKnown) {
                 if (!rateSingleViewportFixedObjectTypes(mThreadRatingModules[threadId], currentCameraViewport, fullViewportPoint))
                     continue;
@@ -335,7 +335,7 @@ private:
      */
     bool rateSingleViewportOptimizeObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint) {
         mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
-                    DebugHelper::RATING);
+                                    DebugHelper::RATING);
         return ratingModulePtr->setBestScoreContainer(currentCameraViewport, fullViewportPoint);
     }
 
@@ -351,7 +351,7 @@ private:
         return ratingModulePtr->setSingleScoreContainer(currentCameraViewport, fullViewportPoint);
     }
 
-	bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
+    bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
 
         int iterationStep = 0;
@@ -359,7 +359,7 @@ private:
         ViewportPoint currentBestViewport = currentCameraViewport;
         float currentBestRating = 0;
         
-		//Enables to interrupt iterating if it takes too long.
+        //Enables to interrupt iterating if it takes too long.
         while (ros::ok()) {
             ViewportPoint intermediateResultViewport;
 
@@ -376,7 +376,7 @@ private:
             iterationStep ++;
             float rating = mRatingModulePtr->getRating(intermediateResultViewport.score);
             mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
-                            DebugHelper::CALCULATION);
+                                        DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << intermediateResultViewport, DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << "rating: " << rating, DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep, DebugHelper::CALCULATION);
@@ -387,11 +387,11 @@ private:
                 resultViewport = intermediateResultViewport;
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
                 mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT FOR ALL ITERATION STEPS.",
-                            DebugHelper::CALCULATION);
+                                            DebugHelper::CALCULATION);
                 mDebugHelperPtr->write(std::stringstream() << resultViewport, DebugHelper::CALCULATION);
                 mDebugHelperPtr->write(std::stringstream() << "rating: " << rating, DebugHelper::CALCULATION);
                 mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
-                            DebugHelper::CALCULATION);
+                                            DebugHelper::CALCULATION);
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
                 return true;
             }
@@ -426,7 +426,7 @@ private:
         //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
         if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
             mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
-                            DebugHelper::VISUALIZATION);
+                                   DebugHelper::VISUALIZATION);
             bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return success;
@@ -443,7 +443,7 @@ private:
 
             //For each space sample point: Go through all interesting orientations.
             mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
-                            DebugHelper::CALCULATION);
+                                        DebugHelper::CALCULATION);
             BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
                 // get the corresponding viewport
                 ViewportPoint sampleViewport(samplePointCoords, orientation);
@@ -462,7 +462,7 @@ private:
 
         //Visualize iteration step and its result.
         mVisHelper.triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
-                                                    feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
+                                                 feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
@@ -481,7 +481,7 @@ public:
          * \param orientation [in] the orientation of the camera
          * \param indices [in] the object point indices to be used
          * \param viewportPoint [out] the resulting camera viewport
-         * \return
+         * \return whether there are objects in the resulting viewport
          */
     bool doFrustumCulling(const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &viewportPoint) {
         return doFrustumCulling(mCameraModelFilterPtr, position, orientation, indices, viewportPoint);
@@ -494,7 +494,7 @@ public:
      * @param orientation [in] the orientation of the camera
      * @param indices [in] the object point indices to be used
      * @param viewportPoint [out] the resulting camera viewport
-     * @return
+     * @return whether there are objects in the resulting viewport
      */
     bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &resultViewport) {
         resultViewport = ViewportPoint(position, orientation);
@@ -504,9 +504,18 @@ public:
 
     /**
      * @brief creates a new camera viewport with the given data
+     * @param resultViewportPoint
+     * @return whether there are objects in the resulting viewport
+     */
+    bool doFrustumCulling(ViewportPoint &resultViewportPoint) {
+        return doFrustumCulling(mCameraModelFilterPtr, resultViewportPoint);
+    }
+
+    /**
+     * @brief creates a new camera viewport with the given data
      * @param cameraModelFilterPtr [in] the cameraModel used to filter objects
      * @param resultViewportPoint [out|in] the resulting camera viewport containg the camera position and orientation and the object point indices to be used
-     * @return
+     * @return whether there are objects in the resulting viewport
      */
     bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, ViewportPoint &resultViewportPoint) {
         cameraModelFilterPtr->setIndices(resultViewportPoint.child_indices);
@@ -517,13 +526,13 @@ public:
         //Call wrapper (with next-best-view data structures) for PCL frustum culling call.
         cameraModelFilterPtr->filter(frustumIndicesPtr);
 
-        if (frustumIndicesPtr->size() == 0) {
-            return false;
-        }
-
         resultViewportPoint.child_indices = frustumIndicesPtr;
         resultViewportPoint.child_point_cloud = cameraModelFilterPtr->getInputCloud();
         resultViewportPoint.point_cloud = mPointCloudPtr;
+
+        if (frustumIndicesPtr->size() == 0) {
+            return false;
+        }
 
         return true;
     }
@@ -544,7 +553,7 @@ public:
             ViewportPoint viewportPoint = viewportPointList.at(i);
 
             mDebugHelperPtr->write(std::stringstream() << "THIS IS VIEWPORT NR. " << i+1 << " IN THE LIST OF EXTERNAL VIEWPORTS.",
-                        DebugHelper::CALCULATION);
+                                        DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << viewportPoint, DebugHelper::CALCULATION);
 
             ViewportPoint culledViewportPoint;
@@ -560,7 +569,7 @@ public:
             }
 
             mDebugHelperPtr->write(std::stringstream() << "Viewpoint TAKEN",
-                                DebugHelper::CALCULATION);
+                                        DebugHelper::CALCULATION);
 
             unsigned int currentDeactivatedNormals = this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
 
@@ -582,14 +591,14 @@ public:
     unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals = true) {
 
         mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
-                                DebugHelper::CALCULATION);
+                                    DebugHelper::CALCULATION);
 
         unsigned int deactivatedNormals = mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint, removeNormals);
 
-	mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << deactivatedNormals, DebugHelper::CALCULATION);
+        mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << deactivatedNormals, DebugHelper::CALCULATION);
 
         mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberActiveNormals(),
-                                DebugHelper::CALCULATION);
+                                    DebugHelper::CALCULATION);
 
         return deactivatedNormals;
 
@@ -689,7 +698,7 @@ public:
             mCropBoxFilterPtr->filter(filteredObjectIndices);
 
             mDebugHelperPtr->write("setPointCloudFromMessage::Filtering point cloud finished.",
-                        DebugHelper::CALCULATION);
+                                        DebugHelper::CALCULATION);
 
             mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
 
@@ -720,7 +729,7 @@ public:
         else
         {
             mDebugHelperPtr->write("setPointCloudFromMessage::output point cloud is empty.",
-                        DebugHelper::CALCULATION);
+                                        DebugHelper::CALCULATION);
         }
 
         this->setPointCloudPtr(outputPointCloudPtr);

@@ -140,7 +140,7 @@ namespace next_best_view {
          * \brief filters all the objects in this viewport with one of the given types and puts them in a new viewport.
          * \param objectTypeSetPtr [in] the object type names that shall be put in the new viewport
          * \param viewportPoint [out] the new viewport only containing the objects with the given types
-         * \return whether the result is valid
+         * \return whether the resulting viewport contains any object
          */
         bool filterObjectPointCloudByTypes(const ObjectTypeSetPtr &objectTypeSetPtr, ViewportPoint &viewportPoint) {
             IndicesPtr objectTypeIndicesPtr(new Indices());
@@ -154,10 +154,6 @@ namespace next_best_view {
                 }
             }
 
-            if (objectTypeIndicesPtr->size() == 0) {
-                return false;
-            }
-
             // we might want to define a copy constructor for this and call it
             viewportPoint = ViewportPoint(this->getPosition(), this->getSimpleQuaternion());
             viewportPoint.child_indices = objectTypeIndicesPtr;
@@ -165,6 +161,11 @@ namespace next_best_view {
             viewportPoint.point_cloud = this->point_cloud;
             viewportPoint.object_type_set = objectTypeSetPtr;
             viewportPoint.oldIdx = this->oldIdx;
+
+            if (objectTypeIndicesPtr->size() == 0) {
+                return false;
+            }
+
 
             return true;
         }

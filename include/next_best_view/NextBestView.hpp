@@ -51,6 +51,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/RatedViewport.h"
 #include "next_best_view/RateViewports.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
+#include "next_best_view/TriggerFrustumsAndPointCloudVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
 #include "next_best_view/GetNextBestView.h"
 #include "next_best_view/SetAttributedPointCloud.h"
@@ -129,6 +130,7 @@ private:
     ros::ServiceServer mUpdatePointCloudServiceServer;
     ros::ServiceServer mTriggerFrustumVisualizationServer;
     ros::ServiceServer mTriggerOldFrustumVisualizationServer;
+    ros::ServiceServer mTriggerFrustmsAndPointCloudVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
     ros::ServiceServer mRateViewportsServer;
     ros::ServiceServer mGetActiveNormalsServer;
@@ -386,6 +388,7 @@ public:
             mUpdatePointCloudServiceServer = mNodeHandle.advertiseService("update_point_cloud", &NextBestView::processUpdatePointCloudServiceCall, this);
             mTriggerFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_frustum_visualization", &NextBestView::processTriggerFrustumVisualization, this);
             mTriggerOldFrustumVisualizationServer = mNodeHandle.advertiseService("trigger_old_frustum_visualization", &NextBestView::processTriggerOldFrustumVisualization, this);
+            mTriggerFrustmsAndPointCloudVisualizationServer = mNodeHandle.advertiseService("trigger_frustums_and_point_cloud_visualization", &NextBestView::processTriggerFrustumsAndPointCloudVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
             mGetActiveNormalsServer = mNodeHandle.advertiseService("get_active_normals", &NextBestView::processGetActiveNormals, this);
@@ -696,15 +699,15 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-	//Give me the number of normals in point cloud before prefiltering with already reached views.
-	int numActiveNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
+        //Give me the number of normals in point cloud before prefiltering with already reached views.
+        int numActiveNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
 
-	//Filter point cloud with those views.
+        //Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
 
-	//Return both values for checking in scene_exploration state machine.
+        //Return both values for checking in scene_exploration state machine.
         response.active_normals_before_prefiltering = numActiveNormalsBeforeFiltering;
         response.deactivated_object_normals = deactivatedNormals;
 
@@ -791,12 +794,6 @@ public:
 
         mCurrentCameraViewport = resultingViewport;
 
-        SimpleVector3 position = TypeHelper::getSimpleVector3(response.resulting_pose);
-        SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(response.resulting_pose);
-        mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
-
-        this->triggerVisualization(resultingViewport);
-
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
     }
@@ -824,7 +821,7 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
-	int numActiveNormalsBeforeUpdating = mCalculator.getNumberActiveNormals();
+        int numActiveNormalsBeforeUpdating = mCalculator.getNumberActiveNormals();
 
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
@@ -843,8 +840,8 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-	response.active_normals_before_update = numActiveNormalsBeforeUpdating;       
-	response.deactivated_object_normals = deactivatedNormals;
+        response.active_normals_before_update = numActiveNormalsBeforeUpdating;
+        response.deactivated_object_normals = deactivatedNormals;
 
         this->publishPointCloudHypothesis();
 
@@ -891,6 +888,46 @@ public:
         return true;
     }
 
+    bool processTriggerFrustumsAndPointCloudVisualization(TriggerFrustumsAndPointCloudVisualization::Request &request,
+                                                         TriggerFrustumsAndPointCloudVisualization::Response &response)
+    {
+        mDebugHelperPtr->writeNoticeably("STARTING NBV TRIGGER-FRUSTUMS-AND-POINT-CLOUD-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        // set viewport
+        ViewportPoint viewport(request.new_viewport.pose);
+
+        IndicesPtr childIndicesPtr;
+        if (!mCalculator.getFeasibleHypothesis(viewport.getPosition(), childIndicesPtr))
+        {
+            viewport.child_indices = IndicesPtr(new Indices());
+            triggerVisualization(viewport);
+            return true;
+        }
+
+        viewport.child_indices = childIndicesPtr;
+
+        if (!mCalculator.doFrustumCulling(viewport))
+        {
+            triggerVisualization(viewport);
+            return true;
+        }
+
+        ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet());
+
+        BOOST_FOREACH(std::string objectType, request.new_viewport.object_type_name_list)
+            objectTypeSetPtr->insert(objectType);
+
+        ViewportPoint filteredViewport;
+        viewport.filterObjectPointCloudByTypes(objectTypeSetPtr, filteredViewport);
+
+        // visualize viewport
+        triggerVisualization(filteredViewport);
+
+        mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-FRUSTUMS-AND-POINT-CLOUD-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        return true;
+    }
+
     bool triggerVisualization() {
         return this->triggerVisualization(mCurrentCameraViewport);
     }
@@ -913,13 +950,16 @@ public:
      */
     void publishVisualization(ViewportPoint viewport, bool publishFrustum) {
         mDebugHelperPtr->write("Publishing Visualization with viewport", DebugHelper::VISUALIZATION);
-        mDebugHelperPtr->write(std::stringstream() << "Frustum Pivot Point : " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[0]
-                                        << " , " <<  this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
-                                        << " , " << this->mCalculator.getCameraModelFilter()->getPivotPointPosition()[2],
+
+        mCalculator.getCameraModelFilter()->setPivotPointPose(viewport.getPosition(), viewport.getSimpleQuaternion());
+
+        mDebugHelperPtr->write(std::stringstream() << "Frustum Pivot Point : " << mCalculator.getCameraModelFilter()->getPivotPointPosition()[0]
+                                        << " , " <<  mCalculator.getCameraModelFilter()->getPivotPointPosition()[1]
+                                        << " , " << mCalculator.getCameraModelFilter()->getPivotPointPosition()[2],
                                     DebugHelper::VISUALIZATION);
 
         mDebugHelperPtr->write(std::stringstream() << "Object points in the viewport: " << viewport.child_indices->size(),
-                    DebugHelper::VISUALIZATION);
+                                    DebugHelper::VISUALIZATION);
 
         if (mShowPointcloud)
         {
