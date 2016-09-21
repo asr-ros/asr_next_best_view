@@ -581,14 +581,14 @@ public:
          */
     unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals = true) {
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberNormals(),
                                 DebugHelper::CALCULATION);
 
         unsigned int deactivatedNormals = mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint, removeNormals);
 
 	mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << deactivatedNormals, DebugHelper::CALCULATION);
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberActiveNormals(),
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberNormals(),
                                 DebugHelper::CALCULATION);
 
         return deactivatedNormals;
@@ -831,12 +831,12 @@ public:
         return mActiveIndicesPtr;
     }
 
-    int getNumberActiveNormals() {
+    int getNumberNormals() {
         int result = 0;
 
         ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
         for (ObjectPoint &objPoint : objectPointCloud) {
-            result += objPoint.active_normal_vectors->size();
+            result += objPoint.normal_vectors->size();
         }
 
         return result;
