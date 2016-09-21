@@ -158,11 +158,13 @@ namespace next_best_view {
                 return false;
             }
 
+            // we might want to define a copy constructor for this and call it
             viewportPoint = ViewportPoint(this->getPosition(), this->getSimpleQuaternion());
             viewportPoint.child_indices = objectTypeIndicesPtr;
             viewportPoint.child_point_cloud = this->child_point_cloud;
             viewportPoint.point_cloud = this->point_cloud;
             viewportPoint.object_type_set = objectTypeSetPtr;
+            viewportPoint.oldIdx = this->oldIdx;
 
             return true;
         }
