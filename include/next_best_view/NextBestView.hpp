@@ -697,7 +697,7 @@ public:
         }
 
 	//Give me the number of normals in point cloud before prefiltering with already reached views.
-	int numActiveNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
+	int numObjectNormalsBeforeFiltering = mCalculator.getNumberActiveNormals();
 
 	//Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
@@ -705,7 +705,7 @@ public:
         response.is_valid = true;
 
 	//Return both values for checking in scene_exploration state machine.
-        response.active_normals_before_prefiltering = numActiveNormalsBeforeFiltering;
+        response.object_normals_before_prefiltering = numObjectNormalsBeforeFiltering;
         response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
@@ -824,7 +824,7 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
-	int numActiveNormalsBeforeUpdating = mCalculator.getNumberActiveNormals();
+	int numObjectNormalsBeforeUpdating = mCalculator.getNumberActiveNormals();
 
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
@@ -843,7 +843,7 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-	response.active_normals_before_update = numActiveNormalsBeforeUpdating;       
+	response.object_normals_before_update = numObjectNormalsBeforeUpdating;       
 	response.deactivated_object_normals = deactivatedNormals;
 
         this->publishPointCloudHypothesis();

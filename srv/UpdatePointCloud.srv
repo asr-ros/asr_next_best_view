@@ -2,5 +2,5 @@ geometry_msgs/Pose pose_for_update
 # objects searched
 string[] object_type_name_list
 ---
-int32 active_normals_before_update
+int32 object_normals_before_update
 uint32 deactivated_object_normals
