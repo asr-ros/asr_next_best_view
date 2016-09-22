@@ -56,9 +56,8 @@ private:
     ros::Publisher mIterationMarkerArrayPublisher;
     ros::Publisher mFrustumMarkerArrayPublisher;
     ros::Publisher mObjectMeshMarkerPublisher;
-    ros::Publisher mPointObjectNormalPublisher;
     ros::Publisher mFrustumObjectMeshMarkerPublisher;
-    ros::Publisher mFrustumObjectNormalPublisher;
+    ros::Publisher mPointObjectNormalPublisher;
     ros::Publisher mCropBoxMarkerPublisher;
 
     ros::NodeHandle mNodeHandle;
@@ -104,9 +103,8 @@ public:
         mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(iterationVisualization, 1000);
         mFrustumMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumVisualization, 1000);
         mObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectsVisualization, 100, false);
-        mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectNormalsVisualization, 100, false);
         mFrustumObjectMeshMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumObjectsVisualization, 100, false);
-        mFrustumObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(frustumObjectNormalsVisualization, 100, false);
+        mPointObjectNormalPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(objectNormalsVisualization, 100, false);
         mCropBoxMarkerPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(cropBoxVisualization, 100, false);
 
         if (!mIterationMarkerArrayPublisher) {
@@ -121,12 +119,12 @@ public:
             ROS_ERROR("mObjectMeshMarkerPublisher is invalid.");
             throw "Publisher invalid";
         }
-        if (!mPointObjectNormalPublisher) {
-            ROS_ERROR("mPointObjectNormalPublisher is invalid.");
-            throw "Publisher invalid";;
-        }
         if (!mFrustumObjectMeshMarkerPublisher) {
             ROS_ERROR("mFrustumObjectMeshMarkerPublisher is invalid.");
+            throw "Publisher invalid";;
+        }
+        if (!mPointObjectNormalPublisher) {
+            ROS_ERROR("mPointObjectNormalPublisher is invalid.");
             throw "Publisher invalid";;
         }
 
@@ -356,11 +354,6 @@ public:
             mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
-        if(!mObjectNormalsMarkerArrayPtr){
-            ROS_ERROR("triggerObjectPointCloudVisualization call with pointer mObjectNormalsMarkerArrayPtr being null.");
-            mDebugHelperPtr->writeNoticeably("ENDING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
-            return;
-        }
 
         visualizePointCloudObjects(objectPointCloud, typeToMeshResource,
                                    mObjectMeshMarkerArrayPtr, mObjectMeshMarkerPublisher);
@@ -389,6 +382,10 @@ public:
                                    colorFrustumMeshMarkerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
+    }
+
+    void clearFrustumObjectPointCloudVisualization() {
+        deleteMarkerArray(mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher);
     }
 
     void triggerCropBoxVisualization(const boost::shared_ptr<std::vector<CropBoxWrapperPtr>> cropBoxWrapperPtrList)
@@ -446,7 +443,7 @@ public:
         mCropBoxMarkerPublisher.publish(*mCropBoxMarkerArrayPtr);
     }
 
-    void triggerObjectPointCloudHypothesisVisualization(ObjectPointCloud& objectPointCloud) {
+    void triggerObjectNormalsVisualization(ObjectPointCloud& objectPointCloud) {
         mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD HYPOTHESIS VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mObjectNormalsMarkerArrayPtr){

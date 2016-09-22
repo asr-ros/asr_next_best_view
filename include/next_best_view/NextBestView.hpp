@@ -147,7 +147,7 @@ private:
     /*!
      * visualization settings
      */
-    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray, mShowHypothesis;
+    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray, mShowNormals;
     bool mCurrentlyPublishingVisualization;
 
     // dynconfig
@@ -370,7 +370,7 @@ public:
             mShowPointcloud = mConfig.show_point_cloud;
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;
-            mShowHypothesis = mConfig.show_hypothesis;
+            mShowNormals = mConfig.show_normals;
         }
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
@@ -697,20 +697,20 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-    //Give me the number of normals in point cloud before prefiltering with already reached views.
-    int numObjectNormalsBeforeFiltering = mCalculator.getNumberNormals();
+        //Give me the number of normals in point cloud before prefiltering with already reached views.
+        int numObjectNormalsBeforeFiltering = mCalculator.getNumberNormals();
 
         //Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
 
-	//Return both values for checking in scene_exploration state machine.
+        //Return both values for checking in scene_exploration state machine.
         response.object_normals_before_prefiltering = numObjectNormalsBeforeFiltering;
         response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
-        this->publishPointCloudVisualization();
+        this->publishNewPointCloudVisualization();
         mDebugHelperPtr->writeNoticeably("ENDING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
 
@@ -747,10 +747,6 @@ public:
         if (!mCalculator.calculateNextBestView(currentCameraViewport, resultingViewport)) {
             //No points from input cloud in any nbv candidate or iterative search aborted (by user).
             mDebugHelperPtr->write("No more next best view found.", DebugHelper::SERVICE_CALLS);
-            if (mShowFrustumMarkerArray)
-            {
-                mVisHelper.clearFrustumVisualization();
-            }
             response.found = false;
             mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
             return true;
@@ -819,7 +815,7 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
-    int numObjectNormalsBeforeUpdating = mCalculator.getNumberNormals();
+        int numObjectNormalsBeforeUpdating = mCalculator.getNumberNormals();
 
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
@@ -838,10 +834,10 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-	response.object_normals_before_update = numObjectNormalsBeforeUpdating;       
-	response.deactivated_object_normals = deactivatedNormals;
+        response.object_normals_before_update = numObjectNormalsBeforeUpdating;
+        response.deactivated_object_normals = deactivatedNormals;
 
-        this->publishPointCloudHypothesis();
+        this->publishPointCloudNormals();
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -982,30 +978,35 @@ public:
         mCurrentlyPublishingVisualization = false;
     }
 
-    void publishPointCloudVisualization() {
-        mDebugHelperPtr->write("Publishing Visualization without viewport", DebugHelper::VISUALIZATION);
+    void publishNewPointCloudVisualization() {
+        mDebugHelperPtr->write("Publishing visualization of new point cloud", DebugHelper::VISUALIZATION);
+
+        ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
 
         if (mShowPointcloud)
         {
-            // publish object point cloud
-            ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
+            // clear visualization of old objects in frustum
+            mVisHelper.clearFrustumObjectPointCloudVisualization();
+
+            // publish new object point cloud
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
             mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
-            if (mShowHypothesis) {
-                // show hypothesis
-                mVisHelper.triggerObjectPointCloudHypothesisVisualization(objectPointCloud);
-            }
+        }
+
+        if (mShowNormals) {
+            // publish new normals
+            mVisHelper.triggerObjectNormalsVisualization(objectPointCloud);
         }
     }
 
-    void publishPointCloudHypothesis() {
-        mDebugHelperPtr->write("Publishing hypothesis", DebugHelper::VISUALIZATION);
+    void publishPointCloudNormals() {
+        mDebugHelperPtr->write("Publishing normals", DebugHelper::VISUALIZATION);
 
-        if (mShowHypothesis) {
-            // show hypothesis
+        if (mShowNormals) {
+            // show normals
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
-            mVisHelper.triggerObjectPointCloudHypothesisVisualization(objectPointCloud);
+            mVisHelper.triggerObjectNormalsVisualization(objectPointCloud);
         }
     }
 
