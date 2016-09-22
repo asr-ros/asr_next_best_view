@@ -1,5 +1,5 @@
 pbd_msgs/PbdAttributedPointCloud point_cloud
 ---
 bool is_valid
-int32 object_normals_before_prefiltering
+int32 object_normals
 uint32 deactivated_object_normals

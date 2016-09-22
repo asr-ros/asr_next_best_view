@@ -697,16 +697,16 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-        //Give me the number of normals in point cloud before prefiltering with already reached views.
-        int numObjectNormalsBeforeFiltering = mCalculator.getNumberNormals();
+	    //Give me the number of object normals in point cloud before any prefiltering with already reached views.
+	    int numObjectNormals = mCalculator.getNumberNormals();
 
         //Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
 
-        //Return both values for checking in scene_exploration state machine.
-        response.object_normals_before_prefiltering = numObjectNormalsBeforeFiltering;
+	    //Return both values for checking in scene_exploration state machine.
+        response.object_normals = numObjectNormals;
         response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
@@ -815,7 +815,8 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
-        int numObjectNormalsBeforeUpdating = mCalculator.getNumberNormals();
+	    //Give me number of object normals as when NBV_SET_POINT_CLOUD has been executed.
+	    int numObjectNormals = mCalculator.getNumberNormals();
 
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
@@ -834,8 +835,8 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-        response.object_normals_before_update = numObjectNormalsBeforeUpdating;
-        response.deactivated_object_normals = deactivatedNormals;
+	    response.object_normals = numObjectNormals;       
+	    response.deactivated_object_normals = deactivatedNormals;
 
         this->publishPointCloudNormals();
 
