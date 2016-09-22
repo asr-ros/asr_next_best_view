@@ -42,7 +42,7 @@ mHypothesisUpdaterAngleThreshold: 60.0  # used to rate angles in hypothesis upda
 radius: 0.15 # hexagon space sample radius
 sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler. Greater -> more precise orientation.
 colThresh: 40 # greater values results in problems during simulation in navigation. Smaller -> more distance to obstacles.
-epsilon: 0.001
+epsilon: 0.01
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
 enableCropBoxFiltering : false
