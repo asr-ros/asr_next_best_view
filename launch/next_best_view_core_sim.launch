@@ -8,7 +8,7 @@
 	  <!-- this is used by costmap -->
           <rosparam file="$(find next_best_view)/rsc/costmap_params.yaml" command="load"/>
           <!-- CropBoxListHighResolutionRearrangedTableFitWithNormals CropBoxListWholeRoom-->
-          <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxListHighResolutionRearrangedTableFitWithNormals.xml"/>
+          <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxListHighResolutionRearrangedTableFit.xml"/>
 	  <param name="mMapsImagePath" value="$(find next_best_view)/rsc"/>
 	</node>
 </launch>
