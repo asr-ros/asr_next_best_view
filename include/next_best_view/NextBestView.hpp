@@ -697,8 +697,8 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-	    //Give me the number of object normals in point cloud before any prefiltering with already reached views.
-	    int numObjectNormals = mCalculator.getNumberNormals();
+        //Give me the number of active object normals in point cloud.
+        int numActiveNormals = mCalculator.getNumberActiveNormals();
 
         //Filter point cloud with those views.
         unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
@@ -706,7 +706,7 @@ public:
         response.is_valid = true;
 
 	    //Return both values for checking in scene_exploration state machine.
-        response.object_normals = numObjectNormals;
+        response.active_normals = numActiveNormals;
         response.deactivated_object_normals = deactivatedNormals;
 
         // publish the visualization
@@ -783,9 +783,6 @@ public:
         response.ptu_movement_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsPTU();
         response.recognition_inverse_costs = resultingViewport.score->getUnweightedInverseRecognitionCosts();
 
-        response.possibly_deactivated_object_normals = mCalculator.updateObjectPointCloud(resultingViewport.object_type_set, resultingViewport, false);
-        response.object_normals = mCalculator.getNumberNormals();
-
         mCurrentCameraViewport = resultingViewport;
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
@@ -815,9 +812,6 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
-	    //Give me number of object normals as when NBV_SET_POINT_CLOUD has been executed.
-	    int numObjectNormals = mCalculator.getNumberNormals();
-
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.pose_for_update);
@@ -835,7 +829,6 @@ public:
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
         unsigned int deactivatedNormals = mCalculator.updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
 
-	    response.object_normals = numObjectNormals;       
 	    response.deactivated_object_normals = deactivatedNormals;
 
         this->publishPointCloudNormals();
