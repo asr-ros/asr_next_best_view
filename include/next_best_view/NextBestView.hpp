@@ -582,6 +582,8 @@ public:
         ViewportPointCloudPtr ratedSampleViewportsPtr;
         mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, request.use_object_type_to_rate);
 
+        mDebugHelperPtr->write(std::stringstream() << "number of rated viewports: " << ratedSampleViewportsPtr->size(), DebugHelper::SERVICE_CALLS);
+
         // threads mix up oldIdx
         std::sort(ratedSampleViewportsPtr->begin(), ratedSampleViewportsPtr->end(), [](ViewportPoint a, ViewportPoint b)
         {
