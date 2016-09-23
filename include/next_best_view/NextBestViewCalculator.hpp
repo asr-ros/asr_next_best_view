@@ -119,14 +119,8 @@ public:
         mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
                                 DebugHelper::CALCULATION);
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
-        SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
-        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
+        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
-        BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
-            if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
-                feasibleOrientationsCollectionPtr->push_back(q);
-            }
-        }
         // create the next best view point cloud
         bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 
@@ -415,17 +409,10 @@ private:
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
         //Calculate grid for resolution given in this iteration step.
-        SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
-
-        //Set height of sample points as it is set to zero by space sampler
-        this->setHeight(sampledSpacePointCloudPtr, currentBestPosition[2]);
-
-        IndicesPtr feasibleIndicesPtr;
-        //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
-        this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
+        SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
 
         //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
-        if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
+        if (sampledSpacePointCloudPtr->size() == 1 && this->getEpsilon() < contractor) {
             mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
                                    DebugHelper::VISUALIZATION);
             bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
@@ -434,27 +421,7 @@ private:
         }
 
         //Create list of all view ports that are checked during this iteration step.
-        ViewportPointCloudPtr sampleNextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
-
-        // convert space sampling combined with sphere sampling to viewport sampling
-        for (int activeIndex : (*feasibleIndicesPtr)) {
-            SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
-            SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
-            IndicesPtr samplePointChildIndices = samplePoint.child_indices;
-
-            //For each space sample point: Go through all interesting orientations.
-            mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
-                                        DebugHelper::CALCULATION);
-            BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-                // get the corresponding viewport
-                ViewportPoint sampleViewport(samplePointCoords, orientation);
-                // nearby object hypothesis for good estimation of possible hypothesis in frustum
-                sampleViewport.child_indices = samplePointChildIndices;
-                sampleViewport.object_type_set = mObjectTypeSetPtr;
-                sampleNextBestViewports->push_back(sampleViewport);
-            }
-        }
-
+        ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
 
         if (!rateViewports(sampleNextBestViewports, currentCameraViewport, resultViewport)) {
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
@@ -463,7 +430,7 @@ private:
 
         //Visualize iteration step and its result.
         mVisHelper.triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
-                                                    feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
+                                                    sampledSpacePointCloudPtr, mSpaceSamplerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
@@ -726,6 +693,9 @@ public:
 
 private:
 
+    /**
+     * @brief filterUnrechableNormals
+     */
     void filterUnrechableNormals() {
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
         ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 4.0), 1.32);
@@ -778,7 +748,28 @@ private:
         }
     }
 
+    /**
+     * @brief generateSampleViewports
+     * @param spaceSampleStartVector
+     * @param contractor
+     * @param pointCloudHeight
+     * @return
+     */
     ViewportPointCloudPtr generateSampleViewports(SimpleVector3 spaceSampleStartVector, double contractor, double pointCloudHeight) {
+        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
+
+        SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(spaceSampleStartVector, contractor, pointCloudHeight);
+
+        ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, feasibleOrientationsCollectionPtr);
+
+        return sampleNextBestViewports;
+    }
+
+    /**
+     * @brief generateOrientationSamples
+     * @return
+     */
+    SimpleQuaternionCollectionPtr generateOrientationSamples() {
         SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
 
@@ -788,6 +779,17 @@ private:
             }
         }
 
+        return feasibleOrientationsCollectionPtr;
+    }
+
+    /**
+     * @brief generateSpaceSamples
+     * @param spaceSampleStartVector
+     * @param contractor
+     * @param pointCloudHeight
+     * @return
+     */
+    SamplePointCloudPtr generateSpaceSamples(SimpleVector3 spaceSampleStartVector, double contractor, double pointCloudHeight) {
         SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(spaceSampleStartVector, contractor);
 
         //Set height of sample points as it is set to zero by space sampler
@@ -797,18 +799,21 @@ private:
         //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
         this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
 
-        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(feasibleOrientationsCollectionPtr, sampledSpacePointCloudPtr, feasibleIndicesPtr);
-
-        // convert space sampling combined with sphere sampling to viewport sampling
-
-
-        return sampleNextBestViewports;
+        return SamplePointCloudPtr(new SamplePointCloud(*sampledSpacePointCloudPtr, *feasibleIndicesPtr));
     }
 
-    ViewportPointCloudPtr generateSampleViewports(SimpleQuaternionCollectionPtr sampledOrientationsPtr, SamplePointCloudPtr sampledSpacePointCloudPtr, IndicesPtr feasibleIndicesPtr) {
+    /**
+     * @brief combines space samples and orientation samples to viewport samples
+     * @param sampledSpacePointCloudPtr
+     * @param sampledOrientationsPtr
+     * @param feasibleIndicesPtr
+     * @return
+     */
+    ViewportPointCloudPtr combineSamples(SamplePointCloudPtr sampledSpacePointCloudPtr, SimpleQuaternionCollectionPtr sampledOrientationsPtr) {
         ViewportPointCloudPtr sampleNextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
-        for (int activeIndex : (*feasibleIndicesPtr)) {
-            SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
+
+        // convert space sampling combined with sphere sampling to viewport sampling
+        for (SamplePoint &samplePoint : (*sampledSpacePointCloudPtr)) {
             SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
             IndicesPtr samplePointChildIndices = samplePoint.child_indices;
 
