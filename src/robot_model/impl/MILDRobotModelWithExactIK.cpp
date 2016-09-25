@@ -163,13 +163,13 @@ namespace next_best_view {
         panJointXAxis.normalize();
         panJointYAxis.normalize();
         panJointToCenterPointProjected.normalize();
-        double panAngle = asin(panJointToCenterPointProjected.dot(panJointYAxis));
-        panAngle += viewTriangleXYPlane_AngleBeta - mPanAngleOffset;
+        double panAngle = viewTriangleXYPlane_AngleBeta - (M_PI/2.0 - asin(panJointToCenterPointProjected.dot(panJointYAxis)));
+        //panAngle += viewTriangleXYPlane_AngleBeta; //mPanAngleOffset;
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideA: " << viewTriangleXYPlane_sideA, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideB: " << viewTriangleXYPlane_sideB, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_sideC: " << viewTriangleXYPlane_sideC, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "viewTriangleXYPlane_AngleBeta: " << viewTriangleXYPlane_AngleBeta, DebugHelper::ROBOT_MODEL);
-        mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointYAxis): " << panJointToCenterPointProjected.dot(panJointYAxis),
+        mDebugHelperPtr->write(std::stringstream() << "asin(panJointToCenterPointProjected.dot(panJointYAxis)): " << asin(panJointToCenterPointProjected.dot(panJointYAxis)),
                     DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "mPanAngleOffset: " << mPanAngleOffset, DebugHelper::ROBOT_MODEL);
         mDebugHelperPtr->write(std::stringstream() << "panJointToCenterPointProjected.dot(panJointXAxis): " << panJointToCenterPointProjected.dot(panJointXAxis),
