@@ -558,7 +558,7 @@ namespace next_best_view {
             if (listener.waitForTransform("/map", "/ptu_mount_link", ros::Time(), ros::Duration(4.0)))
             {
                 //Assume that tf is alive and lookups will be successful
-                listener.lookupTransform("/ptu_pan_link", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
+                listener.lookupTransform("/ptu_pan_link_rotated", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
                 listener.lookupTransform("/base_link", "/ptu_pan_link", ros::Time(0), baseToPanTF);
                 listener.lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCamLeftTF);
                 listener.lookupTransform("/ptu_tilted_link", "/camera_right_frame", ros::Time(0), tiltToCamRightTF);
@@ -578,15 +578,6 @@ namespace next_best_view {
         tf::poseTFToEigen(baseToPanTF, baseToPanEigen);
         tf::poseTFToEigen(tiltToCamLeftTF, tiltToCamLeftEigen);
         tf::poseTFToEigen(tiltToCamRightTF, tiltToCamRightEigen);
-
-        //Quick fix: Currently, the pan angle is included pan to tilt transformation and therefore the transformation must be adjusted accordingly before using it to extract parameters
-        //In the future, this problem should be approached by addign another joint to the kinematic chain to represent static and dynamic transformation frames seperately
-        //ROS_INFO_STREAM("panToTiltEigen:");
-        //ROS_INFO_STREAM(panToTiltEigen(0,0) << ", " << panToTiltEigen(0,1) << ", " <<  panToTiltEigen(0,2) << ", " << panToTiltEigen(0,3) << ")");
-        //ROS_INFO_STREAM(panToTiltEigen(1,0) << ", " << panToTiltEigen(1,1) << ", " <<  panToTiltEigen(1,2) << ", " << panToTiltEigen(1,3) << ")");
-        //ROS_INFO_STREAM(panToTiltEigen(2,0) << ", " << panToTiltEigen(2,1) << ", " <<  panToTiltEigen(2,2) << ", " << panToTiltEigen(2,3) << ")");
-        //ROS_INFO_STREAM(panToTiltEigen(3,0) << ", " << panToTiltEigen(3,1) << ", " <<  panToTiltEigen(3,2) << ", " << panToTiltEigen(3,3) << ")");
-        panToTiltEigen = Eigen::Affine3d::Identity();
 
         tiltAxisPointEigen = baseToPanEigen * panToTiltEigen;
         cameraLeftPointEigen = tiltAxisPointEigen * tiltToCamLeftEigen;
