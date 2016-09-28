@@ -66,6 +66,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
+#include "pbd_msgs/PbdViewport.h"
 #include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.hpp"
@@ -690,11 +691,11 @@ public:
 
         // convert to viewportPointCloud
         std::vector<ViewportPoint> viewportPointList;
-        BOOST_FOREACH(pbd_msgs::PbdAttributedPoint &point, getViewportListServiceCall.response.viewport_list.elements)
+        BOOST_FOREACH(pbd_msgs::PbdViewport &viewport, getViewportListServiceCall.response.viewport_list)
         {
-            ViewportPoint viewportConversionPoint(point.pose);
+            ViewportPoint viewportConversionPoint(viewport.pose);
             viewportConversionPoint.object_type_set = boost::shared_ptr<ObjectTypeSet>(new ObjectTypeSet());
-            viewportConversionPoint.object_type_set->insert(point.type);
+            viewportConversionPoint.object_type_set->insert(viewport.object_type_name_list.begin(), viewport.object_type_name_list.end());
             viewportPointList.push_back(viewportConversionPoint);
         }
 
