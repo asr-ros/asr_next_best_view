@@ -39,6 +39,7 @@ add_message_files(
         FILES
         RobotStateMessage.msg
 	RatedViewport.msg
+	NormalsInfo.msg
 )
 
 ## Generate services in the 'srv' folder

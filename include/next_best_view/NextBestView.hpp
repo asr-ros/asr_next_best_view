@@ -50,6 +50,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "typedef.hpp"
 #include "next_best_view/RatedViewport.h"
 #include "next_best_view/RateViewports.h"
+#include "next_best_view/NormalsInfo.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
 #include "next_best_view/TriggerFrustumsAndPointCloudVisualization.h"
 #include "next_best_view/GetAttributedPointCloud.h"
@@ -697,17 +698,26 @@ public:
             viewportPointList.push_back(viewportConversionPoint);
         }
 
-        //Give me the number of active object normals in point cloud.
-        int numActiveNormals = mCalculator.getNumberActiveNormals();
-
         //Filter point cloud with those views.
-        unsigned int deactivatedNormals = mCalculator.updateFromExternalViewportPointList(viewportPointList);
+        mCalculator.updateFromExternalViewportPointList(viewportPointList);
 
         response.is_valid = true;
 
-	    //Return both values for checking in scene_exploration state machine.
-        response.active_normals = numActiveNormals;
-        response.deactivated_object_normals = deactivatedNormals;
+        // object ^= object type + identifier
+        std::vector<std::pair<std::string, std::string>> typeAndIds = mCalculator.getTypeAndIds();
+        for (auto &typeAndId : typeAndIds) {
+            NormalsInfo curNormalsInfo;
+            std::string type = typeAndId.first;
+            std::string identifier = typeAndId.second;
+            unsigned int activeNormals = mCalculator.getNumberActiveNormals(type, identifier);
+            unsigned int totalNormals = mCalculator.getNumberTotalNormals(type, identifier);
+            unsigned int deactivatedNormals = totalNormals - activeNormals;
+            curNormalsInfo.active_normals = totalNormals;
+            curNormalsInfo.deactivated_object_normals = deactivatedNormals;
+            curNormalsInfo.type = type;
+            curNormalsInfo.identifier = identifier;
+            response.normals_per_object.push_back(curNormalsInfo);
+        }
 
         // publish the visualization
         this->publishNewPointCloudVisualization();
