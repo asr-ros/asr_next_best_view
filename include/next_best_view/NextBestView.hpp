@@ -394,7 +394,7 @@ public:
             mTriggerFrustmsAndPointCloudVisualizationServer = mNodeHandle.advertiseService("trigger_frustums_and_point_cloud_visualization", &NextBestView::processTriggerFrustumsAndPointCloudVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
-            mRemoveObjectsServer = mNodeHandle.advertiseService("remove_Objects", &NextBestView::processRemoveObjects, this);
+            mRemoveObjectsServer = mNodeHandle.advertiseService("remove_objects", &NextBestView::processRemoveObjects, this);
 
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
