@@ -16,6 +16,3 @@ float32 base_translation_inverse_costs
 float32 base_rotation_inverse_costs
 float32 ptu_movement_inverse_costs
 float32 recognition_inverse_costs
-int32 object_normals
-# number of normals in viewport
-uint32 possibly_deactivated_object_normals

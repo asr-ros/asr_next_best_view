@@ -553,19 +553,18 @@ public:
          * \brief Updates the point cloud under the assumption that the given viewport was chosen.
          * \param objectTypeSetPtr the object type names that shall be updated.
          * \param viewportPoint the viewport that was chosen
-         * \param removeNormals whether the normals should be removed
          * \return the number of deactivated normals
          */
-    unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals = true) {
+    unsigned int updateObjectPointCloud(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) {
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberNormals(),
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
                                 DebugHelper::CALCULATION);
 
-        unsigned int deactivatedNormals = mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint, removeNormals);
+        unsigned int deactivatedNormals = mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint);
 
         mDebugHelperPtr->write(std::stringstream() << "Deactivated normals in viewport: " << deactivatedNormals, DebugHelper::CALCULATION);
 
-        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberNormals(),
+        mDebugHelperPtr->write(std::stringstream() << "Number of active normals after update: " << getNumberActiveNormals(),
                                 DebugHelper::CALCULATION);
 
         return deactivatedNormals;
@@ -973,12 +972,12 @@ public:
         return mActiveIndicesPtr;
     }
 
-    int getNumberNormals() {
+    int getNumberActiveNormals() {
         int result = 0;
 
         ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
         for (ObjectPoint &objPoint : objectPointCloud) {
-            result += objPoint.normal_vectors->size();
+            result += objPoint.active_normal_vectors->size();
         }
 
         return result;

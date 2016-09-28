@@ -23,7 +23,7 @@ namespace next_best_view {
 	DefaultHypothesisUpdater::DefaultHypothesisUpdater() { }
 	DefaultHypothesisUpdater::~DefaultHypothesisUpdater() { }
 
-    unsigned int DefaultHypothesisUpdater::update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals) {
+    unsigned int DefaultHypothesisUpdater::update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) {
         unsigned int count = 0;
 
         BOOST_FOREACH(int index, *viewportPoint.child_indices) {
@@ -33,10 +33,8 @@ namespace next_best_view {
             }
             count += objectPoint.active_normal_vectors->size();
 
-            if (removeNormals) {
-                objectPoint.active_normal_vectors->clear();
-                //objectPoint.normal_vectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
-            }
+            objectPoint.active_normal_vectors->clear();
+            //objectPoint.normal_vectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
 		}
 
         return count;

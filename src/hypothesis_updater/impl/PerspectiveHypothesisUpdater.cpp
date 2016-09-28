@@ -31,7 +31,7 @@ namespace next_best_view {
 
     PerspectiveHypothesisUpdater::~PerspectiveHypothesisUpdater() { }
 
-    unsigned int PerspectiveHypothesisUpdater::update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint, bool removeNormals) {
+    unsigned int PerspectiveHypothesisUpdater::update(const ObjectTypeSetPtr &objectTypeSetPtr, const ViewportPoint &viewportPoint) {
         mDebugHelperPtr->writeNoticeably("STARTING UPDATE METHOD", DebugHelper::HYPOTHESIS_UPDATER);
 
         unsigned int counter = 0;
@@ -61,22 +61,18 @@ namespace next_best_view {
                 mDebugHelperPtr->write(std::stringstream() << "Normal utility: " << rating, DebugHelper::HYPOTHESIS_UPDATER);
 
 				if (rating != 0.0) {
+                    end--;
+                    std::iter_swap(iter, end);
                     counter++;
-                    if (removeNormals) {
-                        end--;
-                        std::iter_swap(iter, end);
-                        continue;
-                    }
+                    continue;
 				}
 
 				iter++;
 			}
 
-            if (removeNormals) {
-                std::size_t iteratorDistance = std::distance(begin, end);
-                //ROS_INFO("Resizing active normal vectors from %d to %d at index %d", objectPoint.active_normal_vectors->size(), iteratorDistance, index);
-                objectPoint.active_normal_vectors->resize(iteratorDistance);
-            }
+            std::size_t iteratorDistance = std::distance(begin, end);
+            //ROS_INFO("Resizing active normal vectors from %d to %d at index %d", objectPoint.active_normal_vectors->size(), iteratorDistance, index);
+            objectPoint.active_normal_vectors->resize(iteratorDistance);
 
 			// RGB
 			double ratio = double(objectPoint.active_normal_vectors->size()) / double(objectPoint.normal_vectors->size());
