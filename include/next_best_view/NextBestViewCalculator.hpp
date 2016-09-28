@@ -923,6 +923,7 @@ public:
 
         // set the point cloud
         this->setActiveIndices(activeIndicesPtr);
+        setPointCloudPtr(mPointCloudPtr);
     }
 
     /**
