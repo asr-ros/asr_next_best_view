@@ -9,7 +9,7 @@ tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
 fovx: 30
 fovy: 20
-ncp: 0.7 # distance to NearClippingPlane in meter
+ncp: 0.4 # distance to NearClippingPlane in meter
 fcp: 1.5 # distance to FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
