@@ -50,6 +50,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "typedef.hpp"
 #include "next_best_view/RatedViewport.h"
 #include "next_best_view/RateViewports.h"
+#include "next_best_view/RemoveObjects.h"
 #include "next_best_view/NormalsInfo.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
 #include "next_best_view/TriggerFrustumsAndPointCloudVisualization.h"
@@ -135,6 +136,7 @@ private:
     ros::ServiceServer mTriggerFrustmsAndPointCloudVisualizationServer;
     ros::ServiceServer mResetCalculatorServer;
     ros::ServiceServer mRateViewportsServer;
+    ros::ServiceServer mRemoveObjectsServer;
 
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
@@ -392,6 +394,7 @@ public:
             mTriggerFrustmsAndPointCloudVisualizationServer = mNodeHandle.advertiseService("trigger_frustums_and_point_cloud_visualization", &NextBestView::processTriggerFrustumsAndPointCloudVisualization, this);
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
+            mRemoveObjectsServer = mNodeHandle.advertiseService("remove_Objects", &NextBestView::processRemoveObjects, this);
 
             mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
@@ -644,6 +647,17 @@ public:
         });
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
+        return true;
+    }
+
+    bool processRemoveObjects(RemoveObjects::Request &request, RemoveObjects::Response &response) {
+
+        mDebugHelperPtr->writeNoticeably("STARTING NBV REMOVE-OBJECTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
+        mCalculator.removeObjects(request.type, request.identifier);
+
+        mDebugHelperPtr->writeNoticeably("ENDING NBV REMOVE-OBJECTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
+
         return true;
     }
 

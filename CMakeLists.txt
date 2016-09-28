@@ -65,6 +65,7 @@ add_service_files(
    GetPose.srv
    RateViewports.srv
    GetActiveNormals.srv
+   RemoveObjects.srv
 )
 
 ## Generate actions in the 'action' folder
