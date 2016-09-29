@@ -669,6 +669,7 @@ public:
 
             aPoint.pose = point.getPose();
             aPoint.type = point.type;
+            aPoint.identifier = point.identifier;
 
             pointCloudMessage.elements.push_back(aPoint);
         }
