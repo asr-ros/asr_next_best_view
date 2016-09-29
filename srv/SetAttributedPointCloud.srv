@@ -1,4 +1,5 @@
 pbd_msgs/PbdAttributedPointCloud point_cloud
+pbd_msgs/PbdViewport[] viewports_to_filter
 ---
 bool is_valid
 NormalsInfo[] normals_per_object

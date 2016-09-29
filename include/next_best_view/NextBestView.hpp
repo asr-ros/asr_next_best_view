@@ -41,7 +41,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sensor_msgs/PointField.h>
 #include <set>
 #include <std_srvs/Empty.h>
-#include <world_model/GetViewportList.h>
 #include <std_msgs/ColorRGBA.h>
 #include <dynamic_reconfigure/server.h>
 #include <next_best_view/DynamicParametersConfig.h>
@@ -140,9 +139,6 @@ private:
 
     // Action Clients
     MoveBaseActionClientPtr mMoveBaseActionClient;
-
-    // ServiceClients and Subscriber
-    ros::ServiceClient mGetViewportListServiceClient;
 
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
@@ -395,8 +391,6 @@ public:
             mResetCalculatorServer = mNodeHandle.advertiseService("reset_nbv_calculator", &NextBestView::processResetCalculatorServiceCall, this);
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
             mRemoveObjectsServer = mNodeHandle.advertiseService("remove_objects", &NextBestView::processRemoveObjects, this);
-
-            mGetViewportListServiceClient = mGlobalNodeHandle.serviceClient<world_model::GetViewportList>("/env/world_model/get_viewport_list");
         }
     }
 
@@ -700,13 +694,9 @@ public:
             return true;
         }
 
-        // Let's get the viewports and update the point cloud.
-        world_model::GetViewportList getViewportListServiceCall;
-        mGetViewportListServiceClient.call(getViewportListServiceCall);
-
         // convert to viewportPointCloud
         std::vector<ViewportPoint> viewportPointList;
-        BOOST_FOREACH(pbd_msgs::PbdViewport &viewport, getViewportListServiceCall.response.viewport_list)
+        BOOST_FOREACH(pbd_msgs::PbdViewport &viewport, request.viewports_to_filter)
         {
             ViewportPoint viewportConversionPoint(viewport.pose);
             viewportConversionPoint.object_type_set = boost::shared_ptr<ObjectTypeSet>(new ObjectTypeSet());
