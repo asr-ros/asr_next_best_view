@@ -134,9 +134,10 @@ namespace next_best_view {
          * The normal utility is always between 0.0 and 1.0.
          * \param viewport [in] the the camera viewport
          * \param objectNormalVector [in] the normalized vector which is perpendicular to the object surface
+         * \param objerctPosition [in] the position of the object
          * \return the normality utility
 		 */ 
-        float getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector);
+        float getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition);
 
         /*!
          * \brief returns the proximity utility of a given object point for a given camera viewport.
