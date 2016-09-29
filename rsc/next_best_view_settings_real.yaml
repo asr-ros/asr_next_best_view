@@ -45,7 +45,7 @@ colThresh: 40 # greater values results in problems during simulation in navigati
 epsilon: 0.01
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
-enableCropBoxFiltering : false
+enableCropBoxFiltering : true
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 1 => MapBasedHexagonSpaceSampler
