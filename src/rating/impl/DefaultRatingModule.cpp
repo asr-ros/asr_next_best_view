@@ -172,18 +172,25 @@ float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, 
     // check the utilities for each normal and pick the best
     BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
         SimpleVector3 objectNormalVector = objectPoint.normal_vectors->at(index);
-        maxUtility = std::max(this->getNormalUtility(viewport, objectNormalVector), maxUtility);
+        SimpleVector3 objectPosition = objectPoint.getPosition();
+        maxUtility = std::max(this->getNormalUtility(viewport, objectNormalVector, objectPosition), maxUtility);
     }
 
     return maxUtility;
 }
 
-float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector) {
-    SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
-    SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
+float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition)
+{
+    return getNormalUtility(viewport, objectNormalVector, objectPosition, mNormalAngleThreshold);
+}
+
+float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition, double angleThreshold) {
+    SimpleVector3 cameraPosition = viewport.getPosition();
+
+    SimpleVector3 objectToCameraVector = (cameraPosition - objectPosition).normalized();
 
     // rate the angle between the camera orientation and the object normal
-    return this->getNormalizedAngleUtility(-cameraOrientationVector, objectNormalVector, mNormalAngleThreshold);
+    return this->getNormalizedAngleUtility(objectToCameraVector, objectNormalVector, angleThreshold);
 }
 
 float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {

@@ -50,13 +50,10 @@ namespace next_best_view {
 			for (Indices::iterator iter = begin; iter != end;) {
 				int normalIndex = *iter;
 				SimpleVector3 normalVector = objectPoint.normal_vectors->at(normalIndex);
+                SimpleVector3 objectPosition = objectPoint.getPosition();
 
-                // rate angle of hypothesis
-                SimpleQuaternion cameraOrientation = viewportPoint.getSimpleQuaternion();
-                SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
-
-                // rate the angle between the camera orientation and the object normal
-                float rating = mDefaultRatingModulePtr->getNormalizedAngleUtility(-cameraOrientationVector, normalVector, mNormalAngleThreshold);
+                // rate the angle between the camera and the object normal
+                float rating = mDefaultRatingModulePtr->getNormalUtility(viewportPoint, normalVector, objectPosition, mNormalAngleThreshold);
 
                 mDebugHelperPtr->write(std::stringstream() << "Normal utility: " << rating, DebugHelper::HYPOTHESIS_UPDATER);
 
