@@ -542,12 +542,10 @@ public:
      * @param viewportPointList the list of viewport points
      * @return the number of deactivated normals
      */
-    unsigned int updateFromExternalViewportPointList(const std::vector<ViewportPoint> &viewportPointList) {
+    void updateFromExternalViewportPointList(const std::vector<ViewportPoint> &viewportPointList) {
         mDebugHelperPtr->writeNoticeably("STARTING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
 
         mDebugHelperPtr->write(std::stringstream() << "Number of viewports: " << viewportPointList.size(), DebugHelper::CALCULATION);
-
-        unsigned int deactivatedNormals = 0;
 
         for (unsigned int i = 0; i < viewportPointList.size(); i++) {
             ViewportPoint viewportPoint = viewportPointList.at(i);
@@ -571,14 +569,10 @@ public:
             mDebugHelperPtr->write(std::stringstream() << "Viewpoint TAKEN",
                                         DebugHelper::CALCULATION);
 
-            unsigned int currentDeactivatedNormals = this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
-
-            deactivatedNormals += currentDeactivatedNormals;
+           this->updateObjectPointCloud(mObjectTypeSetPtr, resultingViewportPoint);
         }
 
         mDebugHelperPtr->writeNoticeably("ENDING UPDATE-FROM-EXTERNAL-OBJECT-POINT-LIST", DebugHelper::CALCULATION);
-
-        return deactivatedNormals;
     }
 
     /*!
@@ -630,6 +624,7 @@ public:
             pointCloudPoint.g = 255;
             pointCloudPoint.b = 0;
             pointCloudPoint.type = element.type;
+            pointCloudPoint.identifier = element.identifier;
 
             // add type name to list if not already inserted
             if (mObjectTypeSetPtr->find(element.type) == mObjectTypeSetPtr->end())
@@ -870,6 +865,65 @@ public:
         }
 
         return result;
+    }
+
+    unsigned int getNumberTotalNormals(std::string type, std::string identifier) {
+        int result = 0;
+
+        ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
+        for (ObjectPoint &objPoint : objectPointCloud) {
+            if (objPoint.identifier.compare(identifier) != 0 || objPoint.type.compare(type) != 0)
+                continue;
+            result += objPoint.normal_vectors->size();
+        }
+
+        return result;
+    }
+
+    unsigned int getNumberActiveNormals(std::string type, std::string identifier) {
+        int result = 0;
+
+        ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
+        for (ObjectPoint &objPoint : objectPointCloud) {
+            if (objPoint.identifier.compare(identifier) != 0 || objPoint.type.compare(type) != 0)
+                continue;
+            result += objPoint.active_normal_vectors->size();
+        }
+
+        return result;
+    }
+
+    std::vector<std::pair<std::string, std::string>> getTypeAndIds() {
+        std::vector<std::pair<std::string, std::string>> result;
+        ObjectPointCloud objectPointCloud = ObjectPointCloud(*getPointCloudPtr(), *getActiveIndices());
+        std::set<std::string> foundObjectTypeAndIds;
+        for (ObjectPoint &objPoint : objectPointCloud) {
+            std::string currentObjTypeAndId = objPoint.type + objPoint.identifier;
+            if (foundObjectTypeAndIds.find(currentObjTypeAndId) == foundObjectTypeAndIds.end()) {
+                foundObjectTypeAndIds.insert(currentObjTypeAndId);
+                result.push_back(std::make_pair(objPoint.type, objPoint.identifier));
+            }
+        }
+        return result;
+    }
+
+    void removeObjects(std::string type, std::string identifier) {
+        auto it = mPointCloudPtr->begin();
+        while (it != mPointCloudPtr->end()) {
+            ObjectPoint objPoint = *it;
+            if (objPoint.identifier.compare(identifier) != 0 || objPoint.type.compare(type) != 0) {
+                it ++;
+            } else {
+                it = mPointCloudPtr->erase(it);
+            }
+        }
+        // the active indices.
+        IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(mPointCloudPtr->size()));
+        boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
+
+        // set the point cloud
+        this->setActiveIndices(activeIndicesPtr);
+        setPointCloudPtr(mPointCloudPtr);
     }
 
     /**

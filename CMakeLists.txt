@@ -39,6 +39,7 @@ add_message_files(
         FILES
         RobotStateMessage.msg
 	RatedViewport.msg
+	NormalsInfo.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -64,6 +65,7 @@ add_service_files(
    GetPose.srv
    RateViewports.srv
    GetActiveNormals.srv
+   RemoveObjects.srv
 )
 
 ## Generate actions in the 'action' folder
