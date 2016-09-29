@@ -179,13 +179,18 @@ float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, 
     return maxUtility;
 }
 
-float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition) {
+float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition)
+{
+    return getNormalUtility(viewport, objectNormalVector, objectPosition, mNormalAngleThreshold);
+}
+
+float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition, double angleThreshold) {
     SimpleVector3 cameraPosition = viewport.getPosition();
 
     SimpleVector3 objectToCameraVector = (cameraPosition - objectPosition).normalized();
 
     // rate the angle between the camera orientation and the object normal
-    return this->getNormalizedAngleUtility(objectToCameraVector, objectNormalVector, mNormalAngleThreshold);
+    return this->getNormalizedAngleUtility(objectToCameraVector, objectNormalVector, angleThreshold);
 }
 
 float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
