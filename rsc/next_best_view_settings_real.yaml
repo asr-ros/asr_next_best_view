@@ -9,8 +9,8 @@ tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
 fovx: 30
 fovy: 20
-ncp: 0.6 # distance to NearClippingPlane in meter
-fcp: 1.3 # distance to FarClippingPlane in meter
+ncp: 0.4 # distance to NearClippingPlane in meter
+fcp: 1.5 # distance to FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
@@ -36,7 +36,7 @@ panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
-mSigma: 2.0
+mSigma: 3.0
 mRatingNormalAngleThreshold: 45.0 # used to rate angles in rating module
 mHypothesisUpdaterAngleThreshold: 60.0 # used to rate angles in hypothesis updater module
 radius: 0.15 # hexagon space sample radius
@@ -45,7 +45,7 @@ colThresh: 40 # greater values results in problems during simulation in navigati
 epsilon: 0.01
 panAngleSamplingStepsPerIteration: 3
 inverseKinematicIterationAccuracy: 0.01
-enableCropBoxFiltering : true
+enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 1 => MapBasedHexagonSpaceSampler
