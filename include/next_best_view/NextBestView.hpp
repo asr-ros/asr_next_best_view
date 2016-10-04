@@ -1015,7 +1015,7 @@ public:
         if (mShowPointcloud)
         {
             // clear visualization of old objects in frustum
-            mVisHelper.clearFrustumObjectPointCloudVisualization();
+            mVisHelperPtr->clearFrustumObjectPointCloudVisualization();
 
             // publish new object point cloud
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
@@ -1025,7 +1025,7 @@ public:
 
         if (mShowNormals) {
             // publish new normals
-            mVisHelper.triggerObjectNormalsVisualization(objectPointCloud);
+            mVisHelperPtr->triggerObjectNormalsVisualization(objectPointCloud);
         }
     }
 
@@ -1035,7 +1035,7 @@ public:
         if (mShowNormals) {
             // show normals
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
-            mVisHelper.triggerObjectNormalsVisualization(objectPointCloud);
+            mVisHelperPtr->triggerObjectNormalsVisualization(objectPointCloud);
         }
     }
 
