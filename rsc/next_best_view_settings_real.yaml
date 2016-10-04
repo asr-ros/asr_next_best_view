@@ -28,6 +28,7 @@ cameraFilterId: 1
 voxelSize: 0.04
 worldHeight: 3
 worldFilePath: ./rsc/world/world.xml
+visualizeRaytracing: false
 # ratingModuleId == 1 => DefaultRatingModule
 ratingModuleId: 1
 # enable parts of utility calculation

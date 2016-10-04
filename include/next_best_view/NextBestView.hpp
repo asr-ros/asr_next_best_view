@@ -407,7 +407,7 @@ public:
 
         MapHelperPtr mapHelperPtr = mCalculator.getMapHelper();
 
-        return WorldHelperPtr(new WorldHelper(mapHelperPtr, mConfig.worldFilePath, mConfig.voxelSize, mConfig.worldHeight));
+        return WorldHelperPtr(new WorldHelper(mapHelperPtr, mConfig.worldFilePath, mConfig.voxelSize, mConfig.worldHeight, mConfig.visualizeRaytracing));
     }
 
     UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFromConfig(int moduleId) {

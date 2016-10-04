@@ -587,14 +587,6 @@ public:
 
         boost::lock_guard<boost::mutex> lock(mutex);
 
-        // the value of getNumSubscribers() takes some time to change if a subscriber no longer subscribes the topic
-        if (mRaytracingPublisher.getNumSubscribers() == 0);
-        {
-            mDebugHelperPtr->write("No subscribers for raytracing visualization.", DebugHelper::VISUALIZATION);
-            mDebugHelperPtr->writeNoticeably("ENDING RAYTRACING VISUALIZATION", DebugHelper::VISUALIZATION);
-            return;
-        }
-
         deleteMarkerArray(mRaytracingMarkerArrayPtr, mRaytracingPublisher);
 
         // get paramters

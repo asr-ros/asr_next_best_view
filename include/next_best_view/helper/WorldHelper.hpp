@@ -28,8 +28,10 @@ namespace next_best_view {
 
         double mMapVoxelSize, mWorldVoxelSize;
 
+        bool mVisualizeRaytracing;
+
     public:
-        WorldHelper(MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight);
+        WorldHelper(MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight, bool visualizeRaytracing);
 
         bool isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectPosition);
 

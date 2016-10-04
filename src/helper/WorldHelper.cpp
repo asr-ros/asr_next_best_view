@@ -2,8 +2,8 @@
 
 namespace next_best_view {
 
-WorldHelper::WorldHelper(next_best_view::MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight) :
-    mMapHelperPtr(mapHelperPtr), mWorldVoxelSize(voxelSize)
+WorldHelper::WorldHelper(next_best_view::MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight, bool visualizeRaytracing) :
+    mMapHelperPtr(mapHelperPtr), mWorldVoxelSize(voxelSize), mVisualizeRaytracing(visualizeRaytracing)
 {
     mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mMapHelperPtr));
     mDebugHelperPtr = DebugHelper::getInstance();
@@ -25,7 +25,8 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectP
 
     bool occluded = isOccluded(cameraPosition, objectPosition, cameraGridPos, objectGridPos, 0, traversedVoxels);
 
-    mVisHelperPtr->triggerRaytracingVisualization(cameraPosition, objectPosition, traversedVoxels, occluded, mWorldVoxelSize);
+    if (mVisualizeRaytracing)
+        mVisHelperPtr->triggerRaytracingVisualization(cameraPosition, objectPosition, traversedVoxels, occluded, mWorldVoxelSize);
 
     return occluded;
 }
