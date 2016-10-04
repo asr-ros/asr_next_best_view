@@ -23,8 +23,8 @@
 		<rosparam param="configurable_point_clouds/object_types_2">[CoffeeFilters2]</rosparam>
 		<param name="configurable_point_clouds/elements_1" value="10"/>
 		<param name="configurable_point_clouds/elements_2" value="2"/>
-		<rosparam param="configurable_point_clouds/position_deviation_1">[0.1, 0.1, 0.1]</rosparam>
-		<rosparam param="configurable_point_clouds/position_deviation_2">[0.1, 0.1, 0.1]</rosparam>
+		<rosparam param="configurable_point_clouds/position_deviation_1">[0.0, 0.0, 0.0]</rosparam>
+		<rosparam param="configurable_point_clouds/position_deviation_2">[0.0, 0.0, 0.0]</rosparam>
 		<param name="configurable_point_clouds/orientation_deviation_1" value="0"/>
 		<param name="configurable_point_clouds/orientation_deviation_2" value="0"/>
 		<rosparam param="configurable_point_clouds/CeylonTea_orientation">[-90.0 , 90.0, 0.0]</rosparam>

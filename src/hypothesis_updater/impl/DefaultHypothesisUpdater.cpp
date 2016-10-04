@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -32,10 +32,11 @@ namespace next_best_view {
                 continue;
             }
             count += objectPoint.active_normal_vectors->size();
-			objectPoint.active_normal_vectors->clear();
-			//objectPoint.normal_vectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
+
+            objectPoint.active_normal_vectors->clear();
+            //objectPoint.normal_vectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
 		}
 
         return count;
-	}
+    }
 }

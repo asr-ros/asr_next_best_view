@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -46,7 +46,7 @@ using namespace next_best_view;
 MILDRobotModelPtr basicFunctionRobotModelPtr;
 MILDRobotModelWithExactIKPtr advancedFunctionRobotModelPtr;
 
-bool getBase_TranslationalMovementCosts(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
+bool processGetBase_TranslationalMovementCostsServiceCall(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
 {
     float costs;
     MILDRobotState * currentState = new MILDRobotState(req.currentState.pan, req.currentState.tilt,req.currentState.rotation,req.currentState.x,req.currentState.y);
@@ -65,7 +65,7 @@ bool getDistance(GetDistance::Request &req, GetDistance::Response &res)
       return true;
 }
 
-bool calculateRobotState(CalculateRobotState::Request  &req, CalculateRobotState::Response &res)
+bool processCalculateRobotStateServiceCall(CalculateRobotState::Request  &req, CalculateRobotState::Response &res)
 {
       MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
       RobotStatePtr sourceRobotStatePtr(sourceRobotState);
@@ -92,7 +92,7 @@ bool calculateRobotState(CalculateRobotState::Request  &req, CalculateRobotState
       return true;
 }
 
-bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose::Response &res)
+bool processCalculateCameraPoseServiceCall(CalculateCameraPose::Request &req, CalculateCameraPose::Response &res)
 {
     MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
     RobotStatePtr sourceRobotStatePtr(sourceRobotState);
@@ -100,31 +100,31 @@ bool calculateCameraPose(CalculateCameraPose::Request &req, CalculateCameraPose:
     return true;
 }
 
-bool isPositionAllowed(IsPositionAllowed::Request &req, IsPositionAllowed::Response &res)
+bool processIsPositionAllowedServiceCall(IsPositionAllowed::Request &req, IsPositionAllowed::Response &res)
 {
   res.isAllowed = basicFunctionRobotModelPtr->isPositionAllowed(req.targetPosition);
   return true;
 }
 
-bool isPositionReachable(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
+bool processIsPositionReachableServiceCall(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
 {
   res.isReachable = basicFunctionRobotModelPtr->isPositionReachable(req.sourcePosition, req.targetPosition);
   return true;
 }
 
-bool getRobotPose(GetPose::Request &req, GetPose::Response &res)
+bool processGetRobotPoseServiceCall(GetPose::Request &req, GetPose::Response &res)
 {
   res.pose = basicFunctionRobotModelPtr->getRobotPose();
   return true;
 }
 
-bool getCameraPose(GetPose::Request &req, GetPose::Response &res)
+bool processGetCameraPoseServiceCall(GetPose::Request &req, GetPose::Response &res)
 {
   res.pose = basicFunctionRobotModelPtr->getCameraPose();
   return true;
 }
 
-bool calculateCameraPoseCorrection(CalculateCameraPoseCorrection::Request &req, CalculateCameraPoseCorrection::Response &res)
+bool processCalculateCameraPoseCorrectionServiceCall(CalculateCameraPoseCorrection::Request &req, CalculateCameraPoseCorrection::Response &res)
 {
   MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
   RobotStatePtr sourceRobotStatePtr(sourceRobotState);
@@ -176,15 +176,15 @@ int main(int argc, char *argv[])
         throw std::runtime_error(ss.str());
     }
 
-    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", getBase_TranslationalMovementCosts);
+    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", processGetBase_TranslationalMovementCostsServiceCall);
     ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
-    ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", calculateRobotState);
-    ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", calculateCameraPose);
-    ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", isPositionAllowed);
-    ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", isPositionReachable);
-    ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", getRobotPose);
-    ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", getCameraPose);
-    ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", calculateCameraPoseCorrection);
+    ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", processCalculateRobotStateServiceCall);
+    ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", processCalculateCameraPoseServiceCall);
+    ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", processIsPositionAllowedServiceCall);
+    ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", processIsPositionReachableServiceCall);
+    ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", processGetRobotPoseServiceCall);
+    ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", processGetCameraPoseServiceCall);
+    ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", processCalculateCameraPoseCorrectionServiceCall);
 
     ROS_INFO("RobotModel Service started.");
     ros::spin();

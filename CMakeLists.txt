@@ -44,6 +44,7 @@ add_message_files(
         FILES
         RobotStateMessage.msg
 	RatedViewport.msg
+	NormalsInfo.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -64,9 +65,12 @@ add_service_files(
    IsPositionAllowed.srv
    IsPositionReachable.srv
    TriggerFrustumVisualization.srv
+   TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
    GetPose.srv
    RateViewports.srv
+   GetActiveNormals.srv
+   RemoveObjects.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -225,7 +229,7 @@ set (TEST_LINK_LIBRARIES
         ${catkin_LIBRARIES}
 )
 
-if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RAYTRACING_TEST)
+if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST OR BUILD_RAYTRACING_TEST)
 MESSAGE ("Building Tests:")
 add_library(
         ${PROJECT_NAME}_test_core

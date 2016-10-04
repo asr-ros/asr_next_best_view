@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -64,7 +64,7 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     // do the filtering for each combination of object types
     for (ObjectTypePowerSet::iterator subSetIter = powerSetPtr->begin(); subSetIter != powerSetPtr->end(); ++subSetIter) {
         ViewportPoint viewport;
-        if (!candidateViewport.filterObjectTypes(*subSetIter, viewport)) {
+        if (!candidateViewport.filterObjectPointCloudByTypes(*subSetIter, viewport)) {
             continue;
         }
 
@@ -101,17 +101,17 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
     float utilityNormalization = 0.0;
 
     BOOST_FOREACH(ViewportPoint viewport, *viewports) {
-        int objects = viewport.child_indices->size();
-        if (objects > utilityNormalization) {
-            utilityNormalization = objects;
+        float utility = viewport.score->getUnweightedUnnormalizedUtility();
+        if (utility > utilityNormalization) {
+            utilityNormalization = utility;
         }
     }
 
     BOOST_FOREACH(ViewportPoint viewport, *viewports) {
         viewport.score->setUtilityNormalization(utilityNormalization);
 
-        float normalizedUtility = viewport.score->getWeightedUnnormalizedUtility() / utilityNormalization;
-        viewport.score->setWeightedNormalizedUtility(normalizedUtility);
+        float weightedNormalizedUtility = mOmegaUtility * viewport.score->getUnweightedUnnormalizedUtility() / utilityNormalization;
+        viewport.score->setWeightedNormalizedUtility(weightedNormalizedUtility);
     }
 
     // sort the viewports by rating
@@ -175,18 +175,25 @@ float DefaultRatingModule::getOrientationUtility(const ViewportPoint &viewport, 
     // check the utilities for each normal and pick the best
     BOOST_FOREACH(int index, *objectPoint.active_normal_vectors) {
         SimpleVector3 objectNormalVector = objectPoint.normal_vectors->at(index);
-        maxUtility = std::max(this->getNormalUtility(viewport, objectNormalVector), maxUtility);
+        SimpleVector3 objectPosition = objectPoint.getPosition();
+        maxUtility = std::max(this->getNormalUtility(viewport, objectNormalVector, objectPosition), maxUtility);
     }
 
     return maxUtility;
 }
 
-float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector) {
-    SimpleQuaternion cameraOrientation = viewport.getSimpleQuaternion();
-    SimpleVector3 cameraOrientationVector = MathHelper::getVisualAxis(cameraOrientation);
+float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition)
+{
+    return getNormalUtility(viewport, objectNormalVector, objectPosition, mNormalAngleThreshold);
+}
+
+float DefaultRatingModule::getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition, double angleThreshold) {
+    SimpleVector3 cameraPosition = viewport.getPosition();
+
+    SimpleVector3 objectToCameraVector = (cameraPosition - objectPosition).normalized();
 
     // rate the angle between the camera orientation and the object normal
-    return this->getNormalizedAngleUtility(-cameraOrientationVector, objectNormalVector, mNormalAngleThreshold);
+    return this->getNormalizedAngleUtility(objectToCameraVector, objectNormalVector, angleThreshold);
 }
 
 float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, const ObjectPoint &objectPoint) {
@@ -268,13 +275,13 @@ bool DefaultRatingModule::setSingleScoreContainer(const ViewportPoint &currentVi
     DefaultScoreContainerPtr defRatingPtr(new DefaultScoreContainer());
 
     // set the utility
-    float utility = this->getWeightedUnnormalizedUtility(candidateViewport);
+    float utility = this->getUnweightedUnnormalizedUtility(candidateViewport);
 
     if (utility <= 0) {
         return false;
     }
 
-    defRatingPtr->setWeightedUnnormalizedUtility(utility);
+    defRatingPtr->setUnweightedUnnormalizedUtility(utility);
 
     BOOST_FOREACH(std::string objectType, *(candidateViewport.object_type_set)) {
         defRatingPtr->setUnweightedUnnormalizedObjectUtilitiy(objectType, mUnweightedUnnormalizedObjectUtilities[objectType]);
@@ -326,7 +333,7 @@ float DefaultRatingModule::getNormalizedRating(float deviation, float threshold)
     return 0.0;
 }
 
-double DefaultRatingModule::getWeightedUnnormalizedUtility(const ViewportPoint &candidateViewport) {
+double DefaultRatingModule::getUnweightedUnnormalizedUtility(const ViewportPoint &candidateViewport) {
     double utility = 0.0;
 
     // get the utility for each object type and sum them up
@@ -339,7 +346,7 @@ double DefaultRatingModule::getWeightedUnnormalizedUtility(const ViewportPoint &
         utility += mUnweightedUnnormalizedObjectUtilities[objectType];
     }
 
-    return mOmegaUtility * utility;
+    return utility;
 }
 
 void DefaultRatingModule::setUnweightedUnnormalizedObjectUtilities(const ViewportPoint &candidateViewport, std::string objectType) {

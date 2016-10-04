@@ -1,0 +1,4 @@
+string type
+string identifier
+uint32 active_normals
+uint32 deactivated_object_normals

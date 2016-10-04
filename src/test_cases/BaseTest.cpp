@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -22,21 +22,30 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 using namespace next_best_view;
 
     BaseTest::BaseTest() {
-        initRosServicesAndPublishers();
+        init(true, true);
     }
 
     BaseTest::BaseTest(bool useRos, bool silent) {
-        this->silent = silent;
-        if (useRos) {
-            initRosServicesAndPublishers();
-        }
+        init(useRos, silent);
     }
 
     BaseTest::~BaseTest() {}
 
-    void BaseTest::initRosServicesAndPublishers() {
+    void BaseTest::init(bool useRos, bool silent)
+    {
+        // init node handle
         this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle("~"));
 
+        // init publishers
+        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
+
+        this->silent = silent;
+        if (useRos) {
+            initRosServices();
+        }
+    }
+
+    void BaseTest::initRosServices() {
         // services
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
@@ -50,12 +59,9 @@ using namespace next_best_view;
         mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
-
-        // publishers
-        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
     }
 
-    void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose) {
+    void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {
         // waiting for buffers to fill
         ros::Duration(5.0).sleep();
 
@@ -75,10 +81,10 @@ using namespace next_best_view;
 
         mInitPosePub.publish(pose);
 
-        this->setInitialRobotState(initialPose);
+        this->setInitialRobotState(initialPose, nbv);
     }
 
-    void BaseTest::setInitialRobotState(const geometry_msgs::Pose &initialPose) {
+    void BaseTest::setInitialRobotState(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {
         MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
 
         SetInitRobotState sirb;
@@ -88,8 +94,16 @@ using namespace next_best_view;
         sirb.request.robotState.x = statePtr->x;
         sirb.request.robotState.y = statePtr->y;
 
-        if (!mSetInitRobotStateClient.call(sirb)) {
-            ROS_ERROR("Failed to call service SetInitRobotState.");
+        if (nbv) {
+            if (!nbv->processSetInitRobotStateServiceCall(sirb.request, sirb.response)) {
+                ROS_ERROR("Failed to process service SetInitRobotState.");
+            }
+        }
+        else
+        {
+            if (!mSetInitRobotStateClient.call(sirb)) {
+                ROS_ERROR("Failed to call service SetInitRobotState.");
+            }
         }
     }
 

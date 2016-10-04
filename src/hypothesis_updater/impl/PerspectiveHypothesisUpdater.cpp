@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -36,7 +36,7 @@ namespace next_best_view {
 
         unsigned int counter = 0;
 
-        mDebugHelperPtr->write(std::stringstream() << "Child indices in viewport: " << viewportPoint.child_indices->size(), DebugHelper::HYPOTHESIS_UPDATER);
+        mDebugHelperPtr->write(std::stringstream() << "Viewport: " << viewportPoint, DebugHelper::HYPOTHESIS_UPDATER);
 
         BOOST_FOREACH(int index, *viewportPoint.child_indices) {
 			ObjectPoint &objectPoint = viewportPoint.child_point_cloud->at(index);
@@ -50,24 +50,26 @@ namespace next_best_view {
 			for (Indices::iterator iter = begin; iter != end;) {
 				int normalIndex = *iter;
 				SimpleVector3 normalVector = objectPoint.normal_vectors->at(normalIndex);
+                SimpleVector3 objectPosition = objectPoint.getPosition();
 
-                float rating = mDefaultRatingModulePtr->getNormalUtility(viewportPoint, normalVector);
+                // rate the angle between the camera and the object normal
+                float rating = mDefaultRatingModulePtr->getNormalUtility(viewportPoint, normalVector, objectPosition, mNormalAngleThreshold);
 
                 mDebugHelperPtr->write(std::stringstream() << "Normal utility: " << rating, DebugHelper::HYPOTHESIS_UPDATER);
 
 				if (rating != 0.0) {
-					end--;
-					std::iter_swap(iter, end);
+                    end--;
+                    std::iter_swap(iter, end);
                     counter++;
-					continue;
+                    continue;
 				}
 
 				iter++;
 			}
 
-			std::size_t iteratorDistance = std::distance(begin, end);
-			//ROS_INFO("Resizing active normal vectors from %d to %d at index %d", objectPoint.active_normal_vectors->size(), iteratorDistance, index);
-			objectPoint.active_normal_vectors->resize(iteratorDistance);
+            std::size_t iteratorDistance = std::distance(begin, end);
+            //ROS_INFO("Resizing active normal vectors from %d to %d at index %d", objectPoint.active_normal_vectors->size(), iteratorDistance, index);
+            objectPoint.active_normal_vectors->resize(iteratorDistance);
 
 			// RGB
 			double ratio = double(objectPoint.active_normal_vectors->size()) / double(objectPoint.normal_vectors->size());
@@ -89,4 +91,12 @@ namespace next_best_view {
 	DefaultRatingModulePtr PerspectiveHypothesisUpdater::getDefaultRatingModule() {
 		return mDefaultRatingModulePtr;
 	}
+
+    void PerspectiveHypothesisUpdater::setNormalAngleThreshold(double angle) {
+        mNormalAngleThreshold = angle;
+    }
+
+    double PerspectiveHypothesisUpdater::getNormalAngleThreshold() {
+        return mNormalAngleThreshold;
+    }
 }

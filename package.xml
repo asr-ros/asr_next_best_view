@@ -3,7 +3,7 @@
   <description>next_best_view</description>
   <version>1.0.0</version>
   <license>BSD-derived</license>
-  <maintainer email="pascal.meissner@kit.edu">Pascal Meißner</maintainer>
+  <maintainer email="pascal.meissner@kit.edu">Meißner Pascal</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>

@@ -1,20 +1,21 @@
-mOmegaUtility: 210 # weighting factor for the usage
+mOmegaUtility: 60 # weighting factor for the usage
 mOmegaPan: 1  # weighting factor for rotating the pan-axis of the PTU
 mOmegaTilt: 1 # weighting factor for rotating of the tilt-axis of the PTU
 mOmegaRot: 10 # weighting factor for rotating the base
-mOmegaBase: 250 # weighting factor for moving the base
-mOmegaRecognizer: 30
+mOmegaBase: 135 # weighting factor for moving the base
+mOmegaRecognizer: 10
 speedFactorRecognizer: 2.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
 tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
 fovx: 30
 fovy: 20
-ncp: 0.7 # distance to NearClippingPlane in meter
+ncp: 0.4 # distance to NearClippingPlane in meter
 fcp: 1.5 # distance to FarClippingPlane in meter
 show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true
+show_normals: true
 visualizeIK: false
 IKAngleRating: ANGLE_APPROXIMATION # The rating algorithm used for the orientation angle sampling in the MILDRobotModelWithExactIK module. Available algorithms are: ANGLE_APPROXIMATION, NAVIGATION_PATH, SIMPLE
 # cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
@@ -42,13 +43,16 @@ panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
-mSigma: 1.0
+mSigma: 2.0
+mRatingNormalAngleThreshold: 45.0 # used to rate angles in rating module
+mHypothesisUpdaterAngleThreshold: 60.0  # used to rate angles in hypothesis updater module
 radius: 0.15 # hexagon space sample radius
 sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler. Greater -> more precise orientation.
 colThresh: 40 # greater values results in problems during simulation in navigation. Smaller -> more distance to obstacles.
+epsilon: 0.01
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
-enableCropBoxFiltering : false
+enableCropBoxFiltering : true
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 1 => MapBasedHexagonSpaceSampler

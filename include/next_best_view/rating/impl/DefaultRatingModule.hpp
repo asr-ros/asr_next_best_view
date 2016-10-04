@@ -1,6 +1,6 @@
 /**
 
-Copyright (c) 2016, Allgeyer Tobias, Aumann Florian, Borella Jocelyn, Braun Kai, Heller Florian, Hutmacher Robin, Karrenbauer Oliver, Marek Felix, Mayr Matthias, Mehlhaus Jonas, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena
+Copyright (c) 2016, Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -136,14 +136,26 @@ namespace next_best_view {
          */
         float getFrustumPositionUtility(const ViewportPoint &viewport, ObjectPoint &objectPoint);
 
-		/*!
+        /*!
          * \brief returns the utility of one object normal for a given camera viewport.
          * The normal utility is always between 0.0 and 1.0.
          * \param viewport [in] the the camera viewport
          * \param objectNormalVector [in] the normalized vector which is perpendicular to the object surface
+         * \param objerctPosition [in] the position of the object
+         * \return the normality utility
+         */
+        float getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition);
+
+        /*!
+         * \brief returns the utility of one object normal for a given camera viewport.
+         * The normal utility is always between 0.0 and 1.0.
+         * \param viewport [in] the the camera viewport
+         * \param objectNormalVector [in] the normalized vector which is perpendicular to the object surface
+         * \param objerctPosition [in] the position of the object
+         * \param angleThreshold [in] the angle threshold
          * \return the normality utility
 		 */ 
-        float getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector);
+        float getNormalUtility(const ViewportPoint &viewport, const SimpleVector3 &objectNormalVector, const SimpleVector3 &objectPosition, double angleThreshold);
 
         /*!
          * \brief returns the proximity utility of a given object point for a given camera viewport.
@@ -226,7 +238,7 @@ namespace next_best_view {
          * \param candidateViewport the candidate camera viewport
          * \return the utility
          */
-        double getWeightedUnnormalizedUtility(const ViewportPoint &candidateViewport);
+        double getUnweightedUnnormalizedUtility(const ViewportPoint &candidateViewport);
 
         /*!
          * \brief sets the mObjectUtilities member.
