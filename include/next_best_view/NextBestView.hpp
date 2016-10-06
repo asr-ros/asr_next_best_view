@@ -657,13 +657,14 @@ public:
         return true;
     }
 
-    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage, int minNumberNormals) {
+    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage, uint minNumberNormals) {
         pointCloudMessage.elements.clear();
 
         BOOST_FOREACH(ObjectPoint point, pointCloud) {
 
             // skip objects with too few normals
             if (point.active_normal_vectors->size() < minNumberNormals)
+//            if (point.active_normal_vectors->size() < point.normal_vectors->size())
                 continue;
 
             pbd_msgs::PbdAttributedPoint aPoint;
@@ -679,7 +680,9 @@ public:
     bool processGetPointCloudServiceCall(GetAttributedPointCloud::Request &request, GetAttributedPointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
-        // minNumberNormals defaults to 0 if not set
+        // minNumberNormals defaults to 1 if not set
+        if (request.minNumberNormals < 1)
+            request.minNumberNormals = 1;
         convertObjectPointCloudToAttributedPointCloud(*mCalculator.getPointCloudPtr(), response.point_cloud, request.minNumberNormals);
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
