@@ -729,6 +729,13 @@ private:
                 }
             }
 
+            // set normal_vectors
+            SimpleVector3CollectionPtr newNormalVectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
+            for (int i : *o.active_normal_vectors) {
+                newNormalVectors->push_back(o.normal_vectors->at(i));
+            }
+            o.normal_vectors = newNormalVectors;
+
             // debug output valid normals
             std::stringstream ssValidNormals;
             for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
