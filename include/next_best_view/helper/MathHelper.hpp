@@ -167,6 +167,23 @@ namespace next_best_view {
 
 		static double getDotProduct(SimpleVector3 v1, SimpleVector3 v2);
 
+        /**
+         * @brief isSubSetOf opposite of isSuperSetOf
+         * @param indexSetSub
+         * @param indexSetSuper
+         * @return
+         */
+        static bool isSubSetOf(const Indices& indexSetSub, const Indices& indexSetSuper);
+
+        /**
+         * @brief isSuperSet
+         * @param indexSetSuper
+         * @param indexSetSub
+         * @return true if indexSetSuper is a superSet of indexSetSub,
+         *         false if indexSetSub contains an index that indexSetSuper does not contain.
+         */
+        static bool isSuperSetOf(const Indices& indexSetSuper, const Indices& indexSetSub);
+
 		template<typename Set> static void printSet(boost::shared_ptr<Set> &setPtr) {
 			std::cout << "\t{ ";
 			BOOST_FOREACH(typename Set::value_type value, *setPtr) {
