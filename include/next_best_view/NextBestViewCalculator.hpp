@@ -409,6 +409,8 @@ private:
                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                          ViewportPoint &resultViewport, int iterationStep) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
+        auto begin = std::chrono::high_resolution_clock::now();
+        auto finish = std::chrono::high_resolution_clock::now();
 
         // current camera position
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
@@ -419,6 +421,7 @@ private:
         //Set height of sample points as it is set to zero by space sampler
         this->setHeight(sampledSpacePointCloudPtr, currentBestPosition[2]);
 
+        begin = std::chrono::high_resolution_clock::now();
         IndicesPtr feasibleIndicesPtr;
         //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
         this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
@@ -431,7 +434,10 @@ private:
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return success;
         }
+        finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("filter feasible spacesamples took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
+        begin = std::chrono::high_resolution_clock::now();
         //Create list of all view ports that are checked during this iteration step.
         ViewportPointCloudPtr sampleNextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
 
@@ -453,12 +459,91 @@ private:
                 sampleNextBestViewports->push_back(sampleViewport);
             }
         }
+        finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("generating took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
-
-        if (!rateViewports(sampleNextBestViewports, currentCameraViewport, resultViewport)) {
+        begin = std::chrono::high_resolution_clock::now();
+        // rate
+        ViewportPointCloudPtr ratedNextBestViewportsPtr;
+        if (!rateViewports(sampleNextBestViewports, currentCameraViewport, ratedNextBestViewportsPtr)) {
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return false;
         }
+        finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("rating took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+
+        begin = std::chrono::high_resolution_clock::now();
+        // sort
+        // ascending -> last element hast best rating
+        auto sortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+            // a < b
+            return mRatingModulePtr->compareViewports(a, b);
+        };
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
+        finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("sort took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+
+        // get result
+        resultViewport = ratedNextBestViewportsPtr->at(ratedNextBestViewportsPtr->size() - 1);//*std::max_element(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
+
+        begin = std::chrono::high_resolution_clock::now();
+        // get super sets
+        std::vector<Indices> superSets;
+        for (ViewportPoint &ratedViewport : *ratedNextBestViewportsPtr) {
+            bool isSubSetOfASuperSet = false;
+            for (Indices &superSet : superSets) {
+                if (MathHelper::isSuperSetOf(superSet, *ratedViewport.child_indices)) {
+                    isSubSetOfASuperSet = true;
+                    break;
+                }
+            }
+            if (!isSubSetOfASuperSet) {
+                // this child set might be a superSet
+                bool isSuperSet = false;
+                for (Indices &superSet : superSets) {
+                    if (MathHelper::isSuperSetOf(*ratedViewport.child_indices, superSet)) {
+                        superSet = *ratedViewport.child_indices;
+                        isSuperSet = true;
+                        break;
+                    }
+                }
+                if (!isSuperSet) {
+                    // we found a superSet that is distinct with all of our current superSets, so we just add it
+                    superSets.push_back(*ratedViewport.child_indices);
+                }
+            }
+        }
+        finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("get super sets took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+
+        ROS_INFO_STREAM("# of superSets: " << superSets.size());
+        begin = std::chrono::high_resolution_clock::now();
+        // output super indices
+        for (Indices& indices : superSets) {
+            std::ostringstream oss;
+            if (!indices.empty()) {
+                std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<int>(oss, ", "));
+                oss << indices.back();
+            }
+            ViewportPoint bestViewport;
+            float bestRating = -1.0;
+            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+                if (MathHelper::isSubSetOf(*ratedViewport.child_indices, indices)) {
+                    if (!bestViewport.score || mRatingModulePtr->getRating(ratedViewport.score) > bestRating) {
+                        bestRating = mRatingModulePtr->getRating(ratedViewport.score);
+                        bestViewport = ratedViewport;
+                        break;
+                    }
+                }
+            }
+//            ROS_INFO_STREAM("indices: " << oss.str());
+//            ROS_INFO_STREAM("bestViewport: " << bestViewport);
+        }
+        // TODO: make stuff more efficient
+        // TODO: compare indices sets with each other
+        // TODO: generate viewports for next iteration, using best viewport per indices set.
+        finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("output super sets took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
         //Visualize iteration step and its result.
         mVisHelper.triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
