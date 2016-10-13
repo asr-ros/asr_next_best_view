@@ -80,8 +80,11 @@ namespace next_best_view {
 
     Precision MathHelper::getAngle(const SimpleVector3 &X, const SimpleVector3 &Y) {
         float cosinus = getCosinus(X, Y);
-        float angle = acos(cosinus);
-        return angle;
+        cosinus = (cosinus + 1.0) / 2.0; // align between 0 1nd 1
+        cosinus = 1.0 - cosinus;
+        cosinus *= M_PI;
+        // float angle = acos(cosinus);
+        return cosinus;
     }
 
 	Precision MathHelper::getMinimumAngleDifference(const Precision &firstAngle, const Precision &secondAngle) {
