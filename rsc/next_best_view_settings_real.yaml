@@ -24,7 +24,7 @@ IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientatio
 # cameraFilterId == 4 => SingleCameraModelFilter
 # Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
 # Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
-cameraFilterId: 1
+cameraFilterId: 2
 voxelSize: 0.04
 worldHeight: 3
 worldFilePath: ./rsc/world/world.xml
