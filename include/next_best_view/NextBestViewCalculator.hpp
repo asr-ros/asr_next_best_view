@@ -82,6 +82,8 @@ private:
     std::vector<CameraModelFilterPtr> mThreadCameraModels;
     std::vector<RatingModulePtr> mThreadRatingModules;
 
+    double mMinUtility;
+
 public:
 
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -423,9 +425,32 @@ private:
         //Create list of all view ports that are checked during this iteration step.
         ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
 
-        if (!rateViewports(sampleNextBestViewports, currentCameraViewport, resultViewport)) {
+        // rate
+        ViewportPointCloudPtr ratedNextBestViewportsPtr;
+        if (!rateViewports(sampleNextBestViewports, currentCameraViewport, ratedNextBestViewportsPtr)) {
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return false;
+        }
+
+        // sort
+        // ascending -> last element hast best rating
+        auto sortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+            // a < b
+            return mRatingModulePtr->compareViewports(a, b);
+        };
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
+
+        bool foundUtility = false;
+        BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+            if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
+                resultViewport = ratedViewport;
+                foundUtility = true;
+                break;
+            }
+        }
+        if (!foundUtility) {
+            ROS_WARN_STREAM("every nbv has too little utility");
+            resultViewport = ratedNextBestViewportsPtr->back();
         }
 
         //Visualize iteration step and its result.
@@ -1214,6 +1239,14 @@ public:
      */
     CameraModelFilterAbstractFactoryPtr getCameraModelFilterAbstractFactoryPtr() {
         return mCameraModelFilterAbstractFactoryPtr;
+    }
+
+    double getMinUtility() const {
+        return mMinUtility;
+    }
+
+    void setMinUtility(double value) {
+        mMinUtility = value;
     }
 };
 }

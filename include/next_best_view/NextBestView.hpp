@@ -371,6 +371,9 @@ public:
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;
             mShowNormals = mConfig.show_normals;
+            float minUtility;
+            mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
+            mCalculator.setMinUtility(minUtility);
         }
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
