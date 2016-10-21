@@ -34,7 +34,7 @@ using namespace next_best_view;
     void BaseTest::init(bool useRos, bool silent)
     {
         // init node handle
-        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle("~"));
 
         // init publishers
         mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);

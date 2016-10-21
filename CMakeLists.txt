@@ -24,7 +24,12 @@ find_package(catkin REQUIRED COMPONENTS
   costmap_2d
   rapidxml
   dynamic_reconfigure
+  voxel_grid
+  # temporary workaround as assimp does not provide a .cmake file but just a .pc file
+  #  assimp
 )
+
+message(WARNING "Object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -88,7 +93,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper
-  CATKIN_DEPENDS roscpp roslib message_runtime
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid
   DEPENDS system_lib
 )
 
@@ -97,6 +102,8 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  # temporary workaround as assimp does not provide a .cmake file but just a .pc file
+  /opt/ros/indigo/include/assimp_devel
 )
 
 
@@ -108,6 +115,8 @@ add_library(
         src/helper/MarkerHelper.cpp
         src/helper/TypeHelper.cpp
         src/helper/DebugHelper.cpp
+        src/helper/WorldHelper.cpp
+        src/helper/VoxelGridHelper.cpp
 )
 
 add_library(
@@ -130,8 +139,8 @@ add_library(
         src/hypothesis_updater/impl/PerspectiveHypothesisUpdater.cpp
         src/camera_model_filter/impl/SingleCameraModelFilter.cpp
         src/camera_model_filter/impl/StereoCameraModelFilter.cpp
-        src/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.cpp
-        src/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.cpp
+        src/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.cpp
+        src/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
         src/rating/impl/NavigationPathIKRatingModule.cpp
         src/rating/impl/SimpleIKRatingModule.cpp
@@ -159,6 +168,15 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
 )
+
+target_link_libraries(
+        ${PROJECT_NAME}_helper
+        ${catkin_LIBRARIES}
+        ${PCL_LIBRARIES}
+        # assimp
+        /opt/ros/indigo/lib/libassimp_devel.so
+)
+
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
 ## Declare a cpp executable
 add_executable(
@@ -198,6 +216,7 @@ set (BUILD_PERFORMANCE_TEST ${BUILD_ALL_TESTS})
 set (BUILD_UPDATE_POINTCLOUD_TEST ${BUILD_ALL_TESTS})
 set (BUILD_MATH_TEST ${BUILD_ALL_TESTS})
 set (BUILD_STREAM_TEST ${BUILD_ALL_TESTS})
+set (BUILD_RAYTRACING_TEST ${BUILD_ALL_TESTS})
 set (BUILD_RATE_VIEWPORTS_TEST ${BUILD_ALL_TESTS})
 
 set (TEST_LINK_LIBRARIES 
@@ -210,7 +229,7 @@ set (TEST_LINK_LIBRARIES
         ${catkin_LIBRARIES}
 )
 
-if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST)
+if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST OR BUILD_RAYTRACING_TEST)
 MESSAGE ("Building Tests:")
 add_library(
         ${PROJECT_NAME}_test_core
@@ -311,6 +330,8 @@ addTest(UPDATE_POINTCLOUD)
 addTest(MATH)
 
 addTest(STREAM)
+
+addTest(RAYTRACING)
 
 addTest(RATE_VIEWPORTS)
 

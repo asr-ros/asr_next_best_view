@@ -61,19 +61,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
+#include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/helper/MapHelperFactory.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "pbd_msgs/PbdViewport.h"
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilterFactory.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilterFactory.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilterFactory.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilterFactory.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilterFactory.hpp"
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilterFactory.hpp"
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
@@ -143,7 +144,7 @@ private:
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
     DebugHelperPtr mDebugHelperPtr;
-    VisualizationHelper mVisHelper;
+    VisualizationHelperPtr mVisHelperPtr;
     /*!
      * visualization settings
      */
@@ -165,6 +166,7 @@ private:
         ratingConfig               = (0b1 << 6) | robotModelConfig | cameraModelConfig, // rating requires cameraModel and robotModel
         hypothesisUpdaterConfig    = (0b1 << 7) | ratingConfig, // requires ratingModule
         cropboxFileConfig          = 0b1 << 8,
+		worldHelperConfig          = mapHelperConfig
     };
 
     boost::shared_ptr<boost::thread> mVisualizationThread;
@@ -272,6 +274,8 @@ public:
             }
             mMapHelperFactoryPtr = MapHelperFactoryPtr(new MapHelperFactory(mConfig.colThresh));
             mCalculator.setMapHelper(mMapHelperFactoryPtr->createMapHelper());
+
+			mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mCalculator.getMapHelper()));
         }
 
 
@@ -292,11 +296,13 @@ public:
             mCalculator.setSpaceSampler(mSpaceSampleFactoryPtr->createSpaceSampler());
         }
 
+        mDebugHelperPtr->write(std::stringstream() << "cameraFilterId: " << mConfig.cameraFilterId, DebugHelper::PARAMETERS);
+
         /*
          * Intializes cameraModelFilter with a CameraModelFilter subclass specified by the parameter cameraFilterId :
-         * - cameraFilterId == 1 => MapBasedStereoCameraModelFilter
+         * - cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
          * - cameraFilterId == 2 => StereoCameraModelFilter
-         * - cameraFilterId == 3 => MapBasedSingleCameraModelFilter
+         * - cameraFilterId == 3 => Raytracing3DBasedSingleCameraModelFilter
          * - cameraFilterId == 4 => SingleCameraModelFilter
          * Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
          * Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
@@ -376,7 +382,7 @@ public:
             mCalculator.setMinUtility(minUtility);
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelper.getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelperPtr->getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV PARAMETER OUTPUT", DebugHelper::PARAMETERS);
 
@@ -395,6 +401,16 @@ public:
             mRateViewportsServer = mNodeHandle.advertiseService("rate_viewports", &NextBestView::processRateViewports, this);
             mRemoveObjectsServer = mNodeHandle.advertiseService("remove_objects", &NextBestView::processRemoveObjects, this);
         }
+    }
+
+	WorldHelperPtr initializeWorldHelper() {
+        mDebugHelperPtr->write(std::stringstream() << "worldFilePath: " << mConfig.worldFilePath, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "voxelSize: " << mConfig.voxelSize, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "worldHeight: " << mConfig.worldHeight, DebugHelper::PARAMETERS);
+
+        MapHelperPtr mapHelperPtr = mCalculator.getMapHelper();
+
+        return WorldHelperPtr(new WorldHelper(mapHelperPtr, mConfig.worldFilePath, mConfig.voxelSize, mConfig.worldHeight, mConfig.visualizeRaytracing));
     }
 
     UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFromConfig(int moduleId) {
@@ -443,11 +459,13 @@ public:
         SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
         SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
         SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
-        MapHelperFactoryPtr mapHelperFactoryPtr = createMapHelperFromConfig();
+   	    // data for 3D raytracing
+        WorldHelperPtr worldHelperPtr = initializeWorldHelper();
+
         switch (moduleId) {
         case 1:
             return CameraModelFilterAbstractFactoryPtr(
-                        new Raytracing2DBasedStereoCameraModelFilterFactory(mapHelperFactoryPtr,
+                        new Raytracing3DBasedStereoCameraModelFilterFactory(worldHelperPtr,
                                                                             leftCameraPivotPointOffset, rightCameraPivotPointOffset,
                                                                             mConfig.fovx, mConfig.fovy,
                                                                             mConfig.fcp, mConfig.ncp,
@@ -466,7 +484,7 @@ public:
              * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
              */
             return CameraModelFilterAbstractFactoryPtr(
-                        new Raytracing2DBasedSingleCameraModelFilterFactory(mapHelperFactoryPtr,
+                        new Raytracing3DBasedSingleCameraModelFilterFactory(worldHelperPtr,
                                                                             oneCameraPivotPointOffset,
                                                                             mConfig.fovx, mConfig.fovy,
                                                                             mConfig.fcp, mConfig.ncp,
@@ -514,7 +532,8 @@ public:
                                                        robotModelFactoryPtr, cameraModelFactoryPtr,
                                                        mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
-                                                       mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer));
+                                                       mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer,
+                                                       mConfig.useOrientationUtility, mConfig.useProximityUtility, mConfig.useSideUtility));
         default:
             std::stringstream ss;
             ss << mConfig.ratingModuleId << " is not a valid rating module ID";
@@ -877,7 +896,7 @@ public:
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
         mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-        mVisHelper.triggerNewFrustumVisualization(mCalculator.getCameraModelFilter());
+        mVisHelperPtr->triggerNewFrustumVisualization(mCalculator.getCameraModelFilter());
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -892,7 +911,7 @@ public:
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(pose);
         mCalculator.getCameraModelFilter()->setPivotPointPose(position, orientation);
 
-        mVisHelper.triggerOldFrustumVisualization(this->mCalculator.getCameraModelFilter());
+        mVisHelperPtr->triggerOldFrustumVisualization(this->mCalculator.getCameraModelFilter());
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV TRIGGER-OLD-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -985,7 +1004,7 @@ public:
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), pointCloudIndices);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
-            mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+            mVisHelperPtr->triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
         }
         if (mShowFrustumPointCloud)
         {
@@ -993,12 +1012,12 @@ public:
             ObjectPointCloud frustumObjectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *viewport.child_indices);
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(frustumObjectPointCloud);
 
-            mVisHelper.triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);
+            mVisHelperPtr->triggerFrustumObjectPointCloudVisualization(frustumObjectPointCloud, typeToMeshResource);
         }
         if (mShowFrustumMarkerArray && publishFrustum)
         {
             // publish furstums visualization
-            mVisHelper.triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
+            mVisHelperPtr->triggerFrustumsVisualization(this->mCalculator.getCameraModelFilter());
         }
         mCurrentlyPublishingVisualization = false;
     }
@@ -1011,17 +1030,17 @@ public:
         if (mShowPointcloud)
         {
             // clear visualization of old objects in frustum
-            mVisHelper.clearFrustumObjectPointCloudVisualization();
+            mVisHelperPtr->clearFrustumObjectPointCloudVisualization();
 
             // publish new object point cloud
             std::map<std::string, std::string> typeToMeshResource = this->getMeshResources(objectPointCloud);
 
-            mVisHelper.triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
+            mVisHelperPtr->triggerObjectPointCloudVisualization(objectPointCloud, typeToMeshResource);
         }
 
         if (mShowNormals) {
             // publish new normals
-            mVisHelper.triggerObjectNormalsVisualization(objectPointCloud);
+            mVisHelperPtr->triggerObjectNormalsVisualization(objectPointCloud);
         }
     }
 
@@ -1031,7 +1050,7 @@ public:
         if (mShowNormals) {
             // show normals
             ObjectPointCloud objectPointCloud = ObjectPointCloud(*mCalculator.getPointCloudPtr(), *mCalculator.getActiveIndices());
-            mVisHelper.triggerObjectNormalsVisualization(objectPointCloud);
+            mVisHelperPtr->triggerObjectNormalsVisualization(objectPointCloud);
         }
     }
 

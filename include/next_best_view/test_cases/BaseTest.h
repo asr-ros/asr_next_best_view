@@ -93,5 +93,18 @@ public:
     SimpleQuaternion euler2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
 
     SimpleQuaternion ZXZ2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
+
+    template<typename T> bool getParameter(const std::string &key, T &parameter)
+    {
+        if (!mNodeHandle->getParam(key, parameter))
+        {
+            ROS_ERROR_STREAM(key << " parameter not set!");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
 };
 
