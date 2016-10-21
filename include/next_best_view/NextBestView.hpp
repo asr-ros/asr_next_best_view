@@ -347,6 +347,7 @@ public:
         }
         if (mConfigLevel & parameterConfig) {
             mDebugHelperPtr->setLevels(mConfig.debugLevels);
+            mCalculator.setNumberOfThreads(mConfig.nRatingThreads);
             mCalculator.setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculator.setEnableIntermediateObjectWeighting(mConfig.enableIntermediateObjectWeighting);
             //Set the max amout of iterations

@@ -1242,6 +1242,45 @@ public:
         return mCameraModelFilterAbstractFactoryPtr;
     }
 
+    /**
+     * @brief getNumberOfThreads
+     * @return
+     */
+    int getNumberOfThreads() const {
+        return mNumberOfThreads;
+    }
+
+    /**
+     * @brief sets number of threads used to rate samples, negative numbers use boost::thread::hardware_concurrency() as number of threads.
+     * @param value
+     */
+    void setNumberOfThreads(int value) {
+        if (value < 0) {
+            mNumberOfThreads = boost::thread::hardware_concurrency();
+        } else {
+            mNumberOfThreads = value;
+        }
+        // reinitialize camera modules and rating modules per thread
+        mThreadCameraModels.clear();
+        mThreadRatingModules.clear();
+        mThreadCameraModels.resize(mNumberOfThreads);
+        mThreadRatingModules.resize(mNumberOfThreads);
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            // set RatingModule per thread
+            if (mThreadRatingModules[i]) {
+                mThreadRatingModules[i].reset();
+            }
+            mThreadRatingModules[i] = mRatingModuleAbstractFactoryPtr->createRatingModule();
+            mThreadRatingModules[i]->setInputCloud(mPointCloudPtr);
+
+            // set CameraModule per thread
+            if (mThreadCameraModels[i]) {
+                mThreadCameraModels[i].reset();
+            }
+            mThreadCameraModels[i] = mCameraModelFilterAbstractFactoryPtr->createCameraModelFilter();
+            mThreadCameraModels[i]->setInputCloud(mPointCloudPtr);
+        }
+
     double getMinUtility() const {
         return mMinUtility;
     }
