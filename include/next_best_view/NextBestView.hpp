@@ -21,27 +21,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 // Global Includes
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
-#include <boost/range/algorithm_ext/iota.hpp>
 #include <eigen3/Eigen/Dense>
 #include <pcl-1.7/pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <set>
 #include <vector>
 
 // ROS Main Include
 #include <ros/ros.h>
 
 // ROS Includes
-#include <actionlib/client/simple_action_client.h>
-#include <move_base_msgs/MoveBaseAction.h>
 #include <object_database/ObjectManager.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/PointField.h>
-#include <set>
-#include <std_srvs/Empty.h>
-#include <std_msgs/ColorRGBA.h>
 #include <dynamic_reconfigure/server.h>
 #include <next_best_view/DynamicParametersConfig.h>
 
@@ -62,7 +52,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/WorldHelper.hpp"
-#include "next_best_view/helper/MapHelperFactory.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
@@ -105,10 +94,6 @@ namespace next_best_view {
 namespace viz = visualization_msgs;
 namespace odb = object_database;
 
-// Defining shorthandle for action client.
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseActionClient;
-typedef boost::shared_ptr<MoveBaseActionClient> MoveBaseActionClientPtr;
-
 /*!
      * \brief NextBestView is a configuration class of the related node.
      *
@@ -125,7 +110,6 @@ private:
     ros::NodeHandle mNodeHandle;
 
     // ServiceServer and Publisher
-    ros::ServiceServer mGetPointCloud2ServiceServer;
     ros::ServiceServer mGetPointCloudServiceServer;
     ros::ServiceServer mSetPointCloudServiceServer;
     ros::ServiceServer mSetInitRobotStateServiceServer;
@@ -138,8 +122,6 @@ private:
     ros::ServiceServer mRateViewportsServer;
     ros::ServiceServer mRemoveObjectsServer;
 
-    // Action Clients
-    MoveBaseActionClientPtr mMoveBaseActionClient;
 
     // Etcetera
     ViewportPoint mCurrentCameraViewport;
@@ -173,7 +155,7 @@ private:
 
     // module factory classes
     UnitSphereSamplerAbstractFactoryPtr mSphereSamplerFactoryPtr;
-    MapHelperFactoryPtr mMapHelperFactoryPtr;
+    MapHelperPtr mMapHelperPtr;
     SpaceSamplerAbstractFactoryPtr mSpaceSampleFactoryPtr;
     CameraModelFilterAbstractFactoryPtr mCameraModelFactoryPtr;
     RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
@@ -269,11 +251,9 @@ public:
          * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
          */
         if (mConfigLevel & mapHelperConfig) {
-            if (mMapHelperFactoryPtr) {
-                mMapHelperFactoryPtr.reset();
-            }
-            mMapHelperFactoryPtr = MapHelperFactoryPtr(new MapHelperFactory(mConfig.colThresh));
-            mCalculator.setMapHelper(mMapHelperFactoryPtr->createMapHelper());
+            mMapHelperPtr = MapHelperPtr(new MapHelper());
+            mMapHelperPtr->setCollisionThreshold(mConfig.colThresh);
+            mCalculator.setMapHelper(mMapHelperPtr);
 
 			mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mCalculator.getMapHelper()));
         }
@@ -366,6 +346,7 @@ public:
             mCalculator.loadCropBoxListFromFile(mConfig.mCropBoxListFilePath);
         }
         if (mConfigLevel & parameterConfig) {
+            mDebugHelperPtr->setLevels(mConfig.debugLevels);
             mCalculator.setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculator.setEnableIntermediateObjectWeighting(mConfig.enableIntermediateObjectWeighting);
             //Set the max amout of iterations
@@ -377,6 +358,9 @@ public:
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;
             mShowNormals = mConfig.show_normals;
+            float minUtility;
+            mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
+            mCalculator.setMinUtility(minUtility);
         }
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelperPtr->getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);
@@ -422,12 +406,7 @@ public:
         }
     }
 
-    MapHelperFactoryPtr createMapHelperFromConfig() {
-        return MapHelperFactoryPtr(new MapHelperFactory(mConfig.colThresh));
-    }
-
     SpaceSamplerAbstractFactoryPtr createSpaceSamplerFromConfig(int moduleId) {
-        MapHelperFactoryPtr mapHelperFactoryPtr = createMapHelperFromConfig();
         switch (moduleId)
         {
         case 1:
@@ -437,13 +416,13 @@ public:
              * There are a lot of ways to sample the xy-plane into points but we decided to use a hexagonal grid which we lay over
              * the map and calculate the points which are contained in the feasible map space.
              */
-            return SpaceSamplerAbstractFactoryPtr(new MapBasedHexagonSpaceSamplerFactory(mapHelperFactoryPtr, mConfig.radius));
+            return SpaceSamplerAbstractFactoryPtr(new MapBasedHexagonSpaceSamplerFactory(mMapHelperPtr, mConfig.radius));
         case 2:
-            return SpaceSamplerAbstractFactoryPtr(new MapBasedRandomSpaceSamplerFactory(mapHelperFactoryPtr, mConfig.sampleSizeMapBasedRandomSpaceSampler));
+            return SpaceSamplerAbstractFactoryPtr(new MapBasedRandomSpaceSamplerFactory(mMapHelperPtr, mConfig.sampleSizeMapBasedRandomSpaceSampler));
         case 3:
             return SpaceSamplerAbstractFactoryPtr(new PlaneSubSpaceSamplerFactory());
         case 4:
-            return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mapHelperFactoryPtr));
+            return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mMapHelperPtr));
         default:
             std::stringstream ss;
             ss << mConfig.spaceSamplerId << " is not a valid space sampler ID";
@@ -547,6 +526,8 @@ public:
             ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
             return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr,
                                                                                                mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
+        case 2:
+            return HypothesisUpdaterAbstractFactoryPtr(new DefaultHypothesisUpdaterFactory());
         default:
             std::stringstream ss;
             ss << mConfig.hypothesisUpdaterId << " is not a valid hypothesis module ID";
@@ -599,6 +580,8 @@ public:
         // rate
         ViewportPointCloudPtr ratedSampleViewportsPtr;
         mCalculator.rateViewports(feasibleSampleViewportsPtr, currentCameraViewport, ratedSampleViewportsPtr, request.use_object_type_to_rate);
+
+        mDebugHelperPtr->write(std::stringstream() << "number of rated viewports: " << ratedSampleViewportsPtr->size(), DebugHelper::SERVICE_CALLS);
 
         // threads mix up oldIdx
         std::sort(ratedSampleViewportsPtr->begin(), ratedSampleViewportsPtr->end(), [](ViewportPoint a, ViewportPoint b)
@@ -674,10 +657,16 @@ public:
         return true;
     }
 
-    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage) {
+    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage, uint minNumberNormals) {
         pointCloudMessage.elements.clear();
 
         BOOST_FOREACH(ObjectPoint point, pointCloud) {
+
+            // skip objects with too few normals
+            if (point.active_normal_vectors->size() < minNumberNormals)
+//            if (point.active_normal_vectors->size() < point.normal_vectors->size())
+                continue;
+
             pbd_msgs::PbdAttributedPoint aPoint;
 
             aPoint.pose = point.getPose();
@@ -690,7 +679,11 @@ public:
 
     bool processGetPointCloudServiceCall(GetAttributedPointCloud::Request &request, GetAttributedPointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        convertObjectPointCloudToAttributedPointCloud(*mCalculator.getPointCloudPtr(), response.point_cloud);
+
+        // minNumberNormals defaults to 1 if not set
+        if (request.minNumberNormals < 1)
+            request.minNumberNormals = 1;
+        convertObjectPointCloudToAttributedPointCloud(*mCalculator.getPointCloudPtr(), response.point_cloud, request.minNumberNormals);
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
         return true;
@@ -1066,7 +1059,6 @@ public:
     }
 
     void dynamicReconfigureCallback(DynamicParametersConfig &config, uint32_t level) {
-        // TODO split this up
         // TODO consider that services and this and other stuff is called parallel
         ROS_INFO_STREAM("Parameters updated");
         ROS_INFO_STREAM("level: " << level);

@@ -26,16 +26,16 @@ namespace next_best_view {
 
     class SpiralApproxUnitSphereSamplerFactory : public UnitSphereSamplerAbstractFactory {
     private:
-        int sampleSize;
+        int mSampleSize;
 
     public:
         SpiralApproxUnitSphereSamplerFactory(int sampleSize)
-            : sampleSize(sampleSize)
+            : mSampleSize(sampleSize)
         { }
 
         UnitSphereSamplerPtr createUnitSphereSampler() {
             SpiralApproxUnitSphereSamplerPtr sphereSampler = SpiralApproxUnitSphereSamplerPtr(new SpiralApproxUnitSphereSampler());
-            sphereSampler->setSamples(sampleSize);
+            sphereSampler->setSamples(mSampleSize);
             return sphereSampler;
         }
     };

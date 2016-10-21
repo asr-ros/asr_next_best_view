@@ -120,6 +120,12 @@ public:
 
 
     /*!
+     * \brief sets levels from the given string
+     * \param levelsStr the string, comma seperated list of levels, which may contain [] braces
+     */
+    void setLevels(std::string levelsStr);
+
+    /*!
      * \brief sets the allowed debug levels
      */
     void setLevels();

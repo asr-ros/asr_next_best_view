@@ -28,14 +28,14 @@ namespace next_best_view {
 
     class DefaultRatingModuleFactory : public RatingModuleAbstractFactory {
     private:
-        double fovx, fovy;
-        double fcp, ncp;
-        RobotModelAbstractFactoryPtr robotModelFactory;
-        CameraModelFilterAbstractFactoryPtr cameraModelFilterFactory;
-        double angleThreshold;
-        double omegaUtility, omegaPan, omegaTilt;
-        double omegaRot, omegaBase, omegaRecognizer;
-        bool useOrientationUtility, useProximityUtility, useSideUtility;
+        double mFovx, mFovy;
+        double mFcp, mNcp;
+        RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
+        CameraModelFilterAbstractFactoryPtr mCameraModelFilterFactoryPtr;
+        double mAngleThreshold;
+        double mOmegaUtility, mOmegaPan, mOmegaTilt;
+        double mOmegaRot, mOmegaBase, mOmegaRecognizer;
+        bool mUseOrientationUtility, mUseProximityUtility, mUseSideUtility;
 
     public:
         DefaultRatingModuleFactory(double fovx, double fovy,
@@ -45,21 +45,20 @@ namespace next_best_view {
                                    double omegaUtility, double omegaPan, double omegaTilt,
                                    double omegaRot, double omegaBase, double omegaRecognizer,
                                    bool useOrientationUtility, bool useProximityUtility, bool useSideUtility)
-            : fovx(fovx), fovy(fovy),
-              fcp(fcp), ncp(ncp),
-              robotModelFactory(robotModelFactory), cameraModelFilterFactory(cameraModelFilterFactory),
-              angleThreshold(angleThreshold),
-              omegaUtility(omegaUtility), omegaPan(omegaPan), omegaTilt(omegaTilt),
-              omegaRot(omegaRot), omegaBase(omegaBase), omegaRecognizer(omegaRecognizer),
-              useOrientationUtility(useOrientationUtility), useProximityUtility(useProximityUtility), useSideUtility(useSideUtility)
-
+            : mFovx(fovx), mFovy(fovy),
+              mFcp(fcp), mNcp(ncp),
+              mRobotModelFactoryPtr(robotModelFactory), mCameraModelFilterFactoryPtr(cameraModelFilterFactory),
+              mAngleThreshold(angleThreshold),
+              mOmegaUtility(omegaUtility), mOmegaPan(omegaPan), mOmegaTilt(omegaTilt),
+              mOmegaRot(omegaRot), mOmegaBase(omegaBase), mOmegaRecognizer(omegaRecognizer),
+              mUseOrientationUtility(useOrientationUtility), mUseProximityUtility(useProximityUtility), mUseSideUtility(useSideUtility)
         { }
 
         RatingModulePtr createRatingModule() {
-            DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(fovx, fovy, fcp, ncp, robotModelFactory->createRobotModel(), cameraModelFilterFactory->createCameraModelFilter()));
-            defaultRatingModule->setNormalAngleThreshold(angleThreshold);
-            defaultRatingModule->setOmegaParameters(omegaUtility, omegaPan, omegaTilt, omegaRot, omegaBase, omegaRecognizer);
-            defaultRatingModule->setUtilityParameters(useOrientationUtility, useProximityUtility, useSideUtility);
+            DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(mFovx, mFovy, mFcp, mNcp, mRobotModelFactoryPtr->createRobotModel(), mCameraModelFilterFactoryPtr->createCameraModelFilter()));
+            defaultRatingModule->setNormalAngleThreshold(mAngleThreshold);
+            defaultRatingModule->setOmegaParameters(mOmegaUtility, mOmegaPan, mOmegaTilt, mOmegaRot, mOmegaBase, mOmegaRecognizer);
+            defaultRatingModule->setUtilityParameters(mUseOrientationUtility, mUseProximityUtility, mUseSideUtility);
             return defaultRatingModule;
         }
     };

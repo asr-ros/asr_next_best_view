@@ -187,18 +187,13 @@ public:
 
     void triggerIterationVisualization(int iterationStep, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                                             ViewportPoint currentBestViewport,
-                                            IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud,
+                                            SamplePointCloudPtr pointcloud,
                                             SpaceSamplerPtr spaceSamplerPtr) {
 
         mDebugHelperPtr->writeNoticeably("STARTING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!sampledOrientationsPtr){
             ROS_ERROR("triggerIterationVisualizations call with pointer sampledOrientationsPtr being null.");
-            mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
-            return;
-        }
-        if(!feasibleIndices){
-            ROS_ERROR("triggerIterationVisualizations call with pointer feasibleIndices being null.");
             mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
@@ -230,7 +225,7 @@ public:
         m_j = iterationStep*0.25;
         m_j = std::min(1.0f, m_j); //Prevent overflow
 
-        triggerSpaceSampling(feasibleIndices, pointcloud,s);
+        triggerSpaceSampling(pointcloud,s);
         triggerGrid(spaceSamplerPtr, s);
         triggerCameraVis(s, sampledOrientationsPtr, currentBestViewport);
 
@@ -787,12 +782,8 @@ private:
         mIterationMarkerArrayPtr->markers.push_back(NextBestViewCameraDirectionMarker);
     }
 
-    void triggerSpaceSampling(IndicesPtr feasibleIndices,SamplePointCloudPtr pointcloud, std::string s){
+    void triggerSpaceSampling(SamplePointCloudPtr pointcloud, std::string s){
 
-        if(!feasibleIndices){
-            ROS_ERROR("triggerSpaceSampling call with pointer feasibleIndices being null.");
-            return;
-        }
         if(!pointcloud){
             ROS_ERROR("triggerSpaceSampling call with pointer pointcloud being null.");
             return;
@@ -814,9 +805,8 @@ private:
         color[0] -= m_j;
         color[1] += m_j;
 
-        SamplePointCloud pcl = SamplePointCloud(*pointcloud, *feasibleIndices);
 
-        for(SamplePointCloud::iterator it = pcl.points.begin(); it < pcl.points.end(); it++)
+        for(SamplePointCloud::iterator it = pointcloud->points.begin(); it < pointcloud->points.end(); it++)
         {
             // get space sampling marker
             gm::Point point = it->getPoint();

@@ -26,31 +26,31 @@ namespace next_best_view {
 
     class StereoCameraModelFilterFactory : public CameraModelFilterAbstractFactory {
     private:
-        SimpleVector3 leftCameraPivotPointOffset;
-        SimpleVector3 rightCameraPivotPointOffset;
-        double fovx, fovy;
-        double fcp, ncp;
-        double speedFactorRecognizer;
+        SimpleVector3 mLeftCameraPivotPointOffset;
+        SimpleVector3 mRightCameraPivotPointOffset;
+        double mFovx, mFovy;
+        double mFcp, mNcp;
+        double mSpeedFactorRecognizer;
 
     public:
         StereoCameraModelFilterFactory(SimpleVector3 leftCameraPivotPointOffset,
                                        SimpleVector3 rightCameraPivotPointOffset,
                                        double fovx, double fovy,
                                        double fcp, double ncp, double speedFactorRecognizer)
-            : leftCameraPivotPointOffset(leftCameraPivotPointOffset),
-              rightCameraPivotPointOffset(rightCameraPivotPointOffset),
-              fovx(fovx), fovy(fovy),
-              fcp(fcp), ncp(ncp),
-              speedFactorRecognizer(speedFactorRecognizer)
+            : mLeftCameraPivotPointOffset(leftCameraPivotPointOffset),
+              mRightCameraPivotPointOffset(rightCameraPivotPointOffset),
+              mFovx(fovx), mFovy(fovy),
+              mFcp(fcp), mNcp(ncp),
+              mSpeedFactorRecognizer(speedFactorRecognizer)
         { }
 
         CameraModelFilterPtr createCameraModelFilter() {
-            CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new StereoCameraModelFilter(leftCameraPivotPointOffset, rightCameraPivotPointOffset));
-            cameraModelFilter->setHorizontalFOV(fovx);
-            cameraModelFilter->setVerticalFOV(fovy);
-            cameraModelFilter->setNearClippingPlane(ncp);
-            cameraModelFilter->setFarClippingPlane(fcp);
-            cameraModelFilter->setRecognizerCosts((float) speedFactorRecognizer, "");
+            CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new StereoCameraModelFilter(mLeftCameraPivotPointOffset, mRightCameraPivotPointOffset));
+            cameraModelFilter->setHorizontalFOV(mFovx);
+            cameraModelFilter->setVerticalFOV(mFovy);
+            cameraModelFilter->setNearClippingPlane(mNcp);
+            cameraModelFilter->setFarClippingPlane(mFcp);
+            cameraModelFilter->setRecognizerCosts((float) mSpeedFactorRecognizer, "");
             return cameraModelFilter;
         }
     };

@@ -62,7 +62,7 @@ namespace next_best_view {
 
 	double MathHelper::getSignum(const double &value) {
 		return (value == 0 ? 0.0 : (value < 0 ? -1.0 : 1.0));
-	};
+    }
 
 	SimpleVector3 MathHelper::getProjection(const std::size_t &idx, const SimpleVector3 &X) {
 		return SimpleVector3((idx == 0 ? 0 : X[0]), (idx == 1 ? 0 : X[1]), (idx == 2 ? 0 : X[2]));
