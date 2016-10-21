@@ -598,9 +598,6 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
                         break;
                 }
 
-                if (marked)
-                    continue;
-
             }
 
 }
