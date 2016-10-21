@@ -354,14 +354,16 @@ public:
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
             mCalculator.setEpsilon(mConfig.epsilon);
+            mCalculator.setDisableInvalidNormals(mConfig.disableInvalidNormals);
+            float minUtility;
+            mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
+            mCalculator.setMinUtility(minUtility);
+
             mShowSpaceSampling = mConfig.show_space_sampling;
             mShowPointcloud = mConfig.show_point_cloud;
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;
             mShowNormals = mConfig.show_normals;
-            float minUtility;
-            mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
-            mCalculator.setMinUtility(minUtility);
         }
 
         mDebugHelperPtr->write(std::stringstream() << "boolClearBetweenIterations: " << mVisHelperPtr->getBoolClearBetweenIterations(), DebugHelper::PARAMETERS);

@@ -83,6 +83,7 @@ private:
     std::vector<RatingModulePtr> mThreadRatingModules;
 
     double mMinUtility;
+    bool disableInvalidNormals;
 
 public:
 
@@ -705,7 +706,9 @@ public:
 
         this->setPointCloudPtr(outputPointCloudPtr);
 
-        filterUnrechableNormals();
+        if (disableInvalidNormals) {
+            filterUnrechableNormals();
+        }
 
         return true;
     }
@@ -713,7 +716,7 @@ public:
 private:
 
     /**
-     * @brief filterUnrechableNormals
+     * @brief filterUnrechableNormals this method really removes them so active_normals_vectors.size() == normal_vectors.size() is true.
      */
     void filterUnrechableNormals() {
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
@@ -762,15 +765,17 @@ private:
             o.normal_vectors = newNormalVectors;
 
             // debug output valid normals
-            std::stringstream ssValidNormals;
-            for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
-                if(i != 0) {
-                    ssValidNormals << ",";
+            if (mDebugHelperPtr->getLevel() & DebugHelper::CALCULATION) {
+                std::stringstream ssValidNormals;
+                for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
+                    if(i != 0) {
+                        ssValidNormals << ",";
+                    }
+                    ssValidNormals << (*o.active_normal_vectors)[i];
                 }
-                ssValidNormals << (*o.active_normal_vectors)[i];
+                s = ssValidNormals.str();
+                mDebugHelperPtr->write(std::stringstream() << "valid ones: " << s, DebugHelper::CALCULATION);
             }
-            s = ssValidNormals.str();
-            mDebugHelperPtr->write(std::stringstream() << "valid ones: " << s, DebugHelper::CALCULATION);
         }
     }
 
@@ -1280,13 +1285,22 @@ public:
             mThreadCameraModels[i] = mCameraModelFilterAbstractFactoryPtr->createCameraModelFilter();
             mThreadCameraModels[i]->setInputCloud(mPointCloudPtr);
         }
+    }
 
     double getMinUtility() const {
         return mMinUtility;
     }
 
-    void setMinUtility(double value) {
-        mMinUtility = value;
+    void setMinUtility(double minUtility) {
+        mMinUtility = minUtility;
+    }
+
+    bool getDisableInvalidNormals() const {
+        return disableInvalidNormals;
+    }
+
+    void setDisableInvalidNormals(bool disableInvalidNormals) {
+        disableInvalidNormals = disableInvalidNormals;
     }
 };
 }
