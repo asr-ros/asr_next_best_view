@@ -17,35 +17,41 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.hpp"
+#pragma once
+
 #include <boost/foreach.hpp>
+#include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
+#include "next_best_view/helper/WorldHelper.hpp"
+#include "typedef.hpp"
 
 namespace next_best_view {
-    Raytracing2DBasedSingleCameraModelFilter::Raytracing2DBasedSingleCameraModelFilter(const MapHelperPtr &mapUtilPtr, const SimpleVector3 &pivotPointOffset) :
-		SingleCameraModelFilter(pivotPointOffset), mMapHelperPtr(mapUtilPtr) {
-	}
+	/*!
+     * \brief Raytracing3DBasedSingleCameraModelFilter class implements the frustum filtering for a single camera with 2D raytracing.
+	 * \author Ralf Schleicher
+	 * \date 2014
+	 * \version 1.0
+	 * \copyright GNU Public License
+	 */
+    class Raytracing3DBasedSingleCameraModelFilter : public SingleCameraModelFilter {
+	private:
+		/*!
+		 *
+		 */
+        WorldHelperPtr mWorldHelperPtr;
+	public:
+		/*!
+         * \brief constructor for the Raytracing3DBasedSingleCameraModelFilter object
+		 * \param leftCameraPivotPointOffset [in] the offset to the pivot point for the left camera
+		 * \param rightCameraPivotPointOffset [in] the offset to the pivot point for the right camera
+		 */
+        Raytracing3DBasedSingleCameraModelFilter(const WorldHelperPtr &worldHelperPtr, const SimpleVector3 &pivotPointOffset = SimpleVector3());
+	public:
+		void doFiltering(IndicesPtr &indicesPtr);
 
-    void Raytracing2DBasedSingleCameraModelFilter::doFiltering(IndicesPtr &indicesPtr) {
-		// create the result.
-		IndicesPtr intermediateIndicesPtr = IndicesPtr(new Indices());
-		SingleCameraModelFilter::doFiltering(intermediateIndicesPtr);
+	};
 
-		SimpleVector3 cameraPosition = this->getPivotPointPosition() + this->getPivotPointOffset();
-
-		indicesPtr = IndicesPtr(new Indices());
-		BOOST_FOREACH(int index, *intermediateIndicesPtr) {
-			ObjectPoint &point = this->getInputCloud()->at(index);
-
-			if (!mMapHelperPtr->doRaytracing(cameraPosition, point.getPosition())) {
-				continue;
-			}
-
-			indicesPtr->push_back(index);
-		}
-	}
-
-    viz::MarkerArrayPtr Raytracing2DBasedSingleCameraModelFilter::getVisualizationMarkerArray(uint32_t &sequence, double lifetime) {
-		return SingleCameraModelFilter::getVisualizationMarkerArray(sequence, lifetime);
-	}
+	/*!
+	 * \brief the type definition for the corresponding shared pointer of the class.
+	 */
+    typedef boost::shared_ptr<Raytracing3DBasedSingleCameraModelFilter> Raytracing3DBasedSingleCameraModelFilterPtr;
 }
-

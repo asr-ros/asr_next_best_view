@@ -29,10 +29,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_datatypes.h>
+#include <dynamic_reconfigure/Reconfigure.h>
 
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/GetNextBestView.h"
@@ -57,8 +56,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ros/master.h>
 
 using namespace next_best_view;
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-typedef boost::shared_ptr<MoveBaseClient> MoveBaseClientPtr;
 
 class BaseTest {
 protected:
@@ -70,6 +67,7 @@ protected:
     ros::ServiceClient mGetNextBestViewClient;
     ros::ServiceClient mUpdatePointCloudClient;
     ros::ServiceClient mResetCalculatorClient;
+    ros::ServiceClient mDynParametersClient;
     bool silent;
 public:
     BaseTest();
@@ -93,5 +91,18 @@ public:
     SimpleQuaternion euler2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
 
     SimpleQuaternion ZXZ2Quaternion( const Precision roll, const Precision pitch, const Precision yaw);
+
+    template<typename T> bool getParameter(const std::string &key, T &parameter)
+    {
+        if (!mNodeHandle->getParam(key, parameter))
+        {
+            ROS_ERROR_STREAM(key << " parameter not set!");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
 };
 

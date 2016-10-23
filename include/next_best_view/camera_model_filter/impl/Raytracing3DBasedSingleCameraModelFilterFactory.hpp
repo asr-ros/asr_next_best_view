@@ -19,26 +19,26 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "next_best_view/helper/MapHelperFactory.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedSingleCameraModelFilter.hpp"
+#include "next_best_view/helper/WorldHelper.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilterAbstractFactory.hpp"
 
 namespace next_best_view {
 
-   class Raytracing2DBasedSingleCameraModelFilterFactory : public CameraModelFilterAbstractFactory {
+   class Raytracing3DBasedSingleCameraModelFilterFactory : public CameraModelFilterAbstractFactory {
    private:
-       MapHelperFactoryPtr mapHelperFactory;
+       WorldHelperPtr worldHelperPtr;
        SimpleVector3 oneCameraPivotPointOffset;
        double fovx, fovy;
        double fcp, ncp;
        double speedFactorRecognizer;
 
    public:
-       Raytracing2DBasedSingleCameraModelFilterFactory(MapHelperFactoryPtr mapHelperFactory,
+       Raytracing3DBasedSingleCameraModelFilterFactory(const WorldHelperPtr &worldHelperPtr,
                                                        SimpleVector3 oneCameraPivotPointOffset,
                                                        double fovx, double fovy,
                                                        double fcp, double ncp, double speedFactorRecognizer)
-           : mapHelperFactory(mapHelperFactory),
+           : worldHelperPtr(worldHelperPtr),
              oneCameraPivotPointOffset(oneCameraPivotPointOffset),
              fovx(fovx), fovy(fovy),
              fcp(fcp), ncp(ncp),
@@ -46,7 +46,7 @@ namespace next_best_view {
        { }
 
        CameraModelFilterPtr createCameraModelFilter() {
-           CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedSingleCameraModelFilter(mapHelperFactory->createMapHelper(), oneCameraPivotPointOffset));
+           CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedSingleCameraModelFilter(worldHelperPtr, oneCameraPivotPointOffset));
            cameraModelFilter->setHorizontalFOV(fovx);
            cameraModelFilter->setVerticalFOV(fovy);
            cameraModelFilter->setNearClippingPlane(ncp);
@@ -55,7 +55,7 @@ namespace next_best_view {
            return cameraModelFilter;
        }
    };
-   typedef boost::shared_ptr<Raytracing2DBasedSingleCameraModelFilterFactory> Raytracing2DBasedSingleCameraModelFilterFactoryPtr;
+   typedef boost::shared_ptr<Raytracing3DBasedSingleCameraModelFilterFactory> Raytracing3DBasedSingleCameraModelFilterFactoryPtr;
 }
 
 

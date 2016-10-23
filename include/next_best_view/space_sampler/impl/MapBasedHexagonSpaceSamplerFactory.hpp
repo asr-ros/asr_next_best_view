@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "next_best_view/helper/MapHelperFactory.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSamplerAbstractFactory.hpp"
 
@@ -27,18 +27,18 @@ namespace next_best_view {
 
     class MapBasedHexagonSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperFactoryPtr mapHelperFactory;
-        double radius;
+        MapHelperPtr mMapHelperPtr;
+        double mRadius;
 
     public:
-        MapBasedHexagonSpaceSamplerFactory(MapHelperFactoryPtr mapHelperFactory, double radius)
-            : mapHelperFactory(mapHelperFactory),
-              radius(radius)
+        MapBasedHexagonSpaceSamplerFactory(MapHelperPtr mapHelper, double radius)
+            : mMapHelperPtr(mapHelper),
+              mRadius(radius)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mapHelperFactory->createMapHelper()));
-            mapBasedHexagonSpaceSampler->setHexagonRadius(radius);
+            MapBasedHexagonSpaceSamplerPtr mapBasedHexagonSpaceSampler = MapBasedHexagonSpaceSamplerPtr(new MapBasedHexagonSpaceSampler(mMapHelperPtr));
+            mapBasedHexagonSpaceSampler->setHexagonRadius(mRadius);
             return mapBasedHexagonSpaceSampler;
         }
     };

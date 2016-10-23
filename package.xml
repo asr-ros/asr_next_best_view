@@ -1,9 +1,10 @@
 <package>
   <name>next_best_view</name>
-  <description>next_best_view</description>
   <version>1.0.0</version>
+  <description>This package calculates the position and orientation for a robot where it is most likely to find and recognize an object</description>
+  <author>Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij</author>
+  <maintainer email="pascal.meissner@posteo.de">Meißner Pascal</maintainer>
   <license>BSD-derived</license>
-  <maintainer email="pascal.meissner@kit.edu">Meißner Pascal</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
@@ -20,6 +21,8 @@
   <build_depend>pbd_msgs</build_depend>
   <build_depend>world_model</build_depend>
   <build_depend>rapidxml</build_depend>
+  <build_depend>voxel_grid</build_depend>
+  <build_depend>assimp</build_depend>
 
 
   <run_depend>world_model</run_depend>
@@ -35,6 +38,8 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>rapidxml</run_depend>
+  <run_depend>voxel_grid</run_depend>
+  <run_depend>assimp</run_depend>
 
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp -I${prefix}/srv/cpp" lflags="-L${prefix}/lib"/>

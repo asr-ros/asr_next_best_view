@@ -65,6 +65,7 @@ namespace next_best_view {
 		};
 
         std::string type;
+        std::string identifier;
 		SimpleVector3CollectionPtr normal_vectors;
 		IndicesPtr active_normal_vectors;
         std_msgs::ColorRGBA color;

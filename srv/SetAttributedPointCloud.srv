@@ -1,5 +1,5 @@
 pbd_msgs/PbdAttributedPointCloud point_cloud
+pbd_msgs/PbdViewport[] viewports_to_filter
 ---
 bool is_valid
-int32 active_normals
-uint32 deactivated_object_normals
+NormalsInfo[] normals_per_object
