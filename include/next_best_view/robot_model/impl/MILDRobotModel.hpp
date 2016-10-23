@@ -55,6 +55,20 @@ namespace next_best_view {
         tf::TransformListener listener;
         MapHelperPtr mMapHelperPtr;
 
+        /*!
+         * contains the definitions of the robot's frame names
+         */
+        std::string mFrameName_map;
+        std::string mFrameName_mild_base;
+        std::string mFrameName_mild_ptu_base_link;
+        std::string mFrameName_mild_ptu_pan_link;
+        std::string mFrameName_mild_ptu_pan_link_rotated;
+        std::string mFrameName_mild_ptu_tilt_link;
+        std::string mFrameName_mild_ptu_tilt_link_rotated;
+        std::string mFrameName_mild_camera_mount_link;
+        std::string mFrameName_mild_camera_left;
+        std::string mFrameName_mild_camera_right;
+
 		/*!
 		 * contains the lower and upper limit of pan
 		 */

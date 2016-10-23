@@ -354,8 +354,6 @@ namespace next_best_view {
         // Set output values
 		// set pan
         targetMILDRobotState->pan = pan;
-        //if (targetMILDRobotState->pan < -M_PI) { targetMILDRobotState->pan += 2 * M_PI; };
-        //if (targetMILDRobotState->pan > M_PI) { targetMILDRobotState->pan -= 2 * M_PI; };
 
 		// set rotation
         targetMILDRobotState->rotation = this->getBaseAngleFromBaseFrame(base_Frame);
@@ -550,18 +548,18 @@ namespace next_best_view {
         //Get Parameters from TF-Publishers
         tf::StampedTransform panToTiltTF, baseToPanTF, tiltToCamLeftTF, tiltToCamRightTF;
         Eigen::Affine3d tiltAxisPointEigen, tiltToCamLeftEigen, tiltToCamRightEigen, cameraLeftPointEigen, cameraRightPointEigen, cameraMidPointEigen;
-        ROS_INFO_STREAM("Looking up tf transforms");
+        ROS_INFO_STREAM("Looking up tf transforms (" << mFrameName_map << " to " << mFrameName_mild_ptu_tilt_link_rotated << ")");
         ros::spinOnce();
         try
         {      
             //Wait for first transform to be published
-            if (listener.waitForTransform("/map", "/ptu_mount_link", ros::Time(), ros::Duration(4.0)))
+            if (listener.waitForTransform(mFrameName_map, mFrameName_mild_ptu_tilt_link_rotated, ros::Time(), ros::Duration(4.0)))
             {
                 //Assume that tf is alive and lookups will be successful
-                listener.lookupTransform("/ptu_pan_link_rotated", "/ptu_tilt_link", ros::Time(0), panToTiltTF);
-                listener.lookupTransform("/base_link", "/ptu_pan_link", ros::Time(0), baseToPanTF);
-                listener.lookupTransform("/ptu_tilted_link", "/camera_left_frame", ros::Time(0), tiltToCamLeftTF);
-                listener.lookupTransform("/ptu_tilted_link", "/camera_right_frame", ros::Time(0), tiltToCamRightTF);
+                listener.lookupTransform(mFrameName_mild_ptu_pan_link_rotated, mFrameName_mild_ptu_tilt_link, ros::Time(0), panToTiltTF);
+                listener.lookupTransform(mFrameName_mild_base, mFrameName_mild_ptu_pan_link, ros::Time(0), baseToPanTF);
+                listener.lookupTransform(mFrameName_mild_ptu_tilt_link_rotated, mFrameName_mild_camera_left, ros::Time(0), tiltToCamLeftTF);
+                listener.lookupTransform(mFrameName_mild_ptu_tilt_link_rotated, mFrameName_mild_camera_right, ros::Time(0), tiltToCamRightTF);
             }
             else
             {
@@ -640,7 +638,7 @@ namespace next_best_view {
     {
         visualization_msgs::Marker resetMarker = visualization_msgs::Marker();
         resetMarker.id = 0;
-        resetMarker.header.frame_id = "/map";
+        resetMarker.header.frame_id = mFrameName_map;
         resetMarker.action = visualization_msgs::Marker::DELETE;
         resetMarker.lifetime = ros::Duration();
         resetMarker.scale.x = 0.02;
@@ -756,7 +754,7 @@ namespace next_best_view {
     {
         visualization_msgs::Marker pointMarker = visualization_msgs::Marker();
         pointMarker.header.stamp = ros::Time();
-        pointMarker.header.frame_id = "/map";
+        pointMarker.header.frame_id = mFrameName_map;
         pointMarker.type = pointMarker.SPHERE;
         pointMarker.action = pointMarker.ADD;
         pointMarker.id = id;
@@ -792,7 +790,7 @@ namespace next_best_view {
         geometry_msgs::Point point1, point2;
         visualization_msgs::Marker arrowMarker = visualization_msgs::Marker();
         arrowMarker.header.stamp = ros::Time();
-        arrowMarker.header.frame_id = "/map";
+        arrowMarker.header.frame_id = mFrameName_map;
         arrowMarker.type = arrowMarker.ARROW;
         arrowMarker.action = arrowMarker.ADD;
         arrowMarker.id = id;
