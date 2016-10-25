@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "next_best_view/helper/MapHelperFactory.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedRandomSpaceSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSamplerAbstractFactory.hpp"
 
@@ -27,17 +27,17 @@ namespace next_best_view {
 
     class MapBasedRandomSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperFactoryPtr mapHelperFactory;
-        int sampleSize;
+        MapHelperPtr mMapHelperPtr;
+        int mSampleSize;
 
     public:
-        MapBasedRandomSpaceSamplerFactory(MapHelperFactoryPtr mapHelperFactory, int sampleSize)
-            : mapHelperFactory(mapHelperFactory),
-              sampleSize(sampleSize)
+        MapBasedRandomSpaceSamplerFactory(MapHelperPtr mapHelper, int sampleSize)
+            : mMapHelperPtr(mapHelper),
+              mSampleSize(sampleSize)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mapHelperFactory->createMapHelper(), sampleSize));
+            MapBasedRandomSpaceSamplerPtr mapBasedRandomSpaceSampler = MapBasedRandomSpaceSamplerPtr(new MapBasedRandomSpaceSampler(mMapHelperPtr, mSampleSize));
             return mapBasedRandomSpaceSampler;
         }
     };

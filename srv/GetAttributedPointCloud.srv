@@ -1,2 +1,3 @@
+int32 minNumberNormals
 ---
 pbd_msgs/PbdAttributedPointCloud point_cloud

@@ -20,32 +20,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/test_cases/BaseTest.h"
 
 using namespace next_best_view;
+using namespace dynamic_reconfigure;
 
     BaseTest::BaseTest() {
-        init(true, true);
+        initRosServicesAndPublishers();
     }
 
     BaseTest::BaseTest(bool useRos, bool silent) {
-        init(useRos, silent);
+        this->silent = silent;
+        if (useRos) {
+            initRosServicesAndPublishers();
+        }
     }
 
     BaseTest::~BaseTest() {}
 
-    void BaseTest::init(bool useRos, bool silent)
-    {
-        // init node handle
+    void BaseTest::initRosServicesAndPublishers() {
         this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
 
-        // init publishers
-        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
-
-        this->silent = silent;
-        if (useRos) {
-            initRosServices();
-        }
-    }
-
-    void BaseTest::initRosServices() {
         // services
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
@@ -59,6 +51,11 @@ using namespace next_best_view;
         mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
+        ros::service::waitForService("/nbv/set_parameters", -1);
+        mDynParametersClient = mNodeHandle->serviceClient<Reconfigure>("/nbv/set_parameters");
+
+        // publishers
+        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
     }
 
     void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {

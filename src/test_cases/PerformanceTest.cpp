@@ -22,11 +22,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <boost/test/included/unit_test.hpp>
 
 #include "next_best_view/test_cases/BaseTest.h"
+#include <dynamic_reconfigure/IntParameter.h>
 #include <chrono>
 #include <fstream>
 
 using namespace next_best_view;
 using namespace boost::unit_test;
+using namespace dynamic_reconfigure;
 
 class PerformanceTest : public BaseTest {
 
@@ -38,49 +40,68 @@ public:
 
     void iterationTest() {
         ros::NodeHandle nh;
+
+        // where results are written to
         std::string testResultPath;
         nh.getParam("/test/testResultFilePath", testResultPath);
 
-        std::ofstream file(testResultPath.c_str(), std::ios::out | std::ios::trunc);
-        file << "HP,SampleSize,TotalNBV,AvgNBV,TotalUpd,AvgUpd" << std::endl;
-        ROS_INFO_STREAM("Writing to " << testResultPath);
+        // get number of threads per test run from launch file/param
+        std::vector<int> nThreadsPerTestRun;
+        nh.getParam("/test/nThreads", nThreadsPerTestRun);
 
         ResetCalculator reca;
         std::chrono::time_point<std::chrono::system_clock> start, end;
-        unsigned int numberOfTestRuns = 10;
 	
         double totalTimeNBV, totalTimeUpdate;
         SimpleVector3* hp = new SimpleVector3[15];
-        hp[0] = SimpleVector3(2.2320508103, 22.2942286316,0.8);
-        hp[1] = SimpleVector3(3.09807621388, 21.7942286312,0.8);
-        hp[2] = SimpleVector3(3.96410161747, 21.2942286309,0.8);
-        hp[3] = SimpleVector3(4.83012702105, 20.7942286305,0.8);
-        hp[4] = SimpleVector3(5.69615242463, 20.2942286302,0.8);
-        hp[5] = SimpleVector3(6.56217782822, 19.7942286298,0.8);
-        hp[6] = SimpleVector3(7.4282032318, 19.2942286295,0.8);
-        hp[7] = SimpleVector3(8.29422863538, 18.7942286291,0.8);
-        hp[8] = SimpleVector3(9.16025403897, 18.2942286288,0.8);
-        hp[9] = SimpleVector3(10.0262794426, 17.7942286284,0.8);
-        hp[10] = SimpleVector3(10.8923048461, 17.2942286281,0.8);
-        hp[11] = SimpleVector3(11.7583302497, 16.7942286277,0.8);
-        hp[12] = SimpleVector3(12.6243556533, 16.2942286274,0.8);
-        hp[13] = SimpleVector3(13.4903810569, 15.794228627,0.8);
-        hp[14] = SimpleVector3(14.3564064605, 15.2942286267,0.8);
+        hp[0] = SimpleVector3(3.09807621388, 21.7942286312,1.32);
+        hp[1] = SimpleVector3(3.96410161747, 21.2942286309,1.32);
+        hp[2] = SimpleVector3(4.83012702105, 20.7942286305,1.32);
+        hp[3] = SimpleVector3(5.69615242463, 20.2942286302,1.32);
+        hp[4] = SimpleVector3(6.56217782822, 19.7942286298,1.32);
+        hp[5] = SimpleVector3(7.4282032318, 19.2942286295,1.32);
+        hp[6] = SimpleVector3(8.29422863538, 18.7942286291,1.32);
+        hp[7] = SimpleVector3(9.16025403897, 18.2942286288,1.32);
+        hp[8] = SimpleVector3(10.0262794426, 17.7942286284,1.32);
+        hp[9] = SimpleVector3(10.8923048461, 17.2942286281,1.32);
+        hp[10] = SimpleVector3(11.7583302497, 16.7942286277,1.32);
+        hp[11] = SimpleVector3(12.6243556533, 16.2942286274,1.32);
+        hp[12] = SimpleVector3(13.4903810569, 15.794228627,1.32);
+        hp[13] = SimpleVector3(14.3564064605, 15.2942286267,1.32);
+        hp[14] = SimpleVector3(15.2224318641, 14.7942286267,1.32);
 
-        ROS_INFO("Generiere Häufungspunkte");
-		// Häufungspunkte
-        for(unsigned int sampleSize = 50; sampleSize<=400; sampleSize+=50)
-        {
+        for (unsigned int i = 0; i < nThreadsPerTestRun.size(); i++) {
+            // run whole test with nThreads
+            int nThreads = nThreadsPerTestRun[i];
 
-            for(unsigned int hpSize = 1; hpSize <= 15; hpSize++)
+            // file where results are written to
+            std::string fileName = testResultPath + "_" + std::to_string(nThreads) + "_threads.csv";
+            std::ofstream file(fileName, std::ios::out | std::ios::trunc);
+            file << "HP,SampleSize,TotalNBV,AvgNBV,TotalUpd,AvgUpd" << std::endl;
+            ROS_INFO_STREAM("Writing to " << testResultPath);
+
+            // change nThreads used to rate using dynParams
+            Reconfigure reconf;
+            IntParameter nThreadsParam;
+            nThreadsParam.name = "nRatingThreads";
+            nThreadsParam.value = nThreads;
+            reconf.request.config.ints.clear();
+            reconf.request.config.ints.push_back(nThreadsParam);
+            mDynParametersClient.call(reconf.request, reconf.response);
+            ROS_INFO_STREAM("nThreads set to " << nThreads);
+
+
+            ROS_INFO("Generating clusters");
+            // clusters
+            for(unsigned int sampleSize = 50; sampleSize<=400; sampleSize+=50)
             {
-                int countNBV = 0;
-                int countUpdate = 0;
-                totalTimeNBV = 0;
-                totalTimeUpdate = 0;
-                for (unsigned int testRun = 0; testRun < numberOfTestRuns; testRun++)
+
+                for(unsigned int hpSize = 1; hpSize <= 15; hpSize++)
                 {
-                    std::cout << "Starting iteration " << testRun + 1 << std::endl;
+                    int countNBV = 0;
+                    int countUpdate = 0;
+                    totalTimeNBV = 0;
+                    totalTimeUpdate = 0;
                     SetAttributedPointCloud apc;
 
                     SimpleQuaternion* orientation = new SimpleQuaternion[hpSize];
@@ -123,10 +144,10 @@ public:
                     std::cout << "point cloud size " << apc.request.point_cloud.elements.size() << std::endl;
 
 
-                    //Resete den calculator vor jedem test
+                    // reset calculator before each test
                     mResetCalculatorClient.call(reca.request, reca.response);
 
-                    ROS_INFO("Setze initiale Pose");
+                    ROS_INFO("set initial pose");
                     geometry_msgs::Pose initialPose;
                     initialPose.position.x = 1.64;
                     initialPose.position.y = 22.73;
@@ -150,7 +171,7 @@ public:
                     //ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
                     bool setPointCloud = false;
                     int x = 1;
-                    std::cout << "HaufungsPunkt : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
+                    std::cout << "Cluster : " << hpSize << ", SamplingSize " << sampleSize << std::endl;
                     while(ros::ok()) {
                         if(apc.request.point_cloud.elements.size() == 0)
                         {
@@ -206,32 +227,32 @@ public:
                         ros::spinOnce();
                         ros::Duration(0.5).sleep();
                     }
+                    file << hpSize << "," << sampleSize << ",";
+                    if (countNBV > 0)
+                    {
+                        file << totalTimeNBV << "," << totalTimeNBV /(double)countNBV << ",";
+                        std::cout << "Total time NBV : " << totalTimeNBV << std::endl;
+                        std::cout << "Average time NBV : " << totalTimeNBV /(double)countNBV << std::endl;
+                    }
+                    else
+                    {
+                        file << "0,0,";
+                    }
+                    if (countUpdate > 0)
+                    {
+                        file << totalTimeUpdate << "," << totalTimeUpdate / (double)countUpdate << std::endl;
+                        std::cout << "Total time update : " << totalTimeUpdate << std::endl;
+                        std::cout << "Average time update : " << totalTimeUpdate / (double)countUpdate << std::endl;
+                    }
+                    else
+                    {
+                        file << "0,0" << std::endl;
+                    }
+                    std::cout << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
                 }
-                file << hpSize << "," << sampleSize << ",";
-                if (countNBV > 0)
-                {
-                    file << totalTimeNBV << "," << totalTimeNBV /(double)countNBV << ",";
-                    std::cout << "Total time NBV : " << totalTimeNBV << std::endl;
-                    std::cout << "Average time NBV : " << totalTimeNBV /(double)countNBV << std::endl;
-                }
-                else
-                {
-                    file << "0,0,";
-                }
-                if (countUpdate > 0)
-                {
-                    file << totalTimeUpdate << "," << totalTimeUpdate / (double)countUpdate << std::endl;
-                    std::cout << "Total time update : " << totalTimeUpdate << std::endl;
-                    std::cout << "Average time update : " << totalTimeUpdate / (double)countUpdate << std::endl;
-                }
-                else
-                {
-                    file << "0,0" << std::endl;
-                }
-                std::cout << "Iteration count : " << countNBV << " / " << countUpdate << std::endl;
             }
+            file.close();
         }
-      file.close();
     }
 };
 

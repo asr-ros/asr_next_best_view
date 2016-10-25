@@ -18,16 +18,25 @@ show_frustum_marker_array: true
 show_normals: true
 visualizeIK: false
 IKAngleRating: ANGLE_APPROXIMATION #The rating algorithm used for the orientation angle sampling in the MILDRobotModelWithExactIK module. Available algorithms are: ANGLE_APPROXIMATION, NAVIGATION_PATH, SIMPLE
-# cameraFilterId == 1 => MapBasedStereoCameraModelFilter
+# cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
 # cameraFilterId == 2 => StereoCameraModelFilter
-# cameraFilterId == 3 => MapBasedSingleCameraModelFilter
+# cameraFilterId == 3 => Raytracing3DBasedSingleCameraModelFilter
 # cameraFilterId == 4 => SingleCameraModelFilter
 # Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
 # Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
 cameraFilterId: 2
+voxelSize: 0.04
+worldHeight: 3
+worldFilePath: ./rsc/world/world.xml
+visualizeRaytracing: false
 # ratingModuleId == 1 => DefaultRatingModule
 ratingModuleId: 1
+# enable parts of utility calculation
+useOrientationUtility: true
+useProximityUtility: true
+useSideUtility: true
 # hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
+# hypothesisUpdaterId == 2 => DefaultHypothesisUpdater
 hypothesisUpdaterId: 1
 # robotModelId == 1 => MILDRobotModelWithExactIK
 # robotModelId == 2 => MILDRobotModelWithApproximatedIK
@@ -56,4 +65,6 @@ spaceSamplerId: 1
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
-debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
+disableInvalidNormals: true
+nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
+debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

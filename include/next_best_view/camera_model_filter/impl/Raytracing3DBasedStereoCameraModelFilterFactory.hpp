@@ -19,15 +19,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "next_best_view/helper/MapHelperFactory.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing2DBasedStereoCameraModelFilter.hpp"
+#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilterAbstractFactory.hpp"
 
 namespace next_best_view {
 
-    class Raytracing2DBasedStereoCameraModelFilterFactory : public CameraModelFilterAbstractFactory {
+    class Raytracing3DBasedStereoCameraModelFilterFactory : public CameraModelFilterAbstractFactory {
     private:
-        MapHelperFactoryPtr mapHelperFactory;
+        WorldHelperPtr worldHelperPtr;
         SimpleVector3 leftCameraPivotPointOffset;
         SimpleVector3 rightCameraPivotPointOffset;
         double fovx, fovy;
@@ -35,12 +34,12 @@ namespace next_best_view {
         double speedFactorRecognizer;
 
     public:
-        Raytracing2DBasedStereoCameraModelFilterFactory(MapHelperFactoryPtr mapHelperFactory,
+        Raytracing3DBasedStereoCameraModelFilterFactory(const WorldHelperPtr &worldHelperPtr,
                                                         SimpleVector3 leftCameraPivotPointOffset,
                                                         SimpleVector3 rightCameraPivotPointOffset,
                                                         double fovx, double fovy,
                                                         double fcp, double ncp, double speedFactorRecognizer)
-            : mapHelperFactory(mapHelperFactory),
+            : worldHelperPtr(worldHelperPtr),
               leftCameraPivotPointOffset(leftCameraPivotPointOffset),
               rightCameraPivotPointOffset(rightCameraPivotPointOffset),
               fovx(fovx), fovy(fovy),
@@ -49,7 +48,7 @@ namespace next_best_view {
         { }
 
         CameraModelFilterPtr createCameraModelFilter() {
-            CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new Raytracing2DBasedStereoCameraModelFilter(mapHelperFactory->createMapHelper(), leftCameraPivotPointOffset, rightCameraPivotPointOffset));
+            CameraModelFilterPtr cameraModelFilter = CameraModelFilterPtr(new Raytracing3DBasedStereoCameraModelFilter(worldHelperPtr, leftCameraPivotPointOffset, rightCameraPivotPointOffset));
             cameraModelFilter->setHorizontalFOV(fovx);
             cameraModelFilter->setVerticalFOV(fovy);
             cameraModelFilter->setNearClippingPlane(ncp);
@@ -58,6 +57,6 @@ namespace next_best_view {
             return cameraModelFilter;
         }
     };
-    typedef boost::shared_ptr<Raytracing2DBasedStereoCameraModelFilterFactory> Raytracing2DBasedStereoCameraModelFilterFactoryPtr;
+    typedef boost::shared_ptr<Raytracing3DBasedStereoCameraModelFilterFactory> Raytracing3DBasedStereoCameraModelFilterFactoryPtr;
 }
 

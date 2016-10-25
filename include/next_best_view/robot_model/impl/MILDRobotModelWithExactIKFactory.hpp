@@ -26,22 +26,22 @@ namespace next_best_view {
 
     class MILDRobotModelWithExactIKFactory : public RobotModelAbstractFactory {
     private:
-        float minTiltAngleDegrees, maxTiltAngleDegrees;
-        float minPanAngleDegrees, maxPanAngleDegrees;
+        float mMinTiltAngleDegrees, mMaxTiltAngleDegrees;
+        float mMinPanAngleDegrees, mMaxPanAngleDegrees;
 
     public:
         MILDRobotModelWithExactIKFactory(float minTiltAngleDegrees, float maxTiltAngleDegrees,
                                                 float minPanAngleDegrees, float maxPanAngleDegrees)
-            : minTiltAngleDegrees(minTiltAngleDegrees),
-              maxTiltAngleDegrees(maxTiltAngleDegrees),
-              minPanAngleDegrees(minPanAngleDegrees),
-              maxPanAngleDegrees(maxPanAngleDegrees)
+            : mMinTiltAngleDegrees(minTiltAngleDegrees),
+              mMaxTiltAngleDegrees(maxTiltAngleDegrees),
+              mMinPanAngleDegrees(minPanAngleDegrees),
+              mMaxPanAngleDegrees(maxPanAngleDegrees)
         { }
 
         RobotModelPtr createRobotModel() {
             MILDRobotModel* robotModel = new MILDRobotModelWithExactIK();
-            robotModel->setPanAngleLimits(minPanAngleDegrees, maxPanAngleDegrees);
-            robotModel->setTiltAngleLimits(minTiltAngleDegrees, maxTiltAngleDegrees);
+            robotModel->setPanAngleLimits(mMinPanAngleDegrees, mMaxPanAngleDegrees);
+            robotModel->setTiltAngleLimits(mMinTiltAngleDegrees, mMaxTiltAngleDegrees);
             return RobotModelPtr(robotModel);
         }
     };

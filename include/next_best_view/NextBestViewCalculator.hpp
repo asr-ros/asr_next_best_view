@@ -71,7 +71,7 @@ private:
     float mEpsilon;
     ObjectTypeSetPtr mObjectTypeSetPtr;
     DebugHelperPtr mDebugHelperPtr;
-    VisualizationHelper mVisHelper;
+    VisualizationHelperPtr mVisHelperPtr;
 
     bool mEnableCropBoxFiltering;
     bool mEnableIntermediateObjectWeighting;
@@ -81,6 +81,9 @@ private:
     int mNumberOfThreads;
     std::vector<CameraModelFilterPtr> mThreadCameraModels;
     std::vector<RatingModulePtr> mThreadRatingModules;
+
+    double mMinUtility;
+    bool disableInvalidNormals;
 
 public:
 
@@ -98,11 +101,11 @@ public:
           mCameraModelFilterPtr(cameraModelFilterPtr),
           mRatingModulePtr(ratingModulePtr),
           mEpsilon(10E-3),
-          mVisHelper(),
           mNumberOfThreads(boost::thread::hardware_concurrency()),
           mThreadCameraModels(mNumberOfThreads),
           mThreadRatingModules(mNumberOfThreads) {
 
+        setMapHelper(mapHelperPtr);
         mDebugHelperPtr = DebugHelper::getInstance();
     }
 
@@ -119,14 +122,8 @@ public:
         mDebugHelperPtr->write("Calculate discrete set of view orientations on unit sphere",
                                 DebugHelper::CALCULATION);
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
-        SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
-        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
+        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
-        BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
-            if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
-                feasibleOrientationsCollectionPtr->push_back(q);
-            }
-        }
         // create the next best view point cloud
         bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 
@@ -308,6 +305,7 @@ private:
                 //Skip viewport if no object point is within frustum.
                 continue;
             }
+
             //For given viewport(combination of robot position and camera viewing direction)
             // get combination of objects (all present in frustum) to search for and the corresponding score for viewport, given that combination.
             mDebugHelperPtr->write("Getting viewport with optimal object constellation for given position & orientation combination.",
@@ -409,70 +407,32 @@ private:
                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                          ViewportPoint &resultViewport, int iterationStep) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
-        auto begin = std::chrono::high_resolution_clock::now();
-        auto finish = std::chrono::high_resolution_clock::now();
 
         // current camera position
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
         //Calculate grid for resolution given in this iteration step.
-        SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(currentBestPosition, contractor);
-
-        //Set height of sample points as it is set to zero by space sampler
-        this->setHeight(sampledSpacePointCloudPtr, currentBestPosition[2]);
-
-        begin = std::chrono::high_resolution_clock::now();
-        IndicesPtr feasibleIndicesPtr;
-        //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
-        this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
+        SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
 
         //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
-        if (feasibleIndicesPtr->size() == 1 && this->getEpsilon() < contractor) {
+        if (sampledSpacePointCloudPtr->size() == 1 && this->getEpsilon() < contractor) {
             mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
                                    DebugHelper::VISUALIZATION);
             bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return success;
         }
-        finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("filter feasible spacesamples took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
-        begin = std::chrono::high_resolution_clock::now();
         //Create list of all view ports that are checked during this iteration step.
-        ViewportPointCloudPtr sampleNextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
+        ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
 
-        // convert space sampling combined with sphere sampling to viewport sampling
-        for (int activeIndex : (*feasibleIndicesPtr)) {
-            SamplePoint &samplePoint = sampledSpacePointCloudPtr->at(activeIndex);
-            SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
-            IndicesPtr samplePointChildIndices = samplePoint.child_indices;
-
-            //For each space sample point: Go through all interesting orientations.
-            mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
-                                        DebugHelper::CALCULATION);
-            BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
-                // get the corresponding viewport
-                ViewportPoint sampleViewport(samplePointCoords, orientation);
-                // nearby object hypothesis for good estimation of possible hypothesis in frustum
-                sampleViewport.child_indices = samplePointChildIndices;
-                sampleViewport.object_type_set = mObjectTypeSetPtr;
-                sampleNextBestViewports->push_back(sampleViewport);
-            }
-        }
-        finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("generating took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-
-        begin = std::chrono::high_resolution_clock::now();
         // rate
         ViewportPointCloudPtr ratedNextBestViewportsPtr;
         if (!rateViewports(sampleNextBestViewports, currentCameraViewport, ratedNextBestViewportsPtr)) {
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return false;
         }
-        finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("rating took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
-        begin = std::chrono::high_resolution_clock::now();
         // sort
         // ascending -> last element hast best rating
         auto sortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
@@ -480,74 +440,23 @@ private:
             return mRatingModulePtr->compareViewports(a, b);
         };
         std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
-        finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("sort took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
-        // get result
-        resultViewport = ratedNextBestViewportsPtr->at(ratedNextBestViewportsPtr->size() - 1);//*std::max_element(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
-
-        begin = std::chrono::high_resolution_clock::now();
-        // get super sets
-        std::vector<Indices> superSets;
-        for (ViewportPoint &ratedViewport : *ratedNextBestViewportsPtr) {
-            bool isSubSetOfASuperSet = false;
-            for (Indices &superSet : superSets) {
-                if (MathHelper::isSuperSetOf(superSet, *ratedViewport.child_indices)) {
-                    isSubSetOfASuperSet = true;
-                    break;
-                }
-            }
-            if (!isSubSetOfASuperSet) {
-                // this child set might be a superSet
-                bool isSuperSet = false;
-                for (Indices &superSet : superSets) {
-                    if (MathHelper::isSuperSetOf(*ratedViewport.child_indices, superSet)) {
-                        superSet = *ratedViewport.child_indices;
-                        isSuperSet = true;
-                        break;
-                    }
-                }
-                if (!isSuperSet) {
-                    // we found a superSet that is distinct with all of our current superSets, so we just add it
-                    superSets.push_back(*ratedViewport.child_indices);
-                }
+        bool foundUtility = false;
+        BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+            if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
+                resultViewport = ratedViewport;
+                foundUtility = true;
+                break;
             }
         }
-        finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("get super sets took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-
-        ROS_INFO_STREAM("# of superSets: " << superSets.size());
-        begin = std::chrono::high_resolution_clock::now();
-        // output super indices
-        for (Indices& indices : superSets) {
-            std::ostringstream oss;
-            if (!indices.empty()) {
-                std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<int>(oss, ", "));
-                oss << indices.back();
-            }
-            ViewportPoint bestViewport;
-            float bestRating = -1.0;
-            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
-                if (MathHelper::isSubSetOf(*ratedViewport.child_indices, indices)) {
-                    if (!bestViewport.score || mRatingModulePtr->getRating(ratedViewport.score) > bestRating) {
-                        bestRating = mRatingModulePtr->getRating(ratedViewport.score);
-                        bestViewport = ratedViewport;
-                        break;
-                    }
-                }
-            }
-//            ROS_INFO_STREAM("indices: " << oss.str());
-//            ROS_INFO_STREAM("bestViewport: " << bestViewport);
+        if (!foundUtility) {
+            ROS_WARN_STREAM("every nbv has too little utility");
+            resultViewport = ratedNextBestViewportsPtr->back();
         }
-        // TODO: make stuff more efficient
-        // TODO: compare indices sets with each other
-        // TODO: generate viewports for next iteration, using best viewport per indices set.
-        finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("output super sets took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
         //Visualize iteration step and its result.
-        mVisHelper.triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
-                                                    feasibleIndicesPtr, sampledSpacePointCloudPtr, mSpaceSamplerPtr);
+        mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
+                                                    sampledSpacePointCloudPtr, mSpaceSamplerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
@@ -762,7 +671,7 @@ public:
             mDebugHelperPtr->write("setPointCloudFromMessage::Filtering point cloud finished.",
                                         DebugHelper::CALCULATION);
 
-            mVisHelper.triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
+            mVisHelperPtr->triggerCropBoxVisualization(mCropBoxFilterPtr->getCropBoxWrapperPtrList());
 
             outputPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*originalPointCloudPtr, *filteredObjectIndices));
 
@@ -796,10 +705,164 @@ public:
         }
 
         this->setPointCloudPtr(outputPointCloudPtr);
+
+        if (disableInvalidNormals) {
+            filterUnrechableNormals();
+        }
+
         return true;
     }
 
 private:
+
+    /**
+     * @brief filterUnrechableNormals this method really removes them so active_normals_vectors.size() == normal_vectors.size() is true.
+     */
+    void filterUnrechableNormals() {
+        //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
+        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 4.0), 1.32);
+
+        // remove all removeable normals
+        for (ViewportPoint sample : *sampleNextBestViewports) {
+            if (!doFrustumCulling(mCameraModelFilterPtr, sample))
+                continue;
+            mHypothesisUpdaterPtr->update(mObjectTypeSetPtr, sample);
+        }
+
+        // for each object make invalid normals -> valid normals
+        for (ObjectPoint o : *mPointCloudPtr) {
+            // debug invalid normals
+            std::stringstream ssInvalidNormals;
+            for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
+                if(i != 0) {
+                    ssInvalidNormals << ",";
+                }
+                ssInvalidNormals << (*o.active_normal_vectors)[i];
+            }
+            std::string s = ssInvalidNormals.str();
+            mDebugHelperPtr->write(std::stringstream() << "invalid ones: " << s, DebugHelper::CALCULATION);
+
+            // copy remaining normals = normals that cannot be removed
+            Indices invalidNormalVectorIndices = *o.active_normal_vectors;
+            std::sort(invalidNormalVectorIndices.begin(), invalidNormalVectorIndices.end());
+
+            // generate all normals without invalid normals
+            o.active_normal_vectors->clear();
+            unsigned int nextInvalidNormalVectorIdx = 0;
+            for (unsigned int i = 0; i < o.normal_vectors->size(); i++) {
+                if (nextInvalidNormalVectorIdx < invalidNormalVectorIndices.size() && i == (unsigned int) invalidNormalVectorIndices[nextInvalidNormalVectorIdx]) {
+                    nextInvalidNormalVectorIdx++;
+                } else {
+                    o.active_normal_vectors->push_back(i);
+                }
+            }
+
+            // set normal_vectors
+            SimpleVector3CollectionPtr newNormalVectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
+            for (int i : *o.active_normal_vectors) {
+                newNormalVectors->push_back(o.normal_vectors->at(i));
+            }
+            o.normal_vectors = newNormalVectors;
+
+            // debug output valid normals
+            if (mDebugHelperPtr->getLevel() & DebugHelper::CALCULATION) {
+                std::stringstream ssValidNormals;
+                for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
+                    if(i != 0) {
+                        ssValidNormals << ",";
+                    }
+                    ssValidNormals << (*o.active_normal_vectors)[i];
+                }
+                s = ssValidNormals.str();
+                mDebugHelperPtr->write(std::stringstream() << "valid ones: " << s, DebugHelper::CALCULATION);
+            }
+        }
+    }
+
+    /**
+     * @brief generateSampleViewports
+     * @param spaceSampleStartVector
+     * @param contractor
+     * @param pointCloudHeight
+     * @return
+     */
+    ViewportPointCloudPtr generateSampleViewports(SimpleVector3 spaceSampleStartVector, double contractor, double pointCloudHeight) {
+        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
+
+        SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(spaceSampleStartVector, contractor, pointCloudHeight);
+
+        ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, feasibleOrientationsCollectionPtr);
+
+        return sampleNextBestViewports;
+    }
+
+    /**
+     * @brief generateOrientationSamples
+     * @return
+     */
+    SimpleQuaternionCollectionPtr generateOrientationSamples() {
+        SimpleQuaternionCollectionPtr sampledOrientationsPtr = mUnitSphereSamplerPtr->getSampledUnitSphere();
+        SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
+
+        BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
+            if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
+                feasibleOrientationsCollectionPtr->push_back(q);
+            }
+        }
+
+        return feasibleOrientationsCollectionPtr;
+    }
+
+    /**
+     * @brief generateSpaceSamples
+     * @param spaceSampleStartVector
+     * @param contractor
+     * @param pointCloudHeight
+     * @return
+     */
+    SamplePointCloudPtr generateSpaceSamples(SimpleVector3 spaceSampleStartVector, double contractor, double pointCloudHeight) {
+        SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(spaceSampleStartVector, contractor);
+
+        //Set height of sample points as it is set to zero by space sampler
+        this->setHeight(sampledSpacePointCloudPtr, pointCloudHeight);
+
+        IndicesPtr feasibleIndicesPtr;
+        //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
+        this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
+
+        return SamplePointCloudPtr(new SamplePointCloud(*sampledSpacePointCloudPtr, *feasibleIndicesPtr));
+    }
+
+    /**
+     * @brief combines space samples and orientation samples to viewport samples
+     * @param sampledSpacePointCloudPtr
+     * @param sampledOrientationsPtr
+     * @param feasibleIndicesPtr
+     * @return
+     */
+    ViewportPointCloudPtr combineSamples(SamplePointCloudPtr sampledSpacePointCloudPtr, SimpleQuaternionCollectionPtr sampledOrientationsPtr) {
+        ViewportPointCloudPtr sampleNextBestViewports = ViewportPointCloudPtr(new ViewportPointCloud());
+
+        // convert space sampling combined with sphere sampling to viewport sampling
+        for (SamplePoint &samplePoint : (*sampledSpacePointCloudPtr)) {
+            SimpleVector3 samplePointCoords = samplePoint.getSimpleVector3();
+            IndicesPtr samplePointChildIndices = samplePoint.child_indices;
+
+            //For each space sample point: Go through all interesting orientations.
+            mDebugHelperPtr->write("Iterating over all orientations for a given robot position.",
+                                        DebugHelper::CALCULATION);
+            BOOST_FOREACH(SimpleQuaternion orientation, *sampledOrientationsPtr) {
+                // get the corresponding viewport
+                ViewportPoint sampleViewport(samplePointCoords, orientation);
+                // nearby object hypothesis for good estimation of possible hypothesis in frustum
+                sampleViewport.child_indices = samplePointChildIndices;
+                sampleViewport.object_type_set = mObjectTypeSetPtr;
+                sampleNextBestViewports->push_back(sampleViewport);
+            }
+        }
+        return sampleNextBestViewports;
+    }
+
     bool setNormals(const ObjectPoint& pointCloudPoint) {
         ObjectHelper objectHelper;
         // get object type information
@@ -1099,6 +1162,7 @@ public:
       */
     void setMapHelper(const MapHelperPtr &mapHelperPtr) {
         mMapHelperPtr = mapHelperPtr;
+        mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mMapHelperPtr));
     }
 
     /**
@@ -1181,6 +1245,62 @@ public:
      */
     CameraModelFilterAbstractFactoryPtr getCameraModelFilterAbstractFactoryPtr() {
         return mCameraModelFilterAbstractFactoryPtr;
+    }
+
+    /**
+     * @brief getNumberOfThreads
+     * @return
+     */
+    int getNumberOfThreads() const {
+        return mNumberOfThreads;
+    }
+
+    /**
+     * @brief sets number of threads used to rate samples, negative numbers use boost::thread::hardware_concurrency() as number of threads.
+     * @param value
+     */
+    void setNumberOfThreads(int value) {
+        if (value < 0) {
+            mNumberOfThreads = boost::thread::hardware_concurrency();
+        } else {
+            mNumberOfThreads = value;
+        }
+        // reinitialize camera modules and rating modules per thread
+        mThreadCameraModels.clear();
+        mThreadRatingModules.clear();
+        mThreadCameraModels.resize(mNumberOfThreads);
+        mThreadRatingModules.resize(mNumberOfThreads);
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            // set RatingModule per thread
+            if (mThreadRatingModules[i]) {
+                mThreadRatingModules[i].reset();
+            }
+            mThreadRatingModules[i] = mRatingModuleAbstractFactoryPtr->createRatingModule();
+            mThreadRatingModules[i]->setInputCloud(mPointCloudPtr);
+
+            // set CameraModule per thread
+            if (mThreadCameraModels[i]) {
+                mThreadCameraModels[i].reset();
+            }
+            mThreadCameraModels[i] = mCameraModelFilterAbstractFactoryPtr->createCameraModelFilter();
+            mThreadCameraModels[i]->setInputCloud(mPointCloudPtr);
+        }
+    }
+
+    double getMinUtility() const {
+        return mMinUtility;
+    }
+
+    void setMinUtility(double minUtility) {
+        mMinUtility = minUtility;
+    }
+
+    bool getDisableInvalidNormals() const {
+        return disableInvalidNormals;
+    }
+
+    void setDisableInvalidNormals(bool disableInvalidNormals) {
+        disableInvalidNormals = disableInvalidNormals;
     }
 };
 }

@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "next_best_view/helper/MapHelperFactory.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/space_sampler/impl/Raytracing2DBasedSpaceSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSamplerAbstractFactory.hpp"
 
@@ -27,15 +27,15 @@ namespace next_best_view {
 
     class Raytracing2DBasedSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperFactoryPtr mapHelperFactory;
+        MapHelperPtr mMapHelperPtr;
 
     public:
-        Raytracing2DBasedSpaceSamplerFactory(MapHelperFactoryPtr mapHelperFactory)
-            : mapHelperFactory(mapHelperFactory)
+        Raytracing2DBasedSpaceSamplerFactory(MapHelperPtr mapHelper)
+            : mMapHelperPtr(mapHelper)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            MapBasedSpaceSamplerPtr raytracing2DBasedSpaceSampler = MapBasedSpaceSamplerPtr(new Raytracing2DBasedSpaceSampler(mapHelperFactory->createMapHelper()));
+            MapBasedSpaceSamplerPtr raytracing2DBasedSpaceSampler = MapBasedSpaceSamplerPtr(new Raytracing2DBasedSpaceSampler(mMapHelperPtr));
             return raytracing2DBasedSpaceSampler;
         }
     };

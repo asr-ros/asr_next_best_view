@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <pcl-1.7/pcl/kdtree/kdtree_flann.h>
 #include <pcl-1.7/pcl/filters/frustum_culling.h>
 #include <pcl-1.7/pcl/filters/crop_box.h>
+#include <voxel_grid/voxel_grid.h>
 #include <set>
 #include <vector>
 
@@ -54,6 +55,7 @@ namespace next_best_view {
 	typedef SimpleVector3 SimpleSphereCoordinates;
 	typedef Eigen::Matrix<Precision, 4, 1> SimpleVector4;
 	typedef Eigen::Matrix<Precision, Eigen::Dynamic, 1> SimpleVectorX;
+    typedef Eigen::Matrix<int, 3, 1> GridVector3;
 
 	// vector list types
 	typedef std::vector<SimpleVector3, Eigen::aligned_allocator<SimpleVector3> > SimpleVector3Collection;
@@ -78,11 +80,15 @@ namespace next_best_view {
 	typedef RealObjectPoint ObjectPoint;
 	typedef SpaceSamplePoint SamplePoint;
 	typedef DefaultViewportPoint ViewportPoint;
+    typedef pcl::PointXYZ WorldPoint;
 
 	// defining different point cloud types
 	typedef pcl::PointCloud<ObjectPoint> ObjectPointCloud;
 	typedef ObjectPointCloud::Ptr ObjectPointCloudPtr;
 	typedef ObjectPointCloud::ConstPtr ObjectPointCloudConstPtr;
+    typedef pcl::PointCloud<WorldPoint> WorldPointCloud;
+    typedef WorldPointCloud::Ptr WorldPointCloudPtr;
+    typedef WorldPointCloud::ConstPtr WorldPointCloudConstPtr;
 
 	typedef pcl::PointCloud<SamplePoint> SamplePointCloud;
 	typedef SamplePointCloud::Ptr SamplePointCloudPtr;
@@ -120,6 +126,10 @@ namespace next_best_view {
     typedef boost::shared_ptr<ObjectTypeSet> ObjectTypeSetPtr;
     typedef std::set<ObjectTypeSetPtr> ObjectTypePowerSet;
     typedef boost::shared_ptr<ObjectTypePowerSet> ObjectTypePowerSetPtr;
+
+    // voxel grid types
+    typedef voxel_grid::VoxelGrid VoxelGrid;
+    typedef boost::shared_ptr<VoxelGrid> VoxelGridPtr;
 
 }
 

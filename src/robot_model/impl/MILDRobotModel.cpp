@@ -85,6 +85,50 @@ namespace next_best_view {
         speedFactorBaseRot = speedFactorBaseRot_;
         tolerance = tolerance_;
         mSigma = mSigma_;
+        //Read robot model frames
+        std::string strMap_, strMild_base_, strMild_ptu_base_link_, strMild_ptu_pan_link_, strMild_ptu_pan_link_rotated_, strMild_ptu_tilt_link_,
+        strMild_ptu_tilt_link_rotated_, strMild_camera_mount_link_, strMild_camera_left_, strMild_camera_right;
+        n.getParam("map_frame", strMap_);
+        n.getParam("base_frame", strMild_base_);
+        n.getParam("ptu_base_frame", strMild_ptu_base_link_);
+        n.getParam("ptu_pan_frame", strMild_ptu_pan_link_);
+        n.getParam("ptu_pan_frame_rotated", strMild_ptu_pan_link_rotated_);
+        n.getParam("ptu_tilt_frame", strMild_ptu_tilt_link_);
+        n.getParam("ptu_tilt_frame_rotated", strMild_ptu_tilt_link_rotated_);
+        n.getParam("camera_mount_frame", strMild_camera_mount_link_);
+        n.getParam("camera_left_frame", strMild_camera_left_);
+        n.getParam("camera_right_frame", strMild_camera_right);
+
+//        strMild_ptu_base_link_ = "/ptu_base_link";
+//        strMild_ptu_pan_link_ = "/ptu_pan_link";
+//        strMild_ptu_pan_link_rotated_ = "/ptu_pan_link_rotated";
+//        strMild_ptu_tilt_link_ = "/ptu_tilt_link";
+//        strMild_ptu_tilt_link_rotated_ = "/ptu_tilt_link_rotated";
+//        strMild_camera_mount_link_ = "/ptu_mount_link";
+//        strMild_camera_left_ = "/camera_left_frame";
+//        strMild_camera_right = "/camera_right_frame";
+
+        mDebugHelperPtr->write(std::stringstream() << "strMap_: " << strMap_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_base_: " << strMild_base_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_ptu_base_link_: " << strMild_ptu_base_link_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_ptu_pan_link_: " << strMild_ptu_pan_link_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_ptu_pan_link_rotated_: " << strMild_ptu_pan_link_rotated_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_ptu_tilt_link_: " << strMild_ptu_tilt_link_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_ptu_tilt_link_rotated_: " << strMild_ptu_tilt_link_rotated_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_camera_mount_link_: " << strMild_camera_mount_link_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_camera_left_: " << strMild_camera_left_, DebugHelper::PARAMETERS);
+        mDebugHelperPtr->write(std::stringstream() << "strMild_camera_right: " << strMild_camera_right, DebugHelper::PARAMETERS);
+
+        mFrameName_map = strMap_;
+        mFrameName_mild_base = strMild_base_;
+        mFrameName_mild_ptu_base_link = strMild_ptu_base_link_;
+        mFrameName_mild_ptu_pan_link = strMild_ptu_pan_link_;
+        mFrameName_mild_ptu_pan_link_rotated = strMild_ptu_pan_link_rotated_;
+        mFrameName_mild_ptu_tilt_link = strMild_ptu_tilt_link_;
+        mFrameName_mild_ptu_tilt_link_rotated = strMild_ptu_tilt_link_rotated_;
+        mFrameName_mild_camera_mount_link = strMild_camera_mount_link_;
+        mFrameName_mild_camera_left = strMild_camera_left_;
+        mFrameName_mild_camera_right = strMild_camera_right;
         this->setPanAngleLimits(0, 0);
         this->setTiltAngleLimits(0, 0);
         this->setRotationAngleLimits(0, 0);
@@ -96,7 +140,7 @@ namespace next_best_view {
     {
         geometry_msgs::Pose robotPose;
         tf::StampedTransform transform;
-        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+        listener.lookupTransform(mFrameName_map, mFrameName_mild_base, ros::Time(0), transform);
         robotPose.position.x = transform.getOrigin()[0];
         robotPose.position.y = transform.getOrigin()[1];
         robotPose.position.z = transform.getOrigin()[2];
@@ -108,7 +152,7 @@ namespace next_best_view {
     {
         geometry_msgs::Pose cameraPose;
         tf::StampedTransform transform;
-        listener.lookupTransform("/map", "/ptu_mount_link", ros::Time(0), transform);
+        listener.lookupTransform(mFrameName_map, mFrameName_mild_camera_mount_link, ros::Time(0), transform);
         cameraPose.position.x = transform.getOrigin()[0];
         cameraPose.position.y = transform.getOrigin()[1];
         cameraPose.position.z = transform.getOrigin()[2];
@@ -326,8 +370,8 @@ namespace next_best_view {
         mDebugHelperPtr->writeNoticeably("STARTING GET-NAVIGATION-PATH METHOD", DebugHelper::ROBOT_MODEL);
 
         nav_msgs::GetPlan srv;
-        srv.request.start.header.frame_id = "map";
-        srv.request.goal.header.frame_id = "map";
+        srv.request.start.header.frame_id = mFrameName_map;
+        srv.request.goal.header.frame_id = mFrameName_map;
         srv.request.start.pose.position = sourcePosition;
         srv.request.goal.pose.position = targetPosition;
         Eigen::Quaterniond sourceRotationEigen(Eigen::AngleAxisd(sourceRotationBase,Eigen::Vector3d::UnitZ()));

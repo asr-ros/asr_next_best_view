@@ -114,6 +114,15 @@ namespace next_best_view {
             mDebugHelperPtr->write("Map received", DebugHelper::MAP);
 			mMap = map;
 			mMapReceived = true;
+            mDebugHelperPtr->write(std::stringstream() << "Map resolution: " << mMap.info.resolution, DebugHelper::MAP);
+            mDebugHelperPtr->write(std::stringstream() << "Map translation: " << this->getTranslation(), DebugHelper::MAP);
+            mDebugHelperPtr->write(std::stringstream() << "Map orientation: " << this->getOrientation().w() << ", "
+                                                                                << this->getOrientation().x() << ", "
+                                                                                << this->getOrientation().y() << ", "
+                                                                                << this->getOrientation().z(),
+                                                                                                        DebugHelper::MAP);
+            mDebugHelperPtr->write(std::stringstream() << "Map metric width: " << this->getMetricWidth(), DebugHelper::MAP);
+            mDebugHelperPtr->write(std::stringstream() << "Map metric height: " << this->getMetricHeight(), DebugHelper::MAP);
 		}
 
         void setCostmap() {
@@ -333,24 +342,40 @@ namespace next_best_view {
 		}
 
 		void worldToMapCoordinates(const SimpleVector3 &position, int32_t &x, int32_t &y) {
-			SimpleVector3 translation = this->getTranslation();
-			SimpleQuaternion orientation = this->getOrientation();
-			SimpleMatrix3 rotationMatrix = orientation.toRotationMatrix();
-
-			// the map is rotated by rotation matrix, for back transform do a transpose.
-			SimpleVector3 continuousMapCoords = (rotationMatrix.transpose() * position - translation) / mMap.info.resolution;
+            SimpleVector3 continuousMapCoords;
+            worldToMapCoordinates(position, continuousMapCoords);
 
 			// get the map coords
 			x = (int32_t) floor(continuousMapCoords[0]);
 			y = (int32_t) floor(continuousMapCoords[1]);
 		}
 
+        void worldToMapCoordinates(const SimpleVector3 &position, SimpleVector3 &result) {
+            SimpleVector3 translation = this->getTranslation();
+            SimpleQuaternion orientation = this->getOrientation();
+            SimpleMatrix3 rotationMatrix = orientation.toRotationMatrix();
+
+            // the map is rotated by rotation matrix, for back transform do a transpose.
+            result = (rotationMatrix.transpose() * position - translation) / mMap.info.resolution;
+        }
+
 		void mapToWorldCoordinates(const int32_t &x, const int32_t &y, SimpleVector3 &result) {
-			SimpleVector3 translation = this->getTranslation();
-			SimpleQuaternion orientation = this->getOrientation();
-			result = orientation.toRotationMatrix() * (SimpleVector3(x, y, 0.0) + translation) * mMap.info.resolution;
-			result += SimpleVector3(mMap.info.resolution / 2.0, mMap.info.resolution / 2.0, 0);
+            mapToWorldCoordinates(SimpleVector3(x, y, 0.0), result);
 		}
+
+        void mapToWorldCoordinates(const SimpleVector3 &position, SimpleVector3 &result) {
+            SimpleVector3 translation = this->getTranslation();
+            SimpleQuaternion orientation = this->getOrientation();
+            result = orientation.toRotationMatrix() * position * mMap.info.resolution + translation;
+        }
+
+        void mapToWorldSize(const double &size, double &result) {
+            result = size * mMap.info.resolution;
+        }
+
+        void worldToMapSize(const double &size, double &result) {
+            result = size / mMap.info.resolution;
+        }
 
 		SimpleVector3 getTranslation() {
 			return SimpleVector3(mMap.info.origin.position.x, mMap.info.origin.position.y, mMap.info.origin.position.z);
