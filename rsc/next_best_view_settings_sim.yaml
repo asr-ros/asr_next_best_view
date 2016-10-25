@@ -65,6 +65,6 @@ spaceSamplerId: 1
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
-disableInvalidNormals: true
+removeInvalidNormals: true
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
 debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

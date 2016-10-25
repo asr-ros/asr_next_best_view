@@ -83,7 +83,7 @@ private:
     std::vector<RatingModulePtr> mThreadRatingModules;
 
     double mMinUtility;
-    bool disableInvalidNormals;
+    bool mRemoveInvalidNormals;
 
 public:
 
@@ -706,7 +706,7 @@ public:
 
         this->setPointCloudPtr(outputPointCloudPtr);
 
-        if (disableInvalidNormals) {
+        if (mRemoveInvalidNormals) {
             filterUnrechableNormals();
         }
 
@@ -1295,12 +1295,12 @@ public:
         mMinUtility = minUtility;
     }
 
-    bool getDisableInvalidNormals() const {
-        return disableInvalidNormals;
+    bool getRemoveInvalidNormals() const {
+        return mRemoveInvalidNormals;
     }
 
-    void setDisableInvalidNormals(bool disableInvalidNormals) {
-        disableInvalidNormals = disableInvalidNormals;
+    void setRemoveInvalidNormals(bool removeInvalidNormals) {
+        removeInvalidNormals = removeInvalidNormals;
     }
 };
 }
