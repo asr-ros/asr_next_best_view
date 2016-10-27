@@ -177,4 +177,10 @@ namespace next_best_view {
 	{
 		return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]; 
 	}
+
+    bool MathHelper::vector3Equal(SimpleVector3 v1, SimpleVector3 v2) {
+        return abs(v1[0] - v2[0]) < 0.0001 &&
+                abs(v1[1] - v2[1]) < 0.0001 &&
+                abs(v1[2] - v2[2]) < 0.0001;
+    }
 }

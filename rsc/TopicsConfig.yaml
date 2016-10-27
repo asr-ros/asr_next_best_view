@@ -10,3 +10,4 @@ worldMeshesVisualization: /nbv/worldMeshesVisualization
 worldTriangleListVisualization: /nbv/worldTriangleListVisualization
 voxelGridVisualization: /nbv/voxelGridVisualization
 raytracingVisualization: /nbv/raytracingVisualization
+samplingVisualization: /nbv/samplingVisualization

@@ -460,6 +460,8 @@ private:
             resultViewport = ratedNextBestViewportsPtr->back();
         }
 
+//        mVisHelperPtr->triggerSamplingVisualization(ratedNextBestViewportsPtr, Color(1, 0, 0, 1), "ratedViewports");
+
         //Visualize iteration step and its result.
         mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
                                                     sampledSpacePointCloudPtr, mSpaceSamplerPtr);
