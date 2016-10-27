@@ -355,6 +355,7 @@ public:
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
             mCalculator.setEpsilon(mConfig.epsilon);
             mCalculator.setRemoveInvalidNormals(mConfig.removeInvalidNormals);
+            mCalculator.setCacheResults(mConfig.cacheResults);
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
             mCalculator.setMinUtility(minUtility);

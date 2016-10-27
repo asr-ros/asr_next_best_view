@@ -54,7 +54,7 @@ colThresh: 40 # greater values results in problems during simulation in navigati
 epsilon: 0.01
 panAngleSamplingStepsPerIteration: 20
 inverseKinematicIterationAccuracy: 0.005
-enableCropBoxFiltering : true
+enableCropBoxFiltering : false
 enableIntermediateObjectWeighting : false
 sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 1 => MapBasedHexagonSpaceSampler
@@ -66,5 +66,6 @@ spaceSamplerId: 1
 sphereSamplerId: 1
 maxIterationSteps: 20
 removeInvalidNormals: true
+cacheResults: true # if results should be cached for next nbv calls with the same pc
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
 debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

@@ -85,6 +85,14 @@ private:
     double mMinUtility;
     bool mRemoveInvalidNormals;
 
+    // 2d grid which contains best viewport (utility) per element
+    // wheter results should be cached for next nbvs
+    bool mCacheResults;
+    float mGridSize = 0.1;
+    std::map<int, std::map<int, ViewportPoint>> mBestViewportPerGridElem;
+    Indices mSeenHypothesis;
+    std::vector<std::string> mSeenObjectTypes;
+
 public:
 
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -124,8 +132,16 @@ public:
         //Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
-        // create the next best view point cloud
-        bool success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+        bool success = false;
+        ROS_INFO_STREAM("mCacheResults: " << mCacheResults);
+        ROS_INFO_STREAM("mBestViewportPerGridElem.size(): " << mBestViewportPerGridElem.size());
+        ROS_INFO_STREAM("mBestViewportPerGridElem.empty(): " << mBestViewportPerGridElem.empty());
+        if (mCacheResults && !mBestViewportPerGridElem.empty()) {
+            success = this->getNBVFromCache(currentCameraViewport, resultViewport);
+        } else {
+            // create the next best view point cloud
+            success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
+        }
 
         auto finish = std::chrono::high_resolution_clock::now();
         // cast timediff to flaot in seconds
@@ -349,6 +365,50 @@ private:
         return ratingModulePtr->setSingleScoreContainer(currentCameraViewport, fullViewportPoint);
     }
 
+    bool getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
+        ROS_INFO_STREAM("using cached nbv");
+        ViewportPointCloudPtr samples(new ViewportPointCloud());
+        for (auto &yRowIt : mBestViewportPerGridElem) {
+            for (auto &gridElem : yRowIt.second) {
+                // TODO: should not contain removed normals/hypothesis
+                samples->push_back(gridElem.second);
+            }
+        }
+
+        // only keep best ones according utility
+        auto utilitySortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+            // a < b
+            return a.score->getUnweightedUnnormalizedUtility() < b.score->getUnweightedUnnormalizedUtility();
+        };
+        std::sort(samples->begin(), samples->end(), utilitySortFunction);
+        // samples->resize(20);
+
+        // rate best ones
+        ViewportPointCloudPtr ratedNextBestViewportsPtr;
+        if (!rateViewports(samples, currentCameraViewport, ratedNextBestViewportsPtr)) {
+            return false;
+        }
+        auto ratingSortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+            // a < b
+            return mRatingModulePtr->compareViewports(a, b);
+        };
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), ratingSortFunction);
+
+        bool foundUtility = false;
+        BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+            if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
+                resultViewport = ratedViewport;
+                foundUtility = true;
+                break;
+            }
+        }
+        if (!foundUtility) {
+            ROS_WARN_STREAM("every nbv has too little utility");
+            resultViewport = ratedNextBestViewportsPtr->back();
+        }
+        return true;
+    }
+
     bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
 
@@ -435,11 +495,11 @@ private:
 
         // sort
         // ascending -> last element hast best rating
-        auto sortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+        auto ratingSortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
             // a < b
             return mRatingModulePtr->compareViewports(a, b);
         };
-        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), ratingSortFunction);
 
         bool foundUtility = false;
         BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
@@ -452,6 +512,54 @@ private:
         if (!foundUtility) {
             ROS_WARN_STREAM("every nbv has too little utility");
             resultViewport = ratedNextBestViewportsPtr->back();
+        }
+
+        // get best utilities for next nbv calls
+        auto utilitySortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+            // a < b
+            return a.score->getUnweightedUnnormalizedUtility() < b.score->getUnweightedUnnormalizedUtility();
+        };
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), utilitySortFunction);
+
+        if (mCacheResults) {
+            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+                SimpleVector3 pos = ratedViewport.getPosition();
+                int xIdx = static_cast<int>(pos[0] / mGridSize);
+                int yIdx = static_cast<int>(pos[1] / mGridSize);
+                if (mBestViewportPerGridElem.find(xIdx) == mBestViewportPerGridElem.end()) {
+                    // xIdx not found
+                    mBestViewportPerGridElem.insert(std::make_pair(xIdx, std::map<int, ViewportPoint>()));
+                }
+                if (mBestViewportPerGridElem[xIdx].find(yIdx) == mBestViewportPerGridElem[xIdx].end()) {
+                    // yIdx not found
+                    mBestViewportPerGridElem[xIdx].insert(std::make_pair(yIdx, ratedViewport));
+                } else {
+                    if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mBestViewportPerGridElem[xIdx][yIdx].score->getUnweightedUnnormalizedUtility()) {
+                        mBestViewportPerGridElem[xIdx][yIdx] = ratedViewport;
+                    }
+                }
+            }
+            // save hypothesis that we want to see in nbv
+            Indices curSeenHypothesis = *resultViewport.child_indices;
+            Indices totalSeenHypothesis(curSeenHypothesis.size() + mSeenHypothesis.size());
+            std::sort(curSeenHypothesis.begin(), curSeenHypothesis.end());
+            if (mSeenHypothesis.empty()) {
+                mSeenHypothesis = curSeenHypothesis;
+            } else {
+                // it points to last elem in totalSeenHypothesis
+                auto it = std::set_union(mSeenHypothesis.begin(), mSeenHypothesis.end(), curSeenHypothesis.begin(), curSeenHypothesis.end(), totalSeenHypothesis.begin());
+
+                // shrink hypothesis size
+                totalSeenHypothesis.resize(it - totalSeenHypothesis.begin());
+                mSeenHypothesis = totalSeenHypothesis;
+            }
+            if (!mSeenObjectTypes.empty()) {
+                for (std::string curObjType : *resultViewport.object_type_set) {
+                    if (std::find(mSeenObjectTypes.begin(), mSeenObjectTypes.end(), curObjType) == mSeenObjectTypes.end()) {
+                        mSeenObjectTypes.push_back(curObjType);
+                    }
+                }
+            }
         }
 
         //Visualize iteration step and its result.
@@ -708,6 +816,10 @@ public:
 
         if (mRemoveInvalidNormals) {
             filterUnrechableNormals();
+        }
+
+        if (mCacheResults) {
+            mBestViewportPerGridElem.clear();
         }
 
         return true;
@@ -1302,5 +1414,18 @@ public:
     void setRemoveInvalidNormals(bool removeInvalidNormals) {
         removeInvalidNormals = removeInvalidNormals;
     }
+
+    bool getCacheResults() const {
+        return mCacheResults;
+    }
+
+    /**
+    * @brief setCacheResults true if nbv sampling results should be cached for following nbv calls with the same PC.
+    * @param value cacheResults
+    */
+    void setCacheResults(bool cacheResults) {
+        mCacheResults = cacheResults;
+    }
 };
+
 }
