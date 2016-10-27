@@ -1055,7 +1055,7 @@ public:
         return result;
     }
 
-    void removeObjects(std::string type, std::string identifier) {
+    bool removeObjects(std::string type, std::string identifier) {
         auto it = mPointCloudPtr->begin();
         while (it != mPointCloudPtr->end()) {
             ObjectPoint objPoint = *it;
@@ -1065,6 +1065,9 @@ public:
                 it = mPointCloudPtr->erase(it);
             }
         }
+        if (mPointCloudPtr->empty()) {
+            return false;
+        }
         // the active indices.
         IndicesPtr activeIndicesPtr = IndicesPtr(new Indices(mPointCloudPtr->size()));
         boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
@@ -1072,6 +1075,7 @@ public:
         // set the point cloud
         this->setActiveIndices(activeIndicesPtr);
         setPointCloudPtr(mPointCloudPtr);
+        return true;
     }
 
     /**
