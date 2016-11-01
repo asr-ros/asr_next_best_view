@@ -100,7 +100,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
-  /opt/ros/jade/include/assimp_devel
+  /opt/ros/indigo/include/assimp_devel
 )
 
 
@@ -171,7 +171,7 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         # assimp
-        /opt/ros/jade/lib/libassimp_devel.so
+        /opt/ros/indigo/lib/libassimp_devel.so
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
