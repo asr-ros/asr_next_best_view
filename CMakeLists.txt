@@ -47,6 +47,7 @@ add_message_files(
 	NormalsInfo.msg
 )
 
+
 ## Generate services in the 'srv' folder
 add_service_files(
    DIRECTORY
@@ -57,13 +58,9 @@ add_service_files(
    SetAttributedPointCloud.srv
    SetInitRobotState.srv
    UpdatePointCloud.srv
-   GetMovementCosts.srv
-   GetDistance.srv
-   CalculateRobotState.srv
    CalculateCameraPose.srv
    CalculateCameraPoseCorrection.srv
    IsPositionAllowed.srv
-   IsPositionReachable.srv
    TriggerFrustumVisualization.srv
    TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
@@ -103,7 +100,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
-  /opt/ros/indigo/include/assimp_devel
+  /opt/ros/jade/include/assimp_devel
 )
 
 
@@ -174,7 +171,7 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         # assimp
-        /opt/ros/indigo/lib/libassimp_devel.so
+        /opt/ros/jade/lib/libassimp_devel.so
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
