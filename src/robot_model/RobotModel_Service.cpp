@@ -29,6 +29,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/IsPositionAllowed.h"
 #include "next_best_view/RobotStateMessage.h"
 #include "next_best_view/GetPose.h"
+#include "next_best_view/GetDistance.h"
 #include "Eigen/Dense"
 #include <pcl/point_cloud.h>
 #include <tf/transform_datatypes.h>
@@ -40,6 +41,12 @@ using namespace next_best_view;
 //two pointers are used for the basic functionalies implemented all child classes and the advanced functionalities only implmented in the RobotModelWithExactIK class
 MILDRobotModelPtr basicFunctionRobotModelPtr;
 MILDRobotModelWithExactIKPtr advancedFunctionRobotModelPtr;
+
+bool getDistance(GetDistance::Request &req, GetDistance::Response &res)
+{
+      res.distance = basicFunctionRobotModelPtr->getDistance(req.sourcePosition, req.targetPosition);
+      return true;
+}
 
 bool processCalculateCameraPoseServiceCall(CalculateCameraPose::Request &req, CalculateCameraPose::Response &res)
 {
@@ -118,6 +125,7 @@ int main(int argc, char *argv[])
         ROS_ERROR_STREAM(ss.str());
         throw std::runtime_error(ss.str());
     }
+    n.advertiseService("GetDistance", getDistance);
     n.advertiseService("CalculateCameraPose", processCalculateCameraPoseServiceCall);
     n.advertiseService("IsPositionAllowed", processIsPositionAllowedServiceCall);
     n.advertiseService("GetRobotPose", processGetRobotPoseServiceCall);
