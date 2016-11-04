@@ -125,12 +125,14 @@ int main(int argc, char *argv[])
         ROS_ERROR_STREAM(ss.str());
         throw std::runtime_error(ss.str());
     }
-    n.advertiseService("GetDistance", getDistance);
-    n.advertiseService("CalculateCameraPose", processCalculateCameraPoseServiceCall);
-    n.advertiseService("IsPositionAllowed", processIsPositionAllowedServiceCall);
-    n.advertiseService("GetRobotPose", processGetRobotPoseServiceCall);
-    n.advertiseService("GetCameraPose", processGetCameraPoseServiceCall);
-    n.advertiseService("CalculateCameraPoseCorrection", processCalculateCameraPoseCorrectionServiceCall);
+    
+    // don't remove the following variables, because if removed the services will be destructed
+    ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
+    ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", processCalculateCameraPoseServiceCall);
+    ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", processIsPositionAllowedServiceCall);
+    ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", processGetRobotPoseServiceCall);
+    ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", processGetCameraPoseServiceCall);
+    ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", processCalculateCameraPoseCorrectionServiceCall);
 
     ROS_INFO("RobotModel Service started.");
     ros::spin();
