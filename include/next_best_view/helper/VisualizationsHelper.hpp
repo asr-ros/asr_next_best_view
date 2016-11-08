@@ -147,11 +147,11 @@ public:
         }
         if (!mFrustumObjectMeshMarkerPublisher) {
             ROS_ERROR("mFrustumObjectMeshMarkerPublisher is invalid.");
-            throw "Publisher invalid";;
+            throw "Publisher invalid";
         }
         if (!mPointObjectNormalPublisher) {
             ROS_ERROR("mPointObjectNormalPublisher is invalid.");
-            throw "Publisher invalid";;
+            throw "Publisher invalid";
         }
 
         // initalize data
