@@ -738,6 +738,9 @@ private:
             mHypothesisUpdaterPtr->update(mObjectTypeSetPtr, sample);
         }
 
+        mVisHelperPtr->resetSamplingVisualization();
+        mVisHelperPtr->triggerSamplingVisualization(sampleNextBestViewports, Color(1, 0, 1, 1), "ratedViewports");
+
         // for each object make invalid normals -> valid normals
         for (ObjectPoint &o : *mPointCloudPtr) {
             // debug print invalid normals

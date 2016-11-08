@@ -284,7 +284,7 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING SAMPLING VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
-    void resetSamplingVIsualization() {
+    void resetSamplingVisualization() {
         deleteMarkerArray(mSamplingMarkerArrayPtr, mSamplingPublisher);
     }
 
