@@ -1304,7 +1304,7 @@ public:
     }
 
     void setRemoveInvalidNormals(bool removeInvalidNormals) {
-        removeInvalidNormals = removeInvalidNormals;
+        mRemoveInvalidNormals = removeInvalidNormals;
     }
 };
 }

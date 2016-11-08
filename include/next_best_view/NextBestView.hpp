@@ -354,6 +354,7 @@ public:
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
             mCalculator.setEpsilon(mConfig.epsilon);
+            mDebugHelperPtr->write(std::stringstream() << "removeInvalidNormals: " << mConfig.removeInvalidNormals, DebugHelper::PARAMETERS);
             mCalculator.setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
