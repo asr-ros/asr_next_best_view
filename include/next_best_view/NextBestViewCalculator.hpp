@@ -83,6 +83,8 @@ private:
     std::vector<RatingModulePtr> mThreadRatingModules;
 
     double mMinUtility;
+    bool mRequireMinUtility;
+
     bool mRemoveInvalidNormals;
 
 public:
@@ -441,16 +443,20 @@ private:
         };
         std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), sortFunction);
 
-        bool foundUtility = false;
-        BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
-            if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
-                resultViewport = ratedViewport;
-                foundUtility = true;
-                break;
+        if (mRequireMinUtility) {
+            bool foundUtility = false;
+            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+                if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
+                    resultViewport = ratedViewport;
+                    foundUtility = true;
+                    break;
+                }
             }
-        }
-        if (!foundUtility) {
-            ROS_WARN_STREAM("every nbv has too little utility");
+            if (!foundUtility) {
+                ROS_WARN_STREAM("every nbv has too little utility");
+                resultViewport = ratedNextBestViewportsPtr->back();
+            }
+        } else {
             resultViewport = ratedNextBestViewportsPtr->back();
         }
 
@@ -1306,5 +1312,14 @@ public:
     void setRemoveInvalidNormals(bool removeInvalidNormals) {
         mRemoveInvalidNormals = removeInvalidNormals;
     }
+
+    bool getRequireMinUtility() const {
+        return mRequireMinUtility;
+    }
+
+    void setRequireMinUtility(bool requireMinUtility) {
+        mRequireMinUtility = requireMinUtility;
+    }
 };
+
 }
