@@ -68,6 +68,7 @@ private:
     ros::Publisher mVoxelGridPublisher;
     ros::Publisher mRaytracingPublisher;
     ros::Publisher mSamplingPublisher;
+    ros::Publisher mViewportsPublisher;
 
     ros::NodeHandle mNodeHandle;
 
@@ -82,6 +83,7 @@ private:
     visualization_msgs::MarkerArray::Ptr mVoxelGridMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mRaytracingMarkerArrayPtr;
     visualization_msgs::MarkerArray::Ptr mSamplingMarkerArrayPtr;
+    visualization_msgs::MarkerArray::Ptr mViewportsMarkerArrayPtr;
 
     MapHelperPtr mMapHelperPtr;
     DebugHelperPtr mDebugHelperPtr;
@@ -113,6 +115,7 @@ public:
         std::string voxelGridVisualization;
         std::string raytracingVisualization;
         std::string samplingVisualization;
+        std::string viewportsVisualization;
 
         mNodeHandle.getParam("/nbv/iterationVisualization", iterationVisualization);
         mNodeHandle.getParam("/nbv/frustumVisualization", frustumVisualization);
@@ -126,6 +129,7 @@ public:
         mNodeHandle.getParam("/nbv/voxelGridVisualization", voxelGridVisualization);
         mNodeHandle.getParam("/nbv/raytracingVisualization", raytracingVisualization);
         mNodeHandle.getParam("/nbv/samplingVisualization", samplingVisualization);
+        mNodeHandle.getParam("/nbv/viewportsVisualization", viewportsVisualization);
 
         // initialize publishers
         mIterationMarkerArrayPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(iterationVisualization, 1000);
@@ -138,7 +142,8 @@ public:
         mWorldTriangleListPublisher = mNodeHandle.advertise<visualization_msgs::Marker>(worldTriangleListVisualization, 100, false);
         mVoxelGridPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(voxelGridVisualization, 100, false);
         mRaytracingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(raytracingVisualization, 100, false);
-        mSamplingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(samplingVisualization, 10000, false);
+        mSamplingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(samplingVisualization, 1000, false);
+        mViewportsPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(viewportsVisualization, 1000, false);
 
         if (!mIterationMarkerArrayPublisher) {
             ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
@@ -176,6 +181,7 @@ public:
         mVoxelGridMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
         mRaytracingMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
         mSamplingMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
+        mViewportsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
 
         mSampleCounter = 0;
     }
@@ -269,7 +275,6 @@ public:
         }
 
         // create markers
-        ROS_INFO_STREAM("size: " << filteredPositions.size());
         double SpaceSamplingMarkerScale;
         mNodeHandle.getParam("/nbv/SpaceSamplingMarker_Scale", SpaceSamplingMarkerScale);
         SimpleVector3 scale(SpaceSamplingMarkerScale, SpaceSamplingMarkerScale, SpaceSamplingMarkerScale);
@@ -286,6 +291,48 @@ public:
 
     void resetSamplingVisualization() {
         deleteMarkerArray(mSamplingMarkerArrayPtr, mSamplingPublisher);
+    }
+
+    void triggerViewportsVisualization(ViewportPointCloudPtr viewports, Color markerColor, std::string ns) {
+        mDebugHelperPtr->writeNoticeably("STARTING VIEWPORTS VISUALIZATION", DebugHelper::VISUALIZATION);
+        if (!viewports) {
+            ROS_ERROR("triggerSamplingVisualization call with pointer samples being null");
+            mDebugHelperPtr->writeNoticeably("ENDING VIEWPORTS VISUALIZATION", DebugHelper::VISUALIZATION);
+            return;
+        }
+        if (!mSamplingMarkerArrayPtr) {
+            ROS_ERROR("triggerSamplingVisualization call with pointer mSamplingMarkerArrayPtr being null");
+            mDebugHelperPtr->writeNoticeably("ENDING VIEWPORTS VISUALIZATION", DebugHelper::VISUALIZATION);
+            return;
+        }
+
+        double ColumnPositionMarkerWidth;
+        mNodeHandle.getParam("/nbv/ColumnPositionMarker_Width", ColumnPositionMarkerWidth);
+        SimpleVector3 arrowScale(0.5, ColumnPositionMarkerWidth, ColumnPositionMarkerWidth);
+
+        for (ViewportPoint &viewportPoint : *viewports) {
+            SimpleVector3 position = viewportPoint.getPosition();
+            SimpleVector3 point1(position);
+            SimpleVector3 point2(position);
+            point1[2] = 0;
+            std::vector<SimpleVector3> points;
+            points.push_back(point1);
+            points.push_back(point2);
+
+            m_i++;
+            visualization_msgs::Marker ColumnPositionMarker = MarkerHelper::getLineListMarker(m_i, points, ColumnPositionMarkerWidth, markerColor, ns);
+            mViewportsMarkerArrayPtr->markers.push_back(ColumnPositionMarker);
+
+            m_i++;
+            visualization_msgs::Marker viewportDirectionMarker = MarkerHelper::getArrowMarker(m_i, position,
+                                                                                              viewportPoint.getSimpleQuaternion(),
+                                                                                              arrowScale, markerColor, ns);
+            mViewportsMarkerArrayPtr->markers.push_back(viewportDirectionMarker);
+        }
+
+        mViewportsPublisher.publish(mViewportsMarkerArrayPtr);
+
+        mDebugHelperPtr->writeNoticeably("ENDING VIEWPORTS VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
     /*!
