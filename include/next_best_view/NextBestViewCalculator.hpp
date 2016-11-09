@@ -729,7 +729,8 @@ private:
     void filterUnrechableNormals() {
         ROS_INFO_STREAM("filtering now unreachable normals");
         // Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
-        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 4.0), 1.32);
+        // TODO: better sampling for all objects, maybe use current robot position? or create around object hypothesis
+        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 2.0), 1.32);
 
         // remove all removeable normals
         for (ViewportPoint sample : *sampleNextBestViewports) {
@@ -805,6 +806,7 @@ private:
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
         SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(spaceSampleStartVector, contractor, pointCloudHeight);
+        ROS_INFO_STREAM("sampledSpacePointCloudPtr->size: " << sampledSpacePointCloudPtr->size());
 
         ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, feasibleOrientationsCollectionPtr);
 

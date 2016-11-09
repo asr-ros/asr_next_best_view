@@ -40,11 +40,12 @@ namespace next_best_view {
 	double width = mMapHelperPtr->getMetricWidth();
 	double height = mMapHelperPtr->getMetricHeight();
 
-	//Comment: Black magic
+    // calculate radius and horizontalSpacing of a hexagon
 	float radius = pow(contractor,.382) * mHexagonRadius;
 	float horizontalSpacing = radius * cos(M_PI / 6.0);
 	float interPointSpacing = radius;
 
+    // calculate width/height of sampling depending on contractor
 	int spanX = ceil(contractor * .5 * width / horizontalSpacing);
 	int spanY = ceil(contractor * .25 * height / radius);
 	int span = std::max(spanX, spanY);
@@ -64,12 +65,12 @@ namespace next_best_view {
          x   x   x   x
          while each "x" consists of 2 points, the most upper and the most lower point of a hexagon (this hexagon is rotated by 90° clockwise):
                            ______________
-                          /              \
-                         /                \
-                        /                  \
-                       /                    \
-                      /                      \
-         lower Point /                        \ most upper Point
+                          /       |      \
+                         /        |       \
+                        /         |hs      \   hs = horizontalSpacing ^= length of half width
+                       /          |         \
+                      /           |          \
+         lower Point /            |           \ most upper Point
                      \                        /
                       \                      /
                        \                    /

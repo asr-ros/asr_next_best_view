@@ -138,7 +138,7 @@ public:
         mWorldTriangleListPublisher = mNodeHandle.advertise<visualization_msgs::Marker>(worldTriangleListVisualization, 100, false);
         mVoxelGridPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(voxelGridVisualization, 100, false);
         mRaytracingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(raytracingVisualization, 100, false);
-        mSamplingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(samplingVisualization, 1000, false);
+        mSamplingPublisher = mNodeHandle.advertise<visualization_msgs::MarkerArray>(samplingVisualization, 10000, false);
 
         if (!mIterationMarkerArrayPublisher) {
             ROS_ERROR("mIterationMarkerArrayPublisher is invalid.");
@@ -255,6 +255,7 @@ public:
 
         for (ViewportPoint &viewportPoint : *samples) {
             SimpleVector3 viewportPointPosition = viewportPoint.getPosition();
+            viewportPointPosition[2] = 0.1;
             bool isInFilteredPositions = false;
             for (SimpleVector3 &filteredPosition : filteredPositions) {
                 if (MathHelper::vector3Equal(filteredPosition, viewportPointPosition)) {
@@ -263,7 +264,6 @@ public:
                 }
             }
             if (!isInFilteredPositions) {
-                viewportPointPosition[2] = 0.1;
                 filteredPositions.push_back(viewportPointPosition);
             }
         }
