@@ -92,7 +92,6 @@ private:
     float m_j;
     int mIterationStep;
     bool mBoolClearBetweenIterations;
-    int mSampleCounter;
 
     // mutex to lock ray tracing visualization.
     boost::mutex mutex;
@@ -182,8 +181,6 @@ public:
         mRaytracingMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
         mSamplingMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
         mViewportsMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
-
-        mSampleCounter = 0;
     }
 
     bool getBoolClearBetweenIterations() {
@@ -279,9 +276,9 @@ public:
         mNodeHandle.getParam("/nbv/SpaceSamplingMarker_Scale", SpaceSamplingMarkerScale);
         SimpleVector3 scale(SpaceSamplingMarkerScale, SpaceSamplingMarkerScale, SpaceSamplingMarkerScale);
         for (SimpleVector3 &samplePosition : filteredPositions) {
-            visualization_msgs::Marker samplingMarker = MarkerHelper::getCylinderMarker(mSampleCounter, samplePosition, 1, scale, markerColor, ns);
+            m_i++;
+            visualization_msgs::Marker samplingMarker = MarkerHelper::getCylinderMarker(m_i, samplePosition, 1, scale, markerColor, ns);
             mSamplingMarkerArrayPtr->markers.push_back(samplingMarker);
-            mSampleCounter++;
         }
 
         mSamplingPublisher.publish(mSamplingMarkerArrayPtr);
