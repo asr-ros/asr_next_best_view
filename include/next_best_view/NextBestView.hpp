@@ -354,6 +354,7 @@ public:
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
             mCalculator.setEpsilon(mConfig.epsilon);
+            mDebugHelperPtr->write(std::stringstream() << "removeInvalidNormals: " << mConfig.removeInvalidNormals, DebugHelper::PARAMETERS);
             mCalculator.setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculator.setCacheResults(mConfig.cacheResults);
             float minUtility;
@@ -654,7 +655,9 @@ public:
 
         mDebugHelperPtr->writeNoticeably("STARTING NBV REMOVE-OBJECTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
-        mCalculator.removeObjects(request.type, request.identifier);
+        bool is_valid = mCalculator.removeObjects(request.type, request.identifier);
+        // if pointcloud is empty after this call
+        response.is_valid = is_valid;
 
         mDebugHelperPtr->writeNoticeably("ENDING NBV REMOVE-OBJECTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
@@ -773,6 +776,12 @@ public:
         // Current camera view (frame of camera) of the robot.
         ViewportPoint currentCameraViewport(request.current_pose);
         //Contains Next best view.
+
+        // we cannot find a nbv if pointcloud is empty
+        if (mCalculator.getPointCloudPtr()->empty()) {
+            response.found = false;
+            return true;
+        }
 
         ViewportPoint resultingViewport;
         //Estimate the Next best view.

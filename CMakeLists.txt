@@ -47,6 +47,7 @@ add_message_files(
 	NormalsInfo.msg
 )
 
+
 ## Generate services in the 'srv' folder
 add_service_files(
    DIRECTORY
@@ -57,17 +58,14 @@ add_service_files(
    SetAttributedPointCloud.srv
    SetInitRobotState.srv
    UpdatePointCloud.srv
-   GetMovementCosts.srv
-   GetDistance.srv
-   CalculateRobotState.srv
    CalculateCameraPose.srv
    CalculateCameraPoseCorrection.srv
    IsPositionAllowed.srv
-   IsPositionReachable.srv
    TriggerFrustumVisualization.srv
    TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
    GetPose.srv
+   GetDistance.srv
    RateViewports.srv
    GetActiveNormals.srv
    RemoveObjects.srv

@@ -198,12 +198,20 @@ namespace next_best_view {
         double tiltMax = mTiltLimits.get<1>();
         if (tiltAngle < tiltMin)
         {
-            ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tiltAngle*(180.0/M_PI));
+            if (tiltAngle < tiltMin - 10.0) {
+                ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tiltAngle*(180.0/M_PI));
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Tilt-Angle was too small: " << tiltAngle*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+            }
             tiltAngle = tiltMin;
         }
         if (tiltAngle > tiltMax)
         {
-            ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tiltAngle*(180.0/M_PI));
+            if (tiltAngle > tiltMax + 10.0) {
+                ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tiltAngle*(180.0/M_PI));
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Tilt-Angle was too high: " << tiltAngle*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+            }
             tiltAngle = tiltMax;
         }
 
@@ -211,12 +219,20 @@ namespace next_best_view {
         double panMax = mPanLimits.get<1>();
         if (panAngle < panMin)
         {
-            ROS_WARN_STREAM("Calculated Pan-Angle was too small: " << panAngle*(180.0/M_PI));
+            if (panAngle < panMin - 10.0) {
+                ROS_WARN_STREAM("Calculated Pan-Angle was too small: " << panAngle*(180.0/M_PI));
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Pan-Angle was too small: " << panAngle*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+            }
             panAngle = panMin;
         }
         if (panAngle > panMax)
         {
-            ROS_WARN_STREAM("Calculated Pan-Angle was too high: " << panAngle*(180.0/M_PI));
+            if (panAngle > panMax + 10.0) {
+                ROS_WARN_STREAM("Calculated Pan-Angle was too high: " << panAngle*(180.0/M_PI));
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Pan-Angle was too high: " << panAngle*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+            }
             panAngle = panMax;
         }
 
@@ -308,12 +324,20 @@ namespace next_best_view {
                     DebugHelper::ROBOT_MODEL);
         if (tilt < tiltMin)
         {
-            ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tilt*(180.0/M_PI));
+            if (tilt < tiltMin - 10.0) {
+                ROS_WARN_STREAM("Calculated Tilt-Angle was too small: " << tilt*(180.0/M_PI));
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Tilt-Angle was too small: " << tilt*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+            }
             tilt = tiltMin;
         }
         if (tilt > tiltMax)
         {
-            ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI));
+            if (tilt > tiltMax + 10.0) {
+                ROS_WARN_STREAM("Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI));
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Tilt-Angle was too high: " << tilt*(180.0/M_PI), DebugHelper::ROBOT_MODEL);
+            }
             tilt = tiltMax;
         }
         mDebugHelperPtr->write(std::stringstream() << "Tilt: " << tilt*(180.0/M_PI) << " deg",

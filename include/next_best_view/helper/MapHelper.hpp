@@ -206,6 +206,7 @@ namespace next_best_view {
         }
 
 	public:
+        // 4 combinations: (occupancyGrid, costMap) x (Vector3, mapPosition)
 		int8_t getMapOccupancyValue(const SimpleVector3 &position) {
 			return this->getOccupancyValue(mMap, position);
 		}

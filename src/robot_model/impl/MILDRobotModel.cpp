@@ -193,9 +193,9 @@ namespace next_best_view {
         {
             mDebugHelperPtr->writeNoticeably("INIT MAP_HELPER IN MILDRobotModel", DebugHelper::ROBOT_MODEL);
             mMapHelperPtr = MapHelperPtr(new MapHelper());
-            ros::NodeHandle n("nbv_robot_model");
+            ros::NodeHandle n(ros::this_node::getName());
             double colThresh;
-            n.param("colThresh", colThresh, 45.0);
+            n.param("colThresh", colThresh, 40.0);
             mDebugHelperPtr->write(std::stringstream() << "colThresh: " << colThresh, DebugHelper::PARAMETERS);
             mMapHelperPtr->setCollisionThreshold(colThresh);
             mDebugHelperPtr->writeNoticeably("INIT MAP_HELPER IN MILDRobotModel DONE", DebugHelper::ROBOT_MODEL);

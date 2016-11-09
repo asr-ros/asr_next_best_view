@@ -1,4 +1,0 @@
-RobotStateMessage currentState
-RobotStateMessage targetState
----
-float64 costs

@@ -80,11 +80,8 @@ namespace next_best_view {
 
     Precision MathHelper::getAngle(const SimpleVector3 &X, const SimpleVector3 &Y) {
         float cosinus = getCosinus(X, Y);
-        cosinus = (cosinus + 1.0) / 2.0; // align between 0 1nd 1
-        cosinus = 1.0 - cosinus;
-        cosinus *= M_PI;
-        // float angle = acos(cosinus);
-        return cosinus;
+        float angle = acos(cosinus);
+        return angle;
     }
 
 	Precision MathHelper::getMinimumAngleDifference(const Precision &firstAngle, const Precision &secondAngle) {
@@ -180,6 +177,12 @@ namespace next_best_view {
 	{
 		return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]; 
 	}
+
+    bool MathHelper::vector3Equal(SimpleVector3 v1, SimpleVector3 v2) {
+        return abs(v1[0] - v2[0]) < 0.0001 &&
+                abs(v1[1] - v2[1]) < 0.0001 &&
+                abs(v1[2] - v2[2]) < 0.0001;
+    }
 
     /**
     * @brief isSubSetOf opposite of isSuperSetOf

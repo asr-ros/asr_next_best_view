@@ -167,6 +167,8 @@ namespace next_best_view {
 
 		static double getDotProduct(SimpleVector3 v1, SimpleVector3 v2);
 
+        static bool vector3Equal(SimpleVector3 v1, SimpleVector3 v2);
+
         /**
          * @brief isSubSetOf opposite of isSuperSetOf
          * @param indexSetSub

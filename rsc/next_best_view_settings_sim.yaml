@@ -4,7 +4,7 @@ mOmegaTilt: 1 # weighting factor for rotating of the tilt-axis of the PTU
 mOmegaRot: 10 # weighting factor for rotating the base
 mOmegaBase: 135 # weighting factor for moving the base
 mOmegaRecognizer: 10
-speedFactorRecognizer: 2.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
+speedFactorRecognizer: 3.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
 tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
 fovx: 30
@@ -45,7 +45,7 @@ panMin: -20
 panMax: 20
 tiltMin: -45
 tiltMax: 25
-mSigma: 2.0
+mSigma: 3.0
 mRatingNormalAngleThreshold: 45.0 # used to rate angles in rating module
 mHypothesisUpdaterAngleThreshold: 45.0  # used to rate angles in hypothesis updater module
 radius: 0.15 # hexagon space sample radius
@@ -67,5 +67,6 @@ sphereSamplerId: 1
 maxIterationSteps: 20
 removeInvalidNormals: true
 cacheResults: true # if results should be cached for next nbv calls with the same pc
+useMinUtility: true
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
 debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

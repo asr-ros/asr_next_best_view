@@ -1,2 +1,4 @@
 string type
 string identifier
+---
+bool is_valid

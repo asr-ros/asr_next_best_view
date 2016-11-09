@@ -24,21 +24,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/robot_model/RobotState.hpp"
 #include <ros/ros.h>
 #include <typedef.hpp>
-#include "next_best_view/GetMovementCosts.h"
-#include "next_best_view/GetDistance.h"
-#include "next_best_view/CalculateRobotState.h"
 #include "next_best_view/CalculateCameraPose.h"
 #include "next_best_view/CalculateCameraPoseCorrection.h"
 #include "next_best_view/IsPositionAllowed.h"
-#include "next_best_view/IsPositionReachable.h"
 #include "next_best_view/RobotStateMessage.h"
 #include "next_best_view/GetPose.h"
+#include "next_best_view/GetDistance.h"
 #include "Eigen/Dense"
 #include <pcl/point_cloud.h>
 #include <tf/transform_datatypes.h>
 #include <eigen_conversions/eigen_msg.h>
 #include "typedef.hpp"
-
 
 using namespace next_best_view;
 //Since not all functionalities are implemented in the robot model with approximated IK,
@@ -46,49 +42,9 @@ using namespace next_best_view;
 MILDRobotModelPtr basicFunctionRobotModelPtr;
 MILDRobotModelWithExactIKPtr advancedFunctionRobotModelPtr;
 
-bool processGetBase_TranslationalMovementCostsServiceCall(GetMovementCosts::Request  &req, GetMovementCosts::Response &res)
-{
-    float costs;
-    MILDRobotState * currentState = new MILDRobotState(req.currentState.pan, req.currentState.tilt,req.currentState.rotation,req.currentState.x,req.currentState.y);
-    MILDRobotState * targetState = new MILDRobotState(req.targetState.pan, req.targetState.tilt,req.targetState.rotation,req.targetState.x,req.targetState.y);
-    MILDRobotStatePtr currentStatePtr(currentState);
-    MILDRobotStatePtr targetStatePtr(targetState);
-
-    costs = basicFunctionRobotModelPtr->getBase_TranslationalMovementCosts(currentStatePtr, targetStatePtr);
-    res.costs = costs;
-    return true;
-}
-
 bool getDistance(GetDistance::Request &req, GetDistance::Response &res)
 {
       res.distance = basicFunctionRobotModelPtr->getDistance(req.sourcePosition, req.targetPosition);
-      return true;
-}
-
-bool processCalculateRobotStateServiceCall(CalculateRobotState::Request  &req, CalculateRobotState::Response &res)
-{
-      MILDRobotState * sourceRobotState = new MILDRobotState(req.sourceRobotState.pan, req.sourceRobotState.tilt,req.sourceRobotState.rotation,req.sourceRobotState.x,req.sourceRobotState.y);
-      RobotStatePtr sourceRobotStatePtr(sourceRobotState);
-
-      Eigen::Vector3d position;
-      Eigen::Quaternion<double> orientation;
-
-      tf::quaternionMsgToEigen(req.orientation, orientation);
-      tf::vectorMsgToEigen(req.position, position);
-
-      SimpleVector3 positionF = position.cast<float>();
-      SimpleQuaternion orientationF = orientation.cast<float>();
-
-      MILDRobotStatePtr newRobotState = boost::static_pointer_cast<MILDRobotState>(basicFunctionRobotModelPtr->calculateRobotState(sourceRobotStatePtr, positionF, orientationF));
-
-      RobotStateMessage newRobotStateMessage;
-      newRobotStateMessage.pan = newRobotState->pan;
-      newRobotStateMessage.tilt = newRobotState->tilt;
-      newRobotStateMessage.rotation = newRobotState->rotation;
-      newRobotStateMessage.y = newRobotState->y;
-      newRobotStateMessage.x = newRobotState->x;
-      res.newRobotState = newRobotStateMessage;
-
       return true;
 }
 
@@ -103,12 +59,6 @@ bool processCalculateCameraPoseServiceCall(CalculateCameraPose::Request &req, Ca
 bool processIsPositionAllowedServiceCall(IsPositionAllowed::Request &req, IsPositionAllowed::Response &res)
 {
   res.isAllowed = basicFunctionRobotModelPtr->isPositionAllowed(req.targetPosition);
-  return true;
-}
-
-bool processIsPositionReachableServiceCall(IsPositionReachable::Request &req, IsPositionReachable::Response &res)
-{
-  res.isReachable = basicFunctionRobotModelPtr->isPositionReachable(req.sourcePosition, req.targetPosition);
   return true;
 }
 
@@ -175,13 +125,11 @@ int main(int argc, char *argv[])
         ROS_ERROR_STREAM(ss.str());
         throw std::runtime_error(ss.str());
     }
-
-    ros::ServiceServer service_GetMovementCosts = n.advertiseService("GetMovementCosts", processGetBase_TranslationalMovementCostsServiceCall);
+    
+    // don't remove the following variables, because if removed the services will be destructed
     ros::ServiceServer service_GetDistance = n.advertiseService("GetDistance", getDistance);
-    ros::ServiceServer service_CalculateRobotState = n.advertiseService("CalculateRobotState", processCalculateRobotStateServiceCall);
     ros::ServiceServer service_CalculateCameraPose = n.advertiseService("CalculateCameraPose", processCalculateCameraPoseServiceCall);
     ros::ServiceServer service_IsPositionAllowed = n.advertiseService("IsPositionAllowed", processIsPositionAllowedServiceCall);
-    ros::ServiceServer service_IsPositionReachable = n.advertiseService("IsPositionReachable", processIsPositionReachableServiceCall);
     ros::ServiceServer service_GetRobotPose = n.advertiseService("GetRobotPose", processGetRobotPoseServiceCall);
     ros::ServiceServer service_GetCameraPose = n.advertiseService("GetCameraPose", processGetCameraPoseServiceCall);
     ros::ServiceServer service_CalculateCameraPoseCorrection = n.advertiseService("CalculateCameraPoseCorrection", processCalculateCameraPoseCorrectionServiceCall);

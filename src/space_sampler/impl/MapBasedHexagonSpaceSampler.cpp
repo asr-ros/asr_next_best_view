@@ -40,15 +40,17 @@ namespace next_best_view {
 	double width = mMapHelperPtr->getMetricWidth();
 	double height = mMapHelperPtr->getMetricHeight();
 
-	//Comment: Black magic
+    // calculate radius and horizontalSpacing of a hexagon
 	float radius = pow(contractor,.382) * mHexagonRadius;
 	float horizontalSpacing = radius * cos(M_PI / 6.0);
 	float interPointSpacing = radius;
 
+    // calculate width/height of sampling depending on contractor
 	int spanX = ceil(contractor * .5 * width / horizontalSpacing);
 	int spanY = ceil(contractor * .25 * height / radius);
 	int span = std::max(spanX, spanY);
 
+    // bounding box of all samples
         xtop = 0;
         ytop = 0;
         xbot = width;
@@ -56,34 +58,73 @@ namespace next_best_view {
 
 	for (int x = -span; x < span; x++) {
 	  for (int y = -span; y <= span; y++) {
+         /*
+         every second row we add horizontalSpacing/offsetting to our x Value so we get the following pattern:
+         x   x   x   x
+           x   x   x
+         x   x   x   x
+         while each "x" consists of 2 points, the most upper and the most lower point of a hexagon (this hexagon is rotated by 90° clockwise):
+                           ______________
+                          /       |      \
+                         /        |       \
+                        /         |hs      \   hs = horizontalSpacing ^= length of half width
+                       /          |         \
+                      /           |          \
+         lower Point /            |           \ most upper Point
+                     \                        /
+                      \                      /
+                       \                    /
+                        \                  /
+                         \                /
+                          \______________/
+
+
+          1       1       1       1       upper 1
+
+
+
+            _/2\_   _/2\_   _/2\_         upper 2
+          1/     \1/     \1/     \1       lower 1
+          |       |       |       |
+          |       |       |       |
+          3\_   _/3\_   _/3\_   _/3       upper 3
+             \2/     \2/     \2/          lower 2
+              |       |       |
+              |       |       |
+              4\_   _/4\_   _/4
+          3      \3/     \3/      3       lower 3
+
+         1, 2, 3, 4 are the vertical sample points if we iterate over y with fixed x, the horizontal ones are iterated over x with a fixed y
+        */
 	    double offsetting = abs(y) % 2 == 0 ? horizontalSpacing : 0.0;
+        // upperPoint
 	    SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * radius, 0);
 	    upperPoint[0] += currentSpacePosition[0];
 	    upperPoint[1] += currentSpacePosition[1];
 
+        //lower Point
 	    SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * radius, 0);
 	    lowerPoint[0] += currentSpacePosition[0];
 	    lowerPoint[1] += currentSpacePosition[1];
 
+        // get occupancy value of upper/lower point
 	    int8_t upperOccupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(upperPoint);
 	    int8_t lowerOccupancyValue = mMapHelperPtr->getRaytracingMapOccupancyValue(lowerPoint);
 
+        // update bounding box
 	    if(lowerPoint[0] < xbot) xbot = lowerPoint[0];
 	    if(lowerPoint[1] < ybot) ybot = lowerPoint[1];
 	    if(upperPoint[0] > xtop) xtop = upperPoint[0];
 	    if(upperPoint[1] > ytop) ytop = upperPoint[1];
 
+        // check for occupancy value and add to pointcloud
 	    if (mMapHelperPtr->isOccupancyValueAcceptable(upperOccupancyValue)) {
-	      SamplePoint samplePoint;
-	      samplePoint.x = upperPoint[0];
-	      samplePoint.y = upperPoint[1];
+          SamplePoint samplePoint(upperPoint);
 	      pointCloud->push_back(samplePoint);
 	    }
 
 	    if (mMapHelperPtr->isOccupancyValueAcceptable(lowerOccupancyValue)) {
-	      SamplePoint samplePoint;
-	      samplePoint.x = lowerPoint[0];
-	      samplePoint.y = lowerPoint[1];
+          SamplePoint samplePoint(lowerPoint);
 	      pointCloud->push_back(samplePoint);
 	    }
 	  }

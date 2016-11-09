@@ -98,11 +98,19 @@ namespace next_best_view {
 
         // Truncate pan angle to valid range
         if (currentPhi < phiMin) {
-            ROS_WARN_STREAM("Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too small.");
+            if (currentPhi < phiMin - 10.0) {
+                ROS_WARN_STREAM("Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too small.");
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too small.", DebugHelper::ROBOT_MODEL);
+            }
             currentPhi = phiMin;
         }
         if (currentPhi > phiMax) {
-            ROS_WARN_STREAM("Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too large.");
+            if (currentPhi > phiMax + 10.0) {
+                ROS_WARN_STREAM("Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too large.");
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Initial Pan-Angle (" << currentPhi * (180/M_PI) << ") was too large.", DebugHelper::ROBOT_MODEL);
+            }
             currentPhi = phiMax;
         }
 
@@ -180,11 +188,19 @@ namespace next_best_view {
 
         // Truncate pan angle to valid range
         if (targetMILDRobotState->pan < phiMin) {
-            ROS_WARN_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too small.");
+            if (targetMILDRobotState->pan < phiMin - 10.0) {
+                ROS_WARN_STREAM("Calculated Pan-Angle (" << targetMILDRobotState->pan * (180/M_PI) << ") was too small.");
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Pan-Angle (" << targetMILDRobotState->pan * (180/M_PI) << ") was too small.", DebugHelper::ROBOT_MODEL);
+            }
             targetMILDRobotState->pan = phiMin;
         }
         if (targetMILDRobotState->pan > phiMax) {
-            ROS_WARN_STREAM("Calculated Pan-Angle (" << currentPhi * (180/M_PI) << ") is too large.");
+            if (targetMILDRobotState->pan > phiMax + 10.0) {
+                ROS_WARN_STREAM("Calculated Pan-Angle (" << targetMILDRobotState->pan * (180/M_PI) << ") was too large.");
+            } else {
+                mDebugHelperPtr->write(std::stringstream() << "Calculated Pan-Angle (" << targetMILDRobotState->pan * (180/M_PI) << ") was too large.", DebugHelper::ROBOT_MODEL);
+            }
             targetMILDRobotState->pan = phiMax;
         }
 
