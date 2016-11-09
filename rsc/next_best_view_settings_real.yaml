@@ -4,7 +4,7 @@ mOmegaTilt: 1 # weighting factor for rotating of the tilt-axis of the PTU
 mOmegaRot: 10 # weighting factor for rotating the base
 mOmegaBase: 135 # weighting factor for moving the base
 mOmegaRecognizer: 10
-speedFactorRecognizer: 2.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
+speedFactorRecognizer: 3.0 # time costs for object detection in in sec/object. Please change only after consulting Pascal.
 tolerance: 0.00003 # tolerance for pathfinding of global planer
 useGlobalPlanner: false
 fovx: 30
