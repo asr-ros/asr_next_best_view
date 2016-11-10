@@ -18,6 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
+#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
 
 namespace next_best_view {
 
@@ -29,6 +30,7 @@ DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThresho
 
 DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, double ncp,
                                          const RobotModelPtr &robotModelPtr,
+                                         const MapHelperPtr &mapHelperPtr,
                                          const CameraModelFilterPtr &cameraModelFilterPtr) :
                                      DefaultRatingModule() {
     mFovV = fovV;
@@ -36,6 +38,7 @@ DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, d
     mFcp = fcp;
     mNcp = ncp;
     mRobotModelPtr = robotModelPtr;
+    mMapHelperPtr = mapHelperPtr;
     mCameraModelFilterPtr = cameraModelFilterPtr;
 }
 
@@ -289,6 +292,9 @@ bool DefaultRatingModule::setSingleScoreContainer(const ViewportPoint &currentVi
 
     // set the costs
     double costs = this->getWeightedInverseCosts(currentViewport, candidateViewport);
+    if (costs < 0.0) {
+        return false;
+    }
     defRatingPtr->setWeightedInverseCosts(costs);
 
     defRatingPtr->setUnweightedInverseMovementCostsBaseTranslation(mUnweightedInverseMovementCostsBaseTranslation);
@@ -397,6 +403,11 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
     // calculate the full movement costs
     double fullCosts = mWeightedInverseMovementCosts + mUnweightedInverseRecognitionCosts * mOmegaRecognition;
 
+    MILDRobotStatePtr state = static_pointer_cast<MILDRobotState>(mTargetState);
+    SimpleVector3 basePosition(state->x, state->y, 0);
+    if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(basePosition))) {
+        fullCosts = -1.0;
+    }
     return fullCosts;
 }
 
