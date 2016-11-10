@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/robot_model/RobotModelAbstractFactory.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 
@@ -32,6 +33,7 @@ namespace next_best_view {
         double mFcp, mNcp;
         RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr mCameraModelFilterFactoryPtr;
+        MapHelperPtr mMapHelperPtr;
         double mAngleThreshold;
         double mOmegaUtility, mOmegaPan, mOmegaTilt;
         double mOmegaRot, mOmegaBase, mOmegaRecognizer;
@@ -41,6 +43,7 @@ namespace next_best_view {
         DefaultRatingModuleFactory(double fovx, double fovy,
                                    double fcp, double ncp,
                                    RobotModelAbstractFactoryPtr robotModelFactory, CameraModelFilterAbstractFactoryPtr cameraModelFilterFactory,
+                                   MapHelperPtr mapHelper,
                                    double angleThreshold,
                                    double omegaUtility, double omegaPan, double omegaTilt,
                                    double omegaRot, double omegaBase, double omegaRecognizer,
@@ -48,6 +51,7 @@ namespace next_best_view {
             : mFovx(fovx), mFovy(fovy),
               mFcp(fcp), mNcp(ncp),
               mRobotModelFactoryPtr(robotModelFactory), mCameraModelFilterFactoryPtr(cameraModelFilterFactory),
+              mMapHelperPtr(mapHelper),
               mAngleThreshold(angleThreshold),
               mOmegaUtility(omegaUtility), mOmegaPan(omegaPan), mOmegaTilt(omegaTilt),
               mOmegaRot(omegaRot), mOmegaBase(omegaBase), mOmegaRecognizer(omegaRecognizer),
@@ -55,7 +59,7 @@ namespace next_best_view {
         { }
 
         RatingModulePtr createRatingModule() {
-            DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(mFovx, mFovy, mFcp, mNcp, mRobotModelFactoryPtr->createRobotModel(), mCameraModelFilterFactoryPtr->createCameraModelFilter()));
+            DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(mFovx, mFovy, mFcp, mNcp, mRobotModelFactoryPtr->createRobotModel(), mMapHelperPtr, mCameraModelFilterFactoryPtr->createCameraModelFilter()));
             defaultRatingModule->setNormalAngleThreshold(mAngleThreshold);
             defaultRatingModule->setOmegaParameters(mOmegaUtility, mOmegaPan, mOmegaTilt, mOmegaRot, mOmegaBase, mOmegaRecognizer);
             defaultRatingModule->setUtilityParameters(mUseOrientationUtility, mUseProximityUtility, mUseSideUtility);

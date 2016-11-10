@@ -571,7 +571,7 @@ public:
             return RatingModuleAbstractFactoryPtr(
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
-                                                       robotModelFactoryPtr, cameraModelFactoryPtr,
+                                                       robotModelFactoryPtr, cameraModelFactoryPtr, mMapHelperPtr,
                                                        mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
                                                        mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer,
