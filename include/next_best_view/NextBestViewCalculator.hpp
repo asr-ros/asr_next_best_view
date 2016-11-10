@@ -94,6 +94,7 @@ private:
     std::map<int, std::map<int, ViewportPoint>> mBestViewportPerGridElem;
     Indices mSeenHypothesis;
     std::vector<std::string> mSeenObjectTypes;
+    ViewportPointCloudPtr mNextNbvs;
 
 public:
 
@@ -411,6 +412,86 @@ private:
         return true;
     }
 
+    void updateSeenHypothesis(ViewportPoint resultViewport) {
+        // save hypothesis that we want to see in nbv
+        Indices curSeenHypothesis = *resultViewport.child_indices;
+        Indices totalSeenHypothesis(curSeenHypothesis.size() + mSeenHypothesis.size());
+        std::sort(curSeenHypothesis.begin(), curSeenHypothesis.end());
+        if (mSeenHypothesis.empty()) {
+            mSeenHypothesis = curSeenHypothesis;
+        } else {
+            // it points to last elem in totalSeenHypothesis
+            auto it = std::set_union(mSeenHypothesis.begin(), mSeenHypothesis.end(), curSeenHypothesis.begin(), curSeenHypothesis.end(), totalSeenHypothesis.begin());
+
+            // shrink hypothesis size
+            totalSeenHypothesis.resize(it - totalSeenHypothesis.begin());
+            mSeenHypothesis = totalSeenHypothesis;
+        }
+//        // append seenObjectTypes
+//        for (std::string curObjType : *resultViewport.object_type_set) {
+//            if (std::find(mSeenObjectTypes.begin(), mSeenObjectTypes.end(), curObjType) == mSeenObjectTypes.end()) {
+//                mSeenObjectTypes.push_back(curObjType);
+//            }
+//        }
+    }
+
+    void findNextNbvs(ViewportPoint resultViewport) {
+        // find nnbvs
+        ViewportPoint nbv = resultViewport;
+        updateSeenHypothesis(nbv);
+        mNextNbvs = ViewportPointCloudPtr(new ViewportPointCloud());
+        mNextNbvs->push_back(nbv);
+
+        ViewportPointCloudPtr nnbvSamples(new ViewportPointCloud());
+        for (auto &yRowIt : mBestViewportPerGridElem) {
+            for (auto &gridElem : yRowIt.second) {
+                nnbvSamples->push_back(gridElem.second);
+            }
+        }
+        bool needMoreViews = true;
+        while (needMoreViews) {
+            // rate best ones
+            ViewportPointCloudPtr ratedNextBestViewportsPtr;
+            if (!rateViewports(nnbvSamples, nbv, ratedNextBestViewportsPtr)) {
+                ROS_ERROR_STREAM("could not rate grid elements");
+                return;
+            }
+            auto ratingSortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
+                // a < b
+                return mRatingModulePtr->compareViewports(a, b);
+            };
+            std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), ratingSortFunction);
+
+            bool foundUtility = false;
+            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+                if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
+                    // indices of hypothesis that can be seen from ratedViewport
+                    Indices curViewportHypothesisIndices = *ratedViewport.child_indices;
+                    // get intersection of (all hypothesis that will be seen by current nbvs) and ratedViewport
+                    std::sort(curViewportHypothesisIndices.begin(), curViewportHypothesisIndices.end());
+                    Indices intersection(min(curViewportHypothesisIndices.size(), mSeenHypothesis.size()));
+                    auto it = std::set_intersection(curViewportHypothesisIndices.begin(), curViewportHypothesisIndices.end(), mSeenHypothesis.begin(), mSeenHypothesis.end(), intersection.begin());
+                    intersection.resize(it - intersection.begin());
+                    if (intersection.size() < 5) {
+                        nbv = ratedViewport;
+                        updateSeenHypothesis(nbv);
+                        mNextNbvs->push_back(nbv);
+                        foundUtility = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundUtility) {
+                needMoreViews = false;
+            }
+            double percentageSeenHypothesis = static_cast<double>(mSeenHypothesis.size()) / static_cast<double>(mActiveIndicesPtr->size());
+            if (percentageSeenHypothesis > 0.7) {
+                needMoreViews = false;
+            }
+        }
+        mVisHelperPtr->triggerViewportsVisualization(mNextNbvs, Color(1, 1, 1, 1), "nnbvs");
+    }
+
     bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
 
@@ -453,6 +534,8 @@ private:
                 mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
                                             DebugHelper::CALCULATION);
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
+                // predict next nbvs before we return the result
+                findNextNbvs(resultViewport);
                 return true;
             }
 
@@ -528,6 +611,7 @@ private:
         std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), utilitySortFunction);
 
         if (mCacheResults) {
+            // update cache grid
             BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
                 SimpleVector3 pos = ratedViewport.getPosition();
                 int xIdx = static_cast<int>(pos[0] / mGridSize);
@@ -542,27 +626,6 @@ private:
                 } else {
                     if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mBestViewportPerGridElem[xIdx][yIdx].score->getUnweightedUnnormalizedUtility()) {
                         mBestViewportPerGridElem[xIdx][yIdx] = ratedViewport;
-                    }
-                }
-            }
-            // save hypothesis that we want to see in nbv
-            Indices curSeenHypothesis = *resultViewport.child_indices;
-            Indices totalSeenHypothesis(curSeenHypothesis.size() + mSeenHypothesis.size());
-            std::sort(curSeenHypothesis.begin(), curSeenHypothesis.end());
-            if (mSeenHypothesis.empty()) {
-                mSeenHypothesis = curSeenHypothesis;
-            } else {
-                // it points to last elem in totalSeenHypothesis
-                auto it = std::set_union(mSeenHypothesis.begin(), mSeenHypothesis.end(), curSeenHypothesis.begin(), curSeenHypothesis.end(), totalSeenHypothesis.begin());
-
-                // shrink hypothesis size
-                totalSeenHypothesis.resize(it - totalSeenHypothesis.begin());
-                mSeenHypothesis = totalSeenHypothesis;
-            }
-            if (!mSeenObjectTypes.empty()) {
-                for (std::string curObjType : *resultViewport.object_type_set) {
-                    if (std::find(mSeenObjectTypes.begin(), mSeenObjectTypes.end(), curObjType) == mSeenObjectTypes.end()) {
-                        mSeenObjectTypes.push_back(curObjType);
                     }
                 }
             }
@@ -827,6 +890,11 @@ public:
 
         if (mCacheResults) {
             mBestViewportPerGridElem.clear();
+            mSeenHypothesis.clear();
+            mSeenObjectTypes.clear();
+            if (mNextNbvs) {
+                mNextNbvs->clear();
+            }
         }
 
         return true;
