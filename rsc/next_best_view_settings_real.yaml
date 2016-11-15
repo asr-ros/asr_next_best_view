@@ -61,7 +61,8 @@ sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 2 => MapBasedRandomSpaceSampler
 # spaceSamplerId == 3 => PlaneSubSpaceSampler
 # spaceSamplerId == 4 => Raytracing2DBasedSpaceSampler
-spaceSamplerId: 1
+# spaceSamplerId == 5 => HypothesisSpaceSampler
+spaceSamplerId: 5
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
