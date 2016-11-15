@@ -79,19 +79,19 @@ public:
 
 
        int sampleSize = 10;
-       std::map<std::string, std::vector<pbd_msgs::PbdAttributedPoint>* > objectPointCloudsMap;
+       std::map<std::string, std::vector<asr_msgs::AsrAttributedPoint>* > objectPointCloudsMap;
 
        for (std::size_t idx = 0; idx < (std::size_t)hpSize_scene1; idx++) {
 
             if(objectPointCloudsMap.find(types_scene1[idx]) == objectPointCloudsMap.end())
             {
-                objectPointCloudsMap[types_scene1[idx]]= new std::vector<pbd_msgs::PbdAttributedPoint>();
+                objectPointCloudsMap[types_scene1[idx]]= new std::vector<asr_msgs::AsrAttributedPoint>();
             }
             for (std::size_t cnt = 0; cnt < (std::size_t)sampleSize; cnt++) {
                 SimpleVector3 randomVector;
                 randomVector = MathHelper::getRandomVector(hp_scene1[idx], SimpleVector3(.05, .05, 0.01));
 
-                pbd_msgs::PbdAttributedPoint element;
+                asr_msgs::AsrAttributedPoint element;
 
                 geometry_msgs::Pose pose;
                 pose.orientation.w = orientation_scene1[idx].w();
@@ -172,8 +172,8 @@ public:
                 {
                     if (nbv.response.object_type_name_list[i] != "CeylonTea")
                     {
-                        std::vector<pbd_msgs::PbdAttributedPoint> temp;
-                        for (std::vector<pbd_msgs::PbdAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
+                        std::vector<asr_msgs::AsrAttributedPoint> temp;
+                        for (std::vector<asr_msgs::AsrAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                         {
                             if ((nbv.response.object_type_name_list[i].compare(it->type)) != 0)
                             {
@@ -190,12 +190,12 @@ public:
 
                              if(objectPointCloudsMap.find(types_scene2[idx]) == objectPointCloudsMap.end())
                              {
-                                 objectPointCloudsMap[types_scene2[idx]]= new std::vector<pbd_msgs::PbdAttributedPoint>();
+                                 objectPointCloudsMap[types_scene2[idx]]= new std::vector<asr_msgs::AsrAttributedPoint>();
                              }
                              for (std::size_t cnt = 0; cnt < (std::size_t)sampleSize; cnt++) {
                                  SimpleVector3 randomVector;
                                  randomVector = MathHelper::getRandomVector(hp_scene2[idx], SimpleVector3(.05, .05, 0.01));
-                                 pbd_msgs::PbdAttributedPoint element;
+                                 asr_msgs::AsrAttributedPoint element;
                                  geometry_msgs::Pose pose;
                                  pose.orientation.w = orientation_scene2[idx].w();
                                  pose.orientation.x = orientation_scene2[idx].x();

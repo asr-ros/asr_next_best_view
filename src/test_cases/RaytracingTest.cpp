@@ -53,7 +53,7 @@ public:
 
         ROS_INFO("Setze Objekt");
 
-        pbd_msgs::PbdAttributedPoint element;
+        asr_msgs::AsrAttributedPoint element;
 
         SimpleMatrix3 rotation;
         rotation = Eigen::AngleAxis<Precision>(-90.0 * (M_PI / 180.0), SimpleVector3::UnitX())

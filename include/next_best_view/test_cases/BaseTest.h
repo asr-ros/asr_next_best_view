@@ -39,7 +39,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
+#include "asr_msgs/AsrAttributedPoint.h"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
