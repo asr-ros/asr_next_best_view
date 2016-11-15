@@ -23,21 +23,28 @@ using namespace next_best_view;
 using namespace dynamic_reconfigure;
 
     BaseTest::BaseTest() {
-        initRosServicesAndPublishers();
+        init(true, false);
     }
 
     BaseTest::BaseTest(bool useRos, bool silent) {
-        this->silent = silent;
-        if (useRos) {
-            initRosServicesAndPublishers();
-        }
+        init(useRos, silent);
     }
 
     BaseTest::~BaseTest() {}
 
-    void BaseTest::initRosServicesAndPublishers() {
-        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle());
+    void BaseTest::init(bool useRos, bool silent) {
+        this->mNodeHandle = boost::shared_ptr<ros::NodeHandle>(new ros::NodeHandle("~"));
 
+        // publishers
+        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
+
+        this->silent = silent;
+        if (useRos) {
+            initRosServices();
+        }
+    }
+
+    void BaseTest::initRosServices() {
         // services
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
@@ -53,9 +60,6 @@ using namespace dynamic_reconfigure;
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
         ros::service::waitForService("/nbv/set_parameters", -1);
         mDynParametersClient = mNodeHandle->serviceClient<Reconfigure>("/nbv/set_parameters");
-
-        // publishers
-        mInitPosePub = mNodeHandle->advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 100, false);
     }
 
     void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {
