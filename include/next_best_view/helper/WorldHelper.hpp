@@ -10,6 +10,8 @@
 #include <assimp_devel/Importer.hpp>
 #include <assimp_devel/scene.h>
 #include <assimp_devel/postprocess.h>
+#include <Eigen/Dense>
+#include <iostream>
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/helper/VoxelGridHelper.hpp"
@@ -36,10 +38,9 @@ namespace next_best_view {
         bool isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectPosition);
 
     private:
-        bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos, GridVector3 currVoxelPos, GridVector3 objectGridPos,
-                                                                        double tStart, std::vector<GridVector3> &traversedVoxels);
+        bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos, GridVector3 currVoxelPos, std::vector<GridVector3> &traversedVoxels);
 
-        void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, GridVector3 &result);
+        void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, std::vector<GridVector3> &result);
 
         void worldToVoxelGridCoordinates(const std::vector<SimpleVector3> &worldPositions, std::vector<GridVector3> &results);
 
@@ -72,6 +73,9 @@ namespace next_best_view {
         bool voxelVerticesAreNeighbours(const SimpleVector3 &vertexA, const SimpleVector3 &vertexB);
 
         bool lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const GridVector3& gridPos);
+
+        bool lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const GridVector3& gridPos,
+                                                                                                                double tLowerBound);
 
         bool lineIntersectsVoxel(const SimpleVector3& lineStartPos, const SimpleVector3& lineEndPos, const GridVector3& gridPos,
                                                                                                     double tLowerBound, double &tMin);
