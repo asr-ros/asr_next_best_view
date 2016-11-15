@@ -101,7 +101,7 @@ namespace next_best_view {
         tree->setInputCloud(pointCloudPtr);
 
         // find hypothesis clusters
-        begin = std::chrono::high_resolution_clock::now();
+        auto begin = std::chrono::high_resolution_clock::now();
         std::vector<pcl::PointIndices> clusterIndices;
         pcl::EuclideanClusterExtraction<ObjectPoint> euclideanClusterExtractor;
         euclideanClusterExtractor.setClusterTolerance (0.3); // 30cm
@@ -110,7 +110,7 @@ namespace next_best_view {
         euclideanClusterExtractor.setSearchMethod(tree);
         euclideanClusterExtractor.setInputCloud(pointCloudPtr);
         euclideanClusterExtractor.extract(clusterIndices);
-        finish = std::chrono::high_resolution_clock::now();
+        auto finish = std::chrono::high_resolution_clock::now();
         mDebugHelperPtr->writeNoticeably(std::stringstream() << "cluster extraction took " << std::chrono::duration<float>(finish - begin).count() << " seconds.", DebugHelper::CALCULATION);
         mDebugHelperPtr->writeNoticeably(std::stringstream() << "number of clusters: " << clusterIndices.size(), DebugHelper::CALCULATION);
 
