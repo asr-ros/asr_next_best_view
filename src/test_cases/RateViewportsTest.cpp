@@ -57,7 +57,7 @@ public:
             for (std::size_t cnt = 0; cnt < (std::size_t)elementsPerHp[idx]; cnt++) {
                 SimpleVector3 curLocation = location[idx];
 
-                pbd_msgs::PbdAttributedPoint element;
+                asr_msgs::AsrAttributedPoint element;
 
                 geometry_msgs::Pose pose;
                 pose.orientation.w = orientation[idx].w();

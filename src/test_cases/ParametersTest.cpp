@@ -140,7 +140,7 @@ public:
 
             //create first point cloud
             for (int i = 0; i < elements1; i++) {
-                pbd_msgs::PbdAttributedPoint element = this->getAttributedPoint(hp[0], posDeviation1, orientations[0], orientationDeviation1,
+                asr_msgs::AsrAttributedPoint element = this->getAttributedPoint(hp[0], posDeviation1, orientations[0], orientationDeviation1,
                                                                                     objectTypeNames1, typeToOrientation, i);
 
                 apc.request.point_cloud.elements.push_back(element);
@@ -148,7 +148,7 @@ public:
 
             //create second point cloud
             for (int i = 0; i < elements2; i++) {
-                pbd_msgs::PbdAttributedPoint element = this->getAttributedPoint(hp[1], posDeviation2, orientations[1], orientationDeviation2,
+                asr_msgs::AsrAttributedPoint element = this->getAttributedPoint(hp[1], posDeviation2, orientations[1], orientationDeviation2,
                                                                                     objectTypeNames2, typeToOrientation, i);
 
                 apc.request.point_cloud.elements.push_back(element);
@@ -285,7 +285,7 @@ public:
                 SimpleQuaternion q = this->getOrientation(pcOrientations[j], elementOrientationList[0],
                                                             elementOrientationList[1], elementOrientationList[2]);
 
-                pbd_msgs::PbdAttributedPoint element;
+                asr_msgs::AsrAttributedPoint element;
 
                 geometry_msgs::Pose pose;
                 pose.position.x = hp[j][0];
@@ -470,7 +470,7 @@ public:
                 pose.orientation.z = elementOrientation.z();
                 pose.orientation.w = elementOrientation.w();
 
-                pbd_msgs::PbdAttributedPoint element;
+                asr_msgs::AsrAttributedPoint element;
                 element.type = elementType;
                 element.pose = pose;
 
@@ -569,7 +569,7 @@ public:
         return result;
     }
 
-    pbd_msgs::PbdAttributedPoint getAttributedPoint(SimpleVector3 position, SimpleVector3 positionDeviation,
+    asr_msgs::AsrAttributedPoint getAttributedPoint(SimpleVector3 position, SimpleVector3 positionDeviation,
                                                         SimpleQuaternion orientation, float orientationDeviation,
                                                         std::vector<std::string> objectTypeNames,
                                                         std::map<std::string, std::vector<double>> typeToOrientation,
@@ -586,7 +586,7 @@ public:
         SimpleQuaternion randomOrientation = this->getOrientation(orientation, 0.0, 0.0, randomDeviation);
         SimpleQuaternion quaternion = this->getOrientation(randomOrientation, typeOrientation[0], typeOrientation[1], typeOrientation[2]);
 
-        pbd_msgs::PbdAttributedPoint element;
+        asr_msgs::AsrAttributedPoint element;
 
         geometry_msgs::Pose pose;
         pose.orientation.w = quaternion.w();

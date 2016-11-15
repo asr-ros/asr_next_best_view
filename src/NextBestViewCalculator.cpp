@@ -504,7 +504,7 @@ namespace next_best_view {
 
     }
 
-    bool NextBestViewCalculator::setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg) {
+    bool NextBestViewCalculator::setPointCloudFromMessage(const asr_msgs::AsrAttributedPointCloud &msg) {
         // create a new point cloud
         ObjectPointCloudPtr originalPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
@@ -514,7 +514,7 @@ namespace next_best_view {
         mObjectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet);
 
         // put each element into the point cloud
-        BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
+        BOOST_FOREACH(asr_msgs::AsrAttributedPoint element, msg.elements) {
             // Create a new point with pose and set object type
             ObjectPoint pointCloudPoint(element.pose);
             pointCloudPoint.r = 0;

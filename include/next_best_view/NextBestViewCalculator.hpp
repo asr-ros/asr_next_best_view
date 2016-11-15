@@ -48,8 +48,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/filter/sample_point/HypothesisClusterSpaceSampleFilter.hpp"
 #include "next_best_view/filter/sample_point/HypothesisKDTreeSpaceSampleFilter.hpp"
 #include "next_best_view/filter/sample_point/MapSpaceSampleFilter.hpp"
-#include "pbd_msgs/PbdAttributedPointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
+#include "asr_msgs/AsrAttributedPointCloud.h"
+#include "asr_msgs/AsrAttributedPoint.h"
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/ObjectHelper.h"
@@ -283,7 +283,7 @@ public:
       * Sets the point cloud points from point cloud message
       * @param message - message containing the point cloud
       */
-    bool setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg);
+    bool setPointCloudFromMessage(const asr_msgs::AsrAttributedPointCloud &msg);
 
 private:
 

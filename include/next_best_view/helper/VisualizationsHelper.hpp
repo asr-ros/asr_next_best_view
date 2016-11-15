@@ -39,8 +39,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "next_best_view/crop_box/CropBoxWrapper.hpp"
-#include "pbd_msgs/PbdAttributedPointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
+#include "asr_msgs/AsrAttributedPointCloud.h"
+#include "asr_msgs/AsrAttributedPoint.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
