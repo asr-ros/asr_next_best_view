@@ -96,6 +96,10 @@ public:
 
         if (nbv.response.found)
         {
+            TriggerFrustumVisualization tfv;
+            tfv.request.current_pose = nbv.response.resulting_pose;
+            mTriggerFrustumVisClient.call(tfv.request, tfv.response);
+
             ROS_INFO("Found NBV");
         }
         else

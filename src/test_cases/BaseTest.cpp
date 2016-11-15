@@ -60,6 +60,8 @@ using namespace dynamic_reconfigure;
         mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
         ros::service::waitForService("/nbv/set_parameters", -1);
         mDynParametersClient = mNodeHandle->serviceClient<Reconfigure>("/nbv/set_parameters");
+        ros::service::waitForService("/nbv/trigger_frustum_visualization", -1);
+        mTriggerFrustumVisClient = mNodeHandle->serviceClient<TriggerFrustumVisualization>("/nbv/trigger_frustum_visualization");
     }
 
     void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {

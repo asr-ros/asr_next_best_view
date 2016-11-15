@@ -39,6 +39,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/SetInitRobotState.h"
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
+#include "next_best_view/TriggerFrustumVisualization.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
@@ -68,6 +69,7 @@ protected:
     ros::ServiceClient mUpdatePointCloudClient;
     ros::ServiceClient mResetCalculatorClient;
     ros::ServiceClient mDynParametersClient;
+    ros::ServiceClient mTriggerFrustumVisClient;
     bool silent;
 public:
     BaseTest();
