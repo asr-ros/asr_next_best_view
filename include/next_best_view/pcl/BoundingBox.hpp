@@ -20,7 +20,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 #include "typedef.hpp"
-#include "next_best_view/helper/MathHelper.hpp"
 
 namespace next_best_view {
 
@@ -31,15 +30,15 @@ namespace next_best_view {
 
     public:
         BoundingBox(SimpleVector3 minPos, SimpleVector3 maxPos) : minPos(minPos), maxPos(maxPos) {
-            xWidth = maxPos[0] - minPos[0];
-            yWidth = maxPos[1] - minPos[1];
-            height = maxPos[2] - minPos[2];
+            xWidth = abs(maxPos[0] - minPos[0]);
+            yWidth = abs(maxPos[1] - minPos[1]);
+            height = abs(maxPos[2] - minPos[2]);
         }
 
         bool contains(SimpleVector3 v) {
-            return (minPos[0] < v[0] && v[0] < maxPos[0]) &&
-                    (minPos[0] < v[0] && v[0] < maxPos[0]) &&
-                    (minPos[0] < v[0] && v[0] < maxPos[0]);
+            return (xWidth < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0])) &&
+                    (yWidth < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0])) &&
+                    (height < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0]));
         }
     };
     typedef boost::shared_ptr<BoundingBox> BoundingBoxPtr;
