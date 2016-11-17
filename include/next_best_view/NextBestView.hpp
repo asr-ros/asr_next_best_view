@@ -88,6 +88,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/space_sampler/impl/MapBasedHexagonSpaceSamplerFactory.hpp"
 #include "next_best_view/space_sampler/impl/MapBasedRandomSpaceSamplerFactory.hpp"
 #include "next_best_view/space_sampler/impl/HypothesisSpaceSamplerFactory.hpp"
+#include "next_best_view/space_sampler/impl/HexagonSpaceSamplePattern.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModuleFactory.hpp"
 
@@ -431,10 +432,26 @@ public:
         case 4:
             return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mMapHelperPtr));
         case 5:
-            return SpaceSamplerAbstractFactoryPtr(new HypothesisSpaceSamplerFactory(mMapHelperPtr, mConfig.fcp));
+            return SpaceSamplerAbstractFactoryPtr(new HypothesisSpaceSamplerFactory(mMapHelperPtr, createSpaceSamplePatternFromConfig(mConfig.spaceSamplePatternId), mConfig.fcp));
         default:
             std::stringstream ss;
             ss << mConfig.spaceSamplerId << " is not a valid space sampler ID";
+            ROS_ERROR_STREAM(ss.str());
+            throw std::runtime_error(ss.str());
+        }
+    }
+
+    SpaceSamplePatternPtr createSpaceSamplePatternFromConfig(int moduleId) {
+        HexagonSpaceSamplePatternPtr hexagonSpaceSamplePatternPtr;
+        switch (moduleId)
+        {
+        case 1:
+            hexagonSpaceSamplePatternPtr = HexagonSpaceSamplePatternPtr(new HexagonSpaceSamplePattern());
+            hexagonSpaceSamplePatternPtr->setRadius(mConfig.radius);
+            return hexagonSpaceSamplePatternPtr;
+        default:
+            std::stringstream ss;
+            ss << mConfig.spaceSamplerId << " is not a valid space sample pattern ID";
             ROS_ERROR_STREAM(ss.str());
             throw std::runtime_error(ss.str());
         }

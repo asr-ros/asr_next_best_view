@@ -28,30 +28,29 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <chrono>
 
 namespace next_best_view {
-  HypothesisSpaceSampler::HypothesisSpaceSampler(const MapHelperPtr &mapUtilityPtr, double offset) :  mMapHelperPtr(mapUtilityPtr), mOffset(offset) {
+    HypothesisSpaceSampler::HypothesisSpaceSampler(const MapHelperPtr &mapUtilityPtr, const SpaceSamplePatternPtr &spaceSamplePattern, double offset) :  mMapHelperPtr(mapUtilityPtr), mSpaceSamplePattern(spaceSamplePattern), mOffset(offset) {
         mDebugHelperPtr = DebugHelper::getInstance();
-  }
+    }
 
-  HypothesisSpaceSampler::~HypothesisSpaceSampler() { }
+    HypothesisSpaceSampler::~HypothesisSpaceSampler() { }
 
     SamplePointCloudPtr HypothesisSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
         SamplePointCloudPtr pointCloud = SamplePointCloudPtr(new SamplePointCloud());
-        float radius = pow(contractor, 0.382) * 0.15;
 
         // number of generated samples per bounding box
         std::vector<int> nSamplesPerBB(mBBs.size());
-        std::vector<SimpleVector3> samples = this->generateSamples(mSamplingBB, radius);
-        samples.push_back(currentSpacePosition);
+        SamplePointCloudPtr samples = this->generateSamples(mSamplingBB, currentSpacePosition, contractor);
+        samples->push_back(currentSpacePosition);
         // generate samples
-        for (SimpleVector3 generatedSample : samples) {
+        for (SamplePoint generatedSample : *samples) {
             // check if v is in a bb
             int bbIdx = 0;
             for (BoundingBoxPtr &bbPtr : mBBs) {
-                if (bbPtr->contains(generatedSample)) {
+                if (bbPtr->contains(generatedSample.getSimpleVector3())) {
                     // check for occupancy value
-                    if (mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(generatedSample))) {
+                    if (mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(generatedSample.getSimpleVector3()))) {
                         nSamplesPerBB[bbIdx] ++;
-                        pointCloud->push_back(SamplePoint(generatedSample));
+                        pointCloud->push_back(generatedSample);
                     }
                     break;
                 }
@@ -64,14 +63,14 @@ namespace next_best_view {
         for (int nSamples : nSamplesPerBB) {
             if (nSamples < 5) {
                 ROS_INFO_STREAM("we have too few samples for a bb");
-                samples = this->generateSamples(mBBs[bbIdx], radius * 0.5);
+                samples = this->generateSamples(mBBs[bbIdx], currentSpacePosition, contractor * 0.5);
                 if (mBBs[bbIdx]->contains(currentSpacePosition)) {
-                    samples.push_back(currentSpacePosition);
+                    samples->push_back(currentSpacePosition);
                 }
-                for (SimpleVector3 generatedSample : samples) {
-                    if (mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(generatedSample))) {
+                for (SamplePoint generatedSample : *samples) {
+                    if (mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(generatedSample.getSimpleVector3()))) {
                         nSamplesPerBB[bbIdx] ++;
-                        pointCloud->push_back(SamplePoint(generatedSample));
+                        pointCloud->push_back(generatedSample);
                     }
                 }
             }
@@ -81,15 +80,10 @@ namespace next_best_view {
         return pointCloud;
     }
 
-    // TODO: generate samples in a hexagon pattern
-    std::vector<SimpleVector3> HypothesisSpaceSampler::generateSamples(const BoundingBoxPtr &bb, float radius) {
-        std::vector<SimpleVector3> samples;
-        for (float x = bb->minPos[0]; x < bb->maxPos[0]; x += radius) {
-            for (float y = bb->minPos[1]; y < bb->maxPos[1]; y += radius) {
-                SimpleVector3 generatedSample(x, y, 0);
-                samples.push_back(generatedSample);
-            }
-        }
+    SamplePointCloudPtr HypothesisSpaceSampler::generateSamples(const BoundingBoxPtr &bb, SimpleVector3 currentSpacePosition, float factor) {
+        SamplePointCloudPtr samples;
+        mSpaceSamplePattern->setPatternSizeFactor(factor);
+        samples = mSpaceSamplePattern->getSampledSpacePointCloud(currentSpacePosition, bb);
         return samples;
     }
 

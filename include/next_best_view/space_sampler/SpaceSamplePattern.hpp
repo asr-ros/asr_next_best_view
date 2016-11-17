@@ -19,44 +19,52 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include <boost/foreach.hpp>
-#include "next_best_view/helper/MapHelper.hpp"
-#include "next_best_view/space_sampler/SpaceSampler.hpp"
-#include "next_best_view/space_sampler/impl/HexagonSpaceSamplePattern.hpp"
+#include "next_best_view/common/CommonClass.hpp"
+#include "next_best_view/pcl/BoundingBox.hpp"
 
 namespace next_best_view {
-	/*!
-     * \brief MapBasedHexagonSpaceSampler implements the space sampling with a hexagon pattern.
-	 * \author Ralf Schleicher
-	 * \date 2014
-	 * \version 1.0
-	 * \copyright GNU Public License
-	 */
-	class MapBasedHexagonSpaceSampler : public SpaceSampler {
-	private:
-		MapHelperPtr mMapHelperPtr;
-        DebugHelperPtr mDebugHelperPtr;
-		double mHexagonRadius;
-	public:
-		/*!
-		 * \brief constructor for CostmapBasedSpaceSampler object
-		 */
-		MapBasedHexagonSpaceSampler(const MapHelperPtr &mapHelperPtr);
 
-		/*!
-		 * \brief destructor for CostmapBasedSpaceSampler object
-		 */
-		virtual ~MapBasedHexagonSpaceSampler();
+    /**
+     * @brief The SpaceSamplePattern class could be used to sample space just like SpaceSampler, but with a little different interface.
+     * But its main usage is to help SpaceSampler implementations to create a generic pattern which they can filter.
+     */
+    class SpaceSamplePattern : public CommonClass {
+    public:
+        SpaceSamplePattern();
 
-		SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
+        virtual ~SpaceSamplePattern();
 
-		void setHexagonRadius(double radius);
+        /**
+         * @brief getSampledSpacePointCloud
+         * @param currentSpacePosition a position to align the pattern.
+         * @param bb to constraint the samples
+         * @return
+         */
+        virtual SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, const BoundingBoxPtr &bb) = 0;
 
-		double getHexagonRadius();
-	};
+        /**
+         * @brief getPatternWidth
+         * @return pattern width after multiplied by size factor.
+         */
+        virtual float getPatternWidth() = 0;
 
-	/*!
-	 * \brief Definition for the shared pointer type of the class.
-	 */
-	typedef boost::shared_ptr<MapBasedHexagonSpaceSampler> MapBasedHexagonSpaceSamplerPtr;
+        /**
+         * @brief getPatternHeight
+         * @return pattern height after multiplied by size factor.
+         */
+        virtual float getPatternHeight() = 0;
+
+        /**
+         * @brief setPatternSizeFactor used to increase/decrease sample resolution in a general way.
+         * @param factor
+         */
+        virtual void setPatternSizeFactor(float factor) = 0;
+
+        virtual float getPatternSizeFactor() = 0;
+    };
+
+    /*!
+     * \brief Definition for the shared pointer type of the class.
+     */
+    typedef boost::shared_ptr<SpaceSamplePattern> SpaceSamplePatternPtr;
 }

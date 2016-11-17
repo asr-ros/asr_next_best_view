@@ -21,9 +21,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
+#include "next_best_view/space_sampler/SpaceSamplePattern.hpp"
 #include "next_best_view/pcl/BoundingBox.hpp"
 
 namespace next_best_view {
+
     /*!
      * \brief The HypothesisSpaceSampler class generates samples near hypothesis, so it still works if there are no hypothesis nearby.
      * Furthermore it generates more samples near a hypothesis cluster, if there are very few samples near that cluster.
@@ -33,22 +35,25 @@ namespace next_best_view {
     private:
         MapHelperPtr mMapHelperPtr;
         DebugHelperPtr mDebugHelperPtr;
-        double mOffset;
         // a bounding box over all bounding boxes to determine the area where we create samples
         // it might be a bit more efficient if we sample inside the bounding boxes and filter overlaping samples
         // worst case is a sparse point cloud with far distributed samples
         BoundingBoxPtr mSamplingBB;
         // these might be overlaping
         std::vector<BoundingBoxPtr> mBBs;
+        // used to sample in mSamplingBB
+        SpaceSamplePatternPtr mSpaceSamplePattern;
+        // fcp/used to expand bounding boxes
+        double mOffset;
 
     public:
-        HypothesisSpaceSampler(const MapHelperPtr &mapHelperPtr, double offset = 0.3);
+        HypothesisSpaceSampler(const MapHelperPtr &mapHelperPtr, const SpaceSamplePatternPtr &spaceSamplePattern, double offset = 0.3);
 
         virtual ~HypothesisSpaceSampler();
 
         SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
 
-        std::vector<SimpleVector3> generateSamples(const BoundingBoxPtr &bb, float radius);
+        SamplePointCloudPtr generateSamples(const BoundingBoxPtr &bb, SimpleVector3 currentSpacePosition, float factor = 1.0);
 
         void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
     };

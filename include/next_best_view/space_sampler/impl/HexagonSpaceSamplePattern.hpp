@@ -19,44 +19,46 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include <boost/foreach.hpp>
-#include "next_best_view/helper/MapHelper.hpp"
-#include "next_best_view/space_sampler/SpaceSampler.hpp"
-#include "next_best_view/space_sampler/impl/HexagonSpaceSamplePattern.hpp"
+#include "next_best_view/space_sampler/SpaceSamplePattern.hpp"
 
 namespace next_best_view {
-	/*!
-     * \brief MapBasedHexagonSpaceSampler implements the space sampling with a hexagon pattern.
-	 * \author Ralf Schleicher
-	 * \date 2014
-	 * \version 1.0
-	 * \copyright GNU Public License
-	 */
-	class MapBasedHexagonSpaceSampler : public SpaceSampler {
-	private:
-		MapHelperPtr mMapHelperPtr;
-        DebugHelperPtr mDebugHelperPtr;
-		double mHexagonRadius;
-	public:
-		/*!
-		 * \brief constructor for CostmapBasedSpaceSampler object
-		 */
-		MapBasedHexagonSpaceSampler(const MapHelperPtr &mapHelperPtr);
 
-		/*!
-		 * \brief destructor for CostmapBasedSpaceSampler object
-		 */
-		virtual ~MapBasedHexagonSpaceSampler();
+    // TODO:
+    class HexagonSpaceSamplePattern : public SpaceSamplePattern {
+    private:
+        float mRadius;
+        float mHexagonWidth;
+        float mPatternSizeFactor;
+    public:
+        HexagonSpaceSamplePattern();
 
-		SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
+        virtual ~HexagonSpaceSamplePattern();
 
-		void setHexagonRadius(double radius);
+        SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, const BoundingBoxPtr &bb);
 
-		double getHexagonRadius();
-	};
+        float getPatternWidth();
 
-	/*!
-	 * \brief Definition for the shared pointer type of the class.
-	 */
-	typedef boost::shared_ptr<MapBasedHexagonSpaceSampler> MapBasedHexagonSpaceSamplerPtr;
+        float getPatternHeight();
+
+        /**
+         * @brief getRadius
+         * @return radius without factor
+         */
+        float getRadius() const;
+
+        /**
+         * @brief setRadius this function will reset factor to 1.0, so it does not interfere.
+         * @param value
+         */
+        void setRadius(float value);
+
+        float getPatternSizeFactor();
+
+        void setPatternSizeFactor(float factor);
+    };
+
+    /*!
+     * \brief Definition for the shared pointer type of the class.
+     */
+    typedef boost::shared_ptr<HexagonSpaceSamplePattern> HexagonSpaceSamplePatternPtr;
 }

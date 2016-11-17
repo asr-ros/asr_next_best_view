@@ -63,6 +63,8 @@ sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 4 => Raytracing2DBasedSpaceSampler
 # spaceSamplerId == 5 => HypothesisSpaceSampler
 spaceSamplerId: 5
+# spaceSamplePatternId == 1 => HexagonSpaceSamplePattern
+spaceSamplePatternId: 1 # atm only used by HypothesisSpaceSampler
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
@@ -70,4 +72,4 @@ removeInvalidNormals: true
 cacheResults: true # if results should be cached for next nbv calls with the same pc
 useMinUtility: true
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
-debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
+debugLevels: [MAP] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
