@@ -12,6 +12,7 @@
 #include <assimp_devel/postprocess.h>
 #include <Eigen/Dense>
 #include <iostream>
+#include <tuple>
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/helper/VoxelGridHelper.hpp"
@@ -35,16 +36,20 @@ namespace next_best_view {
     public:
         WorldHelper(MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight, bool visualizeRaytracing);
 
-        bool isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectPosition);
+        void filterOccludedObjects(SimpleVector3 cameraPosition, ObjectPointCloudPtr objectPointCloud, IndicesPtr indices,
+                                                                                                            IndicesPtr &filteredIndices);
+
+        bool isOccluded(SimpleVector3 cameraPosition, SimpleVector3 targetPosition);
 
     private:
-        bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos, GridVector3 currVoxelPos, std::vector<GridVector3> &traversedVoxels);
+        bool isOccluded(SimpleVector3 cameraPos, SimpleVector3 targetPos, GridVector3 currVoxelPos, std::vector<GridVector3> &traversedVoxels);
 
         void worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, std::vector<GridVector3> &result);
 
         void worldToVoxelGridCoordinates(const std::vector<SimpleVector3> &worldPositions, std::vector<GridVector3> &results);
 
-        void mapToWorldCoordinates(const SimpleVector3 &worldPos, SimpleVector3 &result);
+        // TODO remove
+        void mapToWorldCoordinates(const SimpleVector3 &mapPos, SimpleVector3 &result);
 
         void initializeVoxelGridHelper(double worldHeight);
 
@@ -65,6 +70,8 @@ namespace next_best_view {
         void addLine(const std::vector<SimpleVector3>& vertices);
 
         void addTriangle(const std::vector<SimpleVector3>& vertices);
+
+        SimpleVector3 voxelToWorldPosition(const GridVector3& gridPos);
 
         void voxelToWorldBox(const GridVector3& gridPos, SimpleVector3& min, SimpleVector3& max);
 
@@ -91,4 +98,7 @@ namespace next_best_view {
     };
 
     typedef boost::shared_ptr<WorldHelper> WorldHelperPtr;
+    typedef std::tuple<int,int,int> VoxelTuple;
+    typedef std::map<VoxelTuple, IndicesPtr> VoxelToIndices;
+    typedef std::pair<VoxelTuple, IndicesPtr> VoxelAndIndices;
 }
