@@ -18,7 +18,7 @@ void WorldHelper::filterOccludedObjects(SimpleVector3 cameraPosition, ObjectPoin
                                                                                                                 IndicesPtr &filteredIndices)
 {
     // summarize objects in voxels
-    VoxelToIndices voxelToIndices;
+    ObjectVoxelToIndices voxelToIndices;
 
     BOOST_FOREACH(int index, *indices)
     {
@@ -37,20 +37,52 @@ void WorldHelper::filterOccludedObjects(SimpleVector3 cameraPosition, ObjectPoin
 
     // check occlusion for each voxel containing objects
     filteredIndices = IndicesPtr(new Indices());
-    BOOST_FOREACH(VoxelAndIndices voxelAndIndices, voxelToIndices)
+    std::vector<GridVector3> cameraVoxels;
+    worldToVoxelGridCoordinates(cameraPosition, cameraVoxels);
+
+    BOOST_FOREACH(ObjectVoxelAndIndices objectVoxelAndIndices, voxelToIndices)
     {
-        VoxelTuple voxelTuple = voxelAndIndices.first;
+        VoxelTuple objectVoxel = objectVoxelAndIndices.first;
+        GridVector3 targetVoxel(std::get<0>(objectVoxel), std::get<1>(objectVoxel), std::get<2>(objectVoxel));
 
-        GridVector3 targetVoxel(std::get<0>(voxelTuple), std::get<1>(voxelTuple), std::get<2>(voxelTuple));
-        SimpleVector3 targetPosition;
+        SimpleVector3 targetPosition = voxelToWorldPosition(targetVoxel);
 
-        targetPosition = voxelToWorldPosition(targetVoxel);
-
-        if (!isOccluded(cameraPosition, targetPosition))
+        BOOST_FOREACH(GridVector3 cameraVoxel, cameraVoxels)
         {
-            IndicesPtr objectIndices = voxelAndIndices.second;
-            filteredIndices->insert(filteredIndices->end(), objectIndices->begin(), objectIndices->end());
+            VoxelTuple sourceVoxel = std::make_tuple(cameraVoxel[0], cameraVoxel[1], cameraVoxel[2]);
+            VoxelTuplesPtr &occludedVoxels = cameraVoxelToOccludedVoxels[sourceVoxel];
+            VoxelTuplesPtr &unoccludedVoxels = cameraVoxelToUnoccludedVoxels[sourceVoxel];
+
+            if (occludedVoxels &&
+                    std::find(occludedVoxels->begin(), occludedVoxels->end(), objectVoxel) != occludedVoxels->end())
+                continue;
+            if (unoccludedVoxels &&
+                    std::find(unoccludedVoxels->begin(), unoccludedVoxels->end(), objectVoxel) != unoccludedVoxels->end())
+            {
+                IndicesPtr objectIndices = objectVoxelAndIndices.second;
+                insert(objectIndices, filteredIndices);
+                continue;
+            }
+
+
+            SimpleVector3 sourcePosition = voxelToWorldPosition(cameraVoxel);
+
+            if (!isOccluded(sourcePosition, targetPosition))
+            {
+                IndicesPtr objectIndices = objectVoxelAndIndices.second;
+                insert(objectIndices, filteredIndices);
+                if(!unoccludedVoxels)
+                    unoccludedVoxels = VoxelTuplesPtr(new VoxelTuples());
+                unoccludedVoxels->push_back(objectVoxel);
+            }
+            else
+            {
+                if(!occludedVoxels)
+                    occludedVoxels = VoxelTuplesPtr(new VoxelTuples());
+                occludedVoxels->push_back(objectVoxel);
+            }
         }
+
     }
 }
 
@@ -947,6 +979,15 @@ bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, cons
 bool WorldHelper::equalVoxels(const GridVector3 &a, const GridVector3 &b)
 {
     return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+}
+
+void WorldHelper::insert(IndicesPtr source, IndicesPtr &target)
+{
+    BOOST_FOREACH(int index, *source)
+    {
+        if (std::find(target->begin(), target->end(), index) == target->end())
+            target->push_back(index);
+    }
 }
 
 }

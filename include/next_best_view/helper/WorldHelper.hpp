@@ -22,6 +22,13 @@
 namespace next_best_view {
     class WorldHelper {
     private:
+        typedef std::tuple<int,int,int> VoxelTuple;
+        typedef std::vector<VoxelTuple> VoxelTuples;
+        typedef boost::shared_ptr<VoxelTuples> VoxelTuplesPtr;
+        typedef std::map<VoxelTuple, VoxelTuplesPtr> CameraVoxelToObjectVoxels;
+        typedef std::map<VoxelTuple, IndicesPtr> ObjectVoxelToIndices;
+        typedef std::pair<VoxelTuple, IndicesPtr> ObjectVoxelAndIndices;
+
         const double EPSILON = 10e-6;
 
         MapHelperPtr mMapHelperPtr;
@@ -32,6 +39,9 @@ namespace next_best_view {
         double mMapVoxelSize, mWorldVoxelSize;
 
         bool mVisualizeRaytracing;
+
+        CameraVoxelToObjectVoxels cameraVoxelToOccludedVoxels;
+        CameraVoxelToObjectVoxels cameraVoxelToUnoccludedVoxels;
 
     public:
         WorldHelper(MapHelperPtr mapHelperPtr, std::string filePath, double voxelSize, double worldHeight, bool visualizeRaytracing);
@@ -95,10 +105,9 @@ namespace next_best_view {
 
         bool equalVoxels(const GridVector3& a, const GridVector3& b);
 
+        void insert(IndicesPtr source, IndicesPtr &target);
+
     };
 
     typedef boost::shared_ptr<WorldHelper> WorldHelperPtr;
-    typedef std::tuple<int,int,int> VoxelTuple;
-    typedef std::map<VoxelTuple, IndicesPtr> VoxelToIndices;
-    typedef std::pair<VoxelTuple, IndicesPtr> VoxelAndIndices;
 }
