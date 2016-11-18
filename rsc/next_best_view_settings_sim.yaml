@@ -68,6 +68,7 @@ spaceSamplePatternId: 1 # atm only used by HypothesisSpaceSampler
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
+minIterationSteps: 2
 removeInvalidNormals: true
 cacheResults: true # if results should be cached for next nbv calls with the same pc
 useMinUtility: true

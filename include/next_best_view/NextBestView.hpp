@@ -356,6 +356,8 @@ public:
             //Set the max amout of iterations
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
+            mDebugHelperPtr->write(std::stringstream() << "minIterationSteps: " << mConfig.minIterationSteps, DebugHelper::PARAMETERS);
+            mCalculator.setMinIterationSteps(mConfig.minIterationSteps);
             mCalculator.setEpsilon(mConfig.epsilon);
             mDebugHelperPtr->write(std::stringstream() << "removeInvalidNormals: " << mConfig.removeInvalidNormals, DebugHelper::PARAMETERS);
             mCalculator.setRemoveInvalidNormals(mConfig.removeInvalidNormals);
