@@ -46,8 +46,8 @@ namespace next_best_view {
         // max number of patterns between startPos and border
         int spanX = ceil(maxHalfWidth / getPatternWidth()) + 1;
         int spanY = ceil(maxHalfHeight / getPatternHeight()) + 1;
-        float horizontalSpacing = mRadius * cos(M_PI / 6.0); // patternWidth
-        float interPointSpacing = mRadius; // patternHeight
+        float horizontalSpacing = mRadius * cos(M_PI / 6.0) * mPatternSizeFactor; // patternWidth
+        float interPointSpacing = mRadius * mPatternSizeFactor; // patternHeight
 
         SamplePointCloudPtr samples(new SamplePointCloud());
         // spanX * patternwidth > bb.xWidth, so we sample a bit more that the actual bb
@@ -55,12 +55,12 @@ namespace next_best_view {
             for (int y = -spanY; y <= spanY; y++) {
                 double offsetting = abs(y) % 2 == 0 ? horizontalSpacing : 0.0;
                 // upperPoint
-                SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * mRadius, 0);
+                SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * mRadius * mPatternSizeFactor, 0);
                 upperPoint[0] += startPos[0];
                 upperPoint[1] += startPos[1];
 
                 // lower Point
-                SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * mRadius, 0);
+                SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * mRadius * mPatternSizeFactor, 0);
                 lowerPoint[0] += startPos[0];
                 lowerPoint[1] += startPos[1];
 
@@ -85,7 +85,7 @@ namespace next_best_view {
         return mRadius * 2.0 * mPatternSizeFactor;
     }
 
-    float HexagonSpaceSamplePattern::getRadius() const {
+    float HexagonSpaceSamplePattern::getRadius() {
         return mRadius;
     }
 

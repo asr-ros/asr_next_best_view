@@ -37,22 +37,35 @@ namespace next_best_view {
     SamplePointCloudPtr HypothesisSpaceSampler::getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) {
         SamplePointCloudPtr pointCloud = SamplePointCloudPtr(new SamplePointCloud());
 
-        // number of generated samples per bounding box
-        std::vector<int> nSamplesPerBB(mBBs.size());
         SamplePointCloudPtr samples = this->generateSamples(mSamplingBB, currentSpacePosition, contractor);
         samples->push_back(currentSpacePosition);
-        // generate samples
+
+        // filter samples by map and bb
         for (SamplePoint generatedSample : *samples) {
-            // check if v is in a bb
-            int bbIdx = 0;
+            // check if generatedSample is in a bb
+            bool generatedSampleIsInABB = false;
             for (BoundingBoxPtr &bbPtr : mBBs) {
                 if (bbPtr->contains(generatedSample.getSimpleVector3())) {
-                    // check for occupancy value
-                    if (mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(generatedSample.getSimpleVector3()))) {
-                        nSamplesPerBB[bbIdx] ++;
-                        pointCloud->push_back(generatedSample);
-                    }
+                    generatedSampleIsInABB = true;
                     break;
+                }
+            }
+            // check for occupancy value
+            if (generatedSampleIsInABB &&
+                    mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(generatedSample.getSimpleVector3()))) {
+                pointCloud->push_back(generatedSample);
+            }
+        }
+
+        // number of generated samples per bounding box
+        // sum of those is more than pointCloud.size()
+        std::vector<int> nSamplesPerBB(mBBs.size());
+        for (SamplePoint sample : *pointCloud) {
+            int bbIdx = 0;
+            // since bbs might be overlapping we go through all bbs for each added point
+            for (BoundingBoxPtr &bbPtr : mBBs) {
+                if (bbPtr->contains(sample.getSimpleVector3())) {
+                    nSamplesPerBB[bbIdx] ++;
                 }
                 bbIdx++;
             }
@@ -63,6 +76,8 @@ namespace next_best_view {
         for (int nSamples : nSamplesPerBB) {
             if (nSamples < 5) {
                 ROS_INFO_STREAM("we have too few samples for a bb");
+                ROS_INFO_STREAM("bb with idx " << bbIdx << " has " << nSamplesPerBB[bbIdx] << " samples.");
+                ROS_INFO_STREAM("bb: " << mBBs[bbIdx]);
                 samples = this->generateSamples(mBBs[bbIdx], currentSpacePosition, contractor * 0.5);
                 if (mBBs[bbIdx]->contains(currentSpacePosition)) {
                     samples->push_back(currentSpacePosition);
@@ -107,6 +122,7 @@ namespace next_best_view {
         auto finish = std::chrono::high_resolution_clock::now();
         mDebugHelperPtr->writeNoticeably(std::stringstream() << "cluster extraction took " << std::chrono::duration<float>(finish - begin).count() << " seconds.", DebugHelper::CALCULATION);
         mDebugHelperPtr->writeNoticeably(std::stringstream() << "number of clusters: " << clusterIndices.size(), DebugHelper::CALCULATION);
+        ROS_INFO_STREAM("number of clusters: " << clusterIndices.size());
 
         // determine bb per cluster
         int i = 0;
