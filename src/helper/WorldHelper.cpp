@@ -264,12 +264,17 @@ void WorldHelper::loadVoxelGrid(std::string filePath)
 
     mVisHelperPtr->triggerWorldMeshesVisualization(meshResources, positions, orientations, scales);
 
+    auto begin = std::chrono::high_resolution_clock::now();
+
     std::vector<std::vector<SimpleVector3>> faces;
 
     for (unsigned int i = 0; i < meshResources.size(); i++)
     {
         loadMeshFile(meshResources[i], positions[i], orientations[i], scales[i], faces);
     }
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    ROS_INFO_STREAM("Loading of mesh files into voxel grid took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
     mVisHelperPtr->triggerWorldTrianglesVisualization(faces);
 

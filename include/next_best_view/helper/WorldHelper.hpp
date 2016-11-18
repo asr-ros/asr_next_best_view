@@ -13,6 +13,7 @@
 #include <Eigen/Dense>
 #include <iostream>
 #include <tuple>
+#include <chrono>
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/TypeHelper.hpp"
 #include "next_best_view/helper/VoxelGridHelper.hpp"
