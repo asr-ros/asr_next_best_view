@@ -887,7 +887,9 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
                                         << mCalculator.getActiveIndices()->size(),
                                     DebugHelper::SERVICE_CALLS);
-        if (!mCalculator.doFrustumCulling(point, orientation, mCalculator.getActiveIndices(), viewportPoint)) {
+        ViewportPoint updateViewport(point, orientation);
+        updateViewport.child_indices = mCalculator.getActiveIndices();
+        if (!mCalculator.doFrustumCulling(updateViewport)) {
             mDebugHelperPtr->write("no objects in frustum", DebugHelper::SERVICE_CALLS);
             return true;
         }

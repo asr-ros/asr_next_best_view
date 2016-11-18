@@ -649,33 +649,6 @@ public:
         }
     }
 
-    /*!
-         * \brief creates a new camera viewport with the given data
-         * \param position [in] the position of the camera
-         * \param orientation [in] the orientation of the camera
-         * \param indices [in] the object point indices to be used
-         * \param viewportPoint [out] the resulting camera viewport
-         * \return whether there are objects in the resulting viewport
-         */
-    bool doFrustumCulling(const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &viewportPoint) {
-        return doFrustumCulling(mCameraModelFilterPtr, position, orientation, indices, viewportPoint);
-    }
-
-    /**
-     * @brief creates a new camera viewport with the given data
-     * @param cameraModelFilterPtr [in] the cameraModel used to filter objects
-     * @param position [in] the position of the camera
-     * @param orientation [in] the orientation of the camera
-     * @param indices [in] the object point indices to be used
-     * @param viewportPoint [out] the resulting camera viewport
-     * @return whether there are objects in the resulting viewport
-     */
-    bool doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, const SimpleVector3 &position, const SimpleQuaternion &orientation, const IndicesPtr &indices, ViewportPoint &resultViewport) {
-        resultViewport = ViewportPoint(position, orientation);
-        resultViewport.child_indices = indices;
-        return doFrustumCulling(cameraModelFilterPtr, resultViewport);
-    }
-
     /**
      * @brief creates a new camera viewport with the given data
      * @param resultViewportPoint
@@ -728,8 +701,9 @@ public:
                                         DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << viewportPoint, DebugHelper::CALCULATION);
 
-            ViewportPoint culledViewportPoint;
-            if (!this->doFrustumCulling(viewportPoint.getPosition(), viewportPoint.getSimpleQuaternion(), this->getActiveIndices(), culledViewportPoint)) {
+            ViewportPoint culledViewportPoint(viewportPoint.getPosition(), viewportPoint.getSimpleQuaternion());
+            culledViewportPoint.child_indices = this->getActiveIndices();
+            if (!this->doFrustumCulling(culledViewportPoint)) {
                 mDebugHelperPtr->write("Viewpoint SKIPPED by Culling", DebugHelper::CALCULATION);
                 continue;
             }
