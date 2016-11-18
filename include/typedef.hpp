@@ -134,6 +134,13 @@ namespace next_best_view {
     // visualization
     typedef SimpleVector4 Color;
 
+    // cluster types
+    class BoundingBox;
+    typedef BoundingBox Cluster;
+    typedef std::vector<Cluster> Clusters;
+    typedef boost::shared_ptr<Cluster> ClusterPtr;
+    typedef std::vector<ClusterPtr> ClusterPtrs;
+    typedef boost::shared_ptr<std::vector<ClusterPtr>> ClusterPtrsPtr;
 }
 
 #include "next_best_view/pcl/RealObjectPoint.hpp"

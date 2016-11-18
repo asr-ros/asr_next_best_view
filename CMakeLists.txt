@@ -130,6 +130,7 @@ add_library(
         src/space_sampler/SpaceSampler.cpp
         src/space_sampler/SpaceSamplePattern.cpp
         src/unit_sphere_sampler/UnitSphereSampler.cpp
+        src/cluster/ClusterExtraction.cpp
 )
 
 add_library(
@@ -156,6 +157,7 @@ add_library(
         src/space_sampler/impl/HypothesisSpaceSampler.cpp
         src/space_sampler/impl/HexagonSpaceSamplePattern.cpp
         src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
+        src/cluster/impl/EuclideanPCLClusterExtraction.cpp
         src/crop_box/CropBoxFilter.cpp
         src/crop_box/CropBoxWrapper.cpp
         src/pcl/DefaultViewportPoint.cpp

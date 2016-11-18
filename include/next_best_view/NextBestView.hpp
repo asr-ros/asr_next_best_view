@@ -91,6 +91,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/space_sampler/impl/HexagonSpaceSamplePattern.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModuleFactory.hpp"
+#include "next_best_view/cluster/impl/EuclideanPCLClusterExtraction.hpp"
 
 namespace next_best_view {
 // Defining namespace shorthandles
