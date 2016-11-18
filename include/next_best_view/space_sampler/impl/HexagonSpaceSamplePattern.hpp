@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    // TODO:
+    // TODO: more consistency/remove stuff and put more into SpaceSamplePattern
     class HexagonSpaceSamplePattern : public SpaceSamplePattern {
     private:
         float mRadius;
@@ -44,7 +44,7 @@ namespace next_best_view {
          * @brief getRadius
          * @return radius without factor
          */
-        float getRadius() const;
+        float getRadius();
 
         /**
          * @brief setRadius this function will reset factor to 1.0, so it does not interfere.

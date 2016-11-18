@@ -149,7 +149,7 @@ public:
 
         auto finish = std::chrono::high_resolution_clock::now();
         // cast timediff to flaot in seconds
-        ROS_INFO_STREAM("Iteration took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+        ROS_INFO_STREAM("nbv calculation took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
         mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
         return success;
     }
@@ -908,10 +908,10 @@ private:
      * @brief filterUnrechableNormals this method really removes them so active_normals_vectors.size() == normal_vectors.size() is true.
      */
     void filterUnrechableNormals() {
-        ROS_INFO_STREAM("filtering now unreachable normals");
-        // Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
-        // TODO: better sampling for all objects, maybe use current robot position? or create around object hypothesis
-        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 2.0), 1.32);
+        ROS_INFO_STREAM("filtering now unreachable normals");        
+        auto begin = std::chrono::high_resolution_clock::now();
+        // hypothesissampler samples at all locations, so the position does not matter much
+        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 1.0), 1.32);
 
         // remove all removeable normals
         for (ViewportPoint sample : *sampleNextBestViewports) {
@@ -942,7 +942,7 @@ private:
             Indices invalidNormalVectorIndices = *o.active_normal_vectors;
             std::sort(invalidNormalVectorIndices.begin(), invalidNormalVectorIndices.end());
 
-            // all normal vectors indices
+            // all normal vector indices
             Indices allNormalIndices(o.normal_vectors->size());
             std::iota(allNormalIndices.begin(), allNormalIndices.end(), 0);
 
@@ -974,6 +974,8 @@ private:
                 mDebugHelperPtr->write(std::stringstream() << "valid ones: " << s, DebugHelper::CALCULATION);
             }
         }
+        auto finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("removing invalid normals took " << std::chrono::duration<float>(finish - begin).count() << " seconds.");
     }
 
     /**

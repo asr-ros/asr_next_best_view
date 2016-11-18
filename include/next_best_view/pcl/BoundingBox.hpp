@@ -43,6 +43,6 @@ namespace next_best_view {
     };
     typedef boost::shared_ptr<BoundingBox> BoundingBoxPtr;
 
-    std::ostream& operator<<(std::ostream &strm, const next_best_view::BoundingBox &p);
-    std::ostream& operator<<(std::ostream &strm, const next_best_view::BoundingBoxPtr &p);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::BoundingBox &bb);
+    std::ostream& operator<<(std::ostream &strm, const next_best_view::BoundingBoxPtr &bb);
 }
