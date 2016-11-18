@@ -129,6 +129,7 @@ add_library(
         src/robot_model/RobotState.cpp
         src/space_sampler/SpaceSampler.cpp
         src/space_sampler/SpaceSamplePattern.cpp
+        src/space_sampler/SpaceSampleFilter.cpp
         src/unit_sphere_sampler/UnitSphereSampler.cpp
         src/cluster/ClusterExtraction.cpp
 )
@@ -156,6 +157,9 @@ add_library(
         src/space_sampler/impl/MapBasedRandomSpaceSampler.cpp
         src/space_sampler/impl/HypothesisSpaceSampler.cpp
         src/space_sampler/impl/HexagonSpaceSamplePattern.cpp
+        src/space_sampler/impl/MapSpaceSampleFilter.cpp
+        src/space_sampler/impl/HypothesisClusterSpaceSampleFilter.cpp
+        src/space_sampler/impl/HypothesisKDTreeSpaceSampleFilter.cpp
         src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
         src/cluster/impl/EuclideanPCLClusterExtraction.cpp
         src/crop_box/CropBoxFilter.cpp
