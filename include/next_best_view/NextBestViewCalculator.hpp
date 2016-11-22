@@ -29,6 +29,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <boost/lexical_cast.hpp>
 #include <boost/range/irange.hpp>
 
+#include "next_best_view/NextBestViewCache.hpp"
+
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
 #include "next_best_view/crop_box/CropBoxFilter.hpp"
@@ -47,6 +49,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 
 namespace next_best_view {
+
+class NextBestViewCache;
+typedef boost::shared_ptr<NextBestViewCache> NextBestViewCachePtr;
 class NextBestViewCalculator {
 private:
     ObjectPointCloudPtr mPointCloudPtr;
@@ -91,8 +96,7 @@ private:
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
     bool mCacheResults;
-    float mGridSize = 0.1;
-    std::map<int, std::map<int, ViewportPoint>> mBestViewportPerGridElem;
+    NextBestViewCachePtr mNBVCachePtr;
     Indices mSeenHypothesis;
     std::vector<std::string> mSeenObjectTypes;
     ViewportPointCloudPtr mNextNbvs;
@@ -115,7 +119,8 @@ public:
           mEpsilon(10E-3),
           mNumberOfThreads(boost::thread::hardware_concurrency()),
           mThreadCameraModels(mNumberOfThreads),
-          mThreadRatingModules(mNumberOfThreads) {
+          mThreadRatingModules(mNumberOfThreads),
+          mNBVCachePtr(new NextBestViewCache()) {
 
         setMapHelper(mapHelperPtr);
         mDebugHelperPtr = DebugHelper::getInstance();
@@ -138,9 +143,7 @@ public:
 
         bool success = false;
         ROS_INFO_STREAM("mCacheResults: " << mCacheResults);
-        ROS_INFO_STREAM("mBestViewportPerGridElem.size(): " << mBestViewportPerGridElem.size());
-        ROS_INFO_STREAM("mBestViewportPerGridElem.empty(): " << mBestViewportPerGridElem.empty());
-        if (mCacheResults && !mBestViewportPerGridElem.empty()) {
+        if (mCacheResults && !mNBVCachePtr->isEmpty()) {
             success = this->getNBVFromCache(currentCameraViewport, resultViewport);
         } else {
             // create the next best view point cloud
@@ -371,20 +374,7 @@ private:
 
     bool getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
         ROS_INFO_STREAM("using cached nbv");
-        ViewportPointCloudPtr samples(new ViewportPointCloud());
-        for (auto &yRowIt : mBestViewportPerGridElem) {
-            for (auto &gridElem : yRowIt.second) {
-                // TODO: should not contain removed normals/hypothesis
-                samples->push_back(gridElem.second);
-            }
-        }
-
-        // only keep best ones according utility
-        auto utilitySortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
-            // a < b
-            return a.score->getUnweightedUnnormalizedUtility() < b.score->getUnweightedUnnormalizedUtility();
-        };
-        std::sort(samples->begin(), samples->end(), utilitySortFunction);
+        ViewportPointCloudPtr samples = mNBVCachePtr->getAllBestViewports();
         // samples->resize(20);
 
         // rate best ones
@@ -443,12 +433,8 @@ private:
         mNextNbvs = ViewportPointCloudPtr(new ViewportPointCloud());
         mNextNbvs->push_back(nbv);
 
-        ViewportPointCloudPtr nnbvSamples(new ViewportPointCloud());
-        for (auto &yRowIt : mBestViewportPerGridElem) {
-            for (auto &gridElem : yRowIt.second) {
-                nnbvSamples->push_back(gridElem.second);
-            }
-        }
+        ViewportPointCloudPtr nnbvSamples = mNBVCachePtr->getAllBestViewports();
+
         bool needMoreViews = true;
         while (needMoreViews) {
             // rate best ones
@@ -605,32 +591,9 @@ private:
             resultViewport = ratedNextBestViewportsPtr->back();
         }
 
-        // get best utilities for next nbv calls
-        auto utilitySortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
-            // a < b
-            return a.score->getUnweightedUnnormalizedUtility() < b.score->getUnweightedUnnormalizedUtility();
-        };
-        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), utilitySortFunction);
-
         if (mCacheResults) {
             // update cache grid
-            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
-                SimpleVector3 pos = ratedViewport.getPosition();
-                int xIdx = static_cast<int>(pos[0] / mGridSize);
-                int yIdx = static_cast<int>(pos[1] / mGridSize);
-                if (mBestViewportPerGridElem.find(xIdx) == mBestViewportPerGridElem.end()) {
-                    // xIdx not found
-                    mBestViewportPerGridElem.insert(std::make_pair(xIdx, std::map<int, ViewportPoint>()));
-                }
-                if (mBestViewportPerGridElem[xIdx].find(yIdx) == mBestViewportPerGridElem[xIdx].end()) {
-                    // yIdx not found
-                    mBestViewportPerGridElem[xIdx].insert(std::make_pair(yIdx, ratedViewport));
-                } else {
-                    if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mBestViewportPerGridElem[xIdx][yIdx].score->getUnweightedUnnormalizedUtility()) {
-                        mBestViewportPerGridElem[xIdx][yIdx] = ratedViewport;
-                    }
-                }
-            }
+            mNBVCachePtr->updateCache(ratedNextBestViewportsPtr);
         }
 //        mVisHelperPtr->triggerSamplingVisualization(ratedNextBestViewportsPtr, Color(1, 0, 0, 1), "ratedViewports");
 
@@ -858,6 +821,8 @@ public:
                                         DebugHelper::CALCULATION);
         }
 
+        // TODO: generate cluster if enabled
+
         this->setPointCloudPtr(outputPointCloudPtr);
 
         if (mRemoveInvalidNormals) {
@@ -865,7 +830,7 @@ public:
         }
 
         if (mCacheResults) {
-            mBestViewportPerGridElem.clear();
+            mNBVCachePtr->clearCache();
             mSeenHypothesis.clear();
             mSeenObjectTypes.clear();
             if (mNextNbvs) {
@@ -884,6 +849,7 @@ private:
     void filterUnrechableNormals() {
         ROS_INFO_STREAM("filtering now unreachable normals");        
         auto begin = std::chrono::high_resolution_clock::now();
+        // TODO always use hypothesissampler
         // hypothesissampler samples at all locations, so the position does not matter much
         ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 1.0), 1.32);
 
@@ -894,6 +860,7 @@ private:
             mHypothesisUpdaterPtr->update(mObjectTypeSetPtr, sample);
         }
 
+        // show samples
         mVisHelperPtr->resetSamplingVisualization();
         mVisHelperPtr->triggerSamplingVisualization(sampleNextBestViewports, Color(1, 0, 1, 1), "ratedViewports");
 
@@ -1000,6 +967,7 @@ private:
         this->setHeight(sampledSpacePointCloudPtr, pointCloudHeight);
 
         IndicesPtr feasibleIndicesPtr;
+        // TODO: do filtering here
         //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
         this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
 

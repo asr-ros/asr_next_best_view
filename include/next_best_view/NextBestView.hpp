@@ -314,7 +314,7 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "tiltMin: " << mConfig.tiltMin, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "tiltMax: " << mConfig.tiltMax, DebugHelper::PARAMETERS);
 
-        // TODO: some robot model params are not taken from config
+        // TODO: some robot model params are not taken from dyn reconfigure
         if (mConfigLevel & robotModelConfig) {
             if (mRobotModelFactoryPtr) {
                 mRobotModelFactoryPtr.reset();
@@ -336,9 +336,9 @@ public:
             mCalculator.setRatingModuleAbstractFactoryPtr(mRatingModuleFactoryPtr);
         }
 
-        // TODO: defaulthypothesisupdater is missing
         /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
          * - hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
+         * - hypothesisUpdaterId == 2 => DefaultHypothesisUpdater
          */
         if (mConfigLevel & hypothesisUpdaterConfig) {
             if (mHypothesisUpdaterFactoryPtr) {
@@ -354,18 +354,22 @@ public:
         }
         if (mConfigLevel & parameterConfig) {
             mDebugHelperPtr->setLevels(mConfig.debugLevels);
-            mCalculator.setNumberOfThreads(mConfig.nRatingThreads);
-            mCalculator.setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
-            mCalculator.setEnableIntermediateObjectWeighting(mConfig.enableIntermediateObjectWeighting);
-            //Set the max amout of iterations
+
+            //Set the max/min amout of iterations
             mDebugHelperPtr->write(std::stringstream() << "maxIterationSteps: " << mConfig.maxIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMaxIterationSteps(mConfig.maxIterationSteps);
             mDebugHelperPtr->write(std::stringstream() << "minIterationSteps: " << mConfig.minIterationSteps, DebugHelper::PARAMETERS);
             mCalculator.setMinIterationSteps(mConfig.minIterationSteps);
+
+            mCalculator.setNumberOfThreads(mConfig.nRatingThreads);
             mCalculator.setEpsilon(mConfig.epsilon);
-            mDebugHelperPtr->write(std::stringstream() << "removeInvalidNormals: " << mConfig.removeInvalidNormals, DebugHelper::PARAMETERS);
+
+            // optional features
+            mCalculator.setEnableIntermediateObjectWeighting(mConfig.enableIntermediateObjectWeighting);
+            mCalculator.setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculator.setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculator.setCacheResults(mConfig.cacheResults);
+
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
             mCalculator.setMinUtility(minUtility);

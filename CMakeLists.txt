@@ -168,6 +168,7 @@ add_library(
         src/pcl/RealObjectPoint.cpp
         src/pcl/SpaceSamplePoint.cpp
         src/pcl/BoundingBox.cpp
+        src/NextBestViewCache.cpp
 )
 target_link_libraries(
         ${PROJECT_NAME}_packages_impl
