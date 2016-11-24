@@ -171,7 +171,23 @@ namespace next_best_view {
 
 	double MathHelper::degToRad(double input) {
 		return fmod(input / 180.0 * M_PI, 2 * M_PI);
-	}
+    }
+
+    SimpleQuaternion MathHelper::dirToQuat(SimpleVector3 dir) {
+        return MathHelper::sphereToQuat(convertC2S(dir));
+    }
+
+    SimpleVector3 MathHelper::quatToDir(SimpleQuaternion quat) {
+        return MathHelper::getVisualAxis(quat);
+    }
+
+    SimpleQuaternion MathHelper::sphereToQuat(SimpleSphereCoordinates sphereCoords) {
+        return MathHelper::getQuaternionByAngles(sphereCoords[2], -sphereCoords[1], 0.0);
+    }
+
+    SimpleSphereCoordinates MathHelper::quatToSphere(SimpleQuaternion quat) {
+        return MathHelper::convertC2S(MathHelper::quatToDir(quat));
+    }
 
        double MathHelper::getDotProduct(SimpleVector3 v1, SimpleVector3 v2)
 	{

@@ -165,6 +165,14 @@ namespace next_best_view {
 		 */
 		static double degToRad(double input);
 
+        static SimpleQuaternion dirToQuat(SimpleVector3 dir);
+
+        static SimpleVector3 quatToDir(SimpleQuaternion quat);
+
+        static SimpleQuaternion sphereToQuat(SimpleSphereCoordinates sphereCoords);
+
+        static SimpleSphereCoordinates quatToSphere(SimpleQuaternion quat);
+
 		static double getDotProduct(SimpleVector3 v1, SimpleVector3 v2);
 
         static bool vector3Equal(SimpleVector3 v1, SimpleVector3 v2);
