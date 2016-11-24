@@ -25,11 +25,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <chrono>
 
 #include <boost/foreach.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/range/irange.hpp>
 
 #include "next_best_view/NextBestViewCache.hpp"
+#include "next_best_view/NextBestViewPrediction.hpp"
+#include "next_best_view/ViewMutation.hpp"
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -52,7 +55,12 @@ namespace next_best_view {
 
 class NextBestViewCache;
 typedef boost::shared_ptr<NextBestViewCache> NextBestViewCachePtr;
-class NextBestViewCalculator {
+class NextBestViewPrediction;
+typedef boost::shared_ptr<NextBestViewPrediction> NextBestViewPredictionPtr;
+class NextBestViewCalculator;
+typedef boost::shared_ptr<NextBestViewCalculator> NextBestViewCalculatorPtr;
+
+class NextBestViewCalculator : public boost::enable_shared_from_this<NextBestViewCalculator> {
 private:
     ObjectPointCloudPtr mPointCloudPtr;
     // this is basically unused, but "might" be used to remove objects from mPointCloudPtr
@@ -93,13 +101,14 @@ private:
 
     bool mRemoveInvalidNormals;
 
+    bool mFirstNBVCallIsRunning;
+    bool mUsePrediction;
+
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
     bool mCacheResults;
     NextBestViewCachePtr mNBVCachePtr;
-    Indices mSeenHypothesis;
-    std::vector<std::string> mSeenObjectTypes;
-    ViewportPointCloudPtr mNextNbvs;
+    NextBestViewPredictionPtr mNBVPredictionPtr;
 
 public:
 
@@ -207,10 +216,6 @@ private:
     bool rateSingleViewportFixedObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint);
 
     bool getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport);
-
-    void updateSeenHypothesis(ViewportPoint resultViewport);
-
-    void findNextNbvs(ViewportPoint resultViewport);
 
     bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport);
 

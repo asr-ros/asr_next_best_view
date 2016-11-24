@@ -170,6 +170,8 @@ add_library(
         src/pcl/BoundingBox.cpp
         src/NextBestViewCalculator.cpp
         src/NextBestViewCache.cpp
+        src/NextBestViewPrediction.cpp
+        src/ViewMutation.cpp
 )
 target_link_libraries(
         ${PROJECT_NAME}_packages_impl

@@ -74,6 +74,9 @@ enableClusterFilter: false
 enableMapFilter: true
 enableKDTreeFilter: false
 removeInvalidNormals: true
+# used by viewMutation
+improvementIterations: 3
+improvementAngle: 4.0
 cacheResults: true # if results should be cached for next nbv calls with the same pc
 useMinUtility: true
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used

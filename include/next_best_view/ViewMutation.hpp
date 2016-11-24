@@ -20,78 +20,32 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 #include "typedef.hpp"
-#include <vector>
-#include <tuple>
-#include <math.h>
+#include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 
-    typedef std::tuple<int, int> CacheIndex;
-
-    // TODO maybe implement some kind of filter so we don't sample with too low resolution/compare distance with other viewports in gridelement/nearby gridelemnts
-    // TODO gridelement class
-    class NextBestViewCache {
+    class ViewMutation {
     private:
-        float mGridSize;
-        std::map<int, std::map<int, ViewportPoint>> mBestViewportPerGridElem; // these 2 maps represent a sparse 2d grid
-        std::vector<CacheIndex> cachedCacheGridIndices;
+        // pair<double, std::vector<Eigen::matrix3f>> is the radius in angle (double) and a number of rotations around radius
+        std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesXAxisPerRadius;
+        std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesYAxisPerRadius;
+        std::vector<std::pair<double, std::vector<SimpleVector3>>> mPositionOffsetsPerRadius;
+        MapHelperPtr mMapHelperPtr;
 
     public:
-        NextBestViewCache(float gridSize = 0.1);
+        ViewMutation(const MapHelperPtr &mapHelperPtr, int improvementIterations, float improvementAngle, float radius);
 
-        /**
-         * @brief getCachedGridIndices
-         * @return
-         */
-        std::vector<CacheIndex> getCacheGridIndices();
-
-        /**
-         * @brief getCacheIdx
-         * @param v
-         * @return
-         */
-        CacheIndex getCacheIdx(SimpleVector3 v);
-
-        /**
-         * @brief getBestViewportAt
-         * @param xIdx
-         * @param yIdx
-         * @param viewport
-         * @return
-         */
-        bool getBestViewportAt(int xIdx, int yIdx, ViewportPoint &viewport);
-
-        /**
-         * @brief getAllBestViewports
-         * @return
-         */
-        ViewportPointCloudPtr getAllBestViewports();
-
-        /**
-         * @brief updateCache adds new rated viewports to be cached.
-         * @param ratedNextBestViewportsPtr
-         */
-        void updateCache(const ViewportPointCloudPtr &ratedNextBestViewportsPtr);
-
-        /**
-         * @brief clearCache
-         */
-        void clearCache();
-
-        /**
-         * @brief size
-         * @return
-         */
-        int size();
-
-        /**
-         * @brief isEmpty
-         * @return
-         */
-        bool isEmpty();
+        ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
 
     private:
-        static bool compareViewportsUtilitywise(const ViewportPoint &a, const ViewportPoint &b);
+        ViewportPointCloudPtr selection(const ViewportPointCloudPtr &in, int iterationStep);
+
+        ViewportPointCloudPtr mutate(const ViewportPointCloudPtr &in, int iterationStep);
+
+        void setRotationMatrices(int iterationSteps, double maxAngle);
+
+        void setPositionOffsets(int iterationSteps, double radius);
     };
-    typedef boost::shared_ptr<NextBestViewCache> NextBestViewCachePtr;
+    typedef boost::shared_ptr<ViewMutation> ViewMutationPtr;
 }
+

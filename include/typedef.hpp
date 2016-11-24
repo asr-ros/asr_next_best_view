@@ -131,7 +131,7 @@ namespace next_best_view {
     typedef voxel_grid::VoxelGrid VoxelGrid;
     typedef boost::shared_ptr<VoxelGrid> VoxelGridPtr;
 
-    // visualization
+    // visualization / RGBA
     typedef SimpleVector4 Color;
 
     // cluster types

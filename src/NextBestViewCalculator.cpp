@@ -20,13 +20,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/NextBestViewCalculator.hpp"
 
 namespace next_best_view {
+
     NextBestViewCalculator::NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr,
                                                    const MapHelperPtr &mapHelperPtr,
                                                    const SpaceSamplerPtr &spaceSamplerPtr,
                                                    const RobotModelPtr &robotModelPtr,
                                                    const CameraModelFilterPtr &cameraModelFilterPtr,
                                                    const RatingModulePtr &ratingModulePtr)
-        : objectsResources(),
+        : enable_shared_from_this(),
+          objectsResources(),
           mUnitSphereSamplerPtr(unitSphereSamplerPtr),
           mMapHelperPtr(mapHelperPtr),
           mSpaceSamplerPtr(spaceSamplerPtr),
@@ -39,13 +41,27 @@ namespace next_best_view {
           mThreadRatingModules(mNumberOfThreads),
           mNBVCachePtr(new NextBestViewCache()) {
 
-        setMapHelper(mapHelperPtr);
+        mFirstNBVCallIsRunning = false;
+        mUsePrediction = true;
+//        setMapHelper(mapHelperPtr);
         mDebugHelperPtr = DebugHelper::getInstance();
     }
 
     bool NextBestViewCalculator::calculateNextBestView(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
         auto begin = std::chrono::high_resolution_clock::now();
         mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
+
+        if (mUsePrediction && !mFirstNBVCallIsRunning) {
+            // NBVPrediction calls this method, so we have to make sure we won't loop call this method.
+            mFirstNBVCallIsRunning = true;
+            ViewportPointCloudPtr resultViewports = mNBVPredictionPtr->getNBVPredictions(currentCameraViewport);
+            mFirstNBVCallIsRunning = false;
+            if (resultViewports->empty()) {
+                return false;
+            }
+            resultViewport = resultViewports->at(0);
+            return true;
+        }
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
         initializeRobotState(currentCameraViewport);
@@ -251,82 +267,6 @@ namespace next_best_view {
         return true;
     }
 
-    void NextBestViewCalculator::updateSeenHypothesis(ViewportPoint resultViewport) {
-        // save hypothesis that we want to see in nbv
-        Indices curSeenHypothesis = *resultViewport.child_indices;
-        Indices totalSeenHypothesis(curSeenHypothesis.size() + mSeenHypothesis.size());
-        std::sort(curSeenHypothesis.begin(), curSeenHypothesis.end());
-        if (mSeenHypothesis.empty()) {
-            mSeenHypothesis = curSeenHypothesis;
-        } else {
-            // it points to last elem in totalSeenHypothesis
-            auto it = std::set_union(mSeenHypothesis.begin(), mSeenHypothesis.end(), curSeenHypothesis.begin(), curSeenHypothesis.end(), totalSeenHypothesis.begin());
-
-            // shrink hypothesis size
-            totalSeenHypothesis.resize(it - totalSeenHypothesis.begin());
-            mSeenHypothesis = totalSeenHypothesis;
-        }
-        //        // append seenObjectTypes
-        //        for (std::string curObjType : *resultViewport.object_type_set) {
-        //            if (std::find(mSeenObjectTypes.begin(), mSeenObjectTypes.end(), curObjType) == mSeenObjectTypes.end()) {
-        //                mSeenObjectTypes.push_back(curObjType);
-        //            }
-        //        }
-    }
-
-    void NextBestViewCalculator::findNextNbvs(ViewportPoint resultViewport) {
-        // find nnbvs
-        ViewportPoint nbv = resultViewport;
-        updateSeenHypothesis(nbv);
-        mNextNbvs = ViewportPointCloudPtr(new ViewportPointCloud());
-        mNextNbvs->push_back(nbv);
-
-        ViewportPointCloudPtr nnbvSamples = mNBVCachePtr->getAllBestViewports();
-
-        bool needMoreViews = true;
-        while (needMoreViews) {
-            // rate best ones
-            ViewportPointCloudPtr ratedNextBestViewportsPtr;
-            if (!rateViewports(nnbvSamples, nbv, ratedNextBestViewportsPtr)) {
-                ROS_ERROR_STREAM("could not rate grid elements");
-                return;
-            }
-            auto ratingSortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
-                // a < b
-                return mRatingModulePtr->compareViewports(a, b);
-            };
-            std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), ratingSortFunction);
-
-            bool foundUtility = false;
-            BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
-                if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
-                    // indices of hypothesis that can be seen from ratedViewport
-                    Indices curViewportHypothesisIndices = *ratedViewport.child_indices;
-                    // get intersection of (all hypothesis that will be seen by current nbvs) and ratedViewport
-                    std::sort(curViewportHypothesisIndices.begin(), curViewportHypothesisIndices.end());
-                    Indices intersection(min(curViewportHypothesisIndices.size(), mSeenHypothesis.size()));
-                    auto it = std::set_intersection(curViewportHypothesisIndices.begin(), curViewportHypothesisIndices.end(), mSeenHypothesis.begin(), mSeenHypothesis.end(), intersection.begin());
-                    intersection.resize(it - intersection.begin());
-                    if (intersection.size() < 5) {
-                        nbv = ratedViewport;
-                        updateSeenHypothesis(nbv);
-                        mNextNbvs->push_back(nbv);
-                        foundUtility = true;
-                        break;
-                    }
-                }
-            }
-            if (!foundUtility) {
-                needMoreViews = false;
-            }
-            double percentageSeenHypothesis = static_cast<double>(mSeenHypothesis.size()) / static_cast<double>(mActiveIndicesPtr->size());
-            if (percentageSeenHypothesis > 0.7) {
-                needMoreViews = false;
-            }
-        }
-        mVisHelperPtr->triggerViewportsVisualization(mNextNbvs, Color(1, 1, 1, 1), "nnbvs");
-    }
-
     bool NextBestViewCalculator::doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
 
@@ -370,11 +310,8 @@ namespace next_best_view {
                 mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep,
                                        DebugHelper::CALCULATION);
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
-                // predict next nbvs before we return the result
-                findNextNbvs(resultViewport);
                 return true;
             }
-
             currentBestViewport = intermediateResultViewport;
             currentBestRating = rating;
 
@@ -646,11 +583,6 @@ namespace next_best_view {
 
         if (mCacheResults) {
             mNBVCachePtr->clearCache();
-            mSeenHypothesis.clear();
-            mSeenObjectTypes.clear();
-            if (mNextNbvs) {
-                mNextNbvs->clear();
-            }
         }
 
         return true;
@@ -1030,6 +962,8 @@ namespace next_best_view {
     void NextBestViewCalculator::setMapHelper(const MapHelperPtr &mapHelperPtr) {
         mMapHelperPtr = mapHelperPtr;
         mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mMapHelperPtr));
+        NextBestViewCalculatorPtr thisPtr = shared_from_this();
+        mNBVPredictionPtr = NextBestViewPredictionPtr(new NextBestViewPrediction(thisPtr, mVisHelperPtr));
     }
 
     MapHelperPtr NextBestViewCalculator::getMapHelper() {
