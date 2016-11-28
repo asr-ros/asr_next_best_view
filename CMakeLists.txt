@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   rapidxml
   dynamic_reconfigure
   voxel_grid
+  robot_model_services
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
   #  assimp
 )
@@ -58,14 +59,9 @@ add_service_files(
    SetAttributedPointCloud.srv
    SetInitRobotState.srv
    UpdatePointCloud.srv
-   CalculateCameraPose.srv
-   CalculateCameraPoseCorrection.srv
-   IsPositionAllowed.srv
    TriggerFrustumVisualization.srv
    TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
-   GetPose.srv
-   GetDistance.srv
    RateViewports.srv
    GetActiveNormals.srv
    RemoveObjects.srv
@@ -332,22 +328,5 @@ addTest(STREAM)
 addTest(RAYTRACING)
 
 addTest(RATE_VIEWPORTS)
-
-
-add_executable(
-        ${PROJECT_NAME}_robot_model
-        src/robot_model/RobotModel_Service.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_robot_model
-        ${PCL_LIBRARIES}
-        ${PROJECT_NAME}_packages_impl
-        glpk
-        ${catkin_LIBRARIES}
-)
-
-
-
 
 

@@ -1,3 +1,0 @@
-RobotStateMessage sourceRobotState
----
-geometry_msgs/Pose cameraFrame
