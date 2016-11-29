@@ -168,6 +168,7 @@ private:
     RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
     RatingModuleAbstractFactoryPtr mRatingModuleFactoryPtr;
     HypothesisUpdaterAbstractFactoryPtr mHypothesisUpdaterFactoryPtr;
+    ClusterExtractionPtr mClusterExtractionPtr;
 
 public:
     /*!
@@ -238,6 +239,9 @@ public:
          * These interfaces are, right now, far from final and can therefore be change as you want to change them.
          * Side-effects are expected just in the next_best_view node.
          */
+        if (mFirstRun) {
+            mCalculatorPtr->setClusterExtractionPtr(ClusterExtractionPtr(new EuclideanPCLClusterExtraction()));
+        }
 
         /* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
          * It picks a given number of samples out of the unit sphere. These samples should be uniform
@@ -371,6 +375,7 @@ public:
             mCalculatorPtr->setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculatorPtr->setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculatorPtr->setCacheResults(mConfig.cacheResults);
+            mCalculatorPtr->setEnableClustering(mConfig.enableClustering);
 
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);

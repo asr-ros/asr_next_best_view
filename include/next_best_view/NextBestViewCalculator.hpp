@@ -44,6 +44,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
+#include "next_best_view/cluster/ClusterExtraction.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/helper/DebugHelper.hpp"
@@ -76,6 +77,7 @@ private:
     CameraModelFilterPtr mCameraModelFilterPtr;
     RatingModulePtr mRatingModulePtr;
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
+    ClusterExtractionPtr mClusterExtractionPtr;
 
     RatingModuleAbstractFactoryPtr mRatingModuleAbstractFactoryPtr;
     CameraModelFilterAbstractFactoryPtr mCameraModelFilterAbstractFactoryPtr;
@@ -96,13 +98,14 @@ private:
     std::vector<CameraModelFilterPtr> mThreadCameraModels;
     std::vector<RatingModulePtr> mThreadRatingModules;
 
+    bool mFirstNBVCallIsRunning;
+
     double mMinUtility;
     bool mRequireMinUtility;
 
     bool mRemoveInvalidNormals;
-
-    bool mFirstNBVCallIsRunning;
     bool mUsePrediction;
+    bool mEnableClustering;
 
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
@@ -432,6 +435,10 @@ public:
 
     HypothesisUpdaterPtr getHypothesisUpdater();
 
+    ClusterExtractionPtr getClusterExtractionPtr() const;
+
+    void setClusterExtractionPtr(const ClusterExtractionPtr &value);
+
     /**
      * @param epsilon - error threshold
      */
@@ -505,6 +512,10 @@ public:
     bool getRequireMinUtility() const;
 
     void setRequireMinUtility(bool requireMinUtility);
+
+    bool getEnableClustering() const;
+
+    void setEnableClustering(bool value);
 };
 
 }

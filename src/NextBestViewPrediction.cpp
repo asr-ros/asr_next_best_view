@@ -58,6 +58,7 @@ namespace next_best_view {
         std::vector<Indices> normals = saveNormals();
         ViewportPointCloudPtr result(new ViewportPointCloud());
         ViewportPoint currentCameraViewport = startCameraViewport;
+        auto begin = std::chrono::high_resolution_clock::now();
         Indices totalSeenHypotheses;
         float totalNumberHypotheses = mNBVCalcPtr->getActiveIndices()->size();
         if (totalNumberHypotheses == 0.0) {
@@ -70,11 +71,14 @@ namespace next_best_view {
         // TODO: parameter 0.7
         while (static_cast<float>(totalSeenHypotheses.size()) / totalNumberHypotheses < 0.7) {
             // get nbv
+            auto beginInner = std::chrono::high_resolution_clock::now();
             ViewportPoint resultViewport;
             if (!mNBVCalcPtr->calculateNextBestView(currentCameraViewport, resultViewport)) {
                 // no nbv found
                 break;
             }
+            auto finishInner = std::chrono::high_resolution_clock::now();
+            ROS_INFO_STREAM((result->size()+1) << ". nbv get took " << std::chrono::duration<float>(finishInner-beginInner).count() << " seconds.");
 
             // set nbv as current view
             currentCameraViewport = resultViewport;
@@ -100,7 +104,10 @@ namespace next_best_view {
             result->push_back(resultViewport);
         }
 
+        auto finish = std::chrono::high_resolution_clock::now();
         ROS_INFO_STREAM("result prediction sees " << static_cast<float>(totalSeenHypotheses.size()) / totalNumberHypotheses << "% of all hypotheses");
+        // cast timediff to float in seconds
+        ROS_INFO_STREAM("nbv prediction took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
         // restore normals, so it looks like we never called updateObjectPointCloud
         restoreNormals(normals);

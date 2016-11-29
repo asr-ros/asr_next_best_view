@@ -72,7 +72,6 @@ namespace next_best_view {
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
         bool success = false;
-        ROS_INFO_STREAM("mCacheResults: " << mCacheResults);
         if (mCacheResults && !mNBVCachePtr->isEmpty()) {
             success = this->getNBVFromCache(currentCameraViewport, resultViewport);
         } else {
@@ -817,6 +816,9 @@ namespace next_best_view {
             mThreadCameraModels[i]->setInputPointCloud(mPointCloudPtr);
         }
         mSpaceSamplerPtr->setObjectPointCloud(mPointCloudPtr);
+        if (mEnableClustering) {
+            mClusterExtractionPtr->setObjectPointCloud(mPointCloudPtr);
+        }
     }
 
     void NextBestViewCalculator::loadCropBoxListFromFile(const std::string mCropBoxListFilePath) {
@@ -837,13 +839,16 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setActiveIndices(const IndicesPtr &activeIndicesPtr) {
         mActiveIndicesPtr = activeIndicesPtr;
-        mRatingModulePtr->setObjectPointIndices(activeIndicesPtr);
-        mCameraModelFilterPtr->setObjectPointIndices(activeIndicesPtr);
+        mRatingModulePtr->setObjectPointIndices(mActiveIndicesPtr);
+        mCameraModelFilterPtr->setObjectPointIndices(mActiveIndicesPtr);
         for (int i : boost::irange(0, mNumberOfThreads)) {
-            mThreadRatingModules[i]->setObjectPointIndices(activeIndicesPtr);
-            mThreadCameraModels[i]->setObjectPointIndices(activeIndicesPtr);
+            mThreadRatingModules[i]->setObjectPointIndices(mActiveIndicesPtr);
+            mThreadCameraModels[i]->setObjectPointIndices(mActiveIndicesPtr);
         }
-        mSpaceSamplerPtr->setObjectPointIndices(activeIndicesPtr);
+        mSpaceSamplerPtr->setObjectPointIndices(mActiveIndicesPtr);
+        if (mEnableClustering) {
+            mClusterExtractionPtr->setObjectPointIndices(mActiveIndicesPtr);
+        }
     }
 
     IndicesPtr NextBestViewCalculator::getActiveIndices() {
@@ -987,6 +992,14 @@ namespace next_best_view {
         return mHypothesisUpdaterPtr;
     }
 
+    ClusterExtractionPtr NextBestViewCalculator::getClusterExtractionPtr() const {
+        return mClusterExtractionPtr;
+    }
+
+    void NextBestViewCalculator::setClusterExtractionPtr(const ClusterExtractionPtr &clusterExtractionPtr) {
+        mClusterExtractionPtr = clusterExtractionPtr;
+    }
+
     void NextBestViewCalculator::setEpsilon(float epsilon) {
         mEpsilon = epsilon;
     }
@@ -1095,5 +1108,13 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setRequireMinUtility(bool requireMinUtility) {
         mRequireMinUtility = requireMinUtility;
+    }
+
+    bool NextBestViewCalculator::getEnableClustering() const {
+        return mEnableClustering;
+    }
+
+    void NextBestViewCalculator::setEnableClustering(bool enableClustering) {
+        mEnableClustering = enableClustering;
     }
 }

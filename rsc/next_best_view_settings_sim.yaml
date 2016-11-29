@@ -69,6 +69,7 @@ spaceSamplePatternId: 1 # atm only used by HypothesisSpaceSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
 minIterationSteps: 2
+enableClustering: true # if hypothesis pointcloud should be clustered
 #filters
 enableClusterFilter: false
 enableMapFilter: true
