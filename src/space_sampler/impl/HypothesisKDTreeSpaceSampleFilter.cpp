@@ -27,8 +27,8 @@ namespace next_best_view {
 
     void HypothesisKDTreeSpaceSampleFilter::doFiltering(IndicesPtr &resultIndicesPtr) {
         // if indices is not set we will use all points
-        SamplePointCloudPtr samplesPtr = getSamplesInputCloud();
-        IndicesPtr samplesIndicesPtr = getSamplesIndicesPtr();
+        SamplePointCloudPtr samplesPtr = getInputPointCloud();
+        IndicesPtr samplesIndicesPtr = getInputPointIndices();
 
         // go through all samples
         for (int idx : *samplesIndicesPtr) {
@@ -64,8 +64,8 @@ namespace next_best_view {
         return true;
     }
 
-    void HypothesisKDTreeSpaceSampleFilter::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
-        CommonClass::setInputCloud(pointCloudPtr);
+    void HypothesisKDTreeSpaceSampleFilter::setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+        CommonClass::setObjectPointCloud(pointCloudPtr);
 
         mKdTreePtr = KdTreePtr(new KdTree());
         mKdTreePtr->setInputCloud(pointCloudPtr);

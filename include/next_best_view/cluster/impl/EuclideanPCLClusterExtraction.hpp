@@ -36,7 +36,7 @@ namespace next_best_view {
 
         ClusterPtrsPtr getClusters();
 
-        void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
     };
     typedef boost::shared_ptr<EuclideanPCLClusterExtraction> EuclideanPCLClusterExtractionPtr;
 }

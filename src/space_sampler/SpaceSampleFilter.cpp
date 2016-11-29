@@ -25,27 +25,5 @@ namespace next_best_view {
     SpaceSampleFilter::SpaceSampleFilter() { }
 
     SpaceSampleFilter::~SpaceSampleFilter() { }
-
-    SamplePointCloudPtr SpaceSampleFilter::getSamplesInputCloud() {
-        return mPointCloudPtr;
-    }
-
-    void SpaceSampleFilter::setSamplesInputCloud(const SamplePointCloudPtr &pointCloudPtr) {
-        mPointCloudPtr = pointCloudPtr;
-    }
-
-    IndicesPtr SpaceSampleFilter::getSamplesIndicesPtr() {
-        IndicesPtr samplesIndicesPtr;
-        if (!mIndicesPtr) {
-            samplesIndicesPtr = IndicesPtr(new Indices(mPointCloudPtr->size()));
-            std::iota(samplesIndicesPtr->begin(), samplesIndicesPtr->end(), 0);
-            return samplesIndicesPtr;
-        }
-        return mIndicesPtr;
-    }
-
-    void SpaceSampleFilter::setSamplesIndicesPtr(const IndicesPtr &value) {
-        mIndicesPtr = value;
-    }
 }
 

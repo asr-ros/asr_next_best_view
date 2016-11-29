@@ -44,7 +44,7 @@ namespace next_best_view {
          */
         bool getFeasibleHypothesis(SimpleVector3 samplePoint, IndicesPtr &resultIndicesPtr);
 
-        void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
     };
     typedef boost::shared_ptr<HypothesisKDTreeSpaceSampleFilter> HypothesisKDTreeSpaceSampleFilterPtr;
 }

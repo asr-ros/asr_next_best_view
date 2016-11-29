@@ -23,24 +23,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    class SpaceSampleFilter : public GeneralFilter {
-    private:
-        SamplePointCloudPtr mPointCloudPtr;
-        IndicesPtr mIndicesPtr;
-
+    class SpaceSampleFilter : public GeneralFilter<SamplePoint> {
     public:
-
         SpaceSampleFilter();
 
         virtual ~SpaceSampleFilter();
-
-        SamplePointCloudPtr getSamplesInputCloud();
-
-        void setSamplesInputCloud(const SamplePointCloudPtr &pointCloudPtr);
-
-        IndicesPtr getSamplesIndicesPtr();
-
-        void setSamplesIndicesPtr(const IndicesPtr &value);
     };
     typedef boost::shared_ptr<SpaceSampleFilter> SpaceSampleFilterPtr;
 }

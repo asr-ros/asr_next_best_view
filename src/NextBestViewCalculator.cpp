@@ -401,7 +401,7 @@ namespace next_best_view {
     }
 
     bool NextBestViewCalculator::doFrustumCulling(const CameraModelFilterPtr &cameraModelFilterPtr, ViewportPoint &resultViewportPoint) {
-        cameraModelFilterPtr->setIndices(resultViewportPoint.child_indices);
+        cameraModelFilterPtr->setInputPointIndices(resultViewportPoint.child_indices);
         cameraModelFilterPtr->setPivotPointPose(resultViewportPoint.getPosition(), resultViewportPoint.getSimpleQuaternion());
 
         // do the frustum culling
@@ -410,7 +410,7 @@ namespace next_best_view {
         cameraModelFilterPtr->filter(frustumIndicesPtr);
 
         resultViewportPoint.child_indices = frustumIndicesPtr;
-        resultViewportPoint.child_point_cloud = cameraModelFilterPtr->getInputCloud();
+        resultViewportPoint.child_point_cloud = cameraModelFilterPtr->getInputPointCloud();
         resultViewportPoint.point_cloud = mPointCloudPtr;
 
         if (frustumIndicesPtr->size() == 0) {
@@ -534,7 +534,7 @@ namespace next_best_view {
         if(mEnableCropBoxFiltering)
         {
             IndicesPtr filteredObjectIndices = IndicesPtr(new Indices());
-            mCropBoxFilterPtr->setInputCloud(originalPointCloudPtr);
+            mCropBoxFilterPtr->setInputPointCloud(originalPointCloudPtr);
             mCropBoxFilterPtr->filter(filteredObjectIndices);
 
             mDebugHelperPtr->write("setPointCloudFromMessage::Filtering point cloud finished.",
@@ -808,13 +808,15 @@ namespace next_best_view {
 
         mKdTreePtr = KdTreePtr(new KdTree());
         mKdTreePtr->setInputCloud(mPointCloudPtr);
-        mRatingModulePtr->setInputCloud(mPointCloudPtr);
-        mCameraModelFilterPtr->setInputCloud(mPointCloudPtr);
+        mRatingModulePtr->setObjectPointCloud(mPointCloudPtr);
+        mCameraModelFilterPtr->setObjectPointCloud(mPointCloudPtr);
+        mCameraModelFilterPtr->setInputPointCloud(mPointCloudPtr);
         for (int i : boost::irange(0, mNumberOfThreads)) {
-            mThreadRatingModules[i]->setInputCloud(mPointCloudPtr);
-            mThreadCameraModels[i]->setInputCloud(mPointCloudPtr);
+            mThreadRatingModules[i]->setObjectPointCloud(mPointCloudPtr);
+            mThreadCameraModels[i]->setObjectPointCloud(mPointCloudPtr);
+            mThreadCameraModels[i]->setInputPointCloud(mPointCloudPtr);
         }
-        mSpaceSamplerPtr->setInputCloud(mPointCloudPtr);
+        mSpaceSamplerPtr->setObjectPointCloud(mPointCloudPtr);
     }
 
     void NextBestViewCalculator::loadCropBoxListFromFile(const std::string mCropBoxListFilePath) {
@@ -835,6 +837,13 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setActiveIndices(const IndicesPtr &activeIndicesPtr) {
         mActiveIndicesPtr = activeIndicesPtr;
+        mRatingModulePtr->setObjectPointIndices(activeIndicesPtr);
+        mCameraModelFilterPtr->setObjectPointIndices(activeIndicesPtr);
+        for (int i : boost::irange(0, mNumberOfThreads)) {
+            mThreadRatingModules[i]->setObjectPointIndices(activeIndicesPtr);
+            mThreadCameraModels[i]->setObjectPointIndices(activeIndicesPtr);
+        }
+        mSpaceSamplerPtr->setObjectPointIndices(activeIndicesPtr);
     }
 
     IndicesPtr NextBestViewCalculator::getActiveIndices() {
@@ -910,7 +919,7 @@ namespace next_best_view {
         boost::range::iota(boost::iterator_range<Indices::iterator>(activeIndicesPtr->begin(), activeIndicesPtr->end()), 0);
 
         // set the point cloud
-        this->setActiveIndices(activeIndicesPtr);
+        setActiveIndices(activeIndicesPtr);
         setPointCloudPtr(mPointCloudPtr);
         return true;
     }
@@ -1044,14 +1053,15 @@ namespace next_best_view {
                 mThreadRatingModules[i].reset();
             }
             mThreadRatingModules[i] = mRatingModuleAbstractFactoryPtr->createRatingModule();
-            mThreadRatingModules[i]->setInputCloud(mPointCloudPtr);
+            mThreadRatingModules[i]->setObjectPointCloud(mPointCloudPtr);
 
             // set CameraModule per thread
             if (mThreadCameraModels[i]) {
                 mThreadCameraModels[i].reset();
             }
             mThreadCameraModels[i] = mCameraModelFilterAbstractFactoryPtr->createCameraModelFilter();
-            mThreadCameraModels[i]->setInputCloud(mPointCloudPtr);
+            mThreadCameraModels[i]->setObjectPointCloud(mPointCloudPtr);
+            mThreadCameraModels[i]->setInputPointCloud(mPointCloudPtr);
         }
     }
 

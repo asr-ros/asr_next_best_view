@@ -29,7 +29,8 @@ namespace next_best_view {
     typedef std::tuple<int, int> CacheIndex;
 
     // TODO maybe implement some kind of filter so we don't sample with too low resolution/compare distance with other viewports in gridelement/nearby gridelemnts
-    // TODO gridelement class
+    // TODO gridelement class/grid class
+    // TODO maybe consider cluster extraction, so we can get best ones per cluster? for view mutation/next good view samples
     class NextBestViewCache {
     private:
         float mGridSize;

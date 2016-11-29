@@ -29,17 +29,26 @@ namespace next_best_view {
 
     class CropBoxWrapper {
     private:
+        /**
+         * @brief mCropBoxPtr the cropbox itself
+         */
         CropBoxPtr mCropBoxPtr;
+
+        /**
+         * @brief mCropBoxNormalsListPtr normals that should be created for hypothesis inside this cropbox.
+         */
         boost::shared_ptr<std::vector<SimpleVector3>> mCropBoxNormalsListPtr;
+
     public:
         CropBoxWrapper(CropBoxPtr cropBoxPtr, boost::shared_ptr<std::vector<SimpleVector3>> cropBoxNormalsListPtr);
 
         CropBoxPtr getCropBox();
+
         boost::shared_ptr<std::vector<SimpleVector3>> getCropBoxNormalsList();
 
         void setCropBox(CropBoxPtr cropBoxPtr);
-        void setCropBoxNormalsList(boost::shared_ptr<std::vector<SimpleVector3>> cropBoxNormalsListPtr);
 
+        void setCropBoxNormalsList(boost::shared_ptr<std::vector<SimpleVector3>> cropBoxNormalsListPtr);
 
         /*!
          * \brief readCropBoxDataFromXMLFile reads the given xml file and returns a list of CropBoxWrapper.

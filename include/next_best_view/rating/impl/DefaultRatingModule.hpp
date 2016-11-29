@@ -106,7 +106,7 @@ namespace next_best_view {
 
         virtual ~DefaultRatingModule();
 
-        void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
 
         bool setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport);
 

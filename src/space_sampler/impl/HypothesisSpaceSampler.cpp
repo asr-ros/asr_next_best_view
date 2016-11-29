@@ -102,8 +102,8 @@ namespace next_best_view {
         return samples;
     }
 
-    void HypothesisSpaceSampler::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
-        CommonClass::setInputCloud(pointCloudPtr);
+    void HypothesisSpaceSampler::setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+        CommonClass::setObjectPointCloud(pointCloudPtr);
 
         // kd tree, used by cluster extraction to search nearby hypothesis
         pcl::search::KdTree<ObjectPoint>::Ptr tree (new pcl::search::KdTree<ObjectPoint>);

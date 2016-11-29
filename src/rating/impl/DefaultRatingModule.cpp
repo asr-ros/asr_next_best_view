@@ -41,9 +41,9 @@ DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, d
 
 DefaultRatingModule::~DefaultRatingModule() { }
 
-void DefaultRatingModule::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+void DefaultRatingModule::setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr) {
     // set input cloud in parent class
-    RatingModule::setInputCloud(pointCloudPtr);
+    RatingModule::setObjectPointCloud(pointCloudPtr);
 
     mInputCloudChanged = true;
 }
@@ -354,7 +354,7 @@ void DefaultRatingModule::setUnweightedUnnormalizedObjectUtilities(const Viewpor
 
     // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
     BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
-        ObjectPoint& objectPoint = this->getInputCloud()->at(index);
+        ObjectPoint& objectPoint = this->getObjectPointCloud()->at(index);
 
         if (objectPoint.type != objectType) {
             continue;
@@ -467,7 +467,7 @@ void DefaultRatingModule::setRatingNormalization() {
 
 void DefaultRatingModule::setMaxRecognitionCosts() {
     mMaxRecognitionCosts = 0;
-    ObjectPointCloudPtr inputCloud = this->getInputCloud();
+    ObjectPointCloudPtr inputCloud = this->getObjectPointCloud();
 
     double maxRecognitionCosts = 0;
     std::vector<std::string> types;

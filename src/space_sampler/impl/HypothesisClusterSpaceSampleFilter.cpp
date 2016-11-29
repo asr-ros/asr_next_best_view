@@ -27,8 +27,8 @@ namespace next_best_view {
 
     void HypothesisClusterSpaceSampleFilter::doFiltering(IndicesPtr &resultIndicesPtr) {
         // if indices is not set we will use all points
-        SamplePointCloudPtr samplesPtr = getSamplesInputCloud();
-        IndicesPtr samplesIndicesPtr = getSamplesIndicesPtr();
+        SamplePointCloudPtr samplesPtr = getInputPointCloud();
+        IndicesPtr samplesIndicesPtr = getInputPointIndices();
 
         // get clusters and expand them by an offset (fcp)
         ClusterPtrsPtr clustersPtr = mClusterExtraction->getClusters();

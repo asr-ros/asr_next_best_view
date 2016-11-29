@@ -37,7 +37,7 @@ namespace next_best_view {
 
             // kdtree, use by EuclideanClusterExtraction
             pcl::search::KdTree<ObjectPoint>::Ptr tree (new pcl::search::KdTree<ObjectPoint>);
-            tree->setInputCloud(getInputCloud());
+            tree->setInputCloud(getObjectPointCloud());
 
             // find hypothesis clusters
             auto begin = std::chrono::high_resolution_clock::now();
@@ -47,8 +47,8 @@ namespace next_best_view {
             euclideanClusterExtractor.setMinClusterSize (10);
             euclideanClusterExtractor.setMaxClusterSize (25000);
             euclideanClusterExtractor.setSearchMethod(tree);
-            euclideanClusterExtractor.setInputCloud(getInputCloud());
-            euclideanClusterExtractor.setIndices(getIndices());
+            euclideanClusterExtractor.setInputCloud(getObjectPointCloud());
+            euclideanClusterExtractor.setIndices(getObjectPointIndices());
             euclideanClusterExtractor.extract(clusterIndices);
             auto finish = std::chrono::high_resolution_clock::now();
 
@@ -59,7 +59,7 @@ namespace next_best_view {
             int i = 0;
             for (pcl::PointIndices &indices : clusterIndices) {
                 // create cluster pc
-                ObjectPointCloudPtr clusterPC(new ObjectPointCloud(*getInputCloud(), indices.indices));
+                ObjectPointCloudPtr clusterPC(new ObjectPointCloud(*getObjectPointCloud(), indices.indices));
 
                 // find min/max/bb of cluster
                 ObjectPoint minPoint, maxPoint;
@@ -76,8 +76,8 @@ namespace next_best_view {
         return mClustersCachePtr;
     }
 
-    void EuclideanPCLClusterExtraction::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
-        CommonClass::setInputCloud(pointCloudPtr);
+    void EuclideanPCLClusterExtraction::setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+        CommonClass::setObjectPointCloud(pointCloudPtr);
         // invalidate cache
         mClustersCachePtr.reset();
     }

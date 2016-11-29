@@ -55,7 +55,7 @@ namespace next_best_view {
 
         SamplePointCloudPtr generateSamples(const BoundingBoxPtr &bb, SimpleVector3 currentSpacePosition, float factor = 1.0);
 
-        void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
     };
 
     /*!

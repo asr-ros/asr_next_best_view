@@ -19,7 +19,7 @@ namespace next_best_view {
 
 		indicesPtr = IndicesPtr(new Indices());
 		BOOST_FOREACH(int index, *intermediateIndicesPtr) {
-			ObjectPoint &point = this->getInputCloud()->at(index);
+            ObjectPoint &point = this->getInputPointCloud()->at(index);
 
             if (mWorldHelperPtr->isOccluded(leftCameraPosition, point.getPosition())) {
                 continue;

@@ -28,8 +28,8 @@ namespace next_best_view {
 
     void MapSpaceSampleFilter::doFiltering(IndicesPtr &resultIndicesPtr) {
         // if indices is not set we will use all points
-        SamplePointCloudPtr samplesPtr = getSamplesInputCloud();
-        IndicesPtr samplesIndicesPtr = getSamplesIndicesPtr();
+        SamplePointCloudPtr samplesPtr = getInputPointCloud();
+        IndicesPtr samplesIndicesPtr = getInputPointIndices();
 
         // go through all samples
         for (int idx : *samplesIndicesPtr) {

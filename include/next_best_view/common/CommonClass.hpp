@@ -28,12 +28,12 @@ namespace next_best_view {
 		/*!
 		 * \brief shared pointer to the object point cloud.
 		 */
-		ObjectPointCloudPtr mPointCloudPtr;
+        ObjectPointCloudPtr mObjectPointCloudPtr;
 
 		/*!
 		 * \brief shared pointer to the active indices of the former declared object point cloud.
 		 */
-		IndicesPtr mIndicesPtr;
+        IndicesPtr mObjectPointIndicesPtr;
 
 	public:
 		/*!
@@ -50,23 +50,23 @@ namespace next_best_view {
 		 * \brief setting the input cloud.
 		 * \param pointCloudPtr the shared pointer to point cloud
 		 */
-        virtual void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        virtual void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
 
 		/*!
 		 * \return the shared pointer to the point cloud.
 		 */
-        virtual ObjectPointCloudPtr& getInputCloud();
+        virtual ObjectPointCloudPtr& getObjectPointCloud();
 
 		/*!
 		 * \brief setting the shared pointer to the active indices of the point cloud.
 		 * \param indicesPtr the shared pointer to indices.
 		 */
-        virtual void setIndices(const IndicesPtr &indicesPtr);
+        virtual void setObjectPointIndices(const IndicesPtr &indicesPtr);
 
 		/*!
 		 * \return the shared pointer to the active indices of the point cloud.
 		 */
-        virtual IndicesPtr& getIndices();
+        virtual IndicesPtr& getObjectPointIndices();
 	};
 }
 
