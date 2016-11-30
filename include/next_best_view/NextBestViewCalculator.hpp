@@ -87,9 +87,10 @@ private:
     CameraModelFilterAbstractFactoryPtr mCameraModelFilterAbstractFactoryPtr;
 
     // filters
-    HypothesisClusterSpaceSampleFilterPtr mHypothesisClusterSpaceSampleFilterPtr;
-    HypothesisKDTreeSpaceSampleFilterPtr mHypothesisKDTreeSpaceSampleFilterPtr;
-    MapSpaceSampleFilterPtr mMapSpaceSampleFilterPtr;
+    GeneralFilterPtr<SamplePoint> mSpaceSamplingFilterChainPtr;
+    GeneralFilterPtr<SamplePoint> mHypothesisClusterSpaceSampleFilterPtr;
+    GeneralFilterPtr<SamplePoint> mHypothesisKDTreeSpaceSampleFilterPtr;
+    GeneralFilterPtr<SamplePoint> mMapSpaceSampleFilterPtr;
     bool mEnableClusterFilter;
     bool mEnableMapFilter;
     bool mEnableKDTreeFilter;
@@ -527,36 +528,40 @@ public:
 
     bool getEnableClustering() const;
 
-    void setEnableClustering(bool value);
+    void setEnableClustering(bool enableClustering);
 
     bool getUsePrediction() const;
 
-    void setUsePrediction(bool value);
+    void setUsePrediction(bool usePrediction);
 
     // filters en/disable
     bool getEnableClusterFilter() const;
 
-    void setEnableClusterFilter(bool value);
+    void setEnableClusterFilter(bool enableClusterFilter);
 
     bool getEnableMapFilter() const;
 
-    void setEnableMapFilter(bool value);
+    void setEnableMapFilter(bool enableMapFilter);
 
     bool getEnableKDTreeFilter() const;
 
-    void setEnableKDTreeFilter(bool value);
+    void setEnableKDTreeFilter(bool enableKDTreeFilter);
 
-    MapSpaceSampleFilterPtr getMapSpaceSampleFilterPtr() const;
+    GeneralFilterPtr<SamplePoint> getMapSpaceSampleFilterPtr() const;
 
-    void setMapSpaceSampleFilterPtr(const MapSpaceSampleFilterPtr &value);
+    void setMapSpaceSampleFilterPtr(const GeneralFilterPtr<SamplePoint> &mapSpaceSampleFilterPtr);
 
-    HypothesisKDTreeSpaceSampleFilterPtr getHypothesisKDTreeSpaceSampleFilterPtr() const;
+    GeneralFilterPtr<SamplePoint> getHypothesisKDTreeSpaceSampleFilterPtr() const;
 
-    void setHypothesisKDTreeSpaceSampleFilterPtr(const HypothesisKDTreeSpaceSampleFilterPtr &value);
+    void setHypothesisKDTreeSpaceSampleFilterPtr(const GeneralFilterPtr<SamplePoint> &hypothesisKDTreeSpaceSampleFilterPtr);
 
-    HypothesisClusterSpaceSampleFilterPtr getHypothesisClusterSpaceSampleFilterPtr() const;
+    GeneralFilterPtr<SamplePoint> getHypothesisClusterSpaceSampleFilterPtr() const;
 
-    void setHypothesisClusterSpaceSampleFilterPtr(const HypothesisClusterSpaceSampleFilterPtr &value);
+    void setHypothesisClusterSpaceSampleFilterPtr(const GeneralFilterPtr<SamplePoint> &hypothesisClusterSpaceSampleFilterPtr);
+
+    GeneralFilterPtr<SamplePoint> getSpaceSamlpingFilterChainPtr() const;
+
+    void setSpaceSamplingFilterChainPtr();
 };
 
 }

@@ -693,34 +693,16 @@ namespace next_best_view {
         // TODO: filterchain class/setpostfilter/add option to disable filters
         IndicesPtr resultIndicesPtr(new Indices(sampledSpacePointCloudPtr->size()));
         boost::range::iota(boost::iterator_range<Indices::iterator>(resultIndicesPtr->begin(), resultIndicesPtr->end()), 0);
-        if (mEnableClusterFilter) {
-            IndicesPtr filteredIndicesPtr;
-            mHypothesisClusterSpaceSampleFilterPtr->setInputPointCloud(sampledSpacePointCloudPtr);
-            mHypothesisClusterSpaceSampleFilterPtr->setInputPointIndices(resultIndicesPtr);
-            mHypothesisClusterSpaceSampleFilterPtr->filter(filteredIndicesPtr);
-            resultIndicesPtr = filteredIndicesPtr;
-        }
-        if (mEnableKDTreeFilter) {
-            IndicesPtr filteredIndicesPtr;
-            mHypothesisKDTreeSpaceSampleFilterPtr->setInputPointCloud(sampledSpacePointCloudPtr);
-            mHypothesisKDTreeSpaceSampleFilterPtr->setInputPointIndices(resultIndicesPtr);
-            mHypothesisKDTreeSpaceSampleFilterPtr->filter(filteredIndicesPtr);
-            resultIndicesPtr = filteredIndicesPtr;
-        }
-        if (mEnableMapFilter) {
-            IndicesPtr filteredIndicesPtr;
-            mMapSpaceSampleFilterPtr->setInputPointCloud(sampledSpacePointCloudPtr);
-            mMapSpaceSampleFilterPtr->setInputPointIndices(resultIndicesPtr);
-            mMapSpaceSampleFilterPtr->filter(filteredIndicesPtr);
-            resultIndicesPtr = filteredIndicesPtr;
-        }
+        IndicesPtr filteredIndicesPtr;
+        mSpaceSamplingFilterChainPtr->setInputPointCloud(sampledSpacePointCloudPtr);
+        mSpaceSamplingFilterChainPtr->setInputPointIndices(resultIndicesPtr);
+        auto begin = std::chrono::high_resolution_clock::now();
+        mSpaceSamplingFilterChainPtr->filter(filteredIndicesPtr);
+        auto finish = std::chrono::high_resolution_clock::now();
+        // cast timediff to flaot in seconds
+        ROS_INFO_STREAM("space sample filter chain took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
-        IndicesPtr feasibleIndicesPtr;
-        // TODO: do filtering here
-        //Prune space sample points in that iteration step by checking whether there are any surrounding object points (within constant far-clipping plane).
-        this->getFeasibleSamplePoints(sampledSpacePointCloudPtr, feasibleIndicesPtr);
-
-        return SamplePointCloudPtr(new SamplePointCloud(*sampledSpacePointCloudPtr, *feasibleIndicesPtr));
+        return SamplePointCloudPtr(new SamplePointCloud(*sampledSpacePointCloudPtr, *filteredIndicesPtr));
     }
 
     ViewportPointCloudPtr NextBestViewCalculator::combineSamples(SamplePointCloudPtr sampledSpacePointCloudPtr, SimpleQuaternionCollectionPtr sampledOrientationsPtr) {
@@ -1165,6 +1147,11 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setEnableClusterFilter(bool enableClusterFilter) {
         mEnableClusterFilter = enableClusterFilter;
+        if (mEnableClusterFilter) {
+            mHypothesisClusterSpaceSampleFilterPtr->enable();
+        } else {
+            mHypothesisClusterSpaceSampleFilterPtr->disable();
+        }
     }
 
     bool NextBestViewCalculator::getEnableMapFilter() const {
@@ -1173,6 +1160,11 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setEnableMapFilter(bool enableMapFilter) {
         mEnableMapFilter = enableMapFilter;
+        if (mEnableMapFilter) {
+            mMapSpaceSampleFilterPtr->enable();
+        } else {
+            mMapSpaceSampleFilterPtr->disable();
+        }
     }
 
     bool NextBestViewCalculator::getEnableKDTreeFilter() const {
@@ -1181,29 +1173,44 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setEnableKDTreeFilter(bool enableKDTreeFilter) {
         mEnableKDTreeFilter = enableKDTreeFilter;
+        if (mEnableKDTreeFilter) {
+            mHypothesisKDTreeSpaceSampleFilterPtr->enable();
+        } else {
+            mHypothesisKDTreeSpaceSampleFilterPtr->disable();
+        }
     }
 
-    MapSpaceSampleFilterPtr NextBestViewCalculator::getMapSpaceSampleFilterPtr() const {
+    GeneralFilterPtr<SamplePoint> NextBestViewCalculator::getMapSpaceSampleFilterPtr() const {
         return mMapSpaceSampleFilterPtr;
     }
 
-    void NextBestViewCalculator::setMapSpaceSampleFilterPtr(const MapSpaceSampleFilterPtr &mapSpaceSampleFilterPtr) {
+    void NextBestViewCalculator::setMapSpaceSampleFilterPtr(const GeneralFilterPtr<SamplePoint> &mapSpaceSampleFilterPtr) {
         mMapSpaceSampleFilterPtr = mapSpaceSampleFilterPtr;
     }
 
-    HypothesisKDTreeSpaceSampleFilterPtr NextBestViewCalculator::getHypothesisKDTreeSpaceSampleFilterPtr() const {
+    GeneralFilterPtr<SamplePoint> NextBestViewCalculator::getHypothesisKDTreeSpaceSampleFilterPtr() const {
         return mHypothesisKDTreeSpaceSampleFilterPtr;
     }
 
-    void NextBestViewCalculator::setHypothesisKDTreeSpaceSampleFilterPtr(const HypothesisKDTreeSpaceSampleFilterPtr &hypothesisKDTreeSpaceSampleFilterPtr) {
+    void NextBestViewCalculator::setHypothesisKDTreeSpaceSampleFilterPtr(const GeneralFilterPtr<SamplePoint> &hypothesisKDTreeSpaceSampleFilterPtr) {
         mHypothesisKDTreeSpaceSampleFilterPtr = hypothesisKDTreeSpaceSampleFilterPtr;
     }
 
-    HypothesisClusterSpaceSampleFilterPtr NextBestViewCalculator::getHypothesisClusterSpaceSampleFilterPtr() const {
+    GeneralFilterPtr<SamplePoint> NextBestViewCalculator::getHypothesisClusterSpaceSampleFilterPtr() const {
         return mHypothesisClusterSpaceSampleFilterPtr;
     }
 
-    void NextBestViewCalculator::setHypothesisClusterSpaceSampleFilterPtr(const HypothesisClusterSpaceSampleFilterPtr &hypothesisClusterSpaceSampleFilterPtr) {
+    void NextBestViewCalculator::setHypothesisClusterSpaceSampleFilterPtr(const GeneralFilterPtr<SamplePoint> &hypothesisClusterSpaceSampleFilterPtr) {
         mHypothesisClusterSpaceSampleFilterPtr = hypothesisClusterSpaceSampleFilterPtr;
+    }
+
+    GeneralFilterPtr<SamplePoint> NextBestViewCalculator::getSpaceSamlpingFilterChainPtr() const {
+        return mSpaceSamplingFilterChainPtr;
+    }
+
+    void NextBestViewCalculator::setSpaceSamplingFilterChainPtr() {
+        mSpaceSamplingFilterChainPtr = mHypothesisClusterSpaceSampleFilterPtr;
+        mSpaceSamplingFilterChainPtr->setPostFilter(mMapSpaceSampleFilterPtr);
+        mMapSpaceSampleFilterPtr->setPostFilter(mHypothesisKDTreeSpaceSampleFilterPtr);
     }
 }

@@ -275,6 +275,7 @@ public:
             mCalculatorPtr->setHypothesisKDTreeSpaceSampleFilterPtr(boost::make_shared<HypothesisKDTreeSpaceSampleFilter>(mConfig.fcp));
             mCalculatorPtr->setHypothesisClusterSpaceSampleFilterPtr(boost::make_shared<HypothesisClusterSpaceSampleFilter>(mCalculatorPtr->getClusterExtractionPtr(), mConfig.fcp));
             mCalculatorPtr->setMapSpaceSampleFilterPtr(boost::make_shared<MapSpaceSampleFilter>(mMapHelperPtr));
+            mCalculatorPtr->setSpaceSamplingFilterChainPtr();
         }
 
 

@@ -38,6 +38,7 @@ namespace next_best_view {
         GeneralFilterPtr<T> mPreFilter;
         GeneralFilterPtr<T> mPostFilter;
         DebugHelperPtr mDebugHelperPtr;
+        bool enabled;
 
         /*!
          * \brief shared pointer to the point cloud that should be filtered.
@@ -53,7 +54,7 @@ namespace next_best_view {
 		/*!
 		 * Constructor.
 		 */
-		GeneralFilter() : mPreFilter(), mPostFilter() {
+        GeneralFilter() : mPreFilter(), mPostFilter(), enabled(true) {
             mDebugHelperPtr = DebugHelper::getInstance();
 		}
 
@@ -103,6 +104,14 @@ namespace next_best_view {
 			mPostFilter = filterPtr;
 		}
 
+        void enable() {
+            enabled = true;
+        }
+
+        void disable() {
+            enabled = false;
+        }
+
 		/*!
 		 * \brief Does the filtering on the indices
 		 * \param indicesPtr the indices
@@ -137,7 +146,12 @@ namespace next_best_view {
 			}
 
 			// apply this filter
-			this->doFiltering(indicesPtr);
+            if (enabled) {
+                this->doFiltering(indicesPtr);
+            } else {
+                // we didn't filter anything, so input = output
+                indicesPtr = IndicesPtr(new Indices(*getInputPointIndices()));
+            }
 
 			// apply post filter
             if (mPostFilter != GeneralFilterPtr<T>()) {
@@ -145,8 +159,8 @@ namespace next_best_view {
 				// set the working input cloud and the relevant indices to work on.
                 mPostFilter->setObjectPointCloud(this->getObjectPointCloud());
                 mPostFilter->setObjectPointIndices(this->getObjectPointIndices());
-                mPreFilter->setInputPointCloud(this->getInputPointCloud());
-                mPreFilter->setInputPointIndices(indicesPtr);
+                mPostFilter->setInputPointCloud(this->getInputPointCloud());
+                mPostFilter->setInputPointIndices(indicesPtr);
 
 				indicesPtr = IndicesPtr(new Indices());
 				mPostFilter->doFiltering(indicesPtr);
