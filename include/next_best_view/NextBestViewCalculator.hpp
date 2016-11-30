@@ -45,6 +45,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "next_best_view/cluster/ClusterExtraction.hpp"
+#include "next_best_view/space_sampler/impl/HypothesisClusterSpaceSampleFilter.hpp"
+#include "next_best_view/space_sampler/impl/HypothesisKDTreeSpaceSampleFilter.hpp"
+#include "next_best_view/space_sampler/impl/MapSpaceSampleFilter.hpp"
 #include "pbd_msgs/PbdAttributedPointCloud.h"
 #include "pbd_msgs/PbdAttributedPoint.h"
 #include "next_best_view/helper/DebugHelper.hpp"
@@ -79,8 +82,17 @@ private:
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
     ClusterExtractionPtr mClusterExtractionPtr;
 
+    // factories for parallel rating
     RatingModuleAbstractFactoryPtr mRatingModuleAbstractFactoryPtr;
     CameraModelFilterAbstractFactoryPtr mCameraModelFilterAbstractFactoryPtr;
+
+    // filters
+    HypothesisClusterSpaceSampleFilterPtr mHypothesisClusterSpaceSampleFilterPtr;
+    HypothesisKDTreeSpaceSampleFilterPtr mHypothesisKDTreeSpaceSampleFilterPtr;
+    MapSpaceSampleFilterPtr mMapSpaceSampleFilterPtr;
+    bool mEnableClusterFilter;
+    bool mEnableMapFilter;
+    bool mEnableKDTreeFilter;
 
     CropBoxFilterPtr mCropBoxFilterPtr;
     float mEpsilon;
@@ -104,8 +116,8 @@ private:
     bool mRequireMinUtility;
 
     bool mRemoveInvalidNormals;
-    bool mUsePrediction;
     bool mEnableClustering;
+    bool mUsePrediction;
 
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
@@ -516,6 +528,35 @@ public:
     bool getEnableClustering() const;
 
     void setEnableClustering(bool value);
+
+    bool getUsePrediction() const;
+
+    void setUsePrediction(bool value);
+
+    // filters en/disable
+    bool getEnableClusterFilter() const;
+
+    void setEnableClusterFilter(bool value);
+
+    bool getEnableMapFilter() const;
+
+    void setEnableMapFilter(bool value);
+
+    bool getEnableKDTreeFilter() const;
+
+    void setEnableKDTreeFilter(bool value);
+
+    MapSpaceSampleFilterPtr getMapSpaceSampleFilterPtr() const;
+
+    void setMapSpaceSampleFilterPtr(const MapSpaceSampleFilterPtr &value);
+
+    HypothesisKDTreeSpaceSampleFilterPtr getHypothesisKDTreeSpaceSampleFilterPtr() const;
+
+    void setHypothesisKDTreeSpaceSampleFilterPtr(const HypothesisKDTreeSpaceSampleFilterPtr &value);
+
+    HypothesisClusterSpaceSampleFilterPtr getHypothesisClusterSpaceSampleFilterPtr() const;
+
+    void setHypothesisClusterSpaceSampleFilterPtr(const HypothesisClusterSpaceSampleFilterPtr &value);
 };
 
 }

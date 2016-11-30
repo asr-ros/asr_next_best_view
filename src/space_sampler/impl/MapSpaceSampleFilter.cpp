@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    MapSpaceSampleFilter::MapSpaceSampleFilter(const MapHelperPtr &mapHelperPtr) { }
+    MapSpaceSampleFilter::MapSpaceSampleFilter(const MapHelperPtr &mapHelperPtr) : mMapHelperPtr(mapHelperPtr) { }
 
     MapSpaceSampleFilter::~MapSpaceSampleFilter() { }
 

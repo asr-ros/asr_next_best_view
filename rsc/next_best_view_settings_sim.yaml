@@ -71,9 +71,9 @@ maxIterationSteps: 20
 minIterationSteps: 2
 enableClustering: true # if hypothesis pointcloud should be clustered
 #filters
-enableClusterFilter: false
+enableClusterFilter: true
 enableMapFilter: true
-enableKDTreeFilter: false
+enableKDTreeFilter: true
 removeInvalidNormals: true
 # used by viewMutation
 improvementIterations: 3

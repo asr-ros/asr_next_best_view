@@ -42,7 +42,6 @@ namespace next_best_view {
           mNBVCachePtr(new NextBestViewCache()) {
 
         mFirstNBVCallIsRunning = false;
-        mUsePrediction = true;
 //        setMapHelper(mapHelperPtr);
         mDebugHelperPtr = DebugHelper::getInstance();
     }
@@ -591,6 +590,7 @@ namespace next_best_view {
         ROS_INFO_STREAM("filtering now unreachable normals");
         auto begin = std::chrono::high_resolution_clock::now();
         // TODO always use hypothesissampler
+        // TODO remove objects with 0 normals?
         // hypothesissampler samples at all locations, so the position does not matter much
         ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 1.0), 1.32);
 
@@ -688,6 +688,32 @@ namespace next_best_view {
 
         //Set height of sample points as it is set to zero by space sampler
         this->setHeight(sampledSpacePointCloudPtr, pointCloudHeight);
+
+        // generate all indices
+        // TODO: filterchain class/setpostfilter/add option to disable filters
+        IndicesPtr resultIndicesPtr(new Indices(sampledSpacePointCloudPtr->size()));
+        boost::range::iota(boost::iterator_range<Indices::iterator>(resultIndicesPtr->begin(), resultIndicesPtr->end()), 0);
+        if (mEnableClusterFilter) {
+            IndicesPtr filteredIndicesPtr;
+            mHypothesisClusterSpaceSampleFilterPtr->setInputPointCloud(sampledSpacePointCloudPtr);
+            mHypothesisClusterSpaceSampleFilterPtr->setInputPointIndices(resultIndicesPtr);
+            mHypothesisClusterSpaceSampleFilterPtr->filter(filteredIndicesPtr);
+            resultIndicesPtr = filteredIndicesPtr;
+        }
+        if (mEnableKDTreeFilter) {
+            IndicesPtr filteredIndicesPtr;
+            mHypothesisKDTreeSpaceSampleFilterPtr->setInputPointCloud(sampledSpacePointCloudPtr);
+            mHypothesisKDTreeSpaceSampleFilterPtr->setInputPointIndices(resultIndicesPtr);
+            mHypothesisKDTreeSpaceSampleFilterPtr->filter(filteredIndicesPtr);
+            resultIndicesPtr = filteredIndicesPtr;
+        }
+        if (mEnableMapFilter) {
+            IndicesPtr filteredIndicesPtr;
+            mMapSpaceSampleFilterPtr->setInputPointCloud(sampledSpacePointCloudPtr);
+            mMapSpaceSampleFilterPtr->setInputPointIndices(resultIndicesPtr);
+            mMapSpaceSampleFilterPtr->filter(filteredIndicesPtr);
+            resultIndicesPtr = filteredIndicesPtr;
+        }
 
         IndicesPtr feasibleIndicesPtr;
         // TODO: do filtering here
@@ -819,6 +845,9 @@ namespace next_best_view {
         if (mEnableClustering) {
             mClusterExtractionPtr->setObjectPointCloud(mPointCloudPtr);
         }
+        mHypothesisClusterSpaceSampleFilterPtr->setObjectPointCloud(mPointCloudPtr);
+        mHypothesisKDTreeSpaceSampleFilterPtr->setObjectPointCloud(mPointCloudPtr);
+        mMapSpaceSampleFilterPtr->setObjectPointCloud(mPointCloudPtr);
     }
 
     void NextBestViewCalculator::loadCropBoxListFromFile(const std::string mCropBoxListFilePath) {
@@ -849,6 +878,9 @@ namespace next_best_view {
         if (mEnableClustering) {
             mClusterExtractionPtr->setObjectPointIndices(mActiveIndicesPtr);
         }
+        mHypothesisClusterSpaceSampleFilterPtr->setObjectPointIndices(mActiveIndicesPtr);
+        mHypothesisKDTreeSpaceSampleFilterPtr->setObjectPointIndices(mActiveIndicesPtr);
+        mMapSpaceSampleFilterPtr->setObjectPointIndices(mActiveIndicesPtr);
     }
 
     IndicesPtr NextBestViewCalculator::getActiveIndices() {
@@ -1114,7 +1146,64 @@ namespace next_best_view {
         return mEnableClustering;
     }
 
+    bool NextBestViewCalculator::getUsePrediction() const {
+        return mUsePrediction;
+    }
+
+    void NextBestViewCalculator::setUsePrediction(bool usePrediction) {
+        mUsePrediction = usePrediction;
+    }
+
     void NextBestViewCalculator::setEnableClustering(bool enableClustering) {
         mEnableClustering = enableClustering;
+    }
+
+    // filters
+    bool NextBestViewCalculator::getEnableClusterFilter() const {
+        return mEnableClusterFilter;
+    }
+
+    void NextBestViewCalculator::setEnableClusterFilter(bool enableClusterFilter) {
+        mEnableClusterFilter = enableClusterFilter;
+    }
+
+    bool NextBestViewCalculator::getEnableMapFilter() const {
+        return mEnableMapFilter;
+    }
+
+    void NextBestViewCalculator::setEnableMapFilter(bool enableMapFilter) {
+        mEnableMapFilter = enableMapFilter;
+    }
+
+    bool NextBestViewCalculator::getEnableKDTreeFilter() const {
+        return mEnableKDTreeFilter;
+    }
+
+    void NextBestViewCalculator::setEnableKDTreeFilter(bool enableKDTreeFilter) {
+        mEnableKDTreeFilter = enableKDTreeFilter;
+    }
+
+    MapSpaceSampleFilterPtr NextBestViewCalculator::getMapSpaceSampleFilterPtr() const {
+        return mMapSpaceSampleFilterPtr;
+    }
+
+    void NextBestViewCalculator::setMapSpaceSampleFilterPtr(const MapSpaceSampleFilterPtr &mapSpaceSampleFilterPtr) {
+        mMapSpaceSampleFilterPtr = mapSpaceSampleFilterPtr;
+    }
+
+    HypothesisKDTreeSpaceSampleFilterPtr NextBestViewCalculator::getHypothesisKDTreeSpaceSampleFilterPtr() const {
+        return mHypothesisKDTreeSpaceSampleFilterPtr;
+    }
+
+    void NextBestViewCalculator::setHypothesisKDTreeSpaceSampleFilterPtr(const HypothesisKDTreeSpaceSampleFilterPtr &hypothesisKDTreeSpaceSampleFilterPtr) {
+        mHypothesisKDTreeSpaceSampleFilterPtr = hypothesisKDTreeSpaceSampleFilterPtr;
+    }
+
+    HypothesisClusterSpaceSampleFilterPtr NextBestViewCalculator::getHypothesisClusterSpaceSampleFilterPtr() const {
+        return mHypothesisClusterSpaceSampleFilterPtr;
+    }
+
+    void NextBestViewCalculator::setHypothesisClusterSpaceSampleFilterPtr(const HypothesisClusterSpaceSampleFilterPtr &hypothesisClusterSpaceSampleFilterPtr) {
+        mHypothesisClusterSpaceSampleFilterPtr = hypothesisClusterSpaceSampleFilterPtr;
     }
 }

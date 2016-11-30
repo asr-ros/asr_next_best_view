@@ -239,9 +239,6 @@ public:
          * These interfaces are, right now, far from final and can therefore be change as you want to change them.
          * Side-effects are expected just in the next_best_view node.
          */
-        if (mFirstRun) {
-            mCalculatorPtr->setClusterExtractionPtr(ClusterExtractionPtr(new EuclideanPCLClusterExtraction()));
-        }
 
         /* SpiralApproxUnitSphereSampler is a specialization of the abstract UnitSphereSampler class.
          * It picks a given number of samples out of the unit sphere. These samples should be uniform
@@ -261,7 +258,7 @@ public:
         /* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
          * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
          * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
-         * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
+         * wanted position (islands/holes). You have to consider if there is any possibility to mark these areas as non-feasible.
          */
         if (mConfigLevel & mapHelperConfig) {
             mMapHelperPtr = MapHelperPtr(new MapHelper());
@@ -269,6 +266,15 @@ public:
             mCalculatorPtr->setMapHelper(mMapHelperPtr);
 
             mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mCalculatorPtr->getMapHelper()));
+        }
+
+        /* Cluster Extraction/filter
+         */
+        if (mFirstRun) {
+            mCalculatorPtr->setClusterExtractionPtr(ClusterExtractionPtr(new EuclideanPCLClusterExtraction()));
+            mCalculatorPtr->setHypothesisKDTreeSpaceSampleFilterPtr(boost::make_shared<HypothesisKDTreeSpaceSampleFilter>(mConfig.fcp));
+            mCalculatorPtr->setHypothesisClusterSpaceSampleFilterPtr(boost::make_shared<HypothesisClusterSpaceSampleFilter>(mCalculatorPtr->getClusterExtractionPtr(), mConfig.fcp));
+            mCalculatorPtr->setMapSpaceSampleFilterPtr(boost::make_shared<MapSpaceSampleFilter>(mMapHelperPtr));
         }
 
 
@@ -376,6 +382,11 @@ public:
             mCalculatorPtr->setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculatorPtr->setCacheResults(mConfig.cacheResults);
             mCalculatorPtr->setEnableClustering(mConfig.enableClustering);
+
+            // filter
+            mCalculatorPtr->setEnableClusterFilter(mConfig.enableClusterFilter);
+            mCalculatorPtr->setEnableKDTreeFilter(mConfig.enableKDTreeFilter);
+            mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
