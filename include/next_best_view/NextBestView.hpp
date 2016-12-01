@@ -252,7 +252,7 @@ public:
             if (mSphereSamplerFactoryPtr) {
                 mSphereSamplerFactoryPtr.reset();
             }
-            mSphereSamplerFactoryPtr = createSphereSamplerFromConfig(mConfig.sphereSamplerId);
+            mSphereSamplerFactoryPtr = createSphereSamplerFactoryFromConfig(mConfig.sphereSamplerId);
             mCalculatorPtr->setUnitSphereSampler(mSphereSamplerFactoryPtr->createUnitSphereSampler());
         }
 
@@ -293,7 +293,7 @@ public:
             if (mSpaceSampleFactoryPtr) {
                 mSpaceSampleFactoryPtr.reset();
             }
-            mSpaceSampleFactoryPtr = createSpaceSamplerFromConfig(mConfig.spaceSamplerId);
+            mSpaceSampleFactoryPtr = createSpaceSamplerFactoryFromConfig(mConfig.spaceSamplerId);
             mCalculatorPtr->setSpaceSampler(mSpaceSampleFactoryPtr->createSpaceSampler());
         }
 
@@ -312,7 +312,7 @@ public:
             if (mCameraModelFactoryPtr) {
                 mCameraModelFactoryPtr.reset();
             }
-            mCameraModelFactoryPtr = createCameraModelFromConfig(mConfig.cameraFilterId);
+            mCameraModelFactoryPtr = createCameraModelFactoryFromConfig(mConfig.cameraFilterId);
             mCalculatorPtr->setCameraModelFilter(mCameraModelFactoryPtr->createCameraModelFilter());
             mCalculatorPtr->setCameraModelFilterAbstractFactoryPtr(mCameraModelFactoryPtr);
         }
@@ -333,7 +333,7 @@ public:
             if (mRobotModelFactoryPtr) {
                 mRobotModelFactoryPtr.reset();
             }
-            mRobotModelFactoryPtr = createRobotModelFromConfig(mConfig.robotModelId);
+            mRobotModelFactoryPtr = createRobotModelFactoryFromConfig(mConfig.robotModelId);
             mCalculatorPtr->setRobotModel(mRobotModelFactoryPtr->createRobotModel());
         }
 
@@ -345,7 +345,7 @@ public:
             if (mRatingModuleFactoryPtr) {
                 mRatingModuleFactoryPtr.reset();
             }
-            mRatingModuleFactoryPtr = createRatingModuleFromConfig(mConfig.ratingModuleId);
+            mRatingModuleFactoryPtr = createRatingModuleFactoryFromConfig(mConfig.ratingModuleId);
             mCalculatorPtr->setRatingModule(mRatingModuleFactoryPtr->createRatingModule());
             mCalculatorPtr->setRatingModuleAbstractFactoryPtr(mRatingModuleFactoryPtr);
         }
@@ -358,7 +358,7 @@ public:
             if (mHypothesisUpdaterFactoryPtr) {
                 mHypothesisUpdaterFactoryPtr.reset();
             }
-            mHypothesisUpdaterFactoryPtr = createHypothesisUpdaterFromConfig(mConfig.hypothesisUpdaterId);
+            mHypothesisUpdaterFactoryPtr = createHypothesisUpdaterFactoryFromConfig(mConfig.hypothesisUpdaterId);
             mCalculatorPtr->setHypothesisUpdater(mHypothesisUpdaterFactoryPtr->createHypothesisUpdater());
         }
 
@@ -439,7 +439,7 @@ public:
         return WorldHelperPtr(new WorldHelper(mapHelperPtr, mConfig.worldFilePath, mConfig.voxelSize, mConfig.worldHeight, mConfig.visualizeRaytracing));
     }
 
-    UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFromConfig(int moduleId) {
+    UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFactoryFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
             return UnitSphereSamplerAbstractFactoryPtr(new SpiralApproxUnitSphereSamplerFactory(mConfig.sampleSizeUnitSphereSampler));
@@ -451,7 +451,7 @@ public:
         }
     }
 
-    SpaceSamplerAbstractFactoryPtr createSpaceSamplerFromConfig(int moduleId) {
+    SpaceSamplerAbstractFactoryPtr createSpaceSamplerFactoryFromConfig(int moduleId) {
         switch (moduleId)
         {
         case 1:
@@ -469,7 +469,7 @@ public:
         case 4:
             return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mMapHelperPtr));
         case 5:
-            return SpaceSamplerAbstractFactoryPtr(new HypothesisSpaceSamplerFactory(mMapHelperPtr, createSpaceSamplePatternFromConfig(mConfig.spaceSamplePatternId), mConfig.fcp));
+            return SpaceSamplerAbstractFactoryPtr(new HypothesisSpaceSamplerFactory(mMapHelperPtr, createSpaceSamplePatternFactoryFromConfig(mConfig.spaceSamplePatternId), mConfig.fcp));
         default:
             std::stringstream ss;
             ss << mConfig.spaceSamplerId << " is not a valid space sampler ID";
@@ -478,7 +478,7 @@ public:
         }
     }
 
-    SpaceSamplePatternPtr createSpaceSamplePatternFromConfig(int moduleId) {
+    SpaceSamplePatternPtr createSpaceSamplePatternFactoryFromConfig(int moduleId) {
         HexagonSpaceSamplePatternPtr hexagonSpaceSamplePatternPtr;
         switch (moduleId)
         {
@@ -494,7 +494,7 @@ public:
         }
     }
 
-    CameraModelFilterAbstractFactoryPtr createCameraModelFromConfig(int moduleId) {
+    CameraModelFilterAbstractFactoryPtr createCameraModelFactoryFromConfig(int moduleId) {
         SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
         SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
         SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
@@ -542,14 +542,14 @@ public:
         }
     }
 
-    RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
+    RobotModelAbstractFactoryPtr createRobotModelFactoryFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
             mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
-            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithExactIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
+            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithExactIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax, mMapHelperPtr));
         case 2:
             mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
-            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithApproximatedIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
+            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithApproximatedIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax, mMapHelperPtr));
         default:
             std::stringstream ss;
             ss << mConfig.robotModelId << " is not a valid robot model ID";
@@ -558,13 +558,13 @@ public:
         }
     }
 
-    RatingModuleAbstractFactoryPtr createRatingModuleFromConfig(int moduleId) {
+    RatingModuleAbstractFactoryPtr createRatingModuleFactoryFromConfig(int moduleId) {
         RobotModelAbstractFactoryPtr robotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr cameraModelFactoryPtr;
         switch (moduleId) {
         case 1:
-            robotModelFactoryPtr = createRobotModelFromConfig(mConfig.robotModelId);
-            cameraModelFactoryPtr = createCameraModelFromConfig(mConfig.cameraFilterId);
+            robotModelFactoryPtr = createRobotModelFactoryFromConfig(mConfig.robotModelId);
+            cameraModelFactoryPtr = createCameraModelFactoryFromConfig(mConfig.cameraFilterId);
             return RatingModuleAbstractFactoryPtr(
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
@@ -581,12 +581,12 @@ public:
         }
     }
 
-    HypothesisUpdaterAbstractFactoryPtr createHypothesisUpdaterFromConfig(int moduleId) {
+    HypothesisUpdaterAbstractFactoryPtr createHypothesisUpdaterFactoryFromConfig(int moduleId) {
         DefaultRatingModuleFactoryPtr ratingModuleFactoryPtr;
         switch (moduleId) {
         case 1:
             // create a DefaultRatingModule from config
-            ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFromConfig(1));
+            ratingModuleFactoryPtr = boost::static_pointer_cast<DefaultRatingModuleFactory>(createRatingModuleFactoryFromConfig(1));
             return HypothesisUpdaterAbstractFactoryPtr(new PerspectiveHypothesisUpdaterFactory(ratingModuleFactoryPtr,
                                                                                                mConfig.mHypothesisUpdaterAngleThreshold / 180.0 * M_PI));
         case 2:

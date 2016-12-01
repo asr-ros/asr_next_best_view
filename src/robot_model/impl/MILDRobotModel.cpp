@@ -41,6 +41,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <kdl/chainfksolverpos_recursive.hpp>
 
 namespace next_best_view {
+
     MILDRobotModel::MILDRobotModel() : RobotModel(), listener() {
         mDebugHelperPtr = DebugHelper::getInstance();
         mDebugHelperPtr->write(std::stringstream() << "STARTING MILD ROBOT MODEL", DebugHelper::ROBOT_MODEL);
@@ -469,6 +470,16 @@ namespace next_best_view {
         } */
         geometry_msgs::Pose myPose;
         return myPose;
+    }
+
+    MapHelperPtr MILDRobotModel::getMapHelperPtr() const
+    {
+        return mMapHelperPtr;
+    }
+
+    void MILDRobotModel::setMapHelperPtr(const MapHelperPtr &mapHelperPtr)
+    {
+        mMapHelperPtr = mapHelperPtr;
     }
 }
 
