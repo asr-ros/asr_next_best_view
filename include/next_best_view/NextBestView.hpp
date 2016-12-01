@@ -470,7 +470,7 @@ public:
         case 4:
             return SpaceSamplerAbstractFactoryPtr(new Raytracing2DBasedSpaceSamplerFactory(mMapHelperPtr));
         case 5:
-            return SpaceSamplerAbstractFactoryPtr(new HypothesisSpaceSamplerFactory(mMapHelperPtr, createSpaceSamplePatternFactoryFromConfig(mConfig.spaceSamplePatternId), mConfig.fcp));
+            return SpaceSamplerAbstractFactoryPtr(new HypothesisSpaceSamplerFactory(mCalculatorPtr->getClusterExtractionPtr(), createSpaceSamplePatternFactoryFromConfig(mConfig.spaceSamplePatternId), mConfig.fcp));
         default:
             std::stringstream ss;
             ss << mConfig.spaceSamplerId << " is not a valid space sampler ID";

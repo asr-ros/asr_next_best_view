@@ -33,12 +33,80 @@ namespace next_best_view {
             xWidth = abs(maxPos[0] - minPos[0]);
             yWidth = abs(maxPos[1] - minPos[1]);
             height = abs(maxPos[2] - minPos[2]);
+            refreshSize(minPos, maxPos);
+        }
+
+        BoundingBox(BoundingBox &bb) {
+            minPos = bb.minPos;
+            maxPos = bb.maxPos;
+            refreshSize(minPos, maxPos);
+        }
+
+        BoundingBox(const BoundingBoxPtrsPtr &boundingBoxes) {
+            float minX = (*boundingBoxes)[0]->minPos[0];
+            float minY = (*boundingBoxes)[0]->minPos[1];
+            float minZ = (*boundingBoxes)[0]->minPos[2];
+            float maxX = (*boundingBoxes)[0]->maxPos[0];
+            float maxY = (*boundingBoxes)[0]->maxPos[1];
+            float maxZ = (*boundingBoxes)[0]->maxPos[2];
+            for (BoundingBoxPtr &bb : *boundingBoxes) {
+                minX = min(bb->minPos[0], minX);
+                minY = min(bb->minPos[1], minY);
+                minZ = min(bb->minPos[2], minZ);
+                maxX = max(bb->maxPos[0], maxX);
+                maxY = max(bb->maxPos[1], maxY);
+                maxZ = max(bb->maxPos[2], maxZ);
+            }
+            minPos = SimpleVector3(minX, minY, minZ);
+            maxPos = SimpleVector3(maxX, maxY, maxZ);
+            refreshSize(minPos, maxPos);
+        }
+
+        BoundingBox(SimpleVector3CollectionPtr vertices) {
+            // first vertex x/y/z value
+            float minX = (*vertices)[0][0];
+            float minY = (*vertices)[0][1];
+            float minZ = (*vertices)[0][2];
+            float maxX = (*vertices)[0][0];
+            float maxY = (*vertices)[0][1];
+            float maxZ = (*vertices)[0][2];
+            for (SimpleVector3 &v : *vertices) {
+                minX = min(v[0], minX);
+                minY = min(v[1], minY);
+                minZ = min(v[2], minZ);
+                maxX = max(v[0], maxX);
+                maxY = max(v[1], maxY);
+                maxZ = max(v[2], maxZ);
+            }
+            minPos = SimpleVector3(minX, minY, minZ);
+            maxPos = SimpleVector3(maxX, maxY, maxZ);
+            refreshSize(minPos, maxPos);
         }
 
         bool contains(SimpleVector3 v) {
             return (xWidth < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0])) &&
                     (yWidth < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0])) &&
                     (height < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0]));
+        }
+
+        /**
+         * @brief expand expands this bounding box by an vector, that determines the size to expand per surface.
+         * @param v
+         */
+        void expand(SimpleVector3 v) {
+            minPos[0] -= v[0];
+            minPos[1] -= v[1];
+            minPos[2] -= v[2];
+            maxPos[0] += v[0];
+            maxPos[1] += v[1];
+            maxPos[2] += v[2];
+            refreshSize(minPos, maxPos);
+        }
+
+        void refreshSize(SimpleVector3 minPos, SimpleVector3 maxPos) {
+            xWidth = abs(maxPos[0] - minPos[0]);
+            yWidth = abs(maxPos[1] - minPos[1]);
+            height = abs(maxPos[2] - minPos[2]);
         }
     };
     typedef boost::shared_ptr<BoundingBox> BoundingBoxPtr;

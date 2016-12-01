@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSamplePattern.hpp"
 #include "next_best_view/pcl/BoundingBox.hpp"
+#include "next_best_view/cluster/ClusterExtraction.hpp"
 
 namespace next_best_view {
 
@@ -33,29 +34,37 @@ namespace next_best_view {
     // TODO: add more parameters to make this class more configureable
     class HypothesisSpaceSampler : public SpaceSampler {
     private:
-        MapHelperPtr mMapHelperPtr;
         DebugHelperPtr mDebugHelperPtr;
-        // a bounding box over all bounding boxes to determine the area where we create samples
-        // it might be a bit more efficient if we sample inside the bounding boxes and filter overlaping samples
-        // worst case is a sparse point cloud with far distributed samples
-        BoundingBoxPtr mSamplingBB;
-        // these might be overlaping
-        std::vector<BoundingBoxPtr> mBBs;
+        ClusterExtractionPtr mHypothesesClusterExtractionPtr;
         // used to sample in mSamplingBB
         SpaceSamplePatternPtr mSpaceSamplePattern;
         // fcp/used to expand bounding boxes
         double mOffset;
 
     public:
-        HypothesisSpaceSampler(const MapHelperPtr &mapHelperPtr, const SpaceSamplePatternPtr &spaceSamplePattern, double offset = 0.3);
+        HypothesisSpaceSampler(const ClusterExtractionPtr &clusterExtractionPtr, const SpaceSamplePatternPtr &spaceSamplePattern, double offset = 0.3);
 
         virtual ~HypothesisSpaceSampler();
 
         SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
 
+        /**
+         * @brief generateSamples generates sampels in bb using mSpaceSamplePattern
+         * @param bb
+         * @param currentSpacePosition
+         * @param factor
+         * @return
+         */
         SamplePointCloudPtr generateSamples(const BoundingBoxPtr &bb, SimpleVector3 currentSpacePosition, float factor = 1.0);
 
-        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        /**
+         * @brief addSamplesIfTooFew adds more samples if there are too few for a hypotheses cluster
+         * @param expandedBBPtrsPtr hypotheses clusters expanded by fcp
+         * @param pointCloud pointcloud with current samples
+         * @param currentSpacePosition current robot position
+         * @param contractor
+         */
+        void addSamplesIfTooFew(BoundingBoxPtrsPtr expandedBBPtrsPtr, SamplePointCloudPtr pointCloud, SimpleVector3 currentSpacePosition, float contractor);
     };
 
     /*!

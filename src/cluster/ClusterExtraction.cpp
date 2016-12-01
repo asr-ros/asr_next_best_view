@@ -25,10 +25,10 @@ namespace next_best_view {
     ClusterExtraction::~ClusterExtraction() { }
 
     bool ClusterExtraction::isInCluster(SimpleVector3 v) {
-        ClusterPtrsPtr clusters = getClusters();
+        BoundingBoxPtrsPtr clusters = getClusters();
 
         // go throgh all clusters and check if v is in cluster
-        for (ClusterPtr cPtr : *clusters) {
+        for (BoundingBoxPtr cPtr : *clusters) {
             if (cPtr->contains(v)) {
                 return true;
             }

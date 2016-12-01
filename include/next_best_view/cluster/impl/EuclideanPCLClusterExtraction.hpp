@@ -27,14 +27,14 @@ namespace next_best_view {
     private:
         DebugHelperPtr mDebugHelperPtr;
         // cached value, we only calcualte clusters in setPC
-        ClusterPtrsPtr mClustersCachePtr;
+        BoundingBoxPtrsPtr mClustersCachePtr;
 
     public:
         EuclideanPCLClusterExtraction();
 
         virtual ~EuclideanPCLClusterExtraction();
 
-        ClusterPtrsPtr getClusters();
+        BoundingBoxPtrsPtr getClusters();
 
         void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
     };

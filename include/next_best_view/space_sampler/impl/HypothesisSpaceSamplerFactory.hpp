@@ -23,24 +23,25 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/space_sampler/impl/HypothesisSpaceSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSamplerAbstractFactory.hpp"
 #include "next_best_view/space_sampler/SpaceSamplePattern.hpp"
+#include "next_best_view/cluster/ClusterExtraction.hpp"
 
 namespace next_best_view {
 
     class HypothesisSpaceSamplerFactory : public SpaceSamplerAbstractFactory {
     private:
-        MapHelperPtr mMapHelperPtr;
+        ClusterExtractionPtr mClusterExtractionPtr;
         SpaceSamplePatternPtr mSpaceSamplerPatternPtr;
         double mOffset;
 
     public:
-        HypothesisSpaceSamplerFactory(MapHelperPtr mapHelper, SpaceSamplePatternPtr spaceSamplePattern, double offset)
-            : mMapHelperPtr(mapHelper),
+        HypothesisSpaceSamplerFactory(ClusterExtractionPtr clusterExtractionPtr, SpaceSamplePatternPtr spaceSamplePattern, double offset)
+            : mClusterExtractionPtr(clusterExtractionPtr),
               mSpaceSamplerPatternPtr(spaceSamplePattern),
               mOffset(offset)
         { }
 
         SpaceSamplerPtr createSpaceSampler() {
-            HypothesisSpaceSamplerPtr hypothesisSpaceSampler = HypothesisSpaceSamplerPtr(new HypothesisSpaceSampler(mMapHelperPtr, mSpaceSamplerPatternPtr, mOffset));
+            HypothesisSpaceSamplerPtr hypothesisSpaceSampler = HypothesisSpaceSamplerPtr(new HypothesisSpaceSampler(mClusterExtractionPtr, mSpaceSamplerPatternPtr, mOffset));
             return hypothesisSpaceSampler;
         }
     };

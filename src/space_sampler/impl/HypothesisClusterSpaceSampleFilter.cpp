@@ -31,17 +31,17 @@ namespace next_best_view {
         IndicesPtr samplesIndicesPtr = getInputPointIndices();
 
         // get clusters and expand them by an offset (fcp)
-        ClusterPtrsPtr clustersPtr = mClusterExtraction->getClusters();
-        ClusterPtrsPtr expandedClustersPtr(new ClusterPtrs());
-        for (ClusterPtr &clusterPtr : *clustersPtr) {
-            expandedClustersPtr->push_back(ClusterPtr(new Cluster(clusterPtr->minPos - SimpleVector3(mOffset, mOffset, 0), clusterPtr->maxPos + SimpleVector3(mOffset, mOffset, 0))));
+        BoundingBoxPtrsPtr clustersPtr = mClusterExtraction->getClusters();
+        BoundingBoxPtrsPtr expandedClustersPtr(new BoundingBoxPtrs());
+        for (BoundingBoxPtr &clusterPtr : *clustersPtr) {
+            expandedClustersPtr->push_back(BoundingBoxPtr(new BoundingBox(clusterPtr->minPos - SimpleVector3(mOffset, mOffset, 0), clusterPtr->maxPos + SimpleVector3(mOffset, mOffset, 0))));
         }
 
         // go through all samples
         for (int idx : *samplesIndicesPtr) {
             // if sample is in a cluster, add it to result/ret vec
             bool containsCluster = false;
-            for (ClusterPtr &cluster : *expandedClustersPtr) {
+            for (BoundingBoxPtr &cluster : *expandedClustersPtr) {
                 if (cluster->contains(samplesPtr->at(idx).getSimpleVector3())) {
                     containsCluster = true;
                     break;

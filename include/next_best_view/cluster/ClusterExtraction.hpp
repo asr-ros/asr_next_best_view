@@ -30,7 +30,7 @@ namespace next_best_view {
 
         virtual ~ClusterExtraction();
 
-        virtual ClusterPtrsPtr getClusters() = 0;
+        virtual BoundingBoxPtrsPtr getClusters() = 0;
 
         /**
          * @brief isInCluster checks if v is in a cluster of getClusters()

@@ -30,10 +30,10 @@ namespace next_best_view {
 
     EuclideanPCLClusterExtraction::~EuclideanPCLClusterExtraction() { }
 
-    ClusterPtrsPtr EuclideanPCLClusterExtraction::getClusters() {
+    BoundingBoxPtrsPtr EuclideanPCLClusterExtraction::getClusters() {
         // if cache is invalid
         if (!mClustersCachePtr) {
-            mClustersCachePtr = ClusterPtrsPtr(new ClusterPtrs());
+            mClustersCachePtr = BoundingBoxPtrsPtr(new BoundingBoxPtrs());
 
             // kdtree, use by EuclideanClusterExtraction
             pcl::search::KdTree<ObjectPoint>::Ptr tree (new pcl::search::KdTree<ObjectPoint>);
@@ -69,7 +69,7 @@ namespace next_best_view {
                 mDebugHelperPtr->writeNoticeably(std::stringstream() << "minPoint: " << minPoint, DebugHelper::CALCULATION);
                 mDebugHelperPtr->writeNoticeably(std::stringstream() << "maxPoint: " << maxPoint, DebugHelper::CALCULATION);
 
-                mClustersCachePtr->push_back(ClusterPtr(new Cluster(minPoint.getPosition(), maxPoint.getPosition())));
+                mClustersCachePtr->push_back(BoundingBoxPtr(new BoundingBox(minPoint.getPosition(), maxPoint.getPosition())));
                 i++;
             }
         }

@@ -142,11 +142,10 @@ namespace next_best_view {
 
     // cluster types
     class BoundingBox;
-    typedef BoundingBox Cluster;
-    typedef std::vector<Cluster> Clusters;
-    typedef boost::shared_ptr<Cluster> ClusterPtr;
-    typedef std::vector<ClusterPtr> ClusterPtrs;
-    typedef boost::shared_ptr<std::vector<ClusterPtr>> ClusterPtrsPtr;
+    typedef std::vector<BoundingBox> BoundingBoxes;
+    typedef boost::shared_ptr<BoundingBox> BoundingBoxPtr;
+    typedef std::vector<BoundingBoxPtr> BoundingBoxPtrs;
+    typedef boost::shared_ptr<std::vector<BoundingBoxPtr>> BoundingBoxPtrsPtr;
 }
 
 #include "next_best_view/pcl/RealObjectPoint.hpp"
