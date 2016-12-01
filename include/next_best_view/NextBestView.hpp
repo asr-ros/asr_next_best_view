@@ -383,6 +383,7 @@ public:
             mCalculatorPtr->setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculatorPtr->setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculatorPtr->setCacheResults(mConfig.cacheResults);
+            mCalculatorPtr->setEnablePrediction(mConfig.enablePrediction);
             mCalculatorPtr->setEnableClustering(mConfig.enableClustering);
 
             // filter
@@ -395,6 +396,7 @@ public:
             mCalculatorPtr->setMinIterationGA(mConfig.gaMinIteration);
             mCalculatorPtr->setViewMutationPtr(mViewMutationPtr);
 
+            // min utility
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
             mCalculatorPtr->setMinUtility(minUtility);

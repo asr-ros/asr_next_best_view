@@ -50,7 +50,7 @@ namespace next_best_view {
         auto begin = std::chrono::high_resolution_clock::now();
         mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 
-        if (mUsePrediction && !mFirstNBVCallIsRunning) {
+        if (mEnablePrediction && !mFirstNBVCallIsRunning) {
             // NBVPrediction calls this method, so we have to make sure we won't loop call this method.
             mFirstNBVCallIsRunning = true;
             ViewportPointCloudPtr resultViewports = mNBVPredictionPtr->getNBVPredictions(currentCameraViewport);
@@ -332,11 +332,10 @@ namespace next_best_view {
 
 
         ViewportPointCloudPtr sampleNextBestViewports;
-        SamplePointCloudPtr sampledSpacePointCloudPtr(new SamplePointCloud());
         if (!mUseGA || iterationStep < mMinIterationGA) {
             // we do normal sampling
             //Calculate grid for resolution given in this iteration step.
-            sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
+            SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
 
             //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
             if (sampledSpacePointCloudPtr->size() == 1 && this->getEpsilon() < contractor) {
@@ -397,7 +396,7 @@ namespace next_best_view {
 
         //Visualize iteration step and its result.
         mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
-                                                     sampledSpacePointCloudPtr, mSpaceSamplerPtr);
+                                                     ratedNextBestViewportsPtr, mSpaceSamplerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
@@ -1143,12 +1142,12 @@ namespace next_best_view {
         return mEnableClustering;
     }
 
-    bool NextBestViewCalculator::getUsePrediction() const {
-        return mUsePrediction;
+    bool NextBestViewCalculator::getEnablePrediction() const {
+        return mEnablePrediction;
     }
 
-    void NextBestViewCalculator::setUsePrediction(bool usePrediction) {
-        mUsePrediction = usePrediction;
+    void NextBestViewCalculator::setEnablePrediction(bool enablePrediction) {
+        mEnablePrediction = enablePrediction;
     }
 
     void NextBestViewCalculator::setEnableClustering(bool enableClustering) {

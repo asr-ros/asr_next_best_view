@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/ViewMutation.hpp"
 #include "boost/range/irange.hpp"
+#include <chrono>
 
 namespace next_best_view {
 
@@ -29,7 +30,12 @@ namespace next_best_view {
     }
 
     ViewportPointCloudPtr ViewMutation::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
-        return mutate(selection(samples, iterationStep), iterationStep);
+        auto begin = std::chrono::high_resolution_clock::now();
+        auto newViewports = mutate(selection(samples, iterationStep), iterationStep);
+        auto finish = std::chrono::high_resolution_clock::now();
+        // cast timediff to float in seconds
+        ROS_INFO_STREAM("select and mutate took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+        return newViewports;
     }
 
     ViewportPointCloudPtr ViewMutation::selection(const ViewportPointCloudPtr &in, int iterationStep) {

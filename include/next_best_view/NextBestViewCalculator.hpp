@@ -118,7 +118,7 @@ private:
 
     bool mRemoveInvalidNormals;
     bool mEnableClustering;
-    bool mUsePrediction;
+    bool mEnablePrediction;
     bool mUseGA;
 
     // 2d grid which contains best viewport (utility) per element
@@ -535,9 +535,9 @@ public:
 
     void setEnableClustering(bool enableClustering);
 
-    bool getUsePrediction() const;
+    bool getEnablePrediction() const;
 
-    void setUsePrediction(bool usePrediction);
+    void setEnablePrediction(bool enablePrediction);
 
     // filters en/disable
     bool getEnableClusterFilter() const;

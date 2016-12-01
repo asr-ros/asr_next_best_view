@@ -189,7 +189,7 @@ public:
 
     void triggerIterationVisualization(int iterationStep, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
                                             ViewportPoint currentBestViewport,
-                                            SamplePointCloudPtr pointcloud,
+                                            ViewportPointCloudPtr pointcloud,
                                             SpaceSamplerPtr spaceSamplerPtr) {
 
         mDebugHelperPtr->writeNoticeably("STARTING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
@@ -879,7 +879,7 @@ private:
         mIterationMarkerArrayPtr->markers.push_back(NextBestViewCameraDirectionMarker);
     }
 
-    void triggerSpaceSampling(SamplePointCloudPtr pointcloud, std::string s){
+    void triggerSpaceSampling(ViewportPointCloudPtr pointcloud, std::string s){
 
         if(!pointcloud){
             ROS_ERROR("triggerSpaceSampling call with pointer pointcloud being null.");
@@ -902,14 +902,26 @@ private:
         color[0] -= m_j;
         color[1] += m_j;
 
+        // get unique viewport positions
+        SimpleVector3Collection filteredPositions;
+        for (ViewportPoint &viewportPoint : *pointcloud) {
+            SimpleVector3 viewportPointPosition = viewportPoint.getPosition();
+            viewportPointPosition[2] = 0.1;
+            bool isInFilteredPositions = false;
+            for (SimpleVector3 &filteredPosition : filteredPositions) {
+                if (MathHelper::vector3Equal(filteredPosition, viewportPointPosition)) {
+                    isInFilteredPositions = true;
+                    break;
+                }
+            }
+            if (!isInFilteredPositions) {
+                filteredPositions.push_back(viewportPointPosition);
+            }
+        }
 
-        for(SamplePointCloud::iterator it = pointcloud->points.begin(); it < pointcloud->points.end(); it++)
+
+        for(SimpleVector3 position : filteredPositions)
         {
-            // get space sampling marker
-            gm::Point point = it->getPoint();
-            SimpleVector3 position = TypeHelper::getSimpleVector3(point);
-            position[2] = 0.1;
-
             std::string ns = "SamplePoints_NS" + s;
 
             m_i++;
