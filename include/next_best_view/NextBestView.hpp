@@ -384,6 +384,7 @@ public:
             mCalculatorPtr->setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculatorPtr->setCacheResults(mConfig.cacheResults);
             mCalculatorPtr->setEnablePrediction(mConfig.enablePrediction);
+            mCalculatorPtr->setEnableGA(mConfig.enableGA);
             mCalculatorPtr->setEnableClustering(mConfig.enableClustering);
 
             // filter

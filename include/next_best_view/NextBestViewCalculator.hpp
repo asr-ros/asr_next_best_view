@@ -119,7 +119,7 @@ private:
     bool mRemoveInvalidNormals;
     bool mEnableClustering;
     bool mEnablePrediction;
-    bool mUseGA;
+    bool mEnableGA;
 
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
@@ -576,9 +576,9 @@ public:
 
     void setViewMutationPtr(const ViewMutationPtr &viewMutationPtr);
 
-    bool getUseGA() const;
+    bool getEnableGA() const;
 
-    void setUseGA(bool useGA);
+    void setEnableGA(bool enableGA);
 };
 
 }

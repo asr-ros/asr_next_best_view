@@ -332,7 +332,7 @@ namespace next_best_view {
 
 
         ViewportPointCloudPtr sampleNextBestViewports;
-        if (!mUseGA || iterationStep < mMinIterationGA) {
+        if (!mEnableGA || iterationStep < mMinIterationGA) {
             // we do normal sampling
             //Calculate grid for resolution given in this iteration step.
             SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
@@ -1244,11 +1244,11 @@ namespace next_best_view {
         mViewMutationPtr = viewMutationPtr;
     }
 
-    bool NextBestViewCalculator::getUseGA() const {
-        return mUseGA;
+    bool NextBestViewCalculator::getEnableGA() const {
+        return mEnableGA;
     }
 
-    void NextBestViewCalculator::setUseGA(bool useGA) {
-        mUseGA = useGA;
+    void NextBestViewCalculator::setEnableGA(bool enableGA) {
+        mEnableGA = enableGA;
     }
 }
