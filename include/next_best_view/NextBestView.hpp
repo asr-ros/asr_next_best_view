@@ -169,6 +169,7 @@ private:
     RatingModuleAbstractFactoryPtr mRatingModuleFactoryPtr;
     HypothesisUpdaterAbstractFactoryPtr mHypothesisUpdaterFactoryPtr;
     ClusterExtractionPtr mClusterExtractionPtr;
+    ViewMutationPtr mViewMutationPtr;
 
 public:
     /*!
@@ -388,6 +389,11 @@ public:
             mCalculatorPtr->setEnableClusterFilter(mConfig.enableClusterFilter);
             mCalculatorPtr->setEnableKDTreeFilter(mConfig.enableKDTreeFilter);
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
+
+            // ga
+            mViewMutationPtr = boost::make_shared<ViewMutation>(mMapHelperPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius);
+            mCalculatorPtr->setMinIterationGA(mConfig.gaMinIteration);
+            mCalculatorPtr->setViewMutationPtr(mViewMutationPtr);
 
             float minUtility;
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);

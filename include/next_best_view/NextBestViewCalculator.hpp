@@ -119,12 +119,17 @@ private:
     bool mRemoveInvalidNormals;
     bool mEnableClustering;
     bool mUsePrediction;
+    bool mUseGA;
 
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
     bool mCacheResults;
     NextBestViewCachePtr mNBVCachePtr;
     NextBestViewPredictionPtr mNBVPredictionPtr;
+
+    int mMinIterationGA;
+    ViewMutationPtr mViewMutationPtr;
+    ViewportPointCloudPtr mRatedSortedViewportsPreIteration;
 
 public:
 
@@ -562,6 +567,18 @@ public:
     GeneralFilterPtr<SamplePoint> getSpaceSamlpingFilterChainPtr() const;
 
     void setSpaceSamplingFilterChainPtr();
+
+    int getMinIterationGA() const;
+
+    void setMinIterationGA(int minIterationGA);
+
+    ViewMutationPtr getViewMutationPtr() const;
+
+    void setViewMutationPtr(const ViewMutationPtr &viewMutationPtr);
+
+    bool getUseGA() const;
+
+    void setUseGA(bool useGA);
 };
 
 }

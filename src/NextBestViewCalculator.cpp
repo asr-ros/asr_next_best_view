@@ -237,7 +237,10 @@ namespace next_best_view {
     bool NextBestViewCalculator::getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
         ROS_INFO_STREAM("using cached nbv");
         ViewportPointCloudPtr samples = mNBVCachePtr->getAllBestViewports();
-        // samples->resize(20);
+        // TODO: configureable/do other stuff/ga
+        if (samples->size() > 10) {
+            samples->resize(30);
+        }
 
         // rate best ones
         ViewportPointCloudPtr ratedNextBestViewportsPtr;
@@ -327,20 +330,29 @@ namespace next_best_view {
         // current camera position
         SimpleVector3 currentBestPosition = currentBestViewport.getPosition();
 
-        //Calculate grid for resolution given in this iteration step.
-        SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
 
-        //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
-        if (sampledSpacePointCloudPtr->size() == 1 && this->getEpsilon() < contractor) {
-            mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
-                                   DebugHelper::VISUALIZATION);
-            bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
-            mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
-            return success;
+        ViewportPointCloudPtr sampleNextBestViewports;
+        SamplePointCloudPtr sampledSpacePointCloudPtr(new SamplePointCloud());
+        if (!mUseGA || iterationStep < mMinIterationGA) {
+            // we do normal sampling
+            //Calculate grid for resolution given in this iteration step.
+            sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
+
+            //Skip rating all orientations (further code here) if we can only consider our current best robot position and increase sampling resolution
+            if (sampledSpacePointCloudPtr->size() == 1 && this->getEpsilon() < contractor) {
+                mDebugHelperPtr->write("No RViz visualization for this iteration step, since no new next-best-view found for that resolution.",
+                                       DebugHelper::VISUALIZATION);
+                bool success = doIterationStep(currentCameraViewport, currentBestViewport, sampledOrientationsPtr, contractor * .5, resultViewport, iterationStep);
+                mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
+                return success;
+            }
+
+            //Create list of all view ports that are checked during this iteration step.
+            sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
+        } else {
+            // we use ga and cache to generate nbv samples
+            sampleNextBestViewports = mViewMutationPtr->selectAndMutate(mRatedSortedViewportsPreIteration, iterationStep);
         }
-
-        //Create list of all view ports that are checked during this iteration step.
-        ViewportPointCloudPtr sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
 
         // rate
         ViewportPointCloudPtr ratedNextBestViewportsPtr;
@@ -350,13 +362,15 @@ namespace next_best_view {
         }
 
         // sort
-        // ascending -> last element hast best rating
+        // ascending -> last element has best rating
         auto ratingSortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
             // a < b
             return mRatingModulePtr->compareViewports(a, b);
         };
         std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), ratingSortFunction);
+        mRatedSortedViewportsPreIteration = ratedNextBestViewportsPtr;
 
+        // filter too low utility
         if (mRequireMinUtility) {
             bool foundUtility = false;
             BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
@@ -376,6 +390,7 @@ namespace next_best_view {
 
         if (mCacheResults) {
             // update cache grid
+            // TODO: copy, otherwise it interferes with mRatedSortedViewportsPreIteration
             mNBVCachePtr->updateCache(ratedNextBestViewportsPtr);
         }
         //        mVisHelperPtr->triggerSamplingVisualization(ratedNextBestViewportsPtr, Color(1, 0, 0, 1), "ratedViewports");
@@ -1212,5 +1227,29 @@ namespace next_best_view {
         mSpaceSamplingFilterChainPtr = mHypothesisClusterSpaceSampleFilterPtr;
         mSpaceSamplingFilterChainPtr->setPostFilter(mMapSpaceSampleFilterPtr);
         mMapSpaceSampleFilterPtr->setPostFilter(mHypothesisKDTreeSpaceSampleFilterPtr);
+    }
+
+    int NextBestViewCalculator::getMinIterationGA() const {
+        return mMinIterationGA;
+    }
+
+    void NextBestViewCalculator::setMinIterationGA(int minIterationGA) {
+        mMinIterationGA = minIterationGA;
+    }
+
+    ViewMutationPtr NextBestViewCalculator::getViewMutationPtr() const {
+        return mViewMutationPtr;
+    }
+
+    void NextBestViewCalculator::setViewMutationPtr(const ViewMutationPtr &viewMutationPtr) {
+        mViewMutationPtr = viewMutationPtr;
+    }
+
+    bool NextBestViewCalculator::getUseGA() const {
+        return mUseGA;
+    }
+
+    void NextBestViewCalculator::setUseGA(bool useGA) {
+        mUseGA = useGA;
     }
 }

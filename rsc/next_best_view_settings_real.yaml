@@ -76,6 +76,8 @@ enableMapFilter: true
 enableKDTreeFilter: false
 removeInvalidNormals: true
 # used by viewMutation
+enableGA: true
+gaMinIteration: 2 # when genetic algorithm should be used
 improvementIterations: 3
 improvementAngle: 4.0
 cacheResults: false # if results should be cached for next nbv calls with the same pc
