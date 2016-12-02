@@ -77,7 +77,7 @@ enableKDTreeFilter: true # if off we have no nearby hypothesis (child_indices) f
 removeInvalidNormals: true
 # used by viewMutation
 enableGA: true
-gaMinIteration: 1 # when genetic algorithm should be used
+minIterationGA: 1 # when genetic algorithm should be used
 improvementIterations: 20
 improvementAngle: 4.0
 # cache

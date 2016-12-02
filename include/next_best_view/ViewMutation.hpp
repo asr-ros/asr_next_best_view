@@ -31,9 +31,10 @@ namespace next_best_view {
         std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesYAxisPerRadius;
         std::vector<std::pair<double, std::vector<SimpleVector3>>> mPositionOffsetsPerRadius;
         MapHelperPtr mMapHelperPtr;
+        int mMinIterationGA;
 
     public:
-        ViewMutation(const MapHelperPtr &mapHelperPtr, int improvementIterations, float improvementAngle, float radius);
+        ViewMutation(const MapHelperPtr &mapHelperPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
 
         ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
 

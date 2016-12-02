@@ -393,8 +393,8 @@ public:
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             // ga
-            mViewMutationPtr = boost::make_shared<ViewMutation>(mMapHelperPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius);
-            mCalculatorPtr->setMinIterationGA(mConfig.gaMinIteration);
+            mViewMutationPtr = boost::make_shared<ViewMutation>(mMapHelperPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius, mConfig.minIterationGA);
+            mCalculatorPtr->setMinIterationGA(mConfig.minIterationGA);
             mCalculatorPtr->setViewMutationPtr(mViewMutationPtr);
 
             // min utility
