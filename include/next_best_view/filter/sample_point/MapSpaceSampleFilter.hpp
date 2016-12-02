@@ -17,28 +17,23 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
-#include "next_best_view/space_sampler/impl/MapSpaceSampleFilter.hpp"
+#pragma once
 
+#include "next_best_view/common/GeneralFilter.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 
-    MapSpaceSampleFilter::MapSpaceSampleFilter(const MapHelperPtr &mapHelperPtr) : mMapHelperPtr(mapHelperPtr) { }
+    class MapSpaceSampleFilter : public GeneralFilter<SamplePoint> {
+    private:
+        MapHelperPtr mMapHelperPtr;
 
-    MapSpaceSampleFilter::~MapSpaceSampleFilter() { }
+    public:
+        MapSpaceSampleFilter(const MapHelperPtr &mapHelperPtr);
 
-    void MapSpaceSampleFilter::doFiltering(IndicesPtr &resultIndicesPtr) {
-        // if indices is not set we will use all points
-        SamplePointCloudPtr samplesPtr = getInputPointCloud();
-        IndicesPtr samplesIndicesPtr = getInputPointIndices();
+        ~MapSpaceSampleFilter();
 
-        // go through all samples
-        for (int idx : *samplesIndicesPtr) {
-            // if sample is in map, add it to result/ret vec
-            if (mMapHelperPtr->isOccupancyValueAcceptable(
-                        mMapHelperPtr->getRaytracingMapOccupancyValue(
-                            samplesPtr->at(idx).getSimpleVector3()))) {
-                resultIndicesPtr->push_back(idx);
-            }
-        }
-    }
+        void doFiltering(IndicesPtr &indicesPtr);
+    };
+    typedef boost::shared_ptr<MapSpaceSampleFilter> MapSpaceSampleFilterPtr;
 }

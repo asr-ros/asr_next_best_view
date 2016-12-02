@@ -20,14 +20,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 #include "next_best_view/common/GeneralFilter.hpp"
+#include "next_best_view/cluster/ClusterExtraction.hpp"
 
 namespace next_best_view {
 
-    class SpaceSampleFilter : public GeneralFilter<SamplePoint> {
-    public:
-        SpaceSampleFilter();
+    class HypothesisClusterSpaceSampleFilter : public GeneralFilter<SamplePoint> {
+    private:
+        ClusterExtractionPtr mClusterExtraction;
+        float mOffset;
 
-        virtual ~SpaceSampleFilter();
+    public:
+        HypothesisClusterSpaceSampleFilter(const ClusterExtractionPtr &ce, float offset);
+
+        ~HypothesisClusterSpaceSampleFilter();
+
+        void doFiltering(IndicesPtr &indicesPtr);
     };
-    typedef boost::shared_ptr<SpaceSampleFilter> SpaceSampleFilterPtr;
+    typedef boost::shared_ptr<HypothesisClusterSpaceSampleFilter> HypothesisClusterSpaceSampleFilterPtr;
 }

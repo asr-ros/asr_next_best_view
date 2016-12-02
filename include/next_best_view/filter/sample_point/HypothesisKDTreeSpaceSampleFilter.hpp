@@ -19,22 +19,32 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "next_best_view/space_sampler/SpaceSampleFilter.hpp"
-#include "next_best_view/cluster/ClusterExtraction.hpp"
+#include "next_best_view/common/GeneralFilter.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 
-    class HypothesisClusterSpaceSampleFilter : public SpaceSampleFilter {
+    class HypothesisKDTreeSpaceSampleFilter : public GeneralFilter<SamplePoint> {
     private:
-        ClusterExtractionPtr mClusterExtraction;
-        float mOffset;
+        KdTreePtr mKdTreePtr;
+        float mFcp;
 
     public:
-        HypothesisClusterSpaceSampleFilter(const ClusterExtractionPtr &ce, float offset);
+        HypothesisKDTreeSpaceSampleFilter(float fcp);
 
-        ~HypothesisClusterSpaceSampleFilter();
+        ~HypothesisKDTreeSpaceSampleFilter();
 
         void doFiltering(IndicesPtr &indicesPtr);
+
+        /**
+         * @brief getFeasibleHypothesis finds object hypothesis near samplePoint
+         * @param samplePoint the point to find nearby hypothesis
+         * @param resultIndicesPtr nearby object hypothesis
+         * @return true if more than 0 object hypothesis are in range of samplePoint
+         */
+        bool getFeasibleHypothesis(SimpleVector3 samplePoint, IndicesPtr &resultIndicesPtr);
+
+        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
     };
-    typedef boost::shared_ptr<HypothesisClusterSpaceSampleFilter> HypothesisClusterSpaceSampleFilterPtr;
+    typedef boost::shared_ptr<HypothesisKDTreeSpaceSampleFilter> HypothesisKDTreeSpaceSampleFilterPtr;
 }
