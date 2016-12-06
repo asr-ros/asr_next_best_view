@@ -186,6 +186,10 @@ public:
             getNBV.request.current_pose = initialPose;
             NBV->processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
 
+            TriggerFrustumVisualization tfv;
+            tfv.request.current_pose = getNBV.response.resulting_pose;
+            NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
+
             float robotX = getNBV.response.resulting_pose.position.x;
             float robotY = getNBV.response.resulting_pose.position.y;
 
@@ -330,6 +334,10 @@ public:
 
             if (!getNBV.response.found) {
                 ROS_ERROR("No NBV found!");
+            } else {
+                TriggerFrustumVisualization tfv;
+                tfv.request.current_pose = getNBV.response.resulting_pose;
+                NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
             }
 
             ros::spinOnce();
@@ -502,6 +510,10 @@ public:
             }
 
             ROS_INFO("Got next best view");
+
+            TriggerFrustumVisualization tfv;
+            tfv.request.current_pose = getNBV.response.resulting_pose;
+            NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
 
             SimpleVector3 pos(initialPose.position.x, initialPose.position.y, initialPose.position.z);
             SimpleQuaternion q(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
