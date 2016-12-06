@@ -622,9 +622,9 @@ public:
         BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
             // Create a new point with pose and set object type
             ObjectPoint pointCloudPoint(element.pose);
-            pointCloudPoint.r = 0;
-            pointCloudPoint.g = 255;
-            pointCloudPoint.b = 0;
+            pointCloudPoint.color.r = 0;
+            pointCloudPoint.color.g = 255;
+            pointCloudPoint.color.b = 0;
             pointCloudPoint.type = element.type;
             pointCloudPoint.identifier = element.identifier;
 
