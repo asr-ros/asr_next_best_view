@@ -50,6 +50,13 @@ namespace next_best_view {
         auto begin = std::chrono::high_resolution_clock::now();
         mDebugHelperPtr->writeNoticeably("STARTING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
 
+        // reset caches
+        if (mRatedSortedViewportsPreIteration) {
+            mRatedSortedViewportsPreIteration->clear();
+        }
+        mNBVCachePtr->clearRatingCache();
+
+        // avoid eternal looping from nbv prediction
         if (mEnablePrediction && !mFirstNBVCallIsRunning) {
             // NBVPrediction calls this method, so we have to make sure we won't loop call this method.
             mFirstNBVCallIsRunning = true;
@@ -236,7 +243,7 @@ namespace next_best_view {
 
     bool NextBestViewCalculator::getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
         ROS_INFO_STREAM("using cached nbv");
-        ViewportPointCloudPtr samples = mNBVCachePtr->getAllBestViewports();
+        ViewportPointCloudPtr samples = mNBVCachePtr->getAllBestUtilityViewports();
         // TODO: configureable/do other stuff/ga
         if (samples->size() > 10) {
             samples->resize(30);
@@ -594,7 +601,7 @@ namespace next_best_view {
         }
 
         if (mCacheResults) {
-            mNBVCachePtr->clearCache();
+            mNBVCachePtr->clearUtilityCache();
         }
 
         return true;

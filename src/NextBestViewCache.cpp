@@ -22,61 +22,103 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    NextBestViewCache::NextBestViewCache(float gridSize) : mGridSize(gridSize) { }
+    template<class T>
+    Grid<T>::Grid(float gridSize)
+        : mGridSize(gridSize)
+    { }
 
-    /**
-     * @brief getCachedGridIndices
-     * @return
-     */
-    std::vector<CacheIndex> NextBestViewCache::getCacheGridIndices() {
-        if (cachedCacheGridIndices.empty()) {
-            // for a fixed x we get a y col/row
-            for (auto &yRowIt : mBestViewportPerGridElem) {
-                for (auto &gridElem : yRowIt.second) {
-                    cachedCacheGridIndices.push_back(std::make_tuple(yRowIt.first, gridElem.first));
-                }
-            }
-        }
-        return cachedCacheGridIndices;
-    }
-
-    /**
-     * @brief getCacheIdx
-     * @param v
-     * @return
-     */
-    CacheIndex NextBestViewCache::getCacheIdx(SimpleVector3 v) {
-        return std::make_tuple(floor(v[0] / mGridSize), floor(v[1] / mGridSize));
-    }
-
-    /**
-     * @brief getBestViewportAt
-     * @param xIdx
-     * @param yIdx
-     * @param viewport
-     * @return
-     */
-    bool NextBestViewCache::getBestViewportAt(int xIdx, int yIdx, ViewportPoint &viewport) {
-        if (mBestViewportPerGridElem.find(xIdx) == mBestViewportPerGridElem.end()) {
+    template<class T>
+    bool Grid<T>::hasElementAt(CacheIndex idx) {
+        int xIdx = std::get<0>(idx);
+        int yIdx = std::get<0>(idx);
+        if (mElementPerGridTile.find(xIdx) == mElementPerGridTile.end()) {
             return false;
         }
-        if (mBestViewportPerGridElem[xIdx].find(yIdx) == mBestViewportPerGridElem[xIdx].end()) {
+        if (mElementPerGridTile[xIdx].find(yIdx) == mElementPerGridTile[xIdx].end()) {
             return false;
         }
-        viewport = mBestViewportPerGridElem[xIdx][yIdx];
         return true;
     }
 
-    /**
-     * @brief getAllBestViewports
-     * @return
-     */
-    ViewportPointCloudPtr NextBestViewCache::getAllBestViewports() {
+    template<class T>
+    T Grid<T>::getElementAt(CacheIndex idx) {
+        int xIdx = std::get<0>(idx);
+        int yIdx = std::get<0>(idx);
+        if (!hasElementAt(idx)) {
+            return T(); // TODO
+        }
+        T element = mElementPerGridTile[xIdx][yIdx];
+        return element;
+    }
+
+    template<class T>
+    void Grid<T>::setElementAt(CacheIndex idx, T &element) {
+        if (!hasElementAt(idx)) {
+            mGridIndices.push_back(idx);
+        }
+        int xIdx = std::get<0>(idx);
+        int yIdx = std::get<0>(idx);
+        if (mElementPerGridTile.find(xIdx) == mElementPerGridTile.end()) {
+            // xIdx not found
+            mElementPerGridTile.insert(std::make_pair(xIdx, std::map<int, T>()));
+        }
+        if (mElementPerGridTile[xIdx].find(yIdx) == mElementPerGridTile[xIdx].end()) {
+            // yIdx not found
+            mElementPerGridTile[xIdx].insert(std::make_pair(yIdx, element));
+        } else {
+            mElementPerGridTile[xIdx][yIdx] = element;
+        }
+    }
+
+    template<class T>
+    std::vector<CacheIndex> Grid<T>::getGridIndices() {
+        return mGridIndices;
+    }
+
+    template<class T>
+    CacheIndex Grid<T>::getCacheIdx(SimpleVector3 v) {
+        return std::make_tuple(floor(v[0] / mGridSize), floor(v[1] / mGridSize));
+    }
+
+    template<class T>
+    void Grid<T>::clear() {
+        mGridIndices.clear();
+        mElementPerGridTile.clear();
+    }
+
+    template<class T>
+    unsigned int Grid<T>::size() {
+        return mGridIndices.size();
+    }
+
+    template<class T>
+    bool Grid<T>::empty() {
+        return mGridIndices.empty();
+    }
+
+    // static memebr declaration
+    RatingModulePtr NextBestViewCache::mRatingModulePtr;
+
+    NextBestViewCache::NextBestViewCache(float gridSize)
+        : mGridSize(gridSize) {
+        mUtilityGrid = GridPtr<ViewportPoint>(new Grid<ViewportPoint>(gridSize));
+        mRatingGrid = GridPtr<ViewportPoint>(new Grid<ViewportPoint>(gridSize));
+    }
+
+    bool NextBestViewCache::getBestUtilityViewportAt(int xIdx, int yIdx, ViewportPoint &viewport) {
+        if (!mUtilityGrid->hasElementAt(std::make_tuple(xIdx, yIdx))) {
+            return false;
+        }
+        viewport = mUtilityGrid->getElementAt(std::make_tuple(xIdx, yIdx));
+        return true;
+    }
+
+    ViewportPointCloudPtr NextBestViewCache::getAllBestUtilityViewports() {
         ViewportPointCloudPtr bestViewports(new ViewportPointCloud());
-        std::vector<CacheIndex> cacheIndices = getCacheGridIndices();
+        std::vector<CacheIndex> cacheIndices = mUtilityGrid->getGridIndices();
         for (CacheIndex idx : cacheIndices) {
             ViewportPoint viewport;
-            if (!getBestViewportAt(std::get<0>(idx), std::get<1>(idx), viewport)) {
+            if (!getBestUtilityViewportAt(std::get<0>(idx), std::get<1>(idx), viewport)) {
                 ROS_ERROR_STREAM("idx of getCachedGridIndices was invalid");
             }
             bestViewports->push_back(viewport);
@@ -86,58 +128,66 @@ namespace next_best_view {
         return bestViewports;
     }
 
-    /**
-     * @brief updateCache adds new rated viewports to be cached.
-     * @param ratedNextBestViewportsPtr
-     */
     void NextBestViewCache::updateCache(const ViewportPointCloudPtr &ratedNextBestViewportsPtr) {
+        // utilityGrid
         std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), compareViewportsUtilitywise);
         BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
-            CacheIndex idx = getCacheIdx(ratedViewport.getPosition());
-            int xIdx = std::get<0>(idx);
-            int yIdx = std::get<1>(idx);
-            if (mBestViewportPerGridElem.find(xIdx) == mBestViewportPerGridElem.end()) {
-                // xIdx not found
-                mBestViewportPerGridElem.insert(std::make_pair(xIdx, std::map<int, ViewportPoint>()));
-            }
-            if (mBestViewportPerGridElem[xIdx].find(yIdx) == mBestViewportPerGridElem[xIdx].end()) {
-                // yIdx not found
-                mBestViewportPerGridElem[xIdx].insert(std::make_pair(yIdx, ratedViewport));
-            } else {
-                if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mBestViewportPerGridElem[xIdx][yIdx].score->getUnweightedUnnormalizedUtility()) {
-                    mBestViewportPerGridElem[xIdx][yIdx] = ratedViewport;
+            CacheIndex idx = mUtilityGrid->getCacheIdx(ratedViewport.getPosition());
+            if (mUtilityGrid->hasElementAt(idx)) {
+                ViewportPoint curBestViewport = mUtilityGrid->getElementAt(idx);
+                if (ratedViewport.score->getUnweightedUnnormalizedUtility() > curBestViewport.score->getUnweightedUnnormalizedUtility()) {
+                    mUtilityGrid->setElementAt(idx, ratedViewport);
                 }
+            } else {
+                mUtilityGrid->setElementAt(idx, ratedViewport);
             }
         }
-        cachedCacheGridIndices.clear();
+        // ratingGrid
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), compareViewportsUtilitywise);
+        BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
+            CacheIndex idx = mRatingGrid->getCacheIdx(ratedViewport.getPosition());
+            if (mRatingGrid->hasElementAt(idx)) {
+                ViewportPoint curBestViewport = mRatingGrid->getElementAt(idx);
+                if (mRatingModulePtr->getRating(ratedViewport.score) > mRatingModulePtr->getRating(curBestViewport.score)) {
+                    mRatingGrid->setElementAt(idx, ratedViewport);
+                }
+            } else {
+                mRatingGrid->setElementAt(idx, ratedViewport);
+            }
+        }
     }
 
-    /**
-     * @brief clearCache
-     */
-    void NextBestViewCache::clearCache() {
-        mBestViewportPerGridElem.clear();
-        cachedCacheGridIndices.clear();
+    void NextBestViewCache::clearUtilityCache() {
+        mUtilityGrid->clear();
     }
 
-    /**
-     * @brief size
-     * @return
-     */
+    void NextBestViewCache::clearRatingCache() {
+        mRatingGrid->clear();
+    }
+
     int NextBestViewCache::size() {
-        return getCacheGridIndices().size();
+        return mUtilityGrid->size(); // == mRatingGrid->size()
     }
 
-    /**
-     * @brief isEmpty
-     * @return
-     */
     bool NextBestViewCache::isEmpty() {
-        return mBestViewportPerGridElem.empty();
+        return mUtilityGrid->empty(); // == mRatingGrid->empty()
+    }
+
+    RatingModulePtr NextBestViewCache::getRatingModulePtr() {
+        return mRatingModulePtr;
+    }
+
+    void NextBestViewCache::setRatingModulePtr(const RatingModulePtr &ratingModulePtr) {
+        mRatingModulePtr = ratingModulePtr;
     }
 
     bool NextBestViewCache::compareViewportsUtilitywise(const ViewportPoint &a, const ViewportPoint &b) {
         // a < b
         return a.score->getUnweightedUnnormalizedUtility() < b.score->getUnweightedUnnormalizedUtility();
+    }
+
+    bool NextBestViewCache::compareViewportsRatingwise(const ViewportPoint &a, const ViewportPoint &b) {
+        // a < b
+        return mRatingModulePtr->compareViewports(a, b);
     }
 }

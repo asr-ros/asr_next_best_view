@@ -81,7 +81,7 @@ minIterationGA: 1 # when genetic algorithm should be used
 improvementIterations: 20
 improvementAngle: 4.0
 # cache
-cacheResults: false # if results should be cached for next nbv calls with the same pc
+cacheResults: true # if results should be cached for next nbv calls with the same pc
 # prediciton
 enablePrediction: false
 useMinUtility: true

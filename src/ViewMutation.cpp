@@ -94,7 +94,7 @@ namespace next_best_view {
 
                     // copy viewportPoint, but change quat
                     ViewportPoint viewport(pos, quat);
-                    // TODO: determine real hypothesis/use kdtreefilter
+                    // TODO: determine real hypothesis/use kdtreefilter/is it worth?
 //                    IndicesPtr hypothesisNearby;
 //                    if (!getFeasibleHypothesis(pos, hypothesisNearby)) {
 //                        continue;

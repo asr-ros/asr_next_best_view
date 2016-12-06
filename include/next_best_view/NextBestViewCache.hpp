@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 #include "typedef.hpp"
+#include "next_best_view/rating/RatingModule.hpp"
 #include <vector>
 #include <tuple>
 #include <math.h>
@@ -29,29 +30,55 @@ namespace next_best_view {
     typedef std::tuple<int, int> CacheIndex;
 
     // TODO maybe implement some kind of filter so we don't sample with too low resolution/compare distance with other viewports in gridelement/nearby gridelemnts
-    // TODO gridelement class/grid class
     // TODO maybe consider cluster extraction, so we can get best ones per cluster? for view mutation/next good view samples
-    class NextBestViewCache {
+    // TODO gridsize configureable
+
+    template<class T>
+    class Grid {
     private:
         float mGridSize;
-        std::map<int, std::map<int, ViewportPoint>> mBestViewportPerGridElem; // these 2 maps represent a sparse 2d grid
-        std::vector<CacheIndex> cachedCacheGridIndices;
+        std::map<int, std::map<int, T>> mElementPerGridTile;
+        std::vector<CacheIndex> mGridIndices;
 
     public:
-        NextBestViewCache(float gridSize = 0.1);
+        Grid(float gridSize);
+
+        bool hasElementAt(CacheIndex idx);
+
+        T getElementAt(CacheIndex idx);
+
+        void setElementAt(CacheIndex idx, T &element);
 
         /**
-         * @brief getCachedGridIndices
+         * @brief getCachedGridIndices returns all filled grid indices.
          * @return
          */
-        std::vector<CacheIndex> getCacheGridIndices();
+        std::vector<CacheIndex> getGridIndices();
 
         /**
-         * @brief getCacheIdx
+         * @brief getCacheIdx return the cache grid index that contains the given vector v
          * @param v
          * @return
          */
         CacheIndex getCacheIdx(SimpleVector3 v);
+
+        void clear();
+
+        unsigned int size();
+
+        bool empty();
+    };
+    template<class T>
+    using GridPtr = boost::shared_ptr<Grid<T>>;
+
+    class NextBestViewCache {
+    private:
+        static RatingModulePtr mRatingModulePtr;
+        float mGridSize;
+        GridPtr<ViewportPoint> mRatingGrid, mUtilityGrid;
+
+    public:
+        NextBestViewCache(float gridSize = 0.1);
 
         /**
          * @brief getBestViewportAt
@@ -60,13 +87,13 @@ namespace next_best_view {
          * @param viewport
          * @return
          */
-        bool getBestViewportAt(int xIdx, int yIdx, ViewportPoint &viewport);
+        bool getBestUtilityViewportAt(int xIdx, int yIdx, ViewportPoint &viewport);
 
         /**
          * @brief getAllBestViewports
          * @return
          */
-        ViewportPointCloudPtr getAllBestViewports();
+        ViewportPointCloudPtr getAllBestUtilityViewports();
 
         /**
          * @brief updateCache adds new rated viewports to be cached.
@@ -77,7 +104,12 @@ namespace next_best_view {
         /**
          * @brief clearCache
          */
-        void clearCache();
+        void clearUtilityCache();
+
+        /**
+         * @brief clearCache
+         */
+        void clearRatingCache();
 
         /**
          * @brief size
@@ -91,8 +123,14 @@ namespace next_best_view {
          */
         bool isEmpty();
 
+        static RatingModulePtr getRatingModulePtr();
+
+        static void setRatingModulePtr(const RatingModulePtr &ratingModule);
+
     private:
         static bool compareViewportsUtilitywise(const ViewportPoint &a, const ViewportPoint &b);
+
+        static bool compareViewportsRatingwise(const ViewportPoint &a, const ViewportPoint &b);
     };
     typedef boost::shared_ptr<NextBestViewCache> NextBestViewCachePtr;
 }

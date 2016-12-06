@@ -348,6 +348,7 @@ public:
             mRatingModuleFactoryPtr = createRatingModuleFactoryFromConfig(mConfig.ratingModuleId);
             mCalculatorPtr->setRatingModule(mRatingModuleFactoryPtr->createRatingModule());
             mCalculatorPtr->setRatingModuleAbstractFactoryPtr(mRatingModuleFactoryPtr);
+            NextBestViewCache::setRatingModulePtr(mRatingModuleFactoryPtr->createRatingModule());
         }
 
         /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
