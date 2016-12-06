@@ -273,17 +273,12 @@ namespace next_best_view {
         void setRobotState(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
 
         /*!
-         * \brief sets the mOmegaPTU member. Must be called before calling setMovementCosts and setCostsNormalization.
-         */
-        void setOmegaPTU();
-
-        /*!
-         * \brief sets the mMovementCosts member
+         * \brief sets the mMovementCosts member. Must be called before calling setRatingNormalization.
          */
         void setWeightedInverseMovementCosts();
 
         /*!
-         * \brief sets the mCostsNormalization member
+         * \brief sets the mRatingNormalization member
          */
         void setRatingNormalization();
 

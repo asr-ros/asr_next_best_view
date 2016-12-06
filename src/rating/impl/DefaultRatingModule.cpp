@@ -383,10 +383,6 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
         this->setRobotState(sourceViewport, targetViewport);
     }
 
-    if (mOmegaPTU < 0) {
-        this->setOmegaPTU();
-    }
-
     if (mWeightedInverseMovementCosts < 0) {
         this->setWeightedInverseMovementCosts();
     }
@@ -429,31 +425,24 @@ void DefaultRatingModule::setRobotState(const ViewportPoint &sourceViewport, con
     mTargetState = mRobotModelPtr->calculateRobotState(targetViewport.getPosition(), targetViewport.getSimpleQuaternion());
 }
 
-void DefaultRatingModule::setOmegaPTU() {
-    Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
-    Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
-
-    // set the PTU movement omega parameter
-    if (movementCostsPTU_Tilt*mOmegaTilt > movementCostsPTU_Pan*mOmegaPan)
-    {
-        mOmegaPTU = mOmegaPan;
-    }
-    else
-    {
-        mOmegaPTU = mOmegaTilt;
-    }
-}
-
 void DefaultRatingModule::setWeightedInverseMovementCosts() {
     // get the different movement costs
     mUnweightedInverseMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
     mUnweightedInverseMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
 
-    if (mOmegaPTU == mOmegaPan) {
-        mUnweightedInverseMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+    // set the omega parameter for PTU movement and the PTU movement costs
+    Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+    Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+
+    if (movementCostsPTU_Tilt*mOmegaTilt > movementCostsPTU_Pan*mOmegaPan)
+    {
+        mOmegaPTU = mOmegaPan;
+        mUnweightedInverseMovementCostsPTU = movementCostsPTU_Pan;
     }
-    else {
-        mUnweightedInverseMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+    else
+    {
+        mOmegaPTU = mOmegaTilt;
+        mUnweightedInverseMovementCostsPTU = movementCostsPTU_Tilt;
     }
 
     // set the movement costs
