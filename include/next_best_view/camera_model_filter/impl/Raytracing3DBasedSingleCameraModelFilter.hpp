@@ -25,13 +25,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "typedef.hpp"
 
 namespace next_best_view {
-	/*!
-     * \brief Raytracing3DBasedSingleCameraModelFilter class implements the frustum filtering for a single camera with 2D raytracing.
-	 * \author Ralf Schleicher
-	 * \date 2014
-	 * \version 1.0
-	 * \copyright GNU Public License
-	 */
+    /*!
+     * \brief The Raytracing3DBasedSingleCameraModelFilter class implements the frustum filtering for a single camera with 3D raytracing.
+     */
     class Raytracing3DBasedSingleCameraModelFilter : public SingleCameraModelFilter {
 	private:
 		/*!

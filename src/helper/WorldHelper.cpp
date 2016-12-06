@@ -233,12 +233,6 @@ void WorldHelper::worldToVoxelGridCoordinates(const std::vector<SimpleVector3> &
     }
 }
 
-// TODO remove
-void WorldHelper::mapToWorldCoordinates(const SimpleVector3 &mapPos, SimpleVector3 &result)
-{
-    mMapHelperPtr->mapToWorldCoordinates(mapPos, result);
-}
-
 void WorldHelper::initializeVoxelGridHelper(double worldHeight)
 {
     mDebugHelperPtr->write("Initializing voxel grid.", DebugHelper::WORLD);
@@ -714,7 +708,7 @@ SimpleVector3 WorldHelper::voxelToWorldPosition(const GridVector3 &gridPos)
         mapPos[i] = (gridPos[i] + 0.5) * mMapVoxelSize;
 
     SimpleVector3 result;
-    mapToWorldCoordinates(mapPos, result);
+    mMapHelperPtr->mapToWorldCoordinates(mapPos, result);
     return result;
 }
 
@@ -726,8 +720,8 @@ void WorldHelper::voxelToWorldBox(const GridVector3 &gridPos, SimpleVector3 &min
 
     SimpleVector3 tempMax = tempMin + SimpleVector3(mMapVoxelSize, mMapVoxelSize, mMapVoxelSize);
 
-    mapToWorldCoordinates(tempMin, min);
-    mapToWorldCoordinates(tempMax, max);
+    mMapHelperPtr->mapToWorldCoordinates(tempMin, min);
+    mMapHelperPtr->mapToWorldCoordinates(tempMax, max);
 }
 
 void WorldHelper::voxelGridBox(const std::vector<GridVector3> &gridPositions, GridVector3 &min, GridVector3 &max)

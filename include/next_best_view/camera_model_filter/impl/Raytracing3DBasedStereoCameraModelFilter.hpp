@@ -25,14 +25,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "typedef.hpp"
 
 namespace next_best_view {
-	/*!
-     * \brief Raytracing3DBasedStereoCameraModelFilter class implements the frustum filtering for stereo cameras  with 2D raytracing.
-	 * \details The stereo camera model makes actually twice the use of the SingleCameraModelFilter. Therefore it may be possible to implement different camera orientations in here either.
-	 * \author Ralf Schleicher
-	 * \date 2014
-	 * \version 1.0
-	 * \copyright GNU Public License
-	 */
+    /*!
+     * \brief The Raytracing3DBasedStereoCameraModelFilter class implements the frustum filtering for stereo cameras with 3D raytracing.
+     */
     class Raytracing3DBasedStereoCameraModelFilter : public StereoCameraModelFilter {
 	private:
 		/*!
