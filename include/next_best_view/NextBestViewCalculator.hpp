@@ -32,7 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/NextBestViewCache.hpp"
 #include "next_best_view/NextBestViewPrediction.hpp"
-#include "next_best_view/ViewMutation.hpp"
+#include "next_best_view/GeneticAlgorithm.hpp"
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include "next_best_view/robot_model/RobotModel.hpp"
@@ -128,7 +128,7 @@ private:
     NextBestViewPredictionPtr mNBVPredictionPtr;
 
     int mMinIterationGA;
-    ViewMutationPtr mViewMutationPtr;
+    GeneticAlgorithmPtr mViewMutationPtr;
     ViewportPointCloudPtr mRatedSortedViewportsPreIteration;
 
 public:
@@ -572,9 +572,9 @@ public:
 
     void setMinIterationGA(int minIterationGA);
 
-    ViewMutationPtr getViewMutationPtr() const;
+    GeneticAlgorithmPtr getGeneticAlgorithmPtr() const;
 
-    void setViewMutationPtr(const ViewMutationPtr &viewMutationPtr);
+    void setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &viewMutationPtr);
 
     bool getEnableGA() const;
 

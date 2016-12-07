@@ -166,11 +166,11 @@ namespace next_best_view {
     }
 
     int NextBestViewCache::size() {
-        return mUtilityGrid->size(); // == mRatingGrid->size()
+        return mUtilityGrid->size(); // == mRatingGrid->size() is not always true
     }
 
     bool NextBestViewCache::isEmpty() {
-        return mUtilityGrid->empty(); // == mRatingGrid->empty()
+        return mUtilityGrid->empty(); // == mRatingGrid->empty() is not always true
     }
 
     RatingModulePtr NextBestViewCache::getRatingModulePtr() {

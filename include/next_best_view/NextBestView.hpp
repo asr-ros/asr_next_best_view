@@ -169,7 +169,7 @@ private:
     RatingModuleAbstractFactoryPtr mRatingModuleFactoryPtr;
     HypothesisUpdaterAbstractFactoryPtr mHypothesisUpdaterFactoryPtr;
     ClusterExtractionPtr mClusterExtractionPtr;
-    ViewMutationPtr mViewMutationPtr;
+    GeneticAlgorithmPtr mGeneticAlgorithmPtr;
 
 public:
     /*!
@@ -272,7 +272,8 @@ public:
         /* Cluster Extraction/filter
          */
         if (mFirstRun) {
-            mCalculatorPtr->setClusterExtractionPtr(ClusterExtractionPtr(new EuclideanPCLClusterExtraction()));
+            mClusterExtractionPtr = EuclideanPCLClusterExtractionPtr(new EuclideanPCLClusterExtraction());
+            mCalculatorPtr->setClusterExtractionPtr(mClusterExtractionPtr);
             mCalculatorPtr->setHypothesisKDTreeSpaceSampleFilterPtr(boost::make_shared<HypothesisKDTreeSpaceSampleFilter>(mConfig.fcp));
             mCalculatorPtr->setHypothesisClusterSpaceSampleFilterPtr(boost::make_shared<HypothesisClusterSpaceSampleFilter>(mCalculatorPtr->getClusterExtractionPtr(), mConfig.fcp));
             mCalculatorPtr->setMapSpaceSampleFilterPtr(boost::make_shared<MapSpaceSampleFilter>(mMapHelperPtr));
@@ -394,9 +395,9 @@ public:
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             // ga
-            mViewMutationPtr = boost::make_shared<ViewMutation>(mMapHelperPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius, mConfig.minIterationGA);
+            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius, mConfig.minIterationGA);
             mCalculatorPtr->setMinIterationGA(mConfig.minIterationGA);
-            mCalculatorPtr->setViewMutationPtr(mViewMutationPtr);
+            mCalculatorPtr->setGeneticAlgorithmPtr(mGeneticAlgorithmPtr);
 
             // min utility
             float minUtility;

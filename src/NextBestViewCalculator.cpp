@@ -307,7 +307,9 @@ namespace next_best_view {
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
             if (iterationStep >= mMinIterationSteps && // we have to run at least min number of iterations
-                    (abs(rating - currentBestRating) <= this->getEpsilon() || iterationStep >= mMaxIterationSteps)) {
+                    ((abs(rating - currentBestRating) <= this->getEpsilon() &&
+                    (intermediateResultViewport.getPosition() - currentBestViewport.getPosition()).lpNorm<2>() <= this->getEpsilon())
+                     || iterationStep >= mMaxIterationSteps)) {
                 //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
                 resultViewport = intermediateResultViewport;
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");
@@ -320,6 +322,7 @@ namespace next_best_view {
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
                 return true;
             }
+            ROS_INFO_STREAM("rating: " << rating);
             currentBestViewport = intermediateResultViewport;
             currentBestRating = rating;
 
@@ -1243,11 +1246,11 @@ namespace next_best_view {
         mMinIterationGA = minIterationGA;
     }
 
-    ViewMutationPtr NextBestViewCalculator::getViewMutationPtr() const {
+    GeneticAlgorithmPtr NextBestViewCalculator::getGeneticAlgorithmPtr() const {
         return mViewMutationPtr;
     }
 
-    void NextBestViewCalculator::setViewMutationPtr(const ViewMutationPtr &viewMutationPtr) {
+    void NextBestViewCalculator::setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &viewMutationPtr) {
         mViewMutationPtr = viewMutationPtr;
     }
 

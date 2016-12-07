@@ -21,20 +21,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "typedef.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
+#include "next_best_view/cluster/ClusterExtraction.hpp"
 
 namespace next_best_view {
 
-    class ViewMutation {
+    class GeneticAlgorithm {
     private:
         // pair<double, std::vector<Eigen::matrix3f>> is the radius in angle (double) and a number of rotations around radius
         std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesXAxisPerRadius;
         std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesYAxisPerRadius;
         std::vector<std::pair<double, std::vector<SimpleVector3>>> mPositionOffsetsPerRadius;
         MapHelperPtr mMapHelperPtr;
+        ClusterExtractionPtr mClusterExtractionPtr;
         int mMinIterationGA;
 
     public:
-        ViewMutation(const MapHelperPtr &mapHelperPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
+        GeneticAlgorithm(const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
 
         ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
 
@@ -47,6 +49,6 @@ namespace next_best_view {
 
         void setPositionOffsets(int iterationSteps, double radius);
     };
-    typedef boost::shared_ptr<ViewMutation> ViewMutationPtr;
+    typedef boost::shared_ptr<GeneticAlgorithm> GeneticAlgorithmPtr;
 }
 
