@@ -39,8 +39,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
-#include "pbd_msgs/PbdAttributedPointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
+#include "asr_msgs/AsrAttributedPointCloud.h"
+#include "asr_msgs/AsrAttributedPoint.h"
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/ObjectHelper.h"
@@ -609,7 +609,7 @@ public:
          * Sets the point cloud points from point cloud message
          * @param message - message containing the point cloud
          */
-    bool setPointCloudFromMessage(const pbd_msgs::PbdAttributedPointCloud &msg) {
+    bool setPointCloudFromMessage(const asr_msgs::AsrAttributedPointCloud &msg) {
         // create a new point cloud
         ObjectPointCloudPtr originalPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud());
 
@@ -619,7 +619,7 @@ public:
         mObjectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet);
 
         // put each element into the point cloud
-        BOOST_FOREACH(pbd_msgs::PbdAttributedPoint element, msg.elements) {
+        BOOST_FOREACH(asr_msgs::AsrAttributedPoint element, msg.elements) {
             // Create a new point with pose and set object type
             ObjectPoint pointCloudPoint(element.pose);
             pointCloudPoint.color.r = 0;
