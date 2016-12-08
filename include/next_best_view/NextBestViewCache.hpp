@@ -115,13 +115,13 @@ namespace next_best_view {
          * @brief size
          * @return
          */
-        int size();
+        int utilityCacheSize();
 
         /**
          * @brief isEmpty
          * @return
          */
-        bool isEmpty();
+        bool isUtilityCacheEmpty();
 
         static RatingModulePtr getRatingModulePtr();
 

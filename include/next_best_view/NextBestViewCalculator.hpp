@@ -57,6 +57,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
+class GeneticAlgorithm;
+typedef boost::shared_ptr<GeneticAlgorithm> GeneticAlgorithmPtr;
 class NextBestViewCache;
 typedef boost::shared_ptr<NextBestViewCache> NextBestViewCachePtr;
 class NextBestViewPrediction;
@@ -128,7 +130,7 @@ private:
     NextBestViewPredictionPtr mNBVPredictionPtr;
 
     int mMinIterationGA;
-    GeneticAlgorithmPtr mViewMutationPtr;
+    GeneticAlgorithmPtr mGeneticAlgorithmPtr;
     ViewportPointCloudPtr mRatedSortedViewportsPreIteration;
 
 public:
@@ -574,7 +576,7 @@ public:
 
     GeneticAlgorithmPtr getGeneticAlgorithmPtr() const;
 
-    void setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &viewMutationPtr);
+    void setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &geneticAlgorithmPtr);
 
     bool getEnableGA() const;
 

@@ -395,7 +395,7 @@ public:
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             // ga
-            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius, mConfig.minIterationGA);
+            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr, mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius, mConfig.minIterationGA);
             mCalculatorPtr->setMinIterationGA(mConfig.minIterationGA);
             mCalculatorPtr->setGeneticAlgorithmPtr(mGeneticAlgorithmPtr);
 
@@ -877,7 +877,13 @@ public:
         response.robot_state = robotStateMsg;
 
         // set utility and inverse cost terms in rating for the given next best view.
-        response.utility = resultingViewport.score->getUnweightedUnnormalizedUtility();
+        RatingModulePtr ratingModule = mRatingModuleFactoryPtr->createRatingModule();
+        std::stringstream scoreSS;
+        scoreSS << (*resultingViewport.score);
+        response.score_container = scoreSS.str();
+        response.rating = ratingModule->getRating(resultingViewport.score);
+        response.utility = resultingViewport.score->getWeightedNormalizedUtility();
+        response.unnormalized_utility = resultingViewport.score->getUnweightedUnnormalizedUtility();
         response.utility_normalization = resultingViewport.score->getUtilityNormalization();
         response.inverse_costs = resultingViewport.score->getWeightedInverseCosts();
         response.base_translation_inverse_costs = resultingViewport.score->getUnweightedInverseMovementCostsBaseTranslation();

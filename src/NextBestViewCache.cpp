@@ -143,7 +143,7 @@ namespace next_best_view {
             }
         }
         // ratingGrid
-        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), compareViewportsUtilitywise);
+        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), compareViewportsRatingwise);
         BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
             CacheIndex idx = mRatingGrid->getCacheIdx(ratedViewport.getPosition());
             if (mRatingGrid->hasElementAt(idx)) {
@@ -165,11 +165,11 @@ namespace next_best_view {
         mRatingGrid->clear();
     }
 
-    int NextBestViewCache::size() {
+    int NextBestViewCache::utilityCacheSize() {
         return mUtilityGrid->size(); // == mRatingGrid->size() is not always true
     }
 
-    bool NextBestViewCache::isEmpty() {
+    bool NextBestViewCache::isUtilityCacheEmpty() {
         return mUtilityGrid->empty(); // == mRatingGrid->empty() is not always true
     }
 

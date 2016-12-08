@@ -78,7 +78,7 @@ namespace next_best_view {
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
         bool success = false;
-        if (mCacheResults && !mNBVCachePtr->isEmpty()) {
+        if (mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
             success = this->getNBVFromCache(currentCameraViewport, resultViewport);
         } else {
             // create the next best view point cloud
@@ -299,6 +299,11 @@ namespace next_best_view {
             //Iteration step must be increased before the following check.
             iterationStep ++;
             float rating = mRatingModulePtr->getRating(intermediateResultViewport.score);
+            if (currentBestViewport.score && currentBestViewport.score->getUtilityNormalization() < intermediateResultViewport.score->getUtilityNormalization()) {
+                // utility normalization increased, so we have to adapt out current rating
+                currentBestViewport.score->setUtilityNormalization(intermediateResultViewport.score->getUtilityNormalization());
+                currentBestRating = mRatingModulePtr->getRating(currentBestViewport.score);
+            }
             mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
                                    DebugHelper::CALCULATION);
             mDebugHelperPtr->write(std::stringstream() << intermediateResultViewport, DebugHelper::CALCULATION);
@@ -360,7 +365,14 @@ namespace next_best_view {
             sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
         } else {
             // we use ga and cache to generate nbv samples
-            sampleNextBestViewports = mViewMutationPtr->selectAndMutate(mRatedSortedViewportsPreIteration, iterationStep);
+            sampleNextBestViewports = mGeneticAlgorithmPtr->selectAndMutate(mRatedSortedViewportsPreIteration, iterationStep);
+        }
+
+        if (mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
+            // we append viewport with best utility, so we keep utilityNormalization constant or increasing
+            ViewportPoint bestUtiltiyViewport = mNBVCachePtr->getAllBestUtilityViewports()->back();
+            ROS_INFO_STREAM("best utility viewport: " << bestUtiltiyViewport);
+            sampleNextBestViewports->push_back(bestUtiltiyViewport);
         }
 
         // rate
@@ -1247,11 +1259,11 @@ namespace next_best_view {
     }
 
     GeneticAlgorithmPtr NextBestViewCalculator::getGeneticAlgorithmPtr() const {
-        return mViewMutationPtr;
+        return mGeneticAlgorithmPtr;
     }
 
-    void NextBestViewCalculator::setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &viewMutationPtr) {
-        mViewMutationPtr = viewMutationPtr;
+    void NextBestViewCalculator::setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &geneticAlgorithmPtr) {
+        mGeneticAlgorithmPtr = geneticAlgorithmPtr;
     }
 
     bool NextBestViewCalculator::getEnableGA() const {

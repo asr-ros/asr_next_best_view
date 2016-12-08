@@ -23,8 +23,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    GeneticAlgorithm::GeneticAlgorithm(const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
-        : mMapHelperPtr(mapHelperPtr),
+    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
+        : mNBVCalcPtr(nbvCalcPtr),
+          mMapHelperPtr(mapHelperPtr),
           mClusterExtractionPtr(clusterExtractionPtr),
           mMinIterationGA(minIterationGA) {
         setRotationMatrices(improvementIterations, improvementAngle);
@@ -49,9 +50,9 @@ namespace next_best_view {
         for (unsigned int i = 0; i < bbs->size(); i++) {
             samplesPerBB[i] = 0;
         }
-        float radius = 0.1 * pow(2, -(iterationStep - mMinIterationGA));
-        radius = max(0.1f, radius);
-        unsigned int nViewports = 3;// * pow(2, -(iterationStep - mMinIterationGA));
+        float radius = 0.07 * pow(2, -(iterationStep - mMinIterationGA));
+        radius = max(0.07f, radius);
+        unsigned int nViewports = 10;// * pow(2, -(iterationStep - mMinIterationGA));
         nViewports = max(static_cast<unsigned int>(1), nViewports);
         BOOST_REVERSE_FOREACH (ViewportPoint &p, *in) {
             int bbIdx = 0;
@@ -134,13 +135,20 @@ namespace next_best_view {
 //                    if (!getFeasibleHypothesis(pos, hypothesisNearby)) {
 //                        continue;
 //                    }
-                    viewport.child_indices = goodRatedViewportPoint.child_indices;
+                    //viewport.child_indices = goodRatedViewportPoint.child_indices;
                     viewport.point_cloud = goodRatedViewportPoint.point_cloud;
                     viewport.object_type_set = goodRatedViewportPoint.object_type_set;
                     viewport.oldIdx = 0;
                     result->push_back(viewport);
                 }
             }
+        }
+        IndicesPtr feasibleMutatedViewportIndices;
+        ROS_INFO_STREAM("mNBVCalcPtr: " << mNBVCalcPtr);
+        mNBVCalcPtr->getFeasibleViewports(result, feasibleMutatedViewportIndices);
+        if (feasibleMutatedViewportIndices->size() != result->size()) {
+            ROS_INFO_STREAM("we generated some non feasible mutated viewports");
+            result = ViewportPointCloudPtr(new ViewportPointCloud(*result, *feasibleMutatedViewportIndices));
         }
         return result;
     }
@@ -196,7 +204,7 @@ namespace next_best_view {
 
         for (int i : boost::irange(0, iterationSteps)) {
             // we reduce radius exponentially
-            double r = pow(2.0, -static_cast<double>(i)) * radius;
+            double r = pow(2.0, -static_cast<double>(i)) * radius * 2.5;
 
             // width of hexagon with radius r
             float horizontalSpacing = cos30 * r;
