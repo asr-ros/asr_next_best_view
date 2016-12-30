@@ -30,7 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <boost/range/irange.hpp>
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
-#include "next_best_view/robot_model/RobotModel.hpp"
+#include <robot_model_services/robot_model/RobotModel.hpp>
 #include "next_best_view/crop_box/CropBoxFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilterAbstractFactory.hpp"
@@ -59,7 +59,7 @@ private:
     UnitSphereSamplerPtr mUnitSphereSamplerPtr;
     MapHelperPtr mMapHelperPtr;
     SpaceSamplerPtr mSpaceSamplerPtr;
-    RobotModelPtr mRobotModelPtr;
+    robot_model_services::RobotModelPtr mRobotModelPtr;
     CameraModelFilterPtr mCameraModelFilterPtr;
     RatingModulePtr mRatingModulePtr;
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
@@ -92,7 +92,7 @@ public:
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
                            const MapHelperPtr &mapHelperPtr = MapHelperPtr(),
                            const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
-                           const RobotModelPtr &robotModelPtr = RobotModelPtr(),
+                           const robot_model_services::RobotModelPtr &robotModelPtr = robot_model_services::RobotModelPtr(),
                            const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr(),
                            const RatingModulePtr &ratingModulePtr = RatingModulePtr())
         : objectsResources(),
@@ -141,7 +141,7 @@ public:
      * @param currentCameraViewport the camera viewport of the robot
      */
     void initializeRobotState(const ViewportPoint &currentCameraViewport) {
-        RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
+        robot_model_services::RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
         mRatingModulePtr->setRobotState(currentState);
@@ -822,7 +822,7 @@ private:
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr(new SimpleQuaternionCollection());
 
         BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr) {
-            if (mRobotModelPtr->isPoseReachable(SimpleVector3(0, 0, 0), q)) {
+            if (mRobotModelPtr->isPoseReachable(robot_model_services::SimpleVector3(0, 0, 0), q)) {
                 feasibleOrientationsCollectionPtr->push_back(q);
             }
         }
@@ -1136,14 +1136,14 @@ public:
          * sets the robot model
          * @param robotModelPtr - the pointer to robot model.
          */
-    void setRobotModel(const RobotModelPtr &robotModelPtr) {
+    void setRobotModel(const robot_model_services::RobotModelPtr &robotModelPtr) {
         mRobotModelPtr = robotModelPtr;
     }
 
     /**
          *@return the robot ptr
          */
-    RobotModelPtr getRobotModel() {
+    robot_model_services::RobotModelPtr getRobotModel() {
         return mRobotModelPtr;
     }
 

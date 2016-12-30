@@ -18,6 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
+//#include <robot_model_services/typedef.hpp>
 
 namespace next_best_view {
 
@@ -28,7 +29,7 @@ DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThresho
 }
 
 DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, double ncp,
-                                         const RobotModelPtr &robotModelPtr,
+                                         const robot_model_services::RobotModelPtr &robotModelPtr,
                                          const CameraModelFilterPtr &cameraModelFilterPtr) :
                                      DefaultRatingModule() {
     mFovV = fovV;
@@ -422,11 +423,16 @@ double DefaultRatingModule::getUnweightedInverseRecognitionCosts(const ViewportP
 
 void DefaultRatingModule::setRobotState(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport) {
     // set the source robot state
-    RobotStatePtr sourceState = mRobotModelPtr->calculateRobotState(sourceViewport.getPosition(), sourceViewport.getSimpleQuaternion());
+    const next_best_view::SimpleVector3 src_pos = sourceViewport.getPosition();
+    const next_best_view::SimpleQuaternion src_ori = sourceViewport.getSimpleQuaternion();
+    const next_best_view::SimpleVector3 target_pos = targetViewport.getPosition();
+    const next_best_view::SimpleQuaternion target_ori = targetViewport.getSimpleQuaternion();
+  
+    robot_model_services::RobotStatePtr sourceState = mRobotModelPtr->calculateRobotState(robot_model_services::SimpleVector3(src_pos[0], src_pos[1], src_pos[2]), robot_model_services::SimpleQuaternion(src_ori.w(), src_ori.x(), src_ori.y(), src_ori.z()));
     mRobotModelPtr->setCurrentRobotState(sourceState);
 
     // set the target robot state
-    mTargetState = mRobotModelPtr->calculateRobotState(targetViewport.getPosition(), targetViewport.getSimpleQuaternion());
+    mTargetState = mRobotModelPtr->calculateRobotState(robot_model_services::SimpleVector3(target_pos[0], target_pos[1], target_pos[2]), robot_model_services::SimpleQuaternion(target_ori.w(), target_ori.x(), target_ori.y(), target_ori.z()));
 }
 
 void DefaultRatingModule::setOmegaPTU() {
@@ -494,7 +500,7 @@ void DefaultRatingModule::resetCache() {
     mTargetState = NULL;
 }
 
-void DefaultRatingModule::setRobotState(RobotStatePtr robotState) {
+void DefaultRatingModule::setRobotState(robot_model_services::RobotStatePtr robotState) {
     mRobotModelPtr->setCurrentRobotState(robotState);
 }
 

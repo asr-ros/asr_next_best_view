@@ -86,8 +86,8 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}_helper
-  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid
+  LIBRARIES ${PROJECT_NAME}_helper 
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid robot_model_services
   DEPENDS system_lib
 )
 
@@ -97,7 +97,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
-  /opt/ros/indigo/include/assimp_devel
+  /opt/ros/jade/include/assimp_devel
 )
 
 
@@ -120,9 +120,6 @@ add_library(
         src/camera_model_filter/CameraModelFilter.cpp
         src/rating/BaseScoreContainer.cpp
         src/rating/RatingModule.cpp
-        src/rating/IKRatingModule.cpp
-        src/robot_model/RobotModel.cpp
-        src/robot_model/RobotState.cpp
         src/space_sampler/SpaceSampler.cpp
         src/unit_sphere_sampler/UnitSphereSampler.cpp
 )
@@ -136,14 +133,7 @@ add_library(
         src/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
-        src/rating/impl/NavigationPathIKRatingModule.cpp
-        src/rating/impl/SimpleIKRatingModule.cpp
-        src/rating/impl/AngleApproximationIKRatingModule.cpp
         src/rating/impl/DefaultScoreContainer.cpp
-        src/robot_model/impl/MILDRobotModel.cpp
-        src/robot_model/impl/MILDRobotModelWithExactIK.cpp
-        src/robot_model/impl/MILDRobotModelWithApproximatedIK.cpp
-        src/robot_model/impl/MILDRobotState.cpp
         src/space_sampler/impl/PlaneSubSpaceSampler.cpp
         src/space_sampler/impl/Raytracing2DBasedSpaceSampler.cpp
         src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
@@ -168,7 +158,7 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         # assimp
-        /opt/ros/indigo/lib/libassimp_devel.so
+        /opt/ros/jade/lib/libassimp_devel.so
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
@@ -184,6 +174,7 @@ add_dependencies(
         ${PROJECT_NAME}_generate_messages_cpp
         object_database
         world_model
+	    robot_model_services
 )
 
 target_link_libraries(
@@ -193,6 +184,8 @@ target_link_libraries(
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
+		robot_model_services_packages
+		robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 

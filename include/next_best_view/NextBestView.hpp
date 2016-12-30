@@ -71,11 +71,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/hypothesis_updater/impl/DefaultHypothesisUpdater.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdaterFactory.hpp"
 #include "next_best_view/hypothesis_updater/impl/DefaultHypothesisUpdaterFactory.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithApproximatedIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIKFactory.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithApproximatedIKFactory.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithExactIK.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithApproximatedIK.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithExactIKFactory.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithApproximatedIKFactory.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotState.hpp>
 #include "next_best_view/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.hpp"
 #include "next_best_view/unit_sphere_sampler/impl/SprialApproxUnitSphereSamplerFactory.hpp"
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
@@ -158,7 +158,7 @@ private:
     MapHelperPtr mMapHelperPtr;
     SpaceSamplerAbstractFactoryPtr mSpaceSampleFactoryPtr;
     CameraModelFilterAbstractFactoryPtr mCameraModelFactoryPtr;
-    RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
+    robot_model_services::RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
     RatingModuleAbstractFactoryPtr mRatingModuleFactoryPtr;
     HypothesisUpdaterAbstractFactoryPtr mHypothesisUpdaterFactoryPtr;
 
@@ -483,14 +483,14 @@ public:
         }
     }
 
-    RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
+    robot_model_services::RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
             mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
-            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithExactIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
+            return robot_model_services::RobotModelAbstractFactoryPtr(new robot_model_services::MILDRobotModelWithExactIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
         case 2:
             mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
-            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithApproximatedIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
+            return robot_model_services::RobotModelAbstractFactoryPtr(new robot_model_services::MILDRobotModelWithApproximatedIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
         default:
             std::stringstream ss;
             ss << mConfig.robotModelId << " is not a valid robot model ID";
@@ -500,7 +500,7 @@ public:
     }
 
     RatingModuleAbstractFactoryPtr createRatingModuleFromConfig(int moduleId) {
-        RobotModelAbstractFactoryPtr robotModelFactoryPtr;
+        robot_model_services::RobotModelAbstractFactoryPtr robotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr cameraModelFactoryPtr;
         switch (moduleId) {
         case 1:
@@ -753,7 +753,7 @@ public:
     bool processSetInitRobotStateServiceCall(SetInitRobotState::Request &request, SetInitRobotState::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV SET-INIT-ROBOT-STATE SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
-        MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
+        robot_model_services::MILDRobotStatePtr currentRobotStatePtr(new robot_model_services::MILDRobotState());
         currentRobotStatePtr->pan = request.robotState.pan;
         currentRobotStatePtr->tilt = request.robotState.tilt;
         currentRobotStatePtr->rotation = request.robotState.rotation;
@@ -801,8 +801,8 @@ public:
 
         //Reconstruct robot configuration for next best camera viewport (once known when estimating its costs) for outpout purposes.
         // TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
-        RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
-        MILDRobotStatePtr mildState = boost::static_pointer_cast<MILDRobotState>(state);
+        robot_model_services::RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
+        robot_model_services::MILDRobotStatePtr mildState = boost::static_pointer_cast<robot_model_services::MILDRobotState>(state);
 
         RobotStateMessage robotStateMsg;
         robotStateMsg.pan = mildState->pan;

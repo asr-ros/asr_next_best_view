@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 #include "next_best_view/camera_model_filter/CameraModelFilterAbstractFactory.hpp"
-#include "next_best_view/robot_model/RobotModelAbstractFactory.hpp"
+#include <robot_model_services/robot_model/RobotModelAbstractFactory.hpp>
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
 
@@ -30,7 +30,7 @@ namespace next_best_view {
     private:
         double mFovx, mFovy;
         double mFcp, mNcp;
-        RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
+        robot_model_services::RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr mCameraModelFilterFactoryPtr;
         double mAngleThreshold;
         double mOmegaUtility, mOmegaPan, mOmegaTilt;
@@ -40,7 +40,7 @@ namespace next_best_view {
     public:
         DefaultRatingModuleFactory(double fovx, double fovy,
                                    double fcp, double ncp,
-                                   RobotModelAbstractFactoryPtr robotModelFactory, CameraModelFilterAbstractFactoryPtr cameraModelFilterFactory,
+                                   robot_model_services::RobotModelAbstractFactoryPtr robotModelFactory, CameraModelFilterAbstractFactoryPtr cameraModelFilterFactory,
                                    double angleThreshold,
                                    double omegaUtility, double omegaPan, double omegaTilt,
                                    double omegaRot, double omegaBase, double omegaRecognizer,
