@@ -24,6 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include <robot_model_services/robot_model/RobotModel.hpp>
@@ -62,7 +63,8 @@ namespace next_best_view {
         /*
          * help members
          */
-        robot_model_services::RobotModelPtr mRobotModelPtr;
+         robot_model_services::RobotModelPtr mRobotModelPtr;
+        MapHelperPtr mMapHelperPtr;
         CameraModelFilterPtr mCameraModelFilterPtr;
         DebugHelperPtr mDebugHelperPtr;
 
@@ -102,6 +104,7 @@ namespace next_best_view {
 
         DefaultRatingModule(double mFovV, double mFovH, double mFcp, double mNcp,
                                 const robot_model_services::RobotModelPtr &robotModelPtr = robot_model_services::RobotModelPtr(),
+                                const MapHelperPtr &mapHelperPtr = MapHelperPtr(),
                                 const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr());
 
         virtual ~DefaultRatingModule();
@@ -273,17 +276,12 @@ namespace next_best_view {
         void setRobotState(const ViewportPoint &sourceViewport, const ViewportPoint &targetViewport);
 
         /*!
-         * \brief sets the mOmegaPTU member. Must be called before calling setMovementCosts and setCostsNormalization.
-         */
-        void setOmegaPTU();
-
-        /*!
-         * \brief sets the mMovementCosts member
+         * \brief sets the mMovementCosts member. Must be called before calling setRatingNormalization.
          */
         void setWeightedInverseMovementCosts();
 
         /*!
-         * \brief sets the mCostsNormalization member
+         * \brief sets the mRatingNormalization member
          */
         void setRatingNormalization();
 

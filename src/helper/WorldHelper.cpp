@@ -14,7 +14,79 @@ WorldHelper::WorldHelper(next_best_view::MapHelperPtr mapHelperPtr, std::string 
     loadVoxelGrid(filePath);
 }
 
-bool WorldHelper::isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectPosition)
+void WorldHelper::filterOccludedObjects(SimpleVector3 cameraPosition, ObjectPointCloudPtr objectPointCloud, IndicesPtr indices,
+                                                                                                                IndicesPtr &filteredIndices)
+{
+    // summarize objects in voxels
+    ObjectVoxelToIndices voxelToIndices;
+
+    BOOST_FOREACH(int index, *indices)
+    {
+        ObjectPoint &point = objectPointCloud->at(index);
+        std::vector<GridVector3> voxels;
+        worldToVoxelGridCoordinates(point.getPosition(), voxels);
+
+        BOOST_FOREACH(GridVector3 voxel, voxels)
+        {
+            VoxelTuple voxelTuple = std::make_tuple(voxel[0], voxel[1], voxel[2]);
+            if (!voxelToIndices[voxelTuple])
+                voxelToIndices[voxelTuple] = IndicesPtr(new Indices());
+            voxelToIndices[voxelTuple]->push_back(index);
+        }
+    }
+
+    // check occlusion for each voxel containing objects
+    filteredIndices = IndicesPtr(new Indices());
+    std::vector<GridVector3> cameraVoxels;
+    worldToVoxelGridCoordinates(cameraPosition, cameraVoxels);
+
+    BOOST_FOREACH(ObjectVoxelAndIndices objectVoxelAndIndices, voxelToIndices)
+    {
+        VoxelTuple objectVoxel = objectVoxelAndIndices.first;
+        GridVector3 targetVoxel(std::get<0>(objectVoxel), std::get<1>(objectVoxel), std::get<2>(objectVoxel));
+
+        SimpleVector3 targetPosition = voxelToWorldPosition(targetVoxel);
+
+        BOOST_FOREACH(GridVector3 cameraVoxel, cameraVoxels)
+        {
+            VoxelTuple sourceVoxel = std::make_tuple(cameraVoxel[0], cameraVoxel[1], cameraVoxel[2]);
+            VoxelTuplesPtr &occludedVoxels = cameraVoxelToOccludedVoxels[sourceVoxel];
+            VoxelTuplesPtr &unoccludedVoxels = cameraVoxelToUnoccludedVoxels[sourceVoxel];
+
+            if (occludedVoxels &&
+                    std::find(occludedVoxels->begin(), occludedVoxels->end(), objectVoxel) != occludedVoxels->end())
+                continue;
+            if (unoccludedVoxels &&
+                    std::find(unoccludedVoxels->begin(), unoccludedVoxels->end(), objectVoxel) != unoccludedVoxels->end())
+            {
+                IndicesPtr objectIndices = objectVoxelAndIndices.second;
+                insert(objectIndices, filteredIndices);
+                continue;
+            }
+
+
+            SimpleVector3 sourcePosition = voxelToWorldPosition(cameraVoxel);
+
+            if (!isOccluded(sourcePosition, targetPosition))
+            {
+                IndicesPtr objectIndices = objectVoxelAndIndices.second;
+                insert(objectIndices, filteredIndices);
+                if(!unoccludedVoxels)
+                    unoccludedVoxels = VoxelTuplesPtr(new VoxelTuples());
+                unoccludedVoxels->push_back(objectVoxel);
+            }
+            else
+            {
+                if(!occludedVoxels)
+                    occludedVoxels = VoxelTuplesPtr(new VoxelTuples());
+                occludedVoxels->push_back(objectVoxel);
+            }
+        }
+
+    }
+}
+
+bool WorldHelper::isOccluded(SimpleVector3 cameraPosition, SimpleVector3 targetPosition)
 {
     std::vector<GridVector3> cameraGridPositions;
 
@@ -22,15 +94,15 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPosition, SimpleVector3 objectP
 
     std::vector<GridVector3> traversedVoxels;
 
-    bool occluded = isOccluded(cameraPosition, objectPosition, cameraGridPositions[0], traversedVoxels);
+    bool occluded = isOccluded(cameraPosition, targetPosition, cameraGridPositions[0], traversedVoxels);
 
     if (mVisualizeRaytracing)
-        mVisHelperPtr->triggerRaytracingVisualization(cameraPosition, objectPosition, traversedVoxels, occluded, mWorldVoxelSize);
+        mVisHelperPtr->triggerRaytracingVisualization(cameraPosition, targetPosition, traversedVoxels, occluded, mWorldVoxelSize);
 
     return occluded;
 }
 
-bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
+bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 targetPos,
                              GridVector3 currVoxelPos, std::vector<GridVector3>& traversedVoxels)
 {
     traversedVoxels.push_back(currVoxelPos);
@@ -66,12 +138,12 @@ bool WorldHelper::isOccluded(SimpleVector3 cameraPos, SimpleVector3 objectPos,
 
                 bool checkVoxel = false;
 
-                if (lineIntersectsVoxel(cameraPos, objectPos, voxel))
+                if (lineIntersectsVoxel(cameraPos, targetPos, voxel))
                     checkVoxel = true;
 
                 if (checkVoxel)
                 {
-                    bool occluded = isOccluded(cameraPos, objectPos, voxel, traversedVoxels);
+                    bool occluded = isOccluded(cameraPos, targetPos, voxel, traversedVoxels);
 
                     if (occluded)
                         return true;
@@ -161,11 +233,6 @@ void WorldHelper::worldToVoxelGridCoordinates(const std::vector<SimpleVector3> &
     }
 }
 
-void WorldHelper::mapToWorldCoordinates(const SimpleVector3 &worldPos, SimpleVector3 &result)
-{
-    mMapHelperPtr->mapToWorldCoordinates(worldPos, result);
-}
-
 void WorldHelper::initializeVoxelGridHelper(double worldHeight)
 {
     mDebugHelperPtr->write("Initializing voxel grid.", DebugHelper::WORLD);
@@ -191,12 +258,17 @@ void WorldHelper::loadVoxelGrid(std::string filePath)
 
     mVisHelperPtr->triggerWorldMeshesVisualization(meshResources, positions, orientations, scales);
 
+    auto begin = std::chrono::high_resolution_clock::now();
+
     std::vector<std::vector<SimpleVector3>> faces;
 
     for (unsigned int i = 0; i < meshResources.size(); i++)
     {
         loadMeshFile(meshResources[i], positions[i], orientations[i], scales[i], faces);
     }
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    ROS_INFO_STREAM("Loading of mesh files into voxel grid took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
     mVisHelperPtr->triggerWorldTrianglesVisualization(faces);
 
@@ -628,6 +700,18 @@ void WorldHelper::addTriangle(const std::vector<SimpleVector3>& vertices)
 
 }
 
+SimpleVector3 WorldHelper::voxelToWorldPosition(const GridVector3 &gridPos)
+{
+    // voxel to map position
+    SimpleVector3 mapPos;
+    for (int i = 0; i < mapPos.rows(); i++)
+        mapPos[i] = (gridPos[i] + 0.5) * mMapVoxelSize;
+
+    SimpleVector3 result;
+    mMapHelperPtr->mapToWorldCoordinates(mapPos, result);
+    return result;
+}
+
 void WorldHelper::voxelToWorldBox(const GridVector3 &gridPos, SimpleVector3 &min, SimpleVector3 &max)
 {
     SimpleVector3 tempMin;
@@ -636,8 +720,8 @@ void WorldHelper::voxelToWorldBox(const GridVector3 &gridPos, SimpleVector3 &min
 
     SimpleVector3 tempMax = tempMin + SimpleVector3(mMapVoxelSize, mMapVoxelSize, mMapVoxelSize);
 
-    mapToWorldCoordinates(tempMin, min);
-    mapToWorldCoordinates(tempMax, max);
+    mMapHelperPtr->mapToWorldCoordinates(tempMin, min);
+    mMapHelperPtr->mapToWorldCoordinates(tempMax, max);
 }
 
 void WorldHelper::voxelGridBox(const std::vector<GridVector3> &gridPositions, GridVector3 &min, GridVector3 &max)
@@ -894,6 +978,15 @@ bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, cons
 bool WorldHelper::equalVoxels(const GridVector3 &a, const GridVector3 &b)
 {
     return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+}
+
+void WorldHelper::insert(IndicesPtr source, IndicesPtr &target)
+{
+    BOOST_FOREACH(int index, *source)
+    {
+        if (std::find(target->begin(), target->end(), index) == target->end())
+            target->push_back(index);
+    }
 }
 
 }

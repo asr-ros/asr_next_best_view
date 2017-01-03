@@ -54,9 +54,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
-#include "pbd_msgs/PbdAttributedPointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
-#include "pbd_msgs/PbdViewport.h"
+#include "asr_msgs/AsrAttributedPointCloud.h"
+#include "asr_msgs/AsrAttributedPoint.h"
+#include "asr_msgs/AsrViewport.h"
 #include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.hpp"
@@ -509,7 +509,7 @@ public:
             return RatingModuleAbstractFactoryPtr(
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
-                                                       robotModelFactoryPtr, cameraModelFactoryPtr,
+                                                       robotModelFactoryPtr, cameraModelFactoryPtr, mMapHelperPtr,
                                                        mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
                                                        mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer,
@@ -663,7 +663,7 @@ public:
         return true;
     }
 
-    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage, uint minNumberNormals) {
+    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, asr_msgs::AsrAttributedPointCloud &pointCloudMessage, uint minNumberNormals) {
         pointCloudMessage.elements.clear();
 
         BOOST_FOREACH(ObjectPoint point, pointCloud) {
@@ -673,7 +673,7 @@ public:
 //            if (point.active_normal_vectors->size() < point.normal_vectors->size())
                 continue;
 
-            pbd_msgs::PbdAttributedPoint aPoint;
+            asr_msgs::AsrAttributedPoint aPoint;
 
             aPoint.pose = point.getPose();
             aPoint.type = point.type;
@@ -714,7 +714,7 @@ public:
 
         // convert to viewportPointCloud
         std::vector<ViewportPoint> viewportPointList;
-        BOOST_FOREACH(pbd_msgs::PbdViewport &viewport, request.viewports_to_filter)
+        BOOST_FOREACH(asr_msgs::AsrViewport &viewport, request.viewports_to_filter)
         {
             ViewportPoint viewportConversionPoint(viewport.pose);
             viewportConversionPoint.object_type_set = boost::shared_ptr<ObjectTypeSet>(new ObjectTypeSet());

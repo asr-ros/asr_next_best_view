@@ -74,9 +74,9 @@ namespace next_best_view {
 			// RGB
 			double ratio = double(objectPoint.active_normal_vectors->size()) / double(objectPoint.normal_vectors->size());
 
-			objectPoint.r = ratio > .5 ? int((2.0 - 2 * ratio) * 255) : 255;
-			objectPoint.g = ratio > .5 ? 255 : int(2.0  * ratio * 255);
-			objectPoint.b = 0;
+            objectPoint.color.r = ratio > .5 ? int((2.0 - 2 * ratio) * 255) : 255;
+            objectPoint.color.g = ratio > .5 ? 255 : int(2.0  * ratio * 255);
+            objectPoint.color.b = 0;
 		}
 
         mDebugHelperPtr->writeNoticeably("ENDING UPDATE METHOD", DebugHelper::HYPOTHESIS_UPDATER);

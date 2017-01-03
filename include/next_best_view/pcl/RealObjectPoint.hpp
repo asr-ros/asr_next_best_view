@@ -52,8 +52,7 @@ namespace next_best_view {
 	 */
   //Comment?
 	struct RealObjectPoint {
-		PCL_ADD_POINT4D;
-		PCL_ADD_RGB;
+        PCL_ADD_POINT4D;
 
 		union {
 			struct {

@@ -17,20 +17,8 @@ namespace next_best_view {
 		SimpleVector3 leftCameraPosition = this->getPivotPointPosition() + this->getLeftCameraPivotPointOffset();
 		SimpleVector3 rightCameraPosition = this->getPivotPointPosition() + this->getRightCameraPivotPointOffset();
 
-		indicesPtr = IndicesPtr(new Indices());
-		BOOST_FOREACH(int index, *intermediateIndicesPtr) {
-			ObjectPoint &point = this->getInputCloud()->at(index);
-
-            if (mWorldHelperPtr->isOccluded(leftCameraPosition, point.getPosition())) {
-                continue;
-            }
-
-            if (mWorldHelperPtr->isOccluded(rightCameraPosition, point.getPosition())) {
-                continue;
-            }
-
-			indicesPtr->push_back(index);
-		}
+        mWorldHelperPtr->filterOccludedObjects(leftCameraPosition, this->getInputCloud(), intermediateIndicesPtr, indicesPtr);
+        mWorldHelperPtr->filterOccludedObjects(rightCameraPosition, this->getInputCloud(), intermediateIndicesPtr, indicesPtr);
 	}
 
 }

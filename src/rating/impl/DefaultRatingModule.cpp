@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
-//#include <robot_model_services/typedef.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotState.hpp>
 
 namespace next_best_view {
 
@@ -30,6 +30,7 @@ DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThresho
 
 DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, double ncp,
                                          const robot_model_services::RobotModelPtr &robotModelPtr,
+                                         const MapHelperPtr &mapHelperPtr,
                                          const CameraModelFilterPtr &cameraModelFilterPtr) :
                                      DefaultRatingModule() {
     mFovV = fovV;
@@ -37,6 +38,7 @@ DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, d
     mFcp = fcp;
     mNcp = ncp;
     mRobotModelPtr = robotModelPtr;
+    mMapHelperPtr = mapHelperPtr;
     mCameraModelFilterPtr = cameraModelFilterPtr;
 }
 
@@ -290,6 +292,9 @@ bool DefaultRatingModule::setSingleScoreContainer(const ViewportPoint &currentVi
 
     // set the costs
     double costs = this->getWeightedInverseCosts(currentViewport, candidateViewport);
+    if (costs < 0.0) {
+        return false;
+    }
     defRatingPtr->setWeightedInverseCosts(costs);
 
     defRatingPtr->setUnweightedInverseMovementCostsBaseTranslation(mUnweightedInverseMovementCostsBaseTranslation);
@@ -384,10 +389,6 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
         this->setRobotState(sourceViewport, targetViewport);
     }
 
-    if (mOmegaPTU < 0) {
-        this->setOmegaPTU();
-    }
-
     if (mWeightedInverseMovementCosts < 0) {
         this->setWeightedInverseMovementCosts();
     }
@@ -402,6 +403,11 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
     // calculate the full movement costs
     double fullCosts = mWeightedInverseMovementCosts + mUnweightedInverseRecognitionCosts * mOmegaRecognition;
 
+    robot_model_services::MILDRobotStatePtr state = static_pointer_cast<robot_model_services::MILDRobotState>(mTargetState);
+    SimpleVector3 basePosition(state->x, state->y, 0);
+    if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(basePosition))) {
+        fullCosts = -1.0;
+    }
     return fullCosts;
 }
 
@@ -425,29 +431,12 @@ void DefaultRatingModule::setRobotState(const ViewportPoint &sourceViewport, con
     // set the source robot state
     const next_best_view::SimpleVector3 src_pos = sourceViewport.getPosition();
     const next_best_view::SimpleQuaternion src_ori = sourceViewport.getSimpleQuaternion();
-    const next_best_view::SimpleVector3 target_pos = targetViewport.getPosition();
-    const next_best_view::SimpleQuaternion target_ori = targetViewport.getSimpleQuaternion();
   
     robot_model_services::RobotStatePtr sourceState = mRobotModelPtr->calculateRobotState(robot_model_services::SimpleVector3(src_pos[0], src_pos[1], src_pos[2]), robot_model_services::SimpleQuaternion(src_ori.w(), src_ori.x(), src_ori.y(), src_ori.z()));
     mRobotModelPtr->setCurrentRobotState(sourceState);
 
     // set the target robot state
-    mTargetState = mRobotModelPtr->calculateRobotState(robot_model_services::SimpleVector3(target_pos[0], target_pos[1], target_pos[2]), robot_model_services::SimpleQuaternion(target_ori.w(), target_ori.x(), target_ori.y(), target_ori.z()));
-}
-
-void DefaultRatingModule::setOmegaPTU() {
-    Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
-    Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
-
-    // set the PTU movement omega parameter
-    if (movementCostsPTU_Tilt*mOmegaTilt > movementCostsPTU_Pan*mOmegaPan)
-    {
-        mOmegaPTU = mOmegaPan;
-    }
-    else
-    {
-        mOmegaPTU = mOmegaTilt;
-    }
+    mTargetState = mRobotModelPtr->calculateRobotState(targetViewport.getPosition(), targetViewport.getSimpleQuaternion());
 }
 
 void DefaultRatingModule::setWeightedInverseMovementCosts() {
@@ -455,11 +444,20 @@ void DefaultRatingModule::setWeightedInverseMovementCosts() {
     mUnweightedInverseMovementCostsBaseTranslation = mRobotModelPtr->getBase_TranslationalMovementCosts(mTargetState);
     mUnweightedInverseMovementCostsBaseRotation = mRobotModelPtr->getBase_RotationalMovementCosts(mTargetState);
 
-    if (mOmegaPTU == mOmegaPan) {
-        mUnweightedInverseMovementCostsPTU = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+    // set the omega parameter for PTU movement and the PTU movement costs
+    Precision movementCostsPTU_Pan = mRobotModelPtr->getPTU_PanMovementCosts(mTargetState);
+    Precision movementCostsPTU_Tilt = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+
+    // set the PTU movement omega parameter
+    if (movementCostsPTU_Tilt*mOmegaTilt > movementCostsPTU_Pan*mOmegaPan)
+    {
+        mOmegaPTU = mOmegaPan;
+        mUnweightedInverseMovementCostsPTU = movementCostsPTU_Pan;
     }
-    else {
-        mUnweightedInverseMovementCostsPTU = mRobotModelPtr->getPTU_TiltMovementCosts(mTargetState);
+    else
+    {
+        mOmegaPTU = mOmegaTilt;
+        mUnweightedInverseMovementCostsPTU = movementCostsPTU_Tilt;
     }
 
     // set the movement costs
