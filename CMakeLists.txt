@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
   nav_msgs
-  pbd_msgs
+  asr_msgs
   world_model
   actionlib
   tf
@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   rapidxml
   dynamic_reconfigure
   voxel_grid
+  robot_model_services
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
   #  assimp
 )
@@ -58,14 +59,9 @@ add_service_files(
    SetAttributedPointCloud.srv
    SetInitRobotState.srv
    UpdatePointCloud.srv
-   CalculateCameraPose.srv
-   CalculateCameraPoseCorrection.srv
-   IsPositionAllowed.srv
    TriggerFrustumVisualization.srv
    TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
-   GetPose.srv
-   GetDistance.srv
    RateViewports.srv
    GetActiveNormals.srv
    RemoveObjects.srv
@@ -84,14 +80,14 @@ generate_messages(
         std_msgs  # Or other packages containing msgs
         geometry_msgs
         sensor_msgs
-        pbd_msgs
+        asr_msgs
         visualization_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}_helper
-  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid
+  LIBRARIES ${PROJECT_NAME}_helper 
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid robot_model_services
   DEPENDS system_lib
 )
 
@@ -124,9 +120,6 @@ add_library(
         src/camera_model_filter/CameraModelFilter.cpp
         src/rating/BaseScoreContainer.cpp
         src/rating/RatingModule.cpp
-        src/rating/IKRatingModule.cpp
-        src/robot_model/RobotModel.cpp
-        src/robot_model/RobotState.cpp
         src/space_sampler/SpaceSampler.cpp
         src/unit_sphere_sampler/UnitSphereSampler.cpp
 )
@@ -140,14 +133,7 @@ add_library(
         src/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
-        src/rating/impl/NavigationPathIKRatingModule.cpp
-        src/rating/impl/SimpleIKRatingModule.cpp
-        src/rating/impl/AngleApproximationIKRatingModule.cpp
         src/rating/impl/DefaultScoreContainer.cpp
-        src/robot_model/impl/MILDRobotModel.cpp
-        src/robot_model/impl/MILDRobotModelWithExactIK.cpp
-        src/robot_model/impl/MILDRobotModelWithApproximatedIK.cpp
-        src/robot_model/impl/MILDRobotState.cpp
         src/space_sampler/impl/PlaneSubSpaceSampler.cpp
         src/space_sampler/impl/Raytracing2DBasedSpaceSampler.cpp
         src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
@@ -188,6 +174,7 @@ add_dependencies(
         ${PROJECT_NAME}_generate_messages_cpp
         object_database
         world_model
+	    robot_model_services
 )
 
 target_link_libraries(
@@ -197,6 +184,8 @@ target_link_libraries(
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
+		robot_model_services_packages
+		robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
@@ -332,22 +321,5 @@ addTest(STREAM)
 addTest(RAYTRACING)
 
 addTest(RATE_VIEWPORTS)
-
-
-add_executable(
-        ${PROJECT_NAME}_robot_model
-        src/robot_model/RobotModel_Service.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_robot_model
-        ${PCL_LIBRARIES}
-        ${PROJECT_NAME}_packages_impl
-        glpk
-        ${catkin_LIBRARIES}
-)
-
-
-
 
 

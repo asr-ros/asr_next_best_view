@@ -54,9 +54,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
-#include "pbd_msgs/PbdAttributedPointCloud.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
-#include "pbd_msgs/PbdViewport.h"
+#include "asr_msgs/AsrAttributedPointCloud.h"
+#include "asr_msgs/AsrAttributedPoint.h"
+#include "asr_msgs/AsrViewport.h"
 #include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.hpp"
@@ -71,11 +71,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/hypothesis_updater/impl/DefaultHypothesisUpdater.hpp"
 #include "next_best_view/hypothesis_updater/impl/PerspectiveHypothesisUpdaterFactory.hpp"
 #include "next_best_view/hypothesis_updater/impl/DefaultHypothesisUpdaterFactory.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithApproximatedIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIKFactory.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithApproximatedIKFactory.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithExactIK.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithApproximatedIK.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithExactIKFactory.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithApproximatedIKFactory.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotState.hpp>
 #include "next_best_view/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.hpp"
 #include "next_best_view/unit_sphere_sampler/impl/SprialApproxUnitSphereSamplerFactory.hpp"
 #include "next_best_view/space_sampler/impl/PlaneSubSpaceSampler.hpp"
@@ -158,7 +158,7 @@ private:
     MapHelperPtr mMapHelperPtr;
     SpaceSamplerAbstractFactoryPtr mSpaceSampleFactoryPtr;
     CameraModelFilterAbstractFactoryPtr mCameraModelFactoryPtr;
-    RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
+    robot_model_services::RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
     RatingModuleAbstractFactoryPtr mRatingModuleFactoryPtr;
     HypothesisUpdaterAbstractFactoryPtr mHypothesisUpdaterFactoryPtr;
 
@@ -483,14 +483,14 @@ public:
         }
     }
 
-    RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
+    robot_model_services::RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
             mDebugHelperPtr->write("NBV: Using new IK model", DebugHelper::PARAMETERS);
-            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithExactIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
+            return robot_model_services::RobotModelAbstractFactoryPtr(new robot_model_services::MILDRobotModelWithExactIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
         case 2:
             mDebugHelperPtr->write("NBV: Using old IK model", DebugHelper::PARAMETERS);
-            return RobotModelAbstractFactoryPtr(new MILDRobotModelWithApproximatedIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
+            return robot_model_services::RobotModelAbstractFactoryPtr(new robot_model_services::MILDRobotModelWithApproximatedIKFactory(mConfig.tiltMin, mConfig.tiltMax, mConfig.panMin, mConfig.panMax));
         default:
             std::stringstream ss;
             ss << mConfig.robotModelId << " is not a valid robot model ID";
@@ -500,7 +500,7 @@ public:
     }
 
     RatingModuleAbstractFactoryPtr createRatingModuleFromConfig(int moduleId) {
-        RobotModelAbstractFactoryPtr robotModelFactoryPtr;
+        robot_model_services::RobotModelAbstractFactoryPtr robotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr cameraModelFactoryPtr;
         switch (moduleId) {
         case 1:
@@ -509,7 +509,7 @@ public:
             return RatingModuleAbstractFactoryPtr(
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
-                                                       robotModelFactoryPtr, cameraModelFactoryPtr,
+                                                       robotModelFactoryPtr, cameraModelFactoryPtr, mMapHelperPtr,
                                                        mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
                                                        mConfig.mOmegaRot, mConfig.mOmegaBase, mConfig.mOmegaRecognizer,
@@ -663,7 +663,7 @@ public:
         return true;
     }
 
-    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, pbd_msgs::PbdAttributedPointCloud &pointCloudMessage, uint minNumberNormals) {
+    static void convertObjectPointCloudToAttributedPointCloud(const ObjectPointCloud &pointCloud, asr_msgs::AsrAttributedPointCloud &pointCloudMessage, uint minNumberNormals) {
         pointCloudMessage.elements.clear();
 
         BOOST_FOREACH(ObjectPoint point, pointCloud) {
@@ -673,7 +673,7 @@ public:
 //            if (point.active_normal_vectors->size() < point.normal_vectors->size())
                 continue;
 
-            pbd_msgs::PbdAttributedPoint aPoint;
+            asr_msgs::AsrAttributedPoint aPoint;
 
             aPoint.pose = point.getPose();
             aPoint.type = point.type;
@@ -714,7 +714,7 @@ public:
 
         // convert to viewportPointCloud
         std::vector<ViewportPoint> viewportPointList;
-        BOOST_FOREACH(pbd_msgs::PbdViewport &viewport, request.viewports_to_filter)
+        BOOST_FOREACH(asr_msgs::AsrViewport &viewport, request.viewports_to_filter)
         {
             ViewportPoint viewportConversionPoint(viewport.pose);
             viewportConversionPoint.object_type_set = boost::shared_ptr<ObjectTypeSet>(new ObjectTypeSet());
@@ -753,7 +753,7 @@ public:
     bool processSetInitRobotStateServiceCall(SetInitRobotState::Request &request, SetInitRobotState::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV SET-INIT-ROBOT-STATE SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
-        MILDRobotStatePtr currentRobotStatePtr(new MILDRobotState());
+        robot_model_services::MILDRobotStatePtr currentRobotStatePtr(new robot_model_services::MILDRobotState());
         currentRobotStatePtr->pan = request.robotState.pan;
         currentRobotStatePtr->tilt = request.robotState.tilt;
         currentRobotStatePtr->rotation = request.robotState.rotation;
@@ -801,8 +801,8 @@ public:
 
         //Reconstruct robot configuration for next best camera viewport (once known when estimating its costs) for outpout purposes.
         // TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.
-        RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
-        MILDRobotStatePtr mildState = boost::static_pointer_cast<MILDRobotState>(state);
+        robot_model_services::RobotStatePtr state = mCalculator.getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
+        robot_model_services::MILDRobotStatePtr mildState = boost::static_pointer_cast<robot_model_services::MILDRobotState>(state);
 
         RobotStateMessage robotStateMsg;
         robotStateMsg.pan = mildState->pan;

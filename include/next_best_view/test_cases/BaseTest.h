@@ -40,15 +40,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/ResetCalculator.h"
 #include "next_best_view/UpdatePointCloud.h"
 #include "next_best_view/TriggerFrustumVisualization.h"
-#include "pbd_msgs/PbdAttributedPoint.h"
+#include "asr_msgs/AsrAttributedPoint.h"
+
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/helper/MarkerHelper.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/TypeHelper.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include "robot_model_services/robot_model/impl/MILDRobotModel.hpp"
+#include "robot_model_services/robot_model/impl/MILDRobotModelWithExactIK.hpp"
+#include "robot_model_services/robot_model/impl/MILDRobotState.hpp"
 #include <tf/tf.h>
 
 #include <Eigen/Dense>
