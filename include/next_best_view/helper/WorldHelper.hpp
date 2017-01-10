@@ -50,7 +50,7 @@ namespace next_best_view {
 
         void loadVoxelGrid(std::string filePath);
 
-        void parseXMLFile(const string &filePath, std::vector<string> &meshResources, std::vector<SimpleVector3> &positions,
+        void parseXMLFile(const std::string &filePath, std::vector<std::string> &meshResources, std::vector<SimpleVector3> &positions,
                                                     std::vector<SimpleQuaternion> &orientations, std::vector<SimpleVector3> &scales);
 
         bool parsePoseString(const std::string &poseString, std::vector<double> &poseVec);

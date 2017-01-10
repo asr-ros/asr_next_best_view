@@ -22,39 +22,39 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace next_best_view {
 
     std::ostream& operator<<(std::ostream &strm, const next_best_view::DefaultViewportPoint &p) {
-        strm << "pose: {" << endl << p.getPose() << "}" << endl;
+        strm << "pose: {" << std::endl << p.getPose() << "}" << std::endl;
 
         if (p.score != nullptr)
-            strm << "score: {" << endl << p.score << endl << "}" << endl;
+            strm << "score: {" << std::endl << p.score << std::endl << "}" << std::endl;
         else
-            strm << "score: nullptr" << endl;
+            strm << "score: nullptr" << std::endl;
 
         if (p.child_point_cloud != nullptr)
-            strm << "child_point_cloud.size: " << p.child_point_cloud->size() << endl;
+            strm << "child_point_cloud.size: " << p.child_point_cloud->size() << std::endl;
         else
-            strm << "child_point_cloud: nullptr" << endl;
+            strm << "child_point_cloud: nullptr" << std::endl;
 
         if (p.point_cloud != nullptr)
-            strm << "point_cloud.size: " << p.point_cloud->size() << endl;
+            strm << "point_cloud.size: " << p.point_cloud->size() << std::endl;
         else
-            strm << "point_cloud: nullptr" << endl;
+            strm << "point_cloud: nullptr" << std::endl;
 
         if (p.child_indices != nullptr)
-            strm << "child_indices.size: " << p.child_indices->size() << endl;
+            strm << "child_indices.size: " << p.child_indices->size() << std::endl;
         else
-            strm << "child_indices: nullptr" << endl;
+            strm << "child_indices: nullptr" << std::endl;
 
         if (p.object_type_set != nullptr) {
-            strm << "object_type_set.size: " << p.object_type_set->size() << endl;
-            strm << "object_type_set: {" << endl;
+            strm << "object_type_set.size: " << p.object_type_set->size() << std::endl;
+            strm << "object_type_set: {" << std::endl;
             for (std::string object_type : *p.object_type_set) {
-                strm << "  " << object_type << endl;
+                strm << "  " << object_type << std::endl;
             }
-            strm << "}" << endl;
+            strm << "}" << std::endl;
         }
         else
-            strm << "object_type_set: nullptr" << endl;
-        strm << "oldIdx: " << p.oldIdx << endl;
+            strm << "object_type_set: nullptr" << std::endl;
+        strm << "oldIdx: " << p.oldIdx << std::endl;
         return strm;
     }
 

@@ -294,7 +294,7 @@ namespace next_best_view {
         if (fabs(targetMILDRobotState->y - sourceMILDRobotState->y) < 0.00001 && fabs(targetMILDRobotState->x - sourceMILDRobotState->x) < 0.00001) {
             float rotDiff = targetMILDRobotState->rotation - sourceMILDRobotState->rotation;
 
-            rotationCosts = std::min(fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/ (2.0 * M_PI);
+            rotationCosts = std::min((float)fabs(rotDiff), (float)(2.0f*M_PI-fabs(rotDiff)))/ (2.0 * M_PI);
 
         }
         else {
@@ -304,8 +304,8 @@ namespace next_best_view {
             float sourceRotDiff = sourceMILDRobotState->rotation - angleBetweenPoints;
             float targetRotDiff = targetMILDRobotState->rotation - angleBetweenPoints;
 
-            rotationCosts = std::min(fabs(sourceRotDiff), (float)(2.0f*M_PI-fabs(sourceRotDiff)))
-                                    + std::min(fabs(targetRotDiff), (float)(2.0f*M_PI-fabs(targetRotDiff)));
+            rotationCosts = std::min((float)fabs(sourceRotDiff), (float)(2.0f*M_PI-fabs(sourceRotDiff)))
+                                    + std::min((float)fabs(targetRotDiff), (float)(2.0f*M_PI-fabs(targetRotDiff)));
             rotationCosts /= 2.0 * M_PI;
 
         }

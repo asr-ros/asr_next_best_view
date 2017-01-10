@@ -542,7 +542,7 @@ public:
 
     bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        mConfigLevel = numeric_limits<uint32_t>::max();
+        mConfigLevel = std::numeric_limits<uint32_t>::max();
         initialize();
 
         response.succeeded = true;
@@ -608,7 +608,7 @@ public:
                 responseViewport.pose = unratedViewport.getPose();
                 responseViewport.oldIdx = i;
                 if (unratedViewport.object_type_set->size() > 0) {
-                    responseViewport.object_type_name_list = std::vector<string>(unratedViewport.object_type_set->size());
+                    responseViewport.object_type_name_list = std::vector<std::string>(unratedViewport.object_type_set->size());
                     std::copy(unratedViewport.object_type_set->begin(),
                               unratedViewport.object_type_set->end(),
                               responseViewport.object_type_name_list.begin());
@@ -619,7 +619,7 @@ public:
                 responseViewport.pose = ratedViewport.getPose();
                 responseViewport.oldIdx = i;
                 if (ratedViewport.object_type_set->size() > 0) {
-                    responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
+                    responseViewport.object_type_name_list = std::vector<std::string>(ratedViewport.object_type_set->size());
                     std::copy(ratedViewport.object_type_set->begin(),
                               ratedViewport.object_type_set->end(),
                               responseViewport.object_type_name_list.begin());
@@ -849,7 +849,7 @@ public:
             objects += object;
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
+    //    mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
         // convert data types

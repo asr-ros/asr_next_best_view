@@ -203,7 +203,7 @@ void WorldHelper::loadVoxelGrid(std::string filePath)
     mVisHelperPtr->triggerVoxelGridVisualization(mVoxelGridHelperPtr, mWorldVoxelSize);
 }
 
-void WorldHelper::parseXMLFile(const string &filePath, std::vector<std::string> &meshResources,
+void WorldHelper::parseXMLFile(const std::string &filePath, std::vector<std::string> &meshResources,
                                                             std::vector<SimpleVector3> &positions,
                                                             std::vector<SimpleQuaternion> &orientations,
                                                             std::vector<SimpleVector3> &scales)
@@ -277,7 +277,7 @@ void WorldHelper::parseXMLFile(const string &filePath, std::vector<std::string> 
 
 }
 
-bool WorldHelper::parsePoseString(const string &poseString, std::vector<double> &poseVec)
+bool WorldHelper::parsePoseString(const std::string &poseString, std::vector<double> &poseVec)
 {
     poseVec.clear();
 
@@ -301,7 +301,7 @@ bool WorldHelper::parsePoseString(const string &poseString, std::vector<double> 
     return true;
 }
 
-string WorldHelper::getAbsolutePath(string filePath)
+std::string WorldHelper::getAbsolutePath(std::string filePath)
 {
     std::string result;
     if (boost::starts_with(filePath, "package://"))

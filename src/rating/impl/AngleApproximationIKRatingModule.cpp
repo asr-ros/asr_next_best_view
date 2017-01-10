@@ -42,7 +42,7 @@ namespace next_best_view {
         if (targetRotDiff <= 0) {targetRotDiff += 2.0*M_PI;}
 
         //Calculate costs, take costs for turning left oder right, depending on which ones better
-        double rotationCosts = std::min(fabs(targetRotDiff), (float)(2.0f*M_PI-fabs(targetRotDiff))) + std::min(fabs(sourceRotDiff), (float)(2.0f*M_PI-fabs(sourceRotDiff)));
+        double rotationCosts = std::min((float)fabs(targetRotDiff), (float)(2.0f*M_PI-fabs(targetRotDiff))) + std::min((float)fabs(sourceRotDiff), (float)(2.0f*M_PI-fabs(sourceRotDiff)));
 
         double rating = pow(0.6, rotationCosts);
         return rating;
