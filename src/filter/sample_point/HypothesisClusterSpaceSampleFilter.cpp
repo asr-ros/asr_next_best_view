@@ -17,10 +17,38 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
-#include "next_best_view/cluster/ClusterExtraction.hpp"
+#include "next_best_view/filter/sample_point/HypothesisClusterSpaceSampleFilter.hpp"
 
 namespace next_best_view {
-    ClusterExtraction::ClusterExtraction() { }
 
-    ClusterExtraction::~ClusterExtraction() { }
+    HypothesisClusterSpaceSampleFilter::HypothesisClusterSpaceSampleFilter(const ClusterExtractionPtr &ce, float offset) : mClusterExtraction(ce), mOffset(offset) { }
+
+    HypothesisClusterSpaceSampleFilter::~HypothesisClusterSpaceSampleFilter() { }
+
+    void HypothesisClusterSpaceSampleFilter::doFiltering(IndicesPtr &resultIndicesPtr) {
+        // if indices is not set we will use all points
+        SamplePointCloudPtr samplesPtr = getInputPointCloud();
+        IndicesPtr samplesIndicesPtr = getInputPointIndices();
+
+        // get clusters and expand them by an offset (fcp)
+        BoundingBoxPtrsPtr clustersPtr = mClusterExtraction->getClusters();
+        BoundingBoxPtrsPtr expandedClustersPtr(new BoundingBoxPtrs());
+        for (BoundingBoxPtr &clusterPtr : *clustersPtr) {
+            BoundingBoxPtr bbPtr = BoundingBoxPtr(new BoundingBox(clusterPtr->minPos, clusterPtr->maxPos));
+            bbPtr->expand(SimpleVector3(mOffset, mOffset, 0));
+            bbPtr->ignoreAxis(2);
+            expandedClustersPtr->push_back(bbPtr);
+        }
+
+        // go through all samples
+        for (int idx : *samplesIndicesPtr) {
+            // if sample is in a cluster, add it to result/ret vec
+            for (BoundingBoxPtr &cluster : *expandedClustersPtr) {
+                if (cluster->contains(samplesPtr->at(idx).getSimpleVector3())) {
+                    resultIndicesPtr->push_back(idx);
+                    break;
+                }
+            }
+        }
+    }
 }

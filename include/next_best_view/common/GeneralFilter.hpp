@@ -137,7 +137,7 @@ namespace next_best_view {
 
 
 				// do the filtering
-				mPreFilter->doFiltering(indicesPtr);
+                mPreFilter->filter(indicesPtr);
 
 				// set the indices of the filter to the already filtered indices and reset the return indices pointer.
                 this->setInputPointIndices(indicesPtr);
@@ -163,7 +163,7 @@ namespace next_best_view {
                 mPostFilter->setInputPointIndices(indicesPtr);
 
 				indicesPtr = IndicesPtr(new Indices());
-				mPostFilter->doFiltering(indicesPtr);
+                mPostFilter->filter(indicesPtr);
                 mDebugHelperPtr->write("Ended post filtering", DebugHelper::FILTER);
 			}
 		}

@@ -46,6 +46,7 @@ namespace next_best_view {
         for (BoundingBoxPtr &bbPtr : *hypothesesBBPtrsPtr) {
             BoundingBoxPtr expandedBBPtr(new BoundingBox(*bbPtr));
             expandedBBPtr->expand(SimpleVector3(mOffset, mOffset, 0));
+            expandedBBPtr->ignoreAxis(2);
             expandedBBPtrsPtr->push_back(expandedBBPtr);
         }
 

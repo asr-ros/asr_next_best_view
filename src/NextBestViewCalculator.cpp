@@ -86,7 +86,7 @@ namespace next_best_view {
         }
 
         auto finish = std::chrono::high_resolution_clock::now();
-        // cast timediff to flaot in seconds
+        // cast timediff to float in seconds
         ROS_INFO_STREAM("nbv calculation took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
         mDebugHelperPtr->writeNoticeably("ENDING CALCULATE-NEXT-BEST-VIEW METHOD", DebugHelper::CALCULATION);
         return success;
@@ -287,6 +287,11 @@ namespace next_best_view {
         while (ros::ok()) {
             ViewportPoint intermediateResultViewport;
 
+            if (intermediateResultViewport.score) {
+                ROS_INFO_STREAM("magic");
+            }
+
+            auto begin = std::chrono::high_resolution_clock::now();
             //Contractor is always divided by two.
             if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
                                        sampledOrientationsPtr, 1.0 / pow(2.0, iterationStep),
@@ -295,14 +300,23 @@ namespace next_best_view {
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
                 return false;
             }
+            auto finish = std::chrono::high_resolution_clock::now();
+            // cast timediff to float in seconds
+            ROS_INFO_STREAM("nbv iteration step took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
             //Iteration step must be increased before the following check.
             iterationStep ++;
             float rating = mRatingModulePtr->getRating(intermediateResultViewport.score);
+            if (currentBestViewport.score)
+                ROS_INFO_STREAM("currentBestViewport.score->getUtilityNormalization" << currentBestViewport.score->getUtilityNormalization());
+            ROS_INFO_STREAM("intermediateResultViewport.score->getUtilityNormalization" << intermediateResultViewport.score->getUtilityNormalization());
             if (currentBestViewport.score && currentBestViewport.score->getUtilityNormalization() < intermediateResultViewport.score->getUtilityNormalization()) {
                 // utility normalization increased, so we have to adapt out current rating
-                currentBestViewport.score->setUtilityNormalization(intermediateResultViewport.score->getUtilityNormalization());
+                DefaultRatingModulePtr defRatingModulePtr = boost::static_pointer_cast<DefaultRatingModule>(mRatingModulePtr);
+                defRatingModulePtr->updateUtilityNormalization(currentBestViewport, intermediateResultViewport.score->getUtilityNormalization());
+                ROS_INFO_STREAM("rating before: " << currentBestRating);
                 currentBestRating = mRatingModulePtr->getRating(currentBestViewport.score);
+                ROS_INFO_STREAM("rating after: " << currentBestRating);
             }
             mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
                                    DebugHelper::CALCULATION);
@@ -337,7 +351,7 @@ namespace next_best_view {
         return false;
     }
 
-    bool NextBestViewCalculator::doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
+    bool NextBestViewCalculator::doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint currentBestViewport,
                                                  const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                                                  ViewportPoint &resultViewport, int iterationStep) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
@@ -347,7 +361,10 @@ namespace next_best_view {
 
 
         ViewportPointCloudPtr sampleNextBestViewports;
-        if (!mEnableGA || iterationStep < mMinIterationGA) {
+        if (iterationStep == 0 && mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
+            // we rated the same pc before, so we can use utility to get a first good set
+            sampleNextBestViewports = mNBVCachePtr->getAllBestUtilityViewports();
+        } else if (!mEnableGA || iterationStep < mMinIterationGA) {
             // we do normal sampling
             //Calculate grid for resolution given in this iteration step.
             SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
@@ -396,17 +413,17 @@ namespace next_best_view {
             bool foundUtility = false;
             BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
                 if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
-                    resultViewport = ratedViewport;
+                    resultViewport = ViewportPoint(ratedViewport);
                     foundUtility = true;
                     break;
                 }
             }
             if (!foundUtility) {
                 ROS_WARN_STREAM("every nbv has too little utility");
-                resultViewport = ratedNextBestViewportsPtr->back();
+                resultViewport = ViewportPoint(ratedNextBestViewportsPtr->back());
             }
         } else {
-            resultViewport = ratedNextBestViewportsPtr->back();
+            resultViewport = ViewportPoint(ratedNextBestViewportsPtr->back());
         }
 
         if (mCacheResults) {
@@ -417,8 +434,8 @@ namespace next_best_view {
         //        mVisHelperPtr->triggerSamplingVisualization(ratedNextBestViewportsPtr, Color(1, 0, 0, 1), "ratedViewports");
 
         //Visualize iteration step and its result.
-        mVisHelperPtr->triggerIterationVisualization(iterationStep, sampledOrientationsPtr, resultViewport,
-                                                     ratedNextBestViewportsPtr, mSpaceSamplerPtr);
+        mVisHelperPtr->triggerIterationVisualization(iterationStep, resultViewport,
+                                                     sampleNextBestViewports, ratedNextBestViewportsPtr, mSpaceSamplerPtr);
 
         mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
         return true;
@@ -607,8 +624,6 @@ namespace next_best_view {
                                    DebugHelper::CALCULATION);
         }
 
-        // TODO: generate cluster if enabled
-
         this->setPointCloudPtr(outputPointCloudPtr);
 
         if (mRemoveInvalidNormals) {
@@ -726,7 +741,6 @@ namespace next_best_view {
         this->setHeight(sampledSpacePointCloudPtr, pointCloudHeight);
 
         // generate all indices
-        // TODO: filterchain class/setpostfilter/add option to disable filters
         IndicesPtr resultIndicesPtr(new Indices(sampledSpacePointCloudPtr->size()));
         boost::range::iota(boost::iterator_range<Indices::iterator>(resultIndicesPtr->begin(), resultIndicesPtr->end()), 0);
         IndicesPtr filteredIndicesPtr;
@@ -735,7 +749,7 @@ namespace next_best_view {
         auto begin = std::chrono::high_resolution_clock::now();
         mSpaceSamplingFilterChainPtr->filter(filteredIndicesPtr);
         auto finish = std::chrono::high_resolution_clock::now();
-        // cast timediff to flaot in seconds
+        // cast timediff to float in seconds
         ROS_INFO_STREAM("space sample filter chain took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
         return SamplePointCloudPtr(new SamplePointCloud(*sampledSpacePointCloudPtr, *filteredIndicesPtr));
@@ -1272,5 +1286,13 @@ namespace next_best_view {
 
     void NextBestViewCalculator::setEnableGA(bool enableGA) {
         mEnableGA = enableGA;
+    }
+
+    NextBestViewCachePtr NextBestViewCalculator::getNBVCachePtr() const {
+        return mNBVCachePtr;
+    }
+
+    void NextBestViewCalculator::setNBVCachePtr(const NextBestViewCachePtr &nbvCachePtr) {
+        mNBVCachePtr = nbvCachePtr;
     }
 }

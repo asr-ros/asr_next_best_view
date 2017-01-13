@@ -17,10 +17,27 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
-#include "next_best_view/cluster/ClusterExtraction.hpp"
+#include "next_best_view/filter/sample_point/MapSpaceSampleFilter.hpp"
 
 namespace next_best_view {
-    ClusterExtraction::ClusterExtraction() { }
 
-    ClusterExtraction::~ClusterExtraction() { }
+    MapSpaceSampleFilter::MapSpaceSampleFilter(const MapHelperPtr &mapHelperPtr) : mMapHelperPtr(mapHelperPtr) { }
+
+    MapSpaceSampleFilter::~MapSpaceSampleFilter() { }
+
+    void MapSpaceSampleFilter::doFiltering(IndicesPtr &resultIndicesPtr) {
+        // if indices is not set we will use all points
+        SamplePointCloudPtr samplesPtr = getInputPointCloud();
+        IndicesPtr samplesIndicesPtr = getInputPointIndices();
+
+        // go through all samples
+        for (int idx : *samplesIndicesPtr) {
+            // if sample is in map, add it to result/ret vec
+            if (mMapHelperPtr->isOccupancyValueAcceptable(
+                        mMapHelperPtr->getRaytracingMapOccupancyValue(
+                            samplesPtr->at(idx).getSimpleVector3()))) {
+                resultIndicesPtr->push_back(idx);
+            }
+        }
+    }
 }

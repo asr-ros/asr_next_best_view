@@ -167,8 +167,8 @@ add_library(
         src/pcl/RealObjectPoint.cpp
         src/pcl/SpaceSamplePoint.cpp
         src/pcl/BoundingBox.cpp
-        src/NextBestViewCalculator.cpp
         src/NextBestViewCache.cpp
+        src/NextBestViewCalculator.cpp
         src/NextBestViewPrediction.cpp
         src/GeneticAlgorithm.cpp
 )

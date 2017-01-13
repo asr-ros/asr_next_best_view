@@ -226,6 +226,16 @@ namespace next_best_view {
          */
         void resetCache();
 
+        /**
+         * @brief updateUtilityNormalization
+         * @param viewports
+         * @param utilityNormalization
+         */
+        void updateUtilityNormalization(ViewportPointCloudPtr &viewports, float utilityNormalization);
+
+
+        void updateUtilityNormalization(ViewportPoint &viewport, float utilityNormalization);
+
     private:
         /*!
          * \brief returns the normalized rating for a given deviation from the optimum and a threshold for the deviation.

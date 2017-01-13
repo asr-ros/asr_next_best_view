@@ -33,13 +33,13 @@ namespace next_best_view {
             xWidth = abs(maxPos[0] - minPos[0]);
             yWidth = abs(maxPos[1] - minPos[1]);
             height = abs(maxPos[2] - minPos[2]);
-            refreshSize(minPos, maxPos);
+            refreshSize();
         }
 
         BoundingBox(BoundingBox &bb) {
             minPos = bb.minPos;
             maxPos = bb.maxPos;
-            refreshSize(minPos, maxPos);
+            refreshSize();
         }
 
         BoundingBox(const BoundingBoxPtrsPtr &boundingBoxes) {
@@ -59,7 +59,7 @@ namespace next_best_view {
             }
             minPos = SimpleVector3(minX, minY, minZ);
             maxPos = SimpleVector3(maxX, maxY, maxZ);
-            refreshSize(minPos, maxPos);
+            refreshSize();
         }
 
         BoundingBox(SimpleVector3CollectionPtr vertices) {
@@ -80,13 +80,17 @@ namespace next_best_view {
             }
             minPos = SimpleVector3(minX, minY, minZ);
             maxPos = SimpleVector3(maxX, maxY, maxZ);
-            refreshSize(minPos, maxPos);
+            refreshSize();
         }
 
         bool contains(SimpleVector3 v) {
             return (xWidth < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0])) &&
-                    (yWidth < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0])) &&
-                    (height < 0.00001 || (minPos[0] <= v[0] && v[0] <= maxPos[0]));
+                    (yWidth < 0.00001 || (minPos[1] <= v[1] && v[1] <= maxPos[1])) &&
+                    (height < 0.00001 || (minPos[2] <= v[2] && v[2] <= maxPos[2]));
+        }
+
+        SimpleVector3 getCentroid() const {
+            return SimpleVector3(minPos[0] + xWidth / 2.0, minPos[1] + yWidth / 2.0, minPos[2] + height / 2.0);
         }
 
         /**
@@ -100,10 +104,16 @@ namespace next_best_view {
             maxPos[0] += v[0];
             maxPos[1] += v[1];
             maxPos[2] += v[2];
-            refreshSize(minPos, maxPos);
+            refreshSize();
         }
 
-        void refreshSize(SimpleVector3 minPos, SimpleVector3 maxPos) {
+        void ignoreAxis(int axis) {
+            maxPos[axis] = 0;
+            minPos[axis] = 0;
+            refreshSize();
+        }
+
+        void refreshSize() {
             xWidth = abs(maxPos[0] - minPos[0]);
             yWidth = abs(maxPos[1] - minPos[1]);
             height = abs(maxPos[2] - minPos[2]);

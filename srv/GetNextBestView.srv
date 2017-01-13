@@ -8,7 +8,6 @@ geometry_msgs/Pose resulting_pose
 next_best_view/RobotStateMessage robot_state
 float32 rating
 # utility
-string score_container
 float32 utility
 float32 unnormalized_utility
 float32 utility_normalization

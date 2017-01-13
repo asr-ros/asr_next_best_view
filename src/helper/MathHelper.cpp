@@ -200,6 +200,13 @@ namespace next_best_view {
                 abs(v1[2] - v2[2]) < 0.0001;
     }
 
+    bool MathHelper::quatEqual(SimpleQuaternion q1, SimpleQuaternion q2) {
+        return abs(q1.x() - q2.x()) < 0.0001 &&
+                abs(q1.y() - q2.y()) < 0.0001 &&
+                abs(q1.z() - q2.z()) < 0.0001 &&
+                abs(q1.w() - q2.w()) < 0.0001;
+    }
+
     /**
     * @brief isSubSetOf opposite of isSuperSetOf
     * @param indexSetSub

@@ -89,6 +89,19 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     return success;
 }
 
+void DefaultRatingModule::updateUtilityNormalization(ViewportPointCloudPtr &viewports, float utilityNormalization) {
+    BOOST_FOREACH(ViewportPoint &viewport, *viewports) {
+        updateUtilityNormalization(viewport, utilityNormalization);
+    }
+}
+
+void DefaultRatingModule::updateUtilityNormalization(ViewportPoint &viewport, float utilityNormalization) {
+    viewport.score->setUtilityNormalization(utilityNormalization);
+
+    float weightedNormalizedUtility = mOmegaUtility * viewport.score->getUnweightedUnnormalizedUtility() / utilityNormalization;
+    viewport.score->setWeightedNormalizedUtility(weightedNormalizedUtility);
+}
+
 bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
     mDebugHelperPtr->writeNoticeably("STARTING DEFAULTRATINGMODULE::GET-BEST-VIEWPORT METHOD",
                 DebugHelper::RATING);
@@ -110,12 +123,7 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
         }
     }
 
-    BOOST_FOREACH(ViewportPoint viewport, *viewports) {
-        viewport.score->setUtilityNormalization(utilityNormalization);
-
-        float weightedNormalizedUtility = mOmegaUtility * viewport.score->getUnweightedUnnormalizedUtility() / utilityNormalization;
-        viewport.score->setWeightedNormalizedUtility(weightedNormalizedUtility);
-    }
+    updateUtilityNormalization(viewports, utilityNormalization);
 
     // sort the viewports by rating
     if (mDebugHelperPtr->getLevel() & DebugHelper::RATING) {

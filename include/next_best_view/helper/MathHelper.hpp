@@ -177,6 +177,8 @@ namespace next_best_view {
 
         static bool vector3Equal(SimpleVector3 v1, SimpleVector3 v2);
 
+        static bool quatEqual(SimpleQuaternion q1, SimpleQuaternion q2);
+
         /**
          * @brief isSubSetOf opposite of isSuperSetOf
          * @param indexSetSub

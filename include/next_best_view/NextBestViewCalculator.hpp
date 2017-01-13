@@ -42,6 +42,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/unit_sphere_sampler/UnitSphereSampler.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
+#include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "next_best_view/rating/RatingModuleAbstractFactory.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include "next_best_view/cluster/ClusterExtraction.hpp"
@@ -54,6 +55,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
+#include "next_best_view/helper/MathHelper.hpp"
 
 namespace next_best_view {
 
@@ -242,7 +244,7 @@ private:
 
     bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport);
 
-    bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint &currentBestViewport,
+    bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint currentBestViewport,
                          const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, float contractor,
                          ViewportPoint &resultViewport, int iterationStep);
 
@@ -581,6 +583,10 @@ public:
     bool getEnableGA() const;
 
     void setEnableGA(bool enableGA);
+
+    NextBestViewCachePtr getNBVCachePtr() const;
+
+    void setNBVCachePtr(const NextBestViewCachePtr &nbvCachePtr);
 };
 
 }

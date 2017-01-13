@@ -21,8 +21,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "typedef.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
+#include "next_best_view/NextBestViewCache.hpp"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/cluster/ClusterExtraction.hpp"
+
+#include "next_best_view/space_sampler/impl/HexagonSpaceSamplePattern.hpp"
 
 namespace next_best_view {
 
@@ -32,27 +35,51 @@ namespace next_best_view {
     class GeneticAlgorithm {
     private:
         // pair<double, std::vector<Eigen::matrix3f>> is the radius in angle (double) and a number of rotations around radius
-        std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesXAxisPerRadius;
-        std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> mRotationMatricesYAxisPerRadius;
         std::vector<std::pair<double, std::vector<SimpleVector3>>> mPositionOffsetsPerRadius;
         NextBestViewCalculatorPtr mNBVCalcPtr;
+        NextBestViewCachePtr mNBVCachePtr;
         MapHelperPtr mMapHelperPtr;
         ClusterExtractionPtr mClusterExtractionPtr;
+        int mImprovmentIterationSteps;
+        float mMaxAngle;
+        float mRadius;
         int mMinIterationGA;
 
+        HexagonSpaceSamplePatternPtr mSpaceSamplerPtr;
+
     public:
-        GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
+        GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
 
         ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
+
+        float getMaxAngle() const;
+
+        void setMaxAngle(float maxAngle);
+
+        float getRadius() const;
+
+        void setRadius(float radius);
+
+        int getImprovmentIterationSteps() const;
+
+        void setImprovmentIterationSteps(int iterationSteps);
 
     private:
         ViewportPointCloudPtr selection(const ViewportPointCloudPtr &in, int iterationStep);
 
         ViewportPointCloudPtr mutate(const ViewportPointCloudPtr &in, int iterationStep);
 
-        void setRotationMatrices(int iterationSteps, double maxAngle);
+        /**
+         * @brief selectFromSortedViewports this method handles in as a sorted vector, without knowing the sorting function.
+         * @param in the sorted samples to select from
+         * @param iterationStep used to converge faster
+         * @return
+         */
+        ViewportPointCloudPtr selectFromSortedViewports(const ViewportPointCloudPtr &in, int iterationStep);
 
-        void setPositionOffsets(int iterationSteps, double radius);
+        std::vector<SimpleQuaternion> calculateRotationMatrices(SimpleVector3 dirVector, int iterationStep);
+
+        void setPositionOffsets();
     };
     typedef boost::shared_ptr<GeneticAlgorithm> GeneticAlgorithmPtr;
 }

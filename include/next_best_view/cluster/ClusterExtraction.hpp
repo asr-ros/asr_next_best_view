@@ -31,13 +31,6 @@ namespace next_best_view {
         virtual ~ClusterExtraction();
 
         virtual BoundingBoxPtrsPtr getClusters() = 0;
-
-        /**
-         * @brief isInCluster checks if v is in a cluster of getClusters()
-         * @param v
-         * @return
-         */
-        bool isInCluster(SimpleVector3 v);
     };
     typedef boost::shared_ptr<ClusterExtraction> ClusterExtractionPtr;
 }

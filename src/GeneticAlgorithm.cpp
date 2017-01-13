@@ -20,191 +20,293 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/GeneticAlgorithm.hpp"
 #include "boost/range/irange.hpp"
 #include <chrono>
+#include <algorithm>
 
 namespace next_best_view {
 
-    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
+    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
         : mNBVCalcPtr(nbvCalcPtr),
+          mNBVCachePtr(nbvCachePtr),
           mMapHelperPtr(mapHelperPtr),
           mClusterExtractionPtr(clusterExtractionPtr),
-          mMinIterationGA(minIterationGA) {
-        setRotationMatrices(improvementIterations, improvementAngle);
-        setPositionOffsets(improvementIterations, radius);
+          mMinIterationGA(minIterationGA),
+          mSpaceSamplerPtr(new HexagonSpaceSamplePattern()) {
+        setRadius(radius);
+        setMaxAngle(improvementAngle);
+        setImprovmentIterationSteps(improvementIterations);
+        setPositionOffsets();
+        mSpaceSamplerPtr->setRadius(0.01);
     }
 
     ViewportPointCloudPtr GeneticAlgorithm::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
         auto begin = std::chrono::high_resolution_clock::now();
-        auto newViewports = mutate(selection(samples, iterationStep), iterationStep);
+        auto selectedViewports = selection(samples, iterationStep);
         auto finish = std::chrono::high_resolution_clock::now();
+        ROS_INFO_STREAM("selection took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+
+        begin = std::chrono::high_resolution_clock::now();
+        auto newViewports = mutate(selectedViewports, iterationStep);
+        finish = std::chrono::high_resolution_clock::now();
         // cast timediff to float in seconds
-        ROS_INFO_STREAM("select and mutate took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+        ROS_INFO_STREAM("mutate took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
         return newViewports;
     }
 
     ViewportPointCloudPtr GeneticAlgorithm::selection(const ViewportPointCloudPtr &in, int iterationStep) {
         ViewportPointCloudPtr result(new ViewportPointCloud());
-        // most simple selection: we take the best 20 ones
-        // TODO: maybe use cluster information to generate per cluster? might be useful for prediction/keep other options
+        // TODO: we ignore in, which is the alternative if nbvCache is not used.
+        ViewportPointCloudPtr bestUtilityViewports = mNBVCachePtr->getAllBestUtilityViewports();
+        ViewportPointCloudPtr bestRatingViewports = mNBVCachePtr->getAllBestRatingViewports();
+        *result += *selectFromSortedViewports(bestRatingViewports, iterationStep);
+        *result += *selectFromSortedViewports(bestUtilityViewports, iterationStep);
+        return result;
+    }
+
+    ViewportPointCloudPtr GeneticAlgorithm::selectFromSortedViewports(const ViewportPointCloudPtr &population, int iterationStep) {
+        ViewportPointCloudPtr selection(new ViewportPointCloud());
+
+        // bbs, the location where selection must be in
         BoundingBoxPtrsPtr bbs = mClusterExtractionPtr->getClusters();
-        std::vector<unsigned int> samplesPerBB(bbs->size());
+
+        // samplesPerBB[bbIdx] --> selected viewports in bb as vector<ViewportPoint>
+        std::vector<std::vector<ViewportPoint>> samplesPerBB(bbs->size());
         for (unsigned int i = 0; i < bbs->size(); i++) {
-            samplesPerBB[i] = 0;
+            samplesPerBB[i] = std::vector<ViewportPoint>();
         }
-        float radius = 0.07 * pow(2, -(iterationStep - mMinIterationGA));
-        radius = max(0.07f, radius);
-        unsigned int nViewports = 10;// * pow(2, -(iterationStep - mMinIterationGA));
-        nViewports = max(static_cast<unsigned int>(1), nViewports);
-        BOOST_REVERSE_FOREACH (ViewportPoint &p, *in) {
+
+        // this is a sorted vector of the best bbs, bbs are described by their index.
+        // we just consider the best viewport of a bb.
+        std::vector<int> bbIdxRatingOrder;
+
+        // all selected viewports of all bbs, to check we don't select some that are too close to each other
+        ViewportPointCloudPtr allSelectedViewports(new ViewportPointCloud());
+
+
+        // some parameters to converge faster with increasing iterations.
+        float selectedViewportsInterspacing = 0.07 * pow(2, -(iterationStep - mMinIterationGA));
+        selectedViewportsInterspacing = max(0.07f, selectedViewportsInterspacing);
+        unsigned int nViewportsToSelectPerBB = 1 * pow(2, -(iterationStep - mMinIterationGA));
+        nViewportsToSelectPerBB = max(static_cast<unsigned int>(1), nViewportsToSelectPerBB);
+        BOOST_REVERSE_FOREACH (ViewportPoint &p, *population) {
             int bbIdx = 0;
             bool pHasHypothesisInMissingBB = false;
             bool haveEnoughSamples = true;
             // make sure new viewport is not too close to other selected viewports
-            for (ViewportPoint &goodHeuristicViewport : *result) {
-                if ((goodHeuristicViewport.getPosition() - p.getPosition()).lpNorm<2>() < radius) {
-                    goto nextViewport;
+            bool pIsTooCloseToAnotherSelected = false;
+            for (ViewportPoint &goodHeuristicViewport : *allSelectedViewports) {
+                if ((goodHeuristicViewport.getPosition() - p.getPosition()).lpNorm<2>() < selectedViewportsInterspacing) {
+                    pIsTooCloseToAnotherSelected = true;
                 }
             }
-            // check if viewport contains a hypothesis in a bb where we need more samples
+            if (pIsTooCloseToAnotherSelected) {
+                continue;
+            }
+            // check if viewport p covers a hypothesis in a bb with idx bbIdx where we need more samples.
             for (BoundingBoxPtr &bbPtr : *bbs) {
-                if (samplesPerBB[bbIdx] >= nViewports) {
+                if (samplesPerBB[bbIdx].size() >= nViewportsToSelectPerBB) {
                     bbIdx ++;
-                    continue; // we have enough samples for the bb
+                    continue; // we have enough samples for the bb with idx bbIdx
                 }
                 for (int hypothesisIndex : *p.child_indices) {
                     ObjectPoint hypothesis = p.child_point_cloud->at(hypothesisIndex);
                     if (bbPtr->contains(hypothesis.getPosition())) {
-                        samplesPerBB[bbIdx] ++;
+                        if (std::find(bbIdxRatingOrder.begin(), bbIdxRatingOrder.end(), bbIdx) == bbIdxRatingOrder.end()) {
+                            // if we havn't added a viewport to bb with idx bbIdx we add bbIdx to the end of bbIdxRatingOrder to get the order of rated bbs.
+                            bbIdxRatingOrder.push_back(bbIdx);
+                        }
+                        samplesPerBB[bbIdx].push_back(p);
+                        allSelectedViewports->push_back(p);
                         pHasHypothesisInMissingBB = true;
                         break;
                     }
                 }
+                if (pHasHypothesisInMissingBB) {
+                    // we have found a bb that needs a viewport, so we skip other bbs
+                    // since we assume bbs don't intersect.
+                    // If they would intersect, they should be in the same cluster/bb.
+                    break;
+                }
                 bbIdx ++;
-            }
-            if (pHasHypothesisInMissingBB) {
-                result->push_back(p);
             }
             // check if we have enough samples and can stop selection
             for (unsigned int i = 0; i < bbs->size(); i++) {
-                if (samplesPerBB[i] < nViewports) {
+                if (samplesPerBB[i].size() < nViewportsToSelectPerBB) {
+                    // if bb i does not have enough viewports, we still have to continue
                     haveEnoughSamples = false;
                 }
             }
             if (haveEnoughSamples) {
                 break;
             }
-            nextViewport:;
         }
-        return result;
+        // number of bbs where we select from
+        int nBBsToSelectFrom = INT_MAX;
+        if (iterationStep - mMinIterationGA > 3) {
+            // if we iterated 4 or more times we generate samples from only 1 bb
+            nBBsToSelectFrom = 1;
+        }
+        // number of bbs added to selection
+        int nBBsAdded = 0;
+        for (int &bbIdx : bbIdxRatingOrder) {
+            std::vector<ViewportPoint> &samplesOfABB = samplesPerBB[bbIdx];
+            if (nBBsAdded >= nBBsToSelectFrom) {
+                // we selected enough bbs
+                break;
+            }
+            // add all samples of the bb to selection.
+            for (ViewportPoint vp : samplesOfABB) {
+                selection->push_back(vp);
+            }
+            nBBsAdded++;
+        }
+        return selection;
     }
 
-    ViewportPointCloudPtr GeneticAlgorithm::mutate(const ViewportPointCloudPtr &in, int iterationStep) {
-        ViewportPointCloudPtr result(new ViewportPointCloud());
-        std::vector<SimpleVector3> positionOffsets = mPositionOffsetsPerRadius.at(iterationStep % mPositionOffsetsPerRadius.size()).second;
-        for (ViewportPoint &goodRatedViewportPoint : *in) {
+    ViewportPointCloudPtr GeneticAlgorithm::mutate(const ViewportPointCloudPtr &selection, int iterationStep) {
+        ViewportPointCloudPtr mutatedSamples(new ViewportPointCloud());
+        for (ViewportPoint &goodRatedViewportPoint : *selection) {
             // viewport itself, no/identity mutation
-            result->push_back(goodRatedViewportPoint);
+            mutatedSamples->push_back(goodRatedViewportPoint);
 
             // get direction vector and rotationMatrices
             SimpleVector3 dirVector = MathHelper::quatToDir(goodRatedViewportPoint.getSimpleQuaternion());
-            std::vector<std::pair<double, std::vector<Eigen::Matrix3f>>> rotationMatricesPerRadius;
-            if (dirVector[0] > dirVector[1]) {
-                // if x value is greater than y value
-                // rotate around y axis
-                rotationMatricesPerRadius = mRotationMatricesYAxisPerRadius;
-            } else {
-                rotationMatricesPerRadius = mRotationMatricesXAxisPerRadius;
-            }
-            std::vector<Eigen::Matrix3f> rotationMatrices = rotationMatricesPerRadius.at(iterationStep % rotationMatricesPerRadius.size()).second;
 
-            // do the mutation on goodRatedViewport
-            for (SimpleVector3 &positionOffset : positionOffsets) {
-                SimpleVector3 pos = goodRatedViewportPoint.getPosition() + positionOffset;
-                if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(pos))) {
-                    // if the new position can't be reached we should not keep the mutation
-                    continue;
-                }
+            // with this loop we can adapt the range of modifications,
+            // (0, mImprovementIterationSteps) would do all modifications in each step which is pretty costy and not really worth it < 0.01% improvement
+            for (int i : boost::irange(iterationStep, iterationStep + 1)) {
+                std::vector<SimpleQuaternion> rotationMatrices = calculateRotationMatrices(dirVector, i);
+                std::vector<SimpleVector3> positionOffsets = mPositionOffsetsPerRadius.at(i).second;
 
-                for (Eigen::Matrix3f &rotationMatrix : rotationMatrices) {
-                    SimpleVector3 orientation = rotationMatrix * dirVector;
-                    SimpleQuaternion quat = MathHelper::dirToQuat(orientation);
+                // do the mutation on goodRatedViewport
+                for (SimpleVector3 &positionOffset : positionOffsets) { // for each position transformation
+                    SimpleVector3 pos = goodRatedViewportPoint.getPosition() + positionOffset;
+                    if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(pos))) {
+                        // if the new position can't be reached we should not keep the mutation
+                        continue;
+                    }
 
-                    // copy viewportPoint, but change quat
-                    ViewportPoint viewport(pos, quat);
-                    // TODO: determine real hypothesis/use kdtreefilter/is it worth?
-//                    IndicesPtr hypothesisNearby;
-//                    if (!getFeasibleHypothesis(pos, hypothesisNearby)) {
-//                        continue;
-//                    }
-                    //viewport.child_indices = goodRatedViewportPoint.child_indices;
-                    viewport.point_cloud = goodRatedViewportPoint.point_cloud;
-                    viewport.object_type_set = goodRatedViewportPoint.object_type_set;
-                    viewport.oldIdx = 0;
-                    result->push_back(viewport);
+                    for (SimpleQuaternion &rotationMatrix : rotationMatrices) { // for each rotation transformation
+                        // SimpleVector3 orientation = rotationMatrix * dirVector;
+                        SimpleQuaternion quat = rotationMatrix * goodRatedViewportPoint.getSimpleQuaternion();//MathHelper::dirToQuat(orientation);
+
+                        // copy viewportPoint, but change quat
+                        ViewportPoint viewport(pos, quat);
+                        // determine real hypothesis/use kdtreefilter/is it worth? no it is not, no improvement at all
+                        viewport.child_indices = goodRatedViewportPoint.child_indices;
+                        viewport.point_cloud = goodRatedViewportPoint.point_cloud;
+                        viewport.object_type_set = goodRatedViewportPoint.object_type_set;
+                        viewport.oldIdx = 0;
+                        mutatedSamples->push_back(viewport);
+                    }
                 }
             }
         }
-        IndicesPtr feasibleMutatedViewportIndices;
-        ROS_INFO_STREAM("mNBVCalcPtr: " << mNBVCalcPtr);
-        mNBVCalcPtr->getFeasibleViewports(result, feasibleMutatedViewportIndices);
-        if (feasibleMutatedViewportIndices->size() != result->size()) {
-            ROS_INFO_STREAM("we generated some non feasible mutated viewports");
-            result = ViewportPointCloudPtr(new ViewportPointCloud(*result, *feasibleMutatedViewportIndices));
-        }
-        return result;
+
+        // This code uses the usual space sampleing but in a a more slim box around selected samples
+//        ROS_INFO_STREAM("in->size(): " << in->size());
+//        auto begin = std::chrono::high_resolution_clock::now();
+//        auto finish = std::chrono::high_resolution_clock::now();
+//        // for each result add a bunch of new viewports using a bb around it
+//        mSpaceSamplerPtr->setPatternSizeFactor(pow(2, -(iterationStep - mMinIterationGA)));
+//        SimpleVector3 pos = in->at(0).getPosition();
+//        begin = std::chrono::high_resolution_clock::now();
+//        ViewportPointCloudPtr pc = mNBVCalcPtr->generateSampleViewports(pos, pow(2, -(iterationStep - mMinIterationGA)), pos[2]);
+//        ROS_INFO_STREAM("#samples unfiltered: " << pc->size());
+//        finish = std::chrono::high_resolution_clock::now();
+//        ROS_INFO_STREAM("generating samples took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+//        BoundingBoxPtrsPtr bbs(new BoundingBoxPtrs());
+//        begin = std::chrono::high_resolution_clock::now();
+//        for (ViewportPoint &goodRatedViewportPoint : *in) {
+//            pos = goodRatedViewportPoint.getPosition();
+
+//            float bbHW = 0.2;
+//            /*if (iterationStep - mMinIterationGA > 1) {
+//                bbHW *= pow(2, -(iterationStep - mMinIterationGA - 1));
+//            }*/
+//            BoundingBoxPtr bbPtr(new BoundingBox(pos, pos));
+//            bbPtr->expand(SimpleVector3(bbHW, bbHW, 0));
+//            bbPtr->ignoreAxis(2);
+//            bbs->push_back(bbPtr);
+//            ROS_INFO_STREAM("bb: " << *bbPtr);
+////            SamplePointCloudPtr samplePC = mSpaceSamplerPtr->getSampledSpacePointCloud(pos, bbPtr);
+////            for (SamplePoint sp : *samplePC) {
+////                if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(sp.getSimpleVector3()))) {
+////                    // if the new position can't be reached we should not keep the mutation
+////                    continue;
+////                }
+////                ViewportPoint newVP(sp.getSimpleVector3(), goodRatedViewportPoint.getSimpleQuaternion());
+////                newVP.object_type_set = goodRatedViewportPoint.object_type_set;
+////                newVP.point_cloud = goodRatedViewportPoint.point_cloud;
+////                newVP.oldIdx = 0;
+////                result->push_back(newVP);
+////            }
+//        }
+//        finish = std::chrono::high_resolution_clock::now();
+//        ROS_INFO_STREAM("generating bbs took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+//        begin = std::chrono::high_resolution_clock::now();
+//        for (ViewportPoint sample : *pc) {
+//            if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(sample.getPosition()))) {
+//                // if the new position can't be reached we should not keep the mutation
+//                continue;
+//            }
+//            for (BoundingBoxPtr bbPtr : *bbs) {
+//                if (bbPtr->contains(sample.getPosition())) {
+//                    result->push_back(sample);
+//                    break;
+//                }
+//            }
+//        }
+//        finish = std::chrono::high_resolution_clock::now();
+//        ROS_INFO_STREAM("filtering samples in bb took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+
+        // this is not worth it, but we keep the code so we can just uncomment it
+        // this code gets feasible nearby hypothesis for all viewports using radius search on a kd tree
+        // it sets for each viewport child_indices
+//        auto begin = std::chrono::high_resolution_clock::now();
+//        IndicesPtr feasibleMutatedViewportIndices;
+//        mNBVCalcPtr->getFeasibleViewports(result, feasibleMutatedViewportIndices);
+//        if (feasibleMutatedViewportIndices->size() != result->size()) {
+//            ROS_INFO_STREAM("we generated some non feasible mutated viewports");
+//            result = ViewportPointCloudPtr(new ViewportPointCloud(*result, *feasibleMutatedViewportIndices));
+//        }
+//        auto finish = std::chrono::high_resolution_clock::now();
+//        ROS_INFO_STREAM("get feasible viewports took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+        return mutatedSamples;
     }
 
-    void GeneticAlgorithm::setRotationMatrices(int iterationSteps, double maxAngle) {
-        SimpleVector3 xAxis(1.0, 0.0, 0.0);
-        SimpleVector3 yAxis(0.0, 1.0, 0.0);
-        SimpleVector3 up   (0.0, 0.0, 1.0);
+    std::vector<SimpleQuaternion> GeneticAlgorithm::calculateRotationMatrices(SimpleVector3 dirVector, int iterationStep) {
+        double r = pow(1.4, -static_cast<double>(iterationStep)) * mMaxAngle;
+        float degToRad = M_PI / 180.0;
+        SimpleVector3 up(0, 0, 1);
+        // upVector x dirVector is the vector where we have to rotate around
+        SimpleVector3 rotAxis = up.cross(dirVector);
+        std::vector<SimpleQuaternion> rotationMatrices;
+        SimpleQuaternion h1, h2, v1, v2;
+        h1 = Eigen::AngleAxisf(-r * degToRad, rotAxis);
+        h2 = Eigen::AngleAxisf( r * degToRad, rotAxis);
+        v1 = Eigen::AngleAxisf(-r * degToRad, up);
+        v2 = Eigen::AngleAxisf( r * degToRad, up);
+        rotationMatrices.push_back(h1);
+        rotationMatrices.push_back(h2);
+        rotationMatrices.push_back(v1);
+        rotationMatrices.push_back(v2);
+        rotationMatrices.push_back(h1 * v1);
+        rotationMatrices.push_back(h2 * v1);
+        rotationMatrices.push_back(h1 * v2);
+        rotationMatrices.push_back(h2 * v2);
+        return rotationMatrices;
+    }
 
+    void GeneticAlgorithm::setPositionOffsets() {
         // to transform degree to radians, because degree angles are more readable
         float degToRad = M_PI / 180.0;
 
         // cos (30°), used to generate width of hexagon
         float cos30 = cos(30 * degToRad);
 
-        // generate rotationMatrices per radius
-        for (int i : boost::irange(0, iterationSteps)) {
+        for (int i : boost::irange(0, mImprovmentIterationSteps)) {
             // we reduce radius exponentially
-            double r = pow(2.0, -static_cast<double>(i)) * maxAngle;
-
-            // width of hexagon with radius r
-            float horizontalSpacing = cos30 * r;
-            // up is horizontal rotation/movement (x value)
-            // ortho is vertical rotation/movement (y value)
-            // this creates rotation matrices that rotate 2d around 2 axis
-            // the angles per axis are based on the (x,y) position values of a hexagon
-            std::vector<Eigen::Matrix3f> rotationMatrices;
-            rotationMatrices.push_back(Eigen::AngleAxisf( r * degToRad, xAxis).toRotationMatrix());
-            rotationMatrices.push_back(Eigen::AngleAxisf(-r * degToRad, xAxis).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf( r / 2.0 * degToRad, xAxis) * Eigen::AngleAxisf( horizontalSpacing * degToRad, up)).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf(-r / 2.0 * degToRad, xAxis) * Eigen::AngleAxisf( horizontalSpacing * degToRad, up)).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf( r / 2.0 * degToRad, xAxis) * Eigen::AngleAxisf(-horizontalSpacing * degToRad, up)).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf(-r / 2.0 * degToRad, xAxis) * Eigen::AngleAxisf(-horizontalSpacing * degToRad, up)).toRotationMatrix());
-            mRotationMatricesXAxisPerRadius.push_back(std::make_pair(r, rotationMatrices));
-
-            rotationMatrices.clear();
-            rotationMatrices.push_back(Eigen::AngleAxisf( r * degToRad, yAxis).toRotationMatrix());
-            rotationMatrices.push_back(Eigen::AngleAxisf(-r * degToRad, yAxis).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf( r / 2.0 * degToRad, yAxis) * Eigen::AngleAxisf( horizontalSpacing * degToRad, up)).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf(-r / 2.0 * degToRad, yAxis) * Eigen::AngleAxisf( horizontalSpacing * degToRad, up)).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf( r / 2.0 * degToRad, yAxis) * Eigen::AngleAxisf(-horizontalSpacing * degToRad, up)).toRotationMatrix());
-            rotationMatrices.push_back((Eigen::AngleAxisf(-r / 2.0 * degToRad, yAxis) * Eigen::AngleAxisf(-horizontalSpacing * degToRad, up)).toRotationMatrix());
-            mRotationMatricesYAxisPerRadius.push_back(std::make_pair(r, rotationMatrices));
-        }
-    }
-
-    void GeneticAlgorithm::setPositionOffsets(int iterationSteps, double radius) {
-        // to transform degree to radians, because degree angles are more readable
-        float degToRad = M_PI / 180.0;
-
-        // cos (30°), used to generate width of hexagon
-        float cos30 = cos(30 * degToRad);
-
-        for (int i : boost::irange(0, iterationSteps)) {
-            // we reduce radius exponentially
-            double r = pow(2.0, -static_cast<double>(i)) * radius * 2.5;
+            double r = pow(1.4, -static_cast<double>(i)) * mRadius;
 
             // width of hexagon with radius r
             float horizontalSpacing = cos30 * r;
@@ -223,5 +325,29 @@ namespace next_best_view {
 
             mPositionOffsetsPerRadius.push_back(std::make_pair(r, positionOffsets));
         }
+    }
+
+    float GeneticAlgorithm::getMaxAngle() const {
+        return mMaxAngle;
+    }
+
+    void GeneticAlgorithm::setMaxAngle(float maxAngle) {
+        mMaxAngle = maxAngle;
+    }
+
+    float GeneticAlgorithm::getRadius() const {
+        return mRadius;
+    }
+
+    void GeneticAlgorithm::setRadius(float radius) {
+        mRadius = radius;
+    }
+
+    int GeneticAlgorithm::getImprovmentIterationSteps() const {
+        return mImprovmentIterationSteps;
+    }
+
+    void GeneticAlgorithm::setImprovmentIterationSteps(int iterationImprovmentSteps) {
+        mImprovmentIterationSteps = iterationImprovmentSteps;
     }
 }

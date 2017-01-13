@@ -395,8 +395,8 @@ public:
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             // ga
-            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr, mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterations, mConfig.improvementAngle, mConfig.radius, mConfig.minIterationGA);
-            mCalculatorPtr->setMinIterationGA(mConfig.minIterationGA);
+            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr, mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsGA, mConfig.maxAngleGA, mConfig.radiusGA, mConfig.minIterationsGA);
+            mCalculatorPtr->setMinIterationGA(mConfig.minIterationsGA);
             mCalculatorPtr->setGeneticAlgorithmPtr(mGeneticAlgorithmPtr);
 
             // min utility
@@ -878,9 +878,6 @@ public:
 
         // set utility and inverse cost terms in rating for the given next best view.
         RatingModulePtr ratingModule = mRatingModuleFactoryPtr->createRatingModule();
-        std::stringstream scoreSS;
-        scoreSS << (*resultingViewport.score);
-        response.score_container = scoreSS.str();
         response.rating = ratingModule->getRating(resultingViewport.score);
         response.utility = resultingViewport.score->getWeightedNormalizedUtility();
         response.unnormalized_utility = resultingViewport.score->getUnweightedUnnormalizedUtility();

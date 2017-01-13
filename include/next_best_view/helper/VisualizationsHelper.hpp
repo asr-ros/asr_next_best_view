@@ -92,6 +92,7 @@ private:
     float m_j;
     int mIterationStep;
     bool mBoolClearBetweenIterations;
+    bool mBoolDisableVisualization;
 
     // mutex to lock ray tracing visualization.
     boost::mutex mutex;
@@ -167,6 +168,7 @@ public:
 
         // initalize data
         mNodeHandle.getParam("/nbv/boolClearBetweenIterations", mBoolClearBetweenIterations);
+        mNodeHandle.getParam("/nbv/boolDisableVisualization", mBoolDisableVisualization);
 
         // initialize marker arrays
         mIterationMarkerArrayPtr = boost::make_shared<visualization_msgs::MarkerArray>();
@@ -187,20 +189,25 @@ public:
         return mBoolClearBetweenIterations;
     }
 
-    void triggerIterationVisualization(int iterationStep, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
+    void triggerIterationVisualization(int iterationStep,
                                             ViewportPoint currentBestViewport,
-                                            ViewportPointCloudPtr pointcloud,
+                                            ViewportPointCloudPtr samplePointcloud,
+                                            ViewportPointCloudPtr ratedPointcloud,
                                             SpaceSamplerPtr spaceSamplerPtr) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
 
         mDebugHelperPtr->writeNoticeably("STARTING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
 
-        if(!sampledOrientationsPtr){
-            ROS_ERROR("triggerIterationVisualizations call with pointer sampledOrientationsPtr being null.");
+        if(!samplePointcloud){
+            ROS_ERROR("triggerIterationVisualizations call with pointer samplePointcloud being null.");
             mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
-        if(!pointcloud){
-            ROS_ERROR("triggerIterationVisualizations call with pointer pointcloud being null.");
+        if(!ratedPointcloud){
+            ROS_ERROR("triggerIterationVisualizations call with pointer ratedPointcloud being null.");
             mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
             return;
         }
@@ -227,9 +234,10 @@ public:
         m_j = iterationStep*0.25;
         m_j = std::min(1.0f, m_j); //Prevent overflow
 
-        triggerSpaceSampling(pointcloud,s);
+        triggerSpaceSampling(samplePointcloud,s);
+        triggerBestUtilitySample(ratedPointcloud,s);
         triggerGrid(spaceSamplerPtr, s);
-        triggerCameraVis(s, sampledOrientationsPtr, currentBestViewport);
+        triggerCameraVis(s, samplePointcloud, currentBestViewport);
 
         mDebugHelperPtr->write("Publishing markers", DebugHelper::VISUALIZATION);
         mIterationMarkerArrayPublisher.publish(mIterationMarkerArrayPtr);
@@ -237,9 +245,11 @@ public:
         mDebugHelperPtr->writeNoticeably("ENDING ITERATION VISUALIZATION", DebugHelper::VISUALIZATION);
     }
 
-
-
     void triggerSamplingVisualization(ViewportPointCloudPtr samples, Color markerColor, std::string ns) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
 
         mDebugHelperPtr->writeNoticeably("STARTING SAMPLING VISUALIZATION", DebugHelper::VISUALIZATION);
         if (!samples) {
@@ -291,6 +301,11 @@ public:
     }
 
     void triggerViewportsVisualization(ViewportPointCloudPtr viewports, Color markerColor, std::string ns) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING VIEWPORTS VISUALIZATION", DebugHelper::VISUALIZATION);
         if (!viewports) {
             ROS_ERROR("triggerSamplingVisualization call with pointer samples being null");
@@ -337,11 +352,20 @@ public:
      * \param newCamera the new camera
      */
     void triggerFrustumsVisualization(CameraModelFilterPtr newCamera) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         this->triggerOldFrustumVisualization();
         this->triggerNewFrustumVisualization(newCamera);
     }
 
     void triggerNewFrustumVisualization(CameraModelFilterPtr newCamera) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
 
         mDebugHelperPtr->writeNoticeably("STARTING NEW FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
 
@@ -385,6 +409,11 @@ public:
     }
 
     void triggerOldFrustumVisualization(CameraModelFilterPtr camera = NULL) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING OLD FRUSTUM VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mOldFrustumMarkerArrayPtr){
@@ -446,6 +475,9 @@ public:
 
     void clearFrustumVisualization()
     {
+        if (mBoolDisableVisualization) {
+            return;
+        }
 
         if(!mNewFrustumMarkerArrayPtr){
             ROS_ERROR("clearFrustumVisualization call with pointer mNewFrustumMarkerArrayPtr being null.");
@@ -468,6 +500,11 @@ public:
      * @param typeToMeshResource
      */
     void triggerObjectPointCloudVisualization(ObjectPointCloud& objectPointCloud, std::map<std::string, std::string>& typeToMeshResource) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mObjectMeshMarkerArrayPtr){
@@ -488,6 +525,11 @@ public:
      * @param typeToMeshResource
      */
     void triggerFrustumObjectPointCloudVisualization(ObjectPointCloud& frustumObjectPointCloud, std::map<std::string, std::string>& typeToMeshResource) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING FRUSTUM OBJECT POINT CLOUD VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mFrustumObjectMeshMarkerArrayPtr){
@@ -506,11 +548,20 @@ public:
     }
 
     void clearFrustumObjectPointCloudVisualization() {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         deleteMarkerArray(mFrustumObjectMeshMarkerArrayPtr, mFrustumObjectMeshMarkerPublisher);
     }
 
     void triggerCropBoxVisualization(const boost::shared_ptr<std::vector<CropBoxWrapperPtr>> cropBoxWrapperPtrList)
     {
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         if(!mCropBoxMarkerArrayPtr)
         {
             ROS_ERROR_STREAM("triggerCropBoxVisualization::mCropBoxMarkerArrayPtr is empty.");
@@ -565,6 +616,11 @@ public:
     }
 
     void triggerObjectNormalsVisualization(ObjectPointCloud& objectPointCloud) {
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING OBJECT POINT CLOUD HYPOTHESIS VISUALIZATION", DebugHelper::VISUALIZATION);
 
         if(!mObjectNormalsMarkerArrayPtr){
@@ -582,6 +638,10 @@ public:
     void triggerWorldMeshesVisualization(std::vector<std::string> meshResources, std::vector<SimpleVector3> positions, std::vector<SimpleQuaternion> orientations,
                                                                                                                                     std::vector<SimpleVector3> scales)
     {
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         visualization_msgs::MarkerArray worldMeshesMarker;
 
         for (unsigned int i = 0; i < meshResources.size(); i++)
@@ -595,6 +655,10 @@ public:
 
     void triggerWorldTrianglesVisualization(const std::vector<std::vector<SimpleVector3>>& faces)
     {
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING WORLD TRIANGLES VISUALIZATION", DebugHelper::VISUALIZATION);
         std::vector<SimpleVector3> vertices;
         std::vector<SimpleVector4> colors;
@@ -617,6 +681,10 @@ public:
 
     void triggerVoxelGridVisualization(VoxelGridHelperPtr voxelGridHelperPtr, double worldVoxelSize)
     {
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING VOXEL GRID VISUALIZATION", DebugHelper::VISUALIZATION);
 
         GridVector3 voxelGridSize = voxelGridHelperPtr->getVoxelGridSize();
@@ -675,6 +743,10 @@ public:
     void triggerRaytracingVisualization(SimpleVector3 rayStartPos, SimpleVector3 rayEndPos, const std::vector<GridVector3>& traversedVoxels,
                                                                                                     bool occluded, double worldVoxelSize)
     {
+        if (mBoolDisableVisualization) {
+            return;
+        }
+
         mDebugHelperPtr->writeNoticeably("STARTING RAYTRACING VISUALIZATION", DebugHelper::VISUALIZATION);
 
         boost::lock_guard<boost::mutex> lock(mutex);
@@ -758,11 +830,11 @@ public:
 
 private:
 
-    void triggerCameraVis(std::string s, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr,
+    void triggerCameraVis(std::string s, const ViewportPointCloudPtr &pointcloud,
                           ViewportPoint currentBestViewport) {
 
-        if(!sampledOrientationsPtr){
-            ROS_ERROR("triggerCameraVis call with pointer sampledOrientationsPtr being null.");
+        if(!pointcloud){
+            ROS_ERROR("triggerCameraVis call with pointer pointcloud being null.");
             return;
         }
         if(!mIterationMarkerArrayPtr){
@@ -801,7 +873,21 @@ private:
         colorViewPort[0] -= m_j;
         colorViewPort[1] += m_j;
 
-        BOOST_FOREACH(SimpleQuaternion q, *sampledOrientationsPtr)
+        SimpleQuaternionCollection sampledOrientations;
+        for (ViewportPoint &p : *pointcloud) {
+            bool isInSampledOrientations = false;
+            for (SimpleQuaternion &q : sampledOrientations) {
+                if (MathHelper::quatEqual(q, p.getSimpleQuaternion())) {
+                    isInSampledOrientations = true;
+                    break;
+                }
+            }
+            if (!isInSampledOrientations) {
+                sampledOrientations.push_back(p.getSimpleQuaternion());
+            }
+        }
+
+        BOOST_FOREACH(SimpleQuaternion q, sampledOrientations)
         {
             // get the data for the markers
             SimpleVector3 visualAxis = MathHelper::getVisualAxis(q);
@@ -880,7 +966,6 @@ private:
     }
 
     void triggerSpaceSampling(ViewportPointCloudPtr pointcloud, std::string s){
-
         if(!pointcloud){
             ROS_ERROR("triggerSpaceSampling call with pointer pointcloud being null.");
             return;
@@ -932,7 +1017,44 @@ private:
 
     }
 
+    void triggerBestUtilitySample(ViewportPointCloudPtr samples, std::string ns) {
+
+        mDebugHelperPtr->writeNoticeably("STARTING BEST UTILITY SAMPLE VISUALIZATION", DebugHelper::VISUALIZATION);
+
+        if(!samples){
+            ROS_ERROR("triggerSpaceSampling call with pointer samples being null.");
+            return;
+        }
+
+        ViewportPoint bestUtilitySample = samples->front();
+        for (ViewportPoint v : *samples) {
+            if (!v.score) {
+                continue;
+            }
+            if (v.score->getUnweightedUnnormalizedUtility() > bestUtilitySample.score->getUnweightedUnnormalizedUtility()) {
+                bestUtilitySample = v;
+            }
+        }
+        // create markers
+        double SpaceSamplingMarkerScale;
+        mNodeHandle.getParam("/nbv/SpaceSamplingMarker_Scale", SpaceSamplingMarkerScale);
+        SimpleVector3 scale(SpaceSamplingMarkerScale, SpaceSamplingMarkerScale, 2.0 * SpaceSamplingMarkerScale * (mIterationStep + 1));
+        Color markerColor(0, 0, 1.0, 1.0);
+        SimpleVector3 samplePosition = bestUtilitySample.getPosition();
+        samplePosition[2] = 0.1;
+        m_i++;
+        visualization_msgs::Marker samplingMarker = MarkerHelper::getCylinderMarker(m_i, samplePosition, 1, scale, markerColor, ns);
+
+        mIterationMarkerArrayPtr->markers.push_back(samplingMarker);
+
+        mDebugHelperPtr->writeNoticeably("ENDING BEST UTILITY SAMPLE VISUALIZATION", DebugHelper::VISUALIZATION);
+    }
+
     void triggerGrid(SpaceSamplerPtr spaceSamplerPtr, std::string s){
+
+        if (mBoolDisableVisualization) {
+            return;
+        }
 
         if(!spaceSamplerPtr){
             ROS_ERROR("triggerGrid call with pointer spaceSamplerPtr being null.");
@@ -1036,6 +1158,7 @@ private:
      */
     static void visualizePointCloudNormals(ObjectPointCloud& objectPointCloud,
                                            visualization_msgs::MarkerArray::Ptr objectNormalsMarkerArrayPtr, ros::Publisher& objectNormalsPublisher) {
+
         DebugHelperPtr debugHelperPtr = DebugHelper::getInstance();
 
         debugHelperPtr->write("Deleting old object normals visualization", DebugHelper::VISUALIZATION);

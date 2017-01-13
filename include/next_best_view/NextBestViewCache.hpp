@@ -21,46 +21,48 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "typedef.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
+#include "next_best_view/rating/impl/DefaultRatingModule.hpp"
+#include "next_best_view/helper/MathHelper.hpp"
+#include "next_best_view/pcl/BoundingBox.hpp"
 #include <vector>
 #include <tuple>
 #include <math.h>
+#include <stdexcept>
 
 namespace next_best_view {
 
-    typedef std::tuple<int, int> CacheIndex;
-
-    // TODO maybe implement some kind of filter so we don't sample with too low resolution/compare distance with other viewports in gridelement/nearby gridelemnts
-    // TODO maybe consider cluster extraction, so we can get best ones per cluster? for view mutation/next good view samples
-    // TODO gridsize configureable
+    typedef std::tuple<int, int> GridIndex;
 
     template<class T>
     class Grid {
     private:
         float mGridSize;
         std::map<int, std::map<int, T>> mElementPerGridTile;
-        std::vector<CacheIndex> mGridIndices;
+        std::vector<GridIndex> mGridIndices;
 
     public:
         Grid(float gridSize);
 
-        bool hasElementAt(CacheIndex idx);
+        bool hasElementAt(GridIndex idx);
 
-        T getElementAt(CacheIndex idx);
+        T getElementAt(GridIndex idx);
 
-        void setElementAt(CacheIndex idx, T &element);
+        void setElementAt(GridIndex idx, T &element);
 
         /**
          * @brief getCachedGridIndices returns all filled grid indices.
          * @return
          */
-        std::vector<CacheIndex> getGridIndices();
+        std::vector<GridIndex> getGridIndices();
 
         /**
          * @brief getCacheIdx return the cache grid index that contains the given vector v
          * @param v
          * @return
          */
-        CacheIndex getCacheIdx(SimpleVector3 v);
+        GridIndex getGridIdx(SimpleVector3 v);
+
+        BoundingBox getBoundingBox(GridIndex idx);
 
         void clear();
 
@@ -96,6 +98,21 @@ namespace next_best_view {
         ViewportPointCloudPtr getAllBestUtilityViewports();
 
         /**
+         * @brief getBestRatingViewportAt
+         * @param xIdx
+         * @param yIdx
+         * @param viewport
+         * @return
+         */
+        bool getBestRatingViewportAt(int xIdx, int yIdx, ViewportPoint &viewport);
+
+        /**
+         * @brief getAllBestRatingViewports
+         * @return
+         */
+        ViewportPointCloudPtr getAllBestRatingViewports();
+
+        /**
          * @brief updateCache adds new rated viewports to be cached.
          * @param ratedNextBestViewportsPtr
          */
@@ -110,12 +127,6 @@ namespace next_best_view {
          * @brief clearCache
          */
         void clearRatingCache();
-
-        /**
-         * @brief size
-         * @return
-         */
-        int utilityCacheSize();
 
         /**
          * @brief isEmpty
