@@ -1,11 +1,4 @@
 <launch>
 	<env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" />
-	<node pkg="next_best_view" type="next_best_view_robot_model" name="nbv_robot_model" output="screen">
-	  	<rosparam file="$(find next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
-	  	<rosparam file="$(find next_best_view)/rsc/TopicsConfig.yaml"/>
-                <rosparam file="$(find next_best_view)/rsc/robot_model_frames.yaml"/>
-	  	<!-- this is used by costmap -->
-          	<rosparam file="$(find next_best_view)/rsc/costmap_params.yaml" command="load"/>
-	</node>
 	<include file="$(find robot_model_services)/launch/RobotModelServiceSim.launch" />
 </launch>
