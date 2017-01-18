@@ -213,6 +213,8 @@ set (TEST_LINK_LIBRARIES
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
+		robot_model_services_packages
+		robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 

@@ -21,9 +21,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <boost/test/included/unit_test.hpp>
 #include "next_best_view/test_cases/BaseTest.h"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithExactIK.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModel.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotState.hpp>
 #include "next_best_view/GetAttributedPointCloud.h"
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 
@@ -106,14 +106,14 @@ public:
         ROS_INFO_STREAM("Initializing...");
 
         //Initialize robot model
-        MILDRobotModelWithExactIK *myRobotModel = new MILDRobotModelWithExactIK();
-        MILDRobotModelWithExactIKPtr myRobotModelPtr(myRobotModel);
+        robot_model_services::MILDRobotModelWithExactIK *myRobotModel = new robot_model_services::MILDRobotModelWithExactIK();
+        robot_model_services::MILDRobotModelWithExactIKPtr myRobotModelPtr(myRobotModel);
         double position_x = -0.113948535919;
         double position_y = -1.60322499275;
         double rotationAngle = -1.57;
 
-        MILDRobotState * startState = new MILDRobotState(0,0,rotationAngle,position_x,position_y);
-        MILDRobotStatePtr startStatePtr(startState);
+        robot_model_services::MILDRobotState * startState = new robot_model_services::MILDRobotState(0,0,rotationAngle,position_x,position_y);
+        robot_model_services::MILDRobotStatePtr startStatePtr(startState);
 
         //Publish current pose
         ros::NodeHandle n;
@@ -143,7 +143,7 @@ public:
             SimpleVector3 currentPosition = targetCameraPositions[i];
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
             ROS_INFO_STREAM("Calculating inverse kinematics...");
-            RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
+            robot_model_services::RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
             /*ROS_INFO_STREAM("Calculating camera pose correction...");
             PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
             ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);*/

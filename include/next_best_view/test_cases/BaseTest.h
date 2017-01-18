@@ -87,7 +87,7 @@ public:
 
     void setInitialRobotState(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv = nullptr);
 
-    MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
+    robot_model_services::MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
 
     void waitForEnter();
 
