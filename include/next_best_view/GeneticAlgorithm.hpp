@@ -36,7 +36,6 @@ namespace next_best_view {
     private:
         // pair<double, std::vector<Eigen::matrix3f>> is the radius in angle (double) and a number of rotations around radius
         std::vector<std::pair<double, std::vector<SimpleVector3>>> mPositionOffsetsPerRadius;
-        NextBestViewCalculatorPtr mNBVCalcPtr;
         NextBestViewCachePtr mNBVCachePtr;
         MapHelperPtr mMapHelperPtr;
         ClusterExtractionPtr mClusterExtractionPtr;
@@ -45,10 +44,9 @@ namespace next_best_view {
         float mRadius;
         int mMinIterationGA;
 
-        HexagonSpaceSamplePatternPtr mSpaceSamplerPtr;
 
     public:
-        GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
+        GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
 
         ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
 

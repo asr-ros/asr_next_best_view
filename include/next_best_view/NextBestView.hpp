@@ -395,7 +395,7 @@ public:
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             // ga
-            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr, mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsGA, mConfig.maxAngleGA, mConfig.radiusGA, mConfig.minIterationsGA);
+            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsGA, mConfig.maxAngleGA, mConfig.radiusGA, mConfig.minIterationsGA);
             mCalculatorPtr->setMinIterationGA(mConfig.minIterationsGA);
             mCalculatorPtr->setGeneticAlgorithmPtr(mGeneticAlgorithmPtr);
 

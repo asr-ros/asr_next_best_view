@@ -78,12 +78,8 @@ namespace next_best_view {
         SimpleQuaternionCollectionPtr feasibleOrientationsCollectionPtr = generateOrientationSamples();
 
         bool success = false;
-        if (mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
-            success = this->getNBVFromCache(currentCameraViewport, resultViewport);
-        } else {
-            // create the next best view point cloud
-            success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
-        }
+        // create the next best view point cloud
+        success = this->doIteration(currentCameraViewport, feasibleOrientationsCollectionPtr, resultViewport);
 
         auto finish = std::chrono::high_resolution_clock::now();
         // cast timediff to float in seconds
@@ -307,16 +303,11 @@ namespace next_best_view {
             //Iteration step must be increased before the following check.
             iterationStep ++;
             float rating = mRatingModulePtr->getRating(intermediateResultViewport.score);
-            if (currentBestViewport.score)
-                ROS_INFO_STREAM("currentBestViewport.score->getUtilityNormalization" << currentBestViewport.score->getUtilityNormalization());
-            ROS_INFO_STREAM("intermediateResultViewport.score->getUtilityNormalization" << intermediateResultViewport.score->getUtilityNormalization());
             if (currentBestViewport.score && currentBestViewport.score->getUtilityNormalization() < intermediateResultViewport.score->getUtilityNormalization()) {
                 // utility normalization increased, so we have to adapt out current rating
                 DefaultRatingModulePtr defRatingModulePtr = boost::static_pointer_cast<DefaultRatingModule>(mRatingModulePtr);
                 defRatingModulePtr->updateUtilityNormalization(currentBestViewport, intermediateResultViewport.score->getUtilityNormalization());
-                ROS_INFO_STREAM("rating before: " << currentBestRating);
                 currentBestRating = mRatingModulePtr->getRating(currentBestViewport.score);
-                ROS_INFO_STREAM("rating after: " << currentBestRating);
             }
             mDebugHelperPtr->write("THIS IS THE BEST VIEWPORT IN THE GIVEN ITERATION STEP.",
                                    DebugHelper::CALCULATION);
@@ -413,22 +404,21 @@ namespace next_best_view {
             bool foundUtility = false;
             BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
                 if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
-                    resultViewport = ViewportPoint(ratedViewport);
+                    resultViewport = ratedViewport;
                     foundUtility = true;
                     break;
                 }
             }
             if (!foundUtility) {
                 ROS_WARN_STREAM("every nbv has too little utility");
-                resultViewport = ViewportPoint(ratedNextBestViewportsPtr->back());
+                resultViewport = ratedNextBestViewportsPtr->back();
             }
         } else {
-            resultViewport = ViewportPoint(ratedNextBestViewportsPtr->back());
+            resultViewport = ratedNextBestViewportsPtr->back();
         }
 
         if (mCacheResults) {
             // update cache grid
-            // TODO: copy, otherwise it interferes with mRatedSortedViewportsPreIteration
             mNBVCachePtr->updateCache(ratedNextBestViewportsPtr);
         }
         //        mVisHelperPtr->triggerSamplingVisualization(ratedNextBestViewportsPtr, Color(1, 0, 0, 1), "ratedViewports");

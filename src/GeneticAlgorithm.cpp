@@ -24,18 +24,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCalculatorPtr nbvCalcPtr, NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
-        : mNBVCalcPtr(nbvCalcPtr),
-          mNBVCachePtr(nbvCachePtr),
+    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
+        : mNBVCachePtr(nbvCachePtr),
           mMapHelperPtr(mapHelperPtr),
           mClusterExtractionPtr(clusterExtractionPtr),
-          mMinIterationGA(minIterationGA),
-          mSpaceSamplerPtr(new HexagonSpaceSamplePattern()) {
+          mMinIterationGA(minIterationGA) {
         setRadius(radius);
         setMaxAngle(improvementAngle);
         setImprovmentIterationSteps(improvementIterations);
         setPositionOffsets();
-        mSpaceSamplerPtr->setRadius(0.01);
     }
 
     ViewportPointCloudPtr GeneticAlgorithm::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
@@ -96,6 +93,7 @@ namespace next_best_view {
             for (ViewportPoint &goodHeuristicViewport : *allSelectedViewports) {
                 if ((goodHeuristicViewport.getPosition() - p.getPosition()).lpNorm<2>() < selectedViewportsInterspacing) {
                     pIsTooCloseToAnotherSelected = true;
+                    break;
                 }
             }
             if (pIsTooCloseToAnotherSelected) {
@@ -133,6 +131,7 @@ namespace next_best_view {
                 if (samplesPerBB[i].size() < nViewportsToSelectPerBB) {
                     // if bb i does not have enough viewports, we still have to continue
                     haveEnoughSamples = false;
+                    break;
                 }
             }
             if (haveEnoughSamples) {
@@ -201,76 +200,6 @@ namespace next_best_view {
                 }
             }
         }
-
-        // This code uses the usual space sampleing but in a a more slim box around selected samples
-//        ROS_INFO_STREAM("in->size(): " << in->size());
-//        auto begin = std::chrono::high_resolution_clock::now();
-//        auto finish = std::chrono::high_resolution_clock::now();
-//        // for each result add a bunch of new viewports using a bb around it
-//        mSpaceSamplerPtr->setPatternSizeFactor(pow(2, -(iterationStep - mMinIterationGA)));
-//        SimpleVector3 pos = in->at(0).getPosition();
-//        begin = std::chrono::high_resolution_clock::now();
-//        ViewportPointCloudPtr pc = mNBVCalcPtr->generateSampleViewports(pos, pow(2, -(iterationStep - mMinIterationGA)), pos[2]);
-//        ROS_INFO_STREAM("#samples unfiltered: " << pc->size());
-//        finish = std::chrono::high_resolution_clock::now();
-//        ROS_INFO_STREAM("generating samples took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-//        BoundingBoxPtrsPtr bbs(new BoundingBoxPtrs());
-//        begin = std::chrono::high_resolution_clock::now();
-//        for (ViewportPoint &goodRatedViewportPoint : *in) {
-//            pos = goodRatedViewportPoint.getPosition();
-
-//            float bbHW = 0.2;
-//            /*if (iterationStep - mMinIterationGA > 1) {
-//                bbHW *= pow(2, -(iterationStep - mMinIterationGA - 1));
-//            }*/
-//            BoundingBoxPtr bbPtr(new BoundingBox(pos, pos));
-//            bbPtr->expand(SimpleVector3(bbHW, bbHW, 0));
-//            bbPtr->ignoreAxis(2);
-//            bbs->push_back(bbPtr);
-//            ROS_INFO_STREAM("bb: " << *bbPtr);
-////            SamplePointCloudPtr samplePC = mSpaceSamplerPtr->getSampledSpacePointCloud(pos, bbPtr);
-////            for (SamplePoint sp : *samplePC) {
-////                if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(sp.getSimpleVector3()))) {
-////                    // if the new position can't be reached we should not keep the mutation
-////                    continue;
-////                }
-////                ViewportPoint newVP(sp.getSimpleVector3(), goodRatedViewportPoint.getSimpleQuaternion());
-////                newVP.object_type_set = goodRatedViewportPoint.object_type_set;
-////                newVP.point_cloud = goodRatedViewportPoint.point_cloud;
-////                newVP.oldIdx = 0;
-////                result->push_back(newVP);
-////            }
-//        }
-//        finish = std::chrono::high_resolution_clock::now();
-//        ROS_INFO_STREAM("generating bbs took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-//        begin = std::chrono::high_resolution_clock::now();
-//        for (ViewportPoint sample : *pc) {
-//            if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(sample.getPosition()))) {
-//                // if the new position can't be reached we should not keep the mutation
-//                continue;
-//            }
-//            for (BoundingBoxPtr bbPtr : *bbs) {
-//                if (bbPtr->contains(sample.getPosition())) {
-//                    result->push_back(sample);
-//                    break;
-//                }
-//            }
-//        }
-//        finish = std::chrono::high_resolution_clock::now();
-//        ROS_INFO_STREAM("filtering samples in bb took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-
-        // this is not worth it, but we keep the code so we can just uncomment it
-        // this code gets feasible nearby hypothesis for all viewports using radius search on a kd tree
-        // it sets for each viewport child_indices
-//        auto begin = std::chrono::high_resolution_clock::now();
-//        IndicesPtr feasibleMutatedViewportIndices;
-//        mNBVCalcPtr->getFeasibleViewports(result, feasibleMutatedViewportIndices);
-//        if (feasibleMutatedViewportIndices->size() != result->size()) {
-//            ROS_INFO_STREAM("we generated some non feasible mutated viewports");
-//            result = ViewportPointCloudPtr(new ViewportPointCloud(*result, *feasibleMutatedViewportIndices));
-//        }
-//        auto finish = std::chrono::high_resolution_clock::now();
-//        ROS_INFO_STREAM("get feasible viewports took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
         return mutatedSamples;
     }
 

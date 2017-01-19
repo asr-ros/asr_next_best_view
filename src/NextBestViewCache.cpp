@@ -176,13 +176,9 @@ namespace next_best_view {
         // update utilityNormalization
         DefaultRatingModulePtr defRatingModulePtr = boost::static_pointer_cast<DefaultRatingModule>(mRatingModulePtr);
         for (GridIndex &idx : mRatingGrid->getGridIndices()) {
-            float currentBestRating = mRatingModulePtr->getRating(mRatingGrid->getElementAt(idx).score);
-            ROS_INFO_STREAM("grid rating before: " << currentBestRating);
             ViewportPoint v = mRatingGrid->getElementAt(idx);
             defRatingModulePtr->updateUtilityNormalization(v, utilityNormalization);
             mRatingGrid->setElementAt(idx, v);
-            currentBestRating = mRatingModulePtr->getRating(mRatingGrid->getElementAt(idx).score);
-            ROS_INFO_STREAM("grid rating after: " << currentBestRating);
         }
         // ratingGrid
         std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), compareViewportsRatingwise);
