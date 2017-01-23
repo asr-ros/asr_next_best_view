@@ -144,9 +144,9 @@ public:
             SimpleQuaternion currentOrientation = targetCameraOrientations[i];
             ROS_INFO_STREAM("Calculating inverse kinematics...");
             robot_model_services::RobotStatePtr newStatePtr = myRobotModelPtr->calculateRobotState(startStatePtr, currentPosition, currentOrientation);
-            /*ROS_INFO_STREAM("Calculating camera pose correction...");
-            PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
-            ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);*/
+            //ROS_INFO_STREAM("Calculating camera pose correction...");
+            //robot_model_services::PTUConfig ptuConfig = myRobotModelPtr->calculateCameraPoseCorrection(startStatePtr, currentPosition, currentOrientation);
+            //ROS_INFO_STREAM("Got pan = " << std::get<0>(ptuConfig)*180/M_PI << ", tilt = " << std::get<1>(ptuConfig)*180/M_PI);
             ros::spinOnce();
             waitForEnter();
             ros::Duration(2).sleep();

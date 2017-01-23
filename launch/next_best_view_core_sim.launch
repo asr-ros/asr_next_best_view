@@ -1,6 +1,6 @@
 <launch>
     <env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" />
-	<include file="$(find next_best_view)/launch/RobotModelServiceSim.launch" /> 
+    <include file="$(find next_best_view)/launch/RobotModelServiceSim.launch" /> 
     <node pkg="next_best_view" type="next_best_view" name="nbv" output="screen" >
 		<!-- get external params from  robot_model_services package-->
 		<rosparam file="$(find robot_model_services)/rsc/robot_model_services_settings_sim.yaml"/>
