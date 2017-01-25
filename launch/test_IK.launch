@@ -1,9 +1,0 @@
-<launch>
-	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
-	<env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" />
-	<node pkg="next_best_view" type="next_best_view_ik_test" name="next_best_view_ik_test" output="screen">
-		<rosparam file="$(find robot_model_services)/rsc/robot_model_services_settings_sim.yaml"/>
-		<rosparam file="$(find robot_model_services)/rsc/robot_model_frames.yaml"/>
-	  	<rosparam file="$(find robot_model_services)/rsc/TopicsConfig.yaml"/>
-	</node>
-</launch>
