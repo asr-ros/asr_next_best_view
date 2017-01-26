@@ -1,6 +1,6 @@
 <launch>
 	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" /-->
-	<include file="$(find mild_navigation)/launch/simulation_slam.launch" />
+	<include file="$(find mild_navigation)/launch/simulation/simulation_slam.launch" />
 	<include file="$(find next_best_view)/launch/next_best_view_core_sim.launch" />
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />

@@ -237,40 +237,6 @@ namespace next_best_view {
         return ratingModulePtr->setSingleScoreContainer(currentCameraViewport, fullViewportPoint);
     }
 
-    bool NextBestViewCalculator::getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport) {
-        ROS_INFO_STREAM("using cached nbv");
-        ViewportPointCloudPtr samples = mNBVCachePtr->getAllBestUtilityViewports();
-        // TODO: configureable/do other stuff/ga
-        if (samples->size() > 10) {
-            samples->resize(30);
-        }
-
-        // rate best ones
-        ViewportPointCloudPtr ratedNextBestViewportsPtr;
-        if (!rateViewports(samples, currentCameraViewport, ratedNextBestViewportsPtr)) {
-            return false;
-        }
-        auto ratingSortFunction = [this](const ViewportPoint &a, const ViewportPoint &b) {
-            // a < b
-            return mRatingModulePtr->compareViewports(a, b);
-        };
-        std::sort(ratedNextBestViewportsPtr->begin(), ratedNextBestViewportsPtr->end(), ratingSortFunction);
-
-        bool foundUtility = false;
-        BOOST_REVERSE_FOREACH (ViewportPoint &ratedViewport, *ratedNextBestViewportsPtr) {
-            if (ratedViewport.score->getUnweightedUnnormalizedUtility() > mMinUtility) {
-                resultViewport = ratedViewport;
-                foundUtility = true;
-                break;
-            }
-        }
-        if (!foundUtility) {
-            ROS_WARN_STREAM("every nbv has too little utility");
-            resultViewport = ratedNextBestViewportsPtr->back();
-        }
-        return true;
-    }
-
     bool NextBestViewCalculator::doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport) {
         mDebugHelperPtr->writeNoticeably("STARTING DO-ITERATION METHOD", DebugHelper::CALCULATION);
 

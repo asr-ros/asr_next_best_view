@@ -39,7 +39,7 @@ namespace next_best_view {
         NextBestViewCachePtr mNBVCachePtr;
         MapHelperPtr mMapHelperPtr;
         ClusterExtractionPtr mClusterExtractionPtr;
-        int mImprovmentIterationSteps;
+        int mImprovementIterationSteps;
         float mMaxAngle;
         float mRadius;
         int mMinIterationGA;
@@ -58,12 +58,12 @@ namespace next_best_view {
 
         void setRadius(float radius);
 
-        int getImprovmentIterationSteps() const;
+        int getImprovementIterationSteps() const;
 
-        void setImprovmentIterationSteps(int iterationSteps);
+        void setImprovementIterationSteps(int iterationSteps);
 
     private:
-        ViewportPointCloudPtr selection(const ViewportPointCloudPtr &in, int iterationStep);
+        ViewportPointCloudPtr select(const ViewportPointCloudPtr &in, int iterationStep);
 
         ViewportPointCloudPtr mutate(const ViewportPointCloudPtr &in, int iterationStep);
 
@@ -75,7 +75,7 @@ namespace next_best_view {
          */
         ViewportPointCloudPtr selectFromSortedViewports(const ViewportPointCloudPtr &in, int iterationStep);
 
-        std::vector<SimpleQuaternion> calculateRotationMatrices(SimpleVector3 dirVector, int iterationStep);
+        std::vector<SimpleQuaternion> calculateRotationTransformations(SimpleVector3 dirVector, int iterationStep);
 
         void setPositionOffsets();
     };

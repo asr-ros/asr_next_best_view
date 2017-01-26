@@ -44,7 +44,7 @@ namespace next_best_view {
             std::vector<pcl::PointIndices> clusterIndices;
             pcl::EuclideanClusterExtraction<ObjectPoint> euclideanClusterExtractor;
             euclideanClusterExtractor.setClusterTolerance (0.3); // 30cm
-            euclideanClusterExtractor.setMinClusterSize (10);
+            euclideanClusterExtractor.setMinClusterSize (1);
             euclideanClusterExtractor.setMaxClusterSize (25000);
             euclideanClusterExtractor.setSearchMethod(tree);
             euclideanClusterExtractor.setInputCloud(getObjectPointCloud());

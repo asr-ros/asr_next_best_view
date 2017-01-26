@@ -27,7 +27,6 @@ namespace next_best_view {
         strm << "height: " << bb.height << endl;
         strm << "minPos: {" << endl << bb.minPos << endl << "}" << endl;
         strm << "maxPos: {" << endl << bb.maxPos << endl << "}" << endl;
-        strm << "centroid: {" << endl << bb.getCentroid() << endl << "}" << endl;
         return strm;
     }
 

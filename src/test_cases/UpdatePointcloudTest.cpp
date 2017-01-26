@@ -87,11 +87,11 @@ public:
         // anzahl Häufungspunkte
         int nHp = 2;
         SimpleVector3* location = new SimpleVector3[nHp];
-        location[0] = SimpleVector3(-0.43232, 0.6958, 0.7211);
-        location[1] = SimpleVector3(-0.283309, 0.710407,  0.718543);
+        location[0] = SimpleVector3(-1.5, -2.4, 0.7);
+        location[1] = SimpleVector3(-1.3, -2.4,  0.7);
 
         SimpleQuaternion* orientation = new SimpleQuaternion[nHp];
-        orientation[0] = euler2Quaternion(-90, 0.0, 0.0);
+        orientation[0] = euler2Quaternion(-90, 180.0, 0.0);
         orientation[1] = euler2Quaternion(-90, 0.0, 0.0);
 
         std::string* types = new std::string[nHp];
@@ -111,7 +111,7 @@ public:
                 pose.orientation.x = orientation[idx].x();
                 pose.orientation.y = orientation[idx].y();
                 pose.orientation.z = orientation[idx].z();
-                pose.position.x = curLocation[0] - 0.1 * cnt; // put smacks in row next to each other
+                pose.position.x = curLocation[0] - 0.15 * cnt; // put smacks in row next to each other
                 pose.position.y = curLocation[1];
                 pose.position.z = curLocation[2];
 

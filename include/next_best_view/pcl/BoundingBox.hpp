@@ -89,10 +89,6 @@ namespace next_best_view {
                     (height < 0.00001 || (minPos[2] <= v[2] && v[2] <= maxPos[2]));
         }
 
-        SimpleVector3 getCentroid() const {
-            return SimpleVector3(minPos[0] + xWidth / 2.0, minPos[1] + yWidth / 2.0, minPos[2] + height / 2.0);
-        }
-
         /**
          * @brief expand expands this bounding box by an vector, that determines the size to expand per surface.
          * @param v

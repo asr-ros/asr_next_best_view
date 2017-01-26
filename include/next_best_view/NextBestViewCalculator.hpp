@@ -240,8 +240,6 @@ private:
      */
     bool rateSingleViewportFixedObjectTypes(const RatingModulePtr &ratingModulePtr, const ViewportPoint &currentCameraViewport, ViewportPoint &fullViewportPoint);
 
-    bool getNBVFromCache(const ViewportPoint &currentCameraViewport, ViewportPoint &resultViewport);
-
     bool doIteration(const ViewportPoint &currentCameraViewport, const SimpleQuaternionCollectionPtr &sampledOrientationsPtr, ViewportPoint &resultViewport);
 
     bool doIterationStep(const ViewportPoint &currentCameraViewport, const ViewportPoint currentBestViewport,

@@ -31,13 +31,13 @@ namespace next_best_view {
           mMinIterationGA(minIterationGA) {
         setRadius(radius);
         setMaxAngle(improvementAngle);
-        setImprovmentIterationSteps(improvementIterations);
+        setImprovementIterationSteps(improvementIterations);
         setPositionOffsets();
     }
 
     ViewportPointCloudPtr GeneticAlgorithm::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
         auto begin = std::chrono::high_resolution_clock::now();
-        auto selectedViewports = selection(samples, iterationStep);
+        auto selectedViewports = select(samples, iterationStep);
         auto finish = std::chrono::high_resolution_clock::now();
         ROS_INFO_STREAM("selection took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
 
@@ -49,7 +49,7 @@ namespace next_best_view {
         return newViewports;
     }
 
-    ViewportPointCloudPtr GeneticAlgorithm::selection(const ViewportPointCloudPtr &in, int iterationStep) {
+    ViewportPointCloudPtr GeneticAlgorithm::select(const ViewportPointCloudPtr &in, int iterationStep) {
         ViewportPointCloudPtr result(new ViewportPointCloud());
         // TODO: we ignore in, which is the alternative if nbvCache is not used.
         ViewportPointCloudPtr bestUtilityViewports = mNBVCachePtr->getAllBestUtilityViewports();
@@ -147,13 +147,13 @@ namespace next_best_view {
         // number of bbs added to selection
         int nBBsAdded = 0;
         for (int &bbIdx : bbIdxRatingOrder) {
-            std::vector<ViewportPoint> &samplesOfABB = samplesPerBB[bbIdx];
+            std::vector<ViewportPoint> &samplesOfBB = samplesPerBB[bbIdx];
             if (nBBsAdded >= nBBsToSelectFrom) {
                 // we selected enough bbs
                 break;
             }
             // add all samples of the bb to selection.
-            for (ViewportPoint vp : samplesOfABB) {
+            for (ViewportPoint vp : samplesOfBB) {
                 selection->push_back(vp);
             }
             nBBsAdded++;
@@ -163,9 +163,8 @@ namespace next_best_view {
 
     ViewportPointCloudPtr GeneticAlgorithm::mutate(const ViewportPointCloudPtr &selection, int iterationStep) {
         ViewportPointCloudPtr mutatedSamples(new ViewportPointCloud());
+        ROS_INFO_STREAM("in size: " << selection->size());
         for (ViewportPoint &goodRatedViewportPoint : *selection) {
-            // viewport itself, no/identity mutation
-            mutatedSamples->push_back(goodRatedViewportPoint);
 
             // get direction vector and rotationMatrices
             SimpleVector3 dirVector = MathHelper::quatToDir(goodRatedViewportPoint.getSimpleQuaternion());
@@ -173,7 +172,7 @@ namespace next_best_view {
             // with this loop we can adapt the range of modifications,
             // (0, mImprovementIterationSteps) would do all modifications in each step which is pretty costy and not really worth it < 0.01% improvement
             for (int i : boost::irange(iterationStep, iterationStep + 1)) {
-                std::vector<SimpleQuaternion> rotationMatrices = calculateRotationMatrices(dirVector, i);
+                std::vector<SimpleQuaternion> rotationMatrices = calculateRotationTransformations(dirVector, i);
                 std::vector<SimpleVector3> positionOffsets = mPositionOffsetsPerRadius.at(i).second;
 
                 // do the mutation on goodRatedViewport
@@ -200,21 +199,23 @@ namespace next_best_view {
                 }
             }
         }
+        ROS_INFO_STREAM("out size: " << mutatedSamples->size());
         return mutatedSamples;
     }
 
-    std::vector<SimpleQuaternion> GeneticAlgorithm::calculateRotationMatrices(SimpleVector3 dirVector, int iterationStep) {
+    std::vector<SimpleQuaternion> GeneticAlgorithm::calculateRotationTransformations(SimpleVector3 dirVector, int iterationStep) {
         double r = pow(1.4, -static_cast<double>(iterationStep)) * mMaxAngle;
         float degToRad = M_PI / 180.0;
         SimpleVector3 up(0, 0, 1);
         // upVector x dirVector is the vector where we have to rotate around
         SimpleVector3 rotAxis = up.cross(dirVector);
         std::vector<SimpleQuaternion> rotationMatrices;
-        SimpleQuaternion h1, h2, v1, v2;
+        SimpleQuaternion h1, h2, v1, v2, id;
         h1 = Eigen::AngleAxisf(-r * degToRad, rotAxis);
         h2 = Eigen::AngleAxisf( r * degToRad, rotAxis);
         v1 = Eigen::AngleAxisf(-r * degToRad, up);
         v2 = Eigen::AngleAxisf( r * degToRad, up);
+        id = Eigen::AngleAxisf( 0, up);
         rotationMatrices.push_back(h1);
         rotationMatrices.push_back(h2);
         rotationMatrices.push_back(v1);
@@ -223,6 +224,7 @@ namespace next_best_view {
         rotationMatrices.push_back(h2 * v1);
         rotationMatrices.push_back(h1 * v2);
         rotationMatrices.push_back(h2 * v2);
+        rotationMatrices.push_back(id);
         return rotationMatrices;
     }
 
@@ -233,7 +235,7 @@ namespace next_best_view {
         // cos (30°), used to generate width of hexagon
         float cos30 = cos(30 * degToRad);
 
-        for (int i : boost::irange(0, mImprovmentIterationSteps)) {
+        for (int i : boost::irange(0, mImprovementIterationSteps)) {
             // we reduce radius exponentially
             double r = pow(1.4, -static_cast<double>(i)) * mRadius;
 
@@ -251,6 +253,7 @@ namespace next_best_view {
             positionOffsets.push_back(SimpleVector3( horizontalSpacing, -r / 2.0, 0));
             positionOffsets.push_back(SimpleVector3(-horizontalSpacing,  r / 2.0, 0));
             positionOffsets.push_back(SimpleVector3(-horizontalSpacing, -r / 2.0, 0));
+            positionOffsets.push_back(SimpleVector3(0, 0, 0));
 
             mPositionOffsetsPerRadius.push_back(std::make_pair(r, positionOffsets));
         }
@@ -272,11 +275,11 @@ namespace next_best_view {
         mRadius = radius;
     }
 
-    int GeneticAlgorithm::getImprovmentIterationSteps() const {
-        return mImprovmentIterationSteps;
+    int GeneticAlgorithm::getImprovementIterationSteps() const {
+        return mImprovementIterationSteps;
     }
 
-    void GeneticAlgorithm::setImprovmentIterationSteps(int iterationImprovmentSteps) {
-        mImprovmentIterationSteps = iterationImprovmentSteps;
+    void GeneticAlgorithm::setImprovementIterationSteps(int iterationImprovmentSteps) {
+        mImprovementIterationSteps = iterationImprovmentSteps;
     }
 }
