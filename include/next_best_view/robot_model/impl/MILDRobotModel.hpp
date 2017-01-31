@@ -156,6 +156,10 @@ namespace next_best_view {
          */
         geometry_msgs::Pose calculateCameraPose(const RobotStatePtr &sourceRobotState);
 
+        MapHelperPtr getMapHelperPtr() const;
+
+        void setMapHelperPtr(const MapHelperPtr &mapHelperPtr);
+
     private:
         /*!
          * \brief Init MapHelper if it is not initialized yet.

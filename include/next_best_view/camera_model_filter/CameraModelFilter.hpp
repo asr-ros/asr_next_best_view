@@ -33,7 +33,7 @@ namespace next_best_view {
 	 * \version 1.0
 	 * \copyright GNU Public License
 	 */
-	class CameraModelFilter : public GeneralFilter {
+    class CameraModelFilter : public GeneralFilter<ObjectPoint> {
 	private:
 		/*!
 		 * \brief marks if the parameters changed.

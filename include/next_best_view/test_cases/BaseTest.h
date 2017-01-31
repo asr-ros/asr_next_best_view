@@ -81,7 +81,7 @@ public:
 
     void init(bool useRos, bool silent);
 
-    void initRosServices();
+    void initRosServicesAndPublishers();
 
     void setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv = nullptr);
 

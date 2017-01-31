@@ -22,6 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <boost/foreach.hpp>
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/space_sampler/SpaceSampler.hpp"
+#include "next_best_view/space_sampler/impl/HexagonSpaceSamplePattern.hpp"
 
 namespace next_best_view {
 	/*!

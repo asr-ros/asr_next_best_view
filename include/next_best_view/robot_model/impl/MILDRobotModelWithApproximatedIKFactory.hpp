@@ -27,20 +27,24 @@ namespace next_best_view {
     private:
         float mMinTiltAngleDegrees, mMaxTiltAngleDegrees;
         float mMinPanAngleDegrees, mMaxPanAngleDegrees;
+        MapHelperPtr mMapHelperPtr;
 
     public:
         MILDRobotModelWithApproximatedIKFactory(float minTiltAngleDegrees, float maxTiltAngleDegrees,
-                                                float minPanAngleDegrees, float maxPanAngleDegrees)
+                                                float minPanAngleDegrees, float maxPanAngleDegrees,
+                                                const MapHelperPtr &mapHelperPtr)
             : mMinTiltAngleDegrees(minTiltAngleDegrees),
               mMaxTiltAngleDegrees(maxTiltAngleDegrees),
               mMinPanAngleDegrees(minPanAngleDegrees),
-              mMaxPanAngleDegrees(maxPanAngleDegrees)
+              mMaxPanAngleDegrees(maxPanAngleDegrees),
+              mMapHelperPtr(mapHelperPtr)
         { }
 
         RobotModelPtr createRobotModel() {
             MILDRobotModel* robotModel = new MILDRobotModelWithApproximatedIK();
             robotModel->setPanAngleLimits(mMinPanAngleDegrees, mMaxPanAngleDegrees);
             robotModel->setTiltAngleLimits(mMinTiltAngleDegrees, mMaxTiltAngleDegrees);
+            robotModel->setMapHelperPtr(mMapHelperPtr);
             return RobotModelPtr(robotModel);
         }
     };

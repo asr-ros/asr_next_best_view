@@ -82,11 +82,17 @@ namespace next_best_view {
 	typedef DefaultViewportPoint ViewportPoint;
     typedef pcl::PointXYZ WorldPoint;
 
-	// defining different point cloud types
-	typedef pcl::PointCloud<ObjectPoint> ObjectPointCloud;
+    // defining different point cloud types
+    template<class T>
+    using PointCloud = pcl::PointCloud<T>;
+    template<class T>
+    using PointCloudPtr = boost::shared_ptr<PointCloud<T>>;
+    template<class T>
+    using PointCloudConstPtr = boost::shared_ptr<const PointCloud<T>>;
+    typedef PointCloud<ObjectPoint> ObjectPointCloud;
 	typedef ObjectPointCloud::Ptr ObjectPointCloudPtr;
 	typedef ObjectPointCloud::ConstPtr ObjectPointCloudConstPtr;
-    typedef pcl::PointCloud<WorldPoint> WorldPointCloud;
+    typedef PointCloud<WorldPoint> WorldPointCloud;
     typedef WorldPointCloud::Ptr WorldPointCloudPtr;
     typedef WorldPointCloud::ConstPtr WorldPointCloudConstPtr;
 
@@ -131,9 +137,15 @@ namespace next_best_view {
     typedef voxel_grid::VoxelGrid VoxelGrid;
     typedef boost::shared_ptr<VoxelGrid> VoxelGridPtr;
 
-    // visualization
+    // visualization / RGBA
     typedef SimpleVector4 Color;
 
+    // cluster types
+    class BoundingBox;
+    typedef std::vector<BoundingBox> BoundingBoxes;
+    typedef boost::shared_ptr<BoundingBox> BoundingBoxPtr;
+    typedef std::vector<BoundingBoxPtr> BoundingBoxPtrs;
+    typedef boost::shared_ptr<std::vector<BoundingBoxPtr>> BoundingBoxPtrsPtr;
 }
 
 #include "next_best_view/pcl/RealObjectPoint.hpp"

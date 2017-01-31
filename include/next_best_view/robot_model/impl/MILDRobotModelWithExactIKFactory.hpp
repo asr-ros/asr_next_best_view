@@ -21,6 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
 #include "next_best_view/robot_model/RobotModelAbstractFactory.hpp"
+#include "next_best_view/helper/MapHelper.hpp"
 
 namespace next_best_view {
 
@@ -28,20 +29,24 @@ namespace next_best_view {
     private:
         float mMinTiltAngleDegrees, mMaxTiltAngleDegrees;
         float mMinPanAngleDegrees, mMaxPanAngleDegrees;
+        MapHelperPtr mMapHelperPtr;
 
     public:
         MILDRobotModelWithExactIKFactory(float minTiltAngleDegrees, float maxTiltAngleDegrees,
-                                                float minPanAngleDegrees, float maxPanAngleDegrees)
+                                                float minPanAngleDegrees, float maxPanAngleDegrees,
+                                                const MapHelperPtr &mapHelperPtr)
             : mMinTiltAngleDegrees(minTiltAngleDegrees),
               mMaxTiltAngleDegrees(maxTiltAngleDegrees),
               mMinPanAngleDegrees(minPanAngleDegrees),
-              mMaxPanAngleDegrees(maxPanAngleDegrees)
+              mMaxPanAngleDegrees(maxPanAngleDegrees),
+              mMapHelperPtr(mapHelperPtr)
         { }
 
         RobotModelPtr createRobotModel() {
             MILDRobotModel* robotModel = new MILDRobotModelWithExactIK();
             robotModel->setPanAngleLimits(mMinPanAngleDegrees, mMaxPanAngleDegrees);
             robotModel->setTiltAngleLimits(mMinTiltAngleDegrees, mMaxTiltAngleDegrees);
+            robotModel->setMapHelperPtr(mMapHelperPtr);
             return RobotModelPtr(robotModel);
         }
     };

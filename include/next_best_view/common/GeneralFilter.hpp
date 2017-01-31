@@ -27,27 +27,72 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/DebugHelper.hpp"
 
 namespace next_best_view {
+    template<class T>
 	class GeneralFilter;
-	typedef boost::shared_ptr<GeneralFilter> GeneralFilterPtr;
+    template<class T>
+    using GeneralFilterPtr = boost::shared_ptr<GeneralFilter<T>>;
 
+    template<class T>
 	class GeneralFilter : public CommonClass {
 	private:
-		GeneralFilterPtr mPreFilter;
-        GeneralFilterPtr mPostFilter;
+        GeneralFilterPtr<T> mPreFilter;
+        GeneralFilterPtr<T> mPostFilter;
         DebugHelperPtr mDebugHelperPtr;
+        bool enabled;
+
+        /*!
+         * \brief shared pointer to the point cloud that should be filtered.
+         */
+        PointCloudPtr<T> mFilterInputPointCloudPtr;
+
+        /*!
+         * \brief shared pointer to the active indices of the former declared point cloud.
+         */
+        IndicesPtr mFilterInputPointIndicesPtr;
+
 	public:
 		/*!
 		 * Constructor.
 		 */
-		GeneralFilter() : mPreFilter(), mPostFilter() {
+        GeneralFilter() : mPreFilter(), mPostFilter(), enabled(true) {
             mDebugHelperPtr = DebugHelper::getInstance();
 		}
+
+        /*!
+         * \brief setting the input cloud.
+         * \param pointCloudPtr the shared pointer to point cloud
+         */
+        virtual void setInputPointCloud(const PointCloudPtr<T> &pointCloudPtr) {
+            mFilterInputPointCloudPtr = pointCloudPtr;
+        }
+
+        /*!
+         * \return the shared pointer to the point cloud.
+         */
+        virtual PointCloudPtr<T>& getInputPointCloud() {
+            return mFilterInputPointCloudPtr;
+        }
+
+        /*!
+         * \brief setting the shared pointer to the active indices of the point cloud.
+         * \param indicesPtr the shared pointer to indices.
+         */
+        void setInputPointIndices(const IndicesPtr &indicesPtr) {
+            mFilterInputPointIndicesPtr = indicesPtr;
+        }
+
+        /*!
+         * \return the shared pointer to the active indices of the point cloud.
+         */
+        IndicesPtr& getInputPointIndices() {
+            return mFilterInputPointIndicesPtr;
+        }
 
 		/*!
 		 * \brief Adding a pre filter to this filter
 		 * \param filterPtr the filter pointer
 		 */
-		void setPreFilter(GeneralFilterPtr &filterPtr) {
+        void setPreFilter(GeneralFilterPtr<T> &filterPtr) {
 			mPreFilter = filterPtr;
 		}
 
@@ -55,9 +100,17 @@ namespace next_best_view {
 		 * \brief Adding a post filter to this filter
 		 * \param filterPtr the filter pointer
 		 */
-		void setPostFilter(GeneralFilterPtr &filterPtr) {
+        void setPostFilter(GeneralFilterPtr<T> &filterPtr) {
 			mPostFilter = filterPtr;
 		}
+
+        void enable() {
+            enabled = true;
+        }
+
+        void disable() {
+            enabled = false;
+        }
 
 		/*!
 		 * \brief Does the filtering on the indices
@@ -74,33 +127,43 @@ namespace next_best_view {
 			indicesPtr = IndicesPtr(new Indices());
 
 			// apply pre filter
-			if (mPreFilter != GeneralFilterPtr()) {
+            if (mPreFilter != GeneralFilterPtr<T>()) {
                 mDebugHelperPtr->write("Start pre filtering", DebugHelper::FILTER);
-				// set the working input cloud and the relevant indices to work on.
-				mPreFilter->setInputCloud(this->getInputCloud());
-				mPreFilter->setIndices(this->getIndices());
+                // set the working input cloud and the relevant indices to work on.
+                mPreFilter->setObjectPointCloud(this->getObjectPointCloud());
+                mPreFilter->setObjectPointIndices(this->getObjectPointIndices());
+                mPreFilter->setInputPointCloud(this->getInputPointCloud());
+                mPreFilter->setInputPointIndices(this->getInputPointIndices());
+
 
 				// do the filtering
-				mPreFilter->doFiltering(indicesPtr);
+                mPreFilter->filter(indicesPtr);
 
 				// set the indices of the filter to the already filtered indices and reset the return indices pointer.
-				this->setIndices(indicesPtr);
+                this->setInputPointIndices(indicesPtr);
 				indicesPtr = IndicesPtr(new Indices());
                 mDebugHelperPtr->write("Ended pre filtering", DebugHelper::FILTER);
 			}
 
 			// apply this filter
-			this->doFiltering(indicesPtr);
+            if (enabled) {
+                this->doFiltering(indicesPtr);
+            } else {
+                // we didn't filter anything, so input = output
+                indicesPtr = IndicesPtr(new Indices(*getInputPointIndices()));
+            }
 
 			// apply post filter
-			if (mPostFilter != GeneralFilterPtr()) {
+            if (mPostFilter != GeneralFilterPtr<T>()) {
                 mDebugHelperPtr->write("Start post filtering", DebugHelper::FILTER);
 				// set the working input cloud and the relevant indices to work on.
-				mPostFilter->setInputCloud(this->getInputCloud());
-				mPostFilter->setIndices(indicesPtr);
+                mPostFilter->setObjectPointCloud(this->getObjectPointCloud());
+                mPostFilter->setObjectPointIndices(this->getObjectPointIndices());
+                mPostFilter->setInputPointCloud(this->getInputPointCloud());
+                mPostFilter->setInputPointIndices(indicesPtr);
 
 				indicesPtr = IndicesPtr(new Indices());
-				mPostFilter->doFiltering(indicesPtr);
+                mPostFilter->filter(indicesPtr);
                 mDebugHelperPtr->write("Ended post filtering", DebugHelper::FILTER);
 			}
 		}
