@@ -35,7 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/GeneticAlgorithm.hpp"
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
-#include "next_best_view/robot_model/RobotModel.hpp"
+#include <robot_model_services/robot_model/RobotModel.hpp>
 #include "next_best_view/crop_box/CropBoxFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/CameraModelFilterAbstractFactory.hpp"
@@ -80,7 +80,7 @@ private:
     UnitSphereSamplerPtr mUnitSphereSamplerPtr;
     MapHelperPtr mMapHelperPtr;
     SpaceSamplerPtr mSpaceSamplerPtr;
-    RobotModelPtr mRobotModelPtr;
+    robot_model_services::RobotModelPtr mRobotModelPtr;
     CameraModelFilterPtr mCameraModelFilterPtr;
     RatingModulePtr mRatingModulePtr;
     HypothesisUpdaterPtr mHypothesisUpdaterPtr;
@@ -140,7 +140,7 @@ public:
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
                            const MapHelperPtr &mapHelperPtr = MapHelperPtr(),
                            const SpaceSamplerPtr &spaceSamplerPtr = SpaceSamplerPtr(),
-                           const RobotModelPtr &robotModelPtr = RobotModelPtr(),
+                           const robot_model_services::RobotModelPtr &robotModelPtr = robot_model_services::RobotModelPtr(),
                            const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr(),
                            const RatingModulePtr &ratingModulePtr = RatingModulePtr());
 
@@ -411,12 +411,12 @@ public:
      * sets the robot model
      * @param robotModelPtr - the pointer to robot model.
      */
-    void setRobotModel(const RobotModelPtr &robotModelPtr);
+    void setRobotModel(const robot_model_services::RobotModelPtr &robotModelPtr);
 
     /**
      *@return the robot ptr
      */
-    RobotModelPtr getRobotModel();
+    robot_model_services::RobotModelPtr getRobotModel();
 
     /**
      * Sets the camera model filter.

@@ -47,9 +47,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/ObjectHelper.h"
 #include "next_best_view/helper/TypeHelper.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include "robot_model_services/robot_model/impl/MILDRobotModel.hpp"
+#include "robot_model_services/robot_model/impl/MILDRobotModelWithExactIK.hpp"
+#include "robot_model_services/robot_model/impl/MILDRobotState.hpp"
 #include <tf/tf.h>
 
 #include <Eigen/Dense>
@@ -87,7 +87,7 @@ public:
 
     void setInitialRobotState(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv = nullptr);
 
-    MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
+    robot_model_services::MILDRobotStatePtr getRobotState(const geometry_msgs::Pose &initialPose);
 
     void waitForEnter();
 

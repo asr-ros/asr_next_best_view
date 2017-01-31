@@ -5,7 +5,6 @@ objectNormalsVisualization: /nbv/object_normals
 frustumObjectsVisualization: /nbv/frustum_object_meshes
 frustumObjectNormalsVisualization: /nbv/frustum_object_normals
 cropBoxVisualization: /nbv/crop_box
-IKVisualization: /nbv/IK_Visualization
 worldMeshesVisualization: /nbv/worldMeshesVisualization
 worldTriangleListVisualization: /nbv/worldTriangleListVisualization
 voxelGridVisualization: /nbv/voxelGridVisualization

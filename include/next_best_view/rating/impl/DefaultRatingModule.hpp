@@ -27,7 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/rating/RatingModule.hpp"
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
-#include "next_best_view/robot_model/RobotModel.hpp"
+#include <robot_model_services/robot_model/RobotModel.hpp>
 
 namespace next_best_view {
 	/*!
@@ -63,7 +63,7 @@ namespace next_best_view {
         /*
          * help members
          */
-        RobotModelPtr mRobotModelPtr;
+         robot_model_services::RobotModelPtr mRobotModelPtr;
         MapHelperPtr mMapHelperPtr;
         CameraModelFilterPtr mCameraModelFilterPtr;
         DebugHelperPtr mDebugHelperPtr;
@@ -89,7 +89,7 @@ namespace next_best_view {
         // the PTU omega parameter
         Precision mOmegaPTU = -1;
         // the target state
-        RobotStatePtr mTargetState = NULL;
+        robot_model_services::RobotStatePtr mTargetState = NULL;
 
         /*
          * members to cache the calculated data
@@ -103,7 +103,7 @@ namespace next_best_view {
 		DefaultRatingModule();
 
         DefaultRatingModule(double mFovV, double mFovH, double mFcp, double mNcp,
-                                const RobotModelPtr &robotModelPtr = RobotModelPtr(),
+                                const robot_model_services::RobotModelPtr &robotModelPtr = robot_model_services::RobotModelPtr(),
                                 const MapHelperPtr &mapHelperPtr = MapHelperPtr(),
                                 const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr());
 
@@ -219,7 +219,7 @@ namespace next_best_view {
          * @brief setRobotState sets mRobotModelPtr's state.
          * @param robotState
          */
-        void setRobotState(RobotStatePtr robotState);
+        void setRobotState(robot_model_services::RobotStatePtr robotState);
 
         /*!
          * \brief resets the cached data for a call of setBestScoreContainer

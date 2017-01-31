@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   rapidxml
   dynamic_reconfigure
   voxel_grid
+  robot_model_services
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
   #  assimp
 )
@@ -58,14 +59,9 @@ add_service_files(
    SetAttributedPointCloud.srv
    SetInitRobotState.srv
    UpdatePointCloud.srv
-   CalculateCameraPose.srv
-   CalculateCameraPoseCorrection.srv
-   IsPositionAllowed.srv
    TriggerFrustumVisualization.srv
    TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
-   GetPose.srv
-   GetDistance.srv
    RateViewports.srv
    GetActiveNormals.srv
    RemoveObjects.srv
@@ -90,8 +86,8 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}_helper
-  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid
+  LIBRARIES ${PROJECT_NAME}_helper 
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid robot_model_services
   DEPENDS system_lib
 )
 
@@ -101,7 +97,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
-  /opt/ros/indigo/include/assimp_devel
+  /opt/ros/$ENV{ROS_DISTRO}/include/assimp_devel
 )
 
 
@@ -124,9 +120,6 @@ add_library(
         src/camera_model_filter/CameraModelFilter.cpp
         src/rating/BaseScoreContainer.cpp
         src/rating/RatingModule.cpp
-        src/rating/IKRatingModule.cpp
-        src/robot_model/RobotModel.cpp
-        src/robot_model/RobotState.cpp
         src/space_sampler/SpaceSampler.cpp
         src/space_sampler/SpaceSamplePattern.cpp
         src/unit_sphere_sampler/UnitSphereSampler.cpp
@@ -142,14 +135,7 @@ add_library(
         src/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.cpp
         src/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.cpp
         src/rating/impl/DefaultRatingModule.cpp
-        src/rating/impl/NavigationPathIKRatingModule.cpp
-        src/rating/impl/SimpleIKRatingModule.cpp
-        src/rating/impl/AngleApproximationIKRatingModule.cpp
         src/rating/impl/DefaultScoreContainer.cpp
-        src/robot_model/impl/MILDRobotModel.cpp
-        src/robot_model/impl/MILDRobotModelWithExactIK.cpp
-        src/robot_model/impl/MILDRobotModelWithApproximatedIK.cpp
-        src/robot_model/impl/MILDRobotState.cpp
         src/space_sampler/impl/PlaneSubSpaceSampler.cpp
         src/space_sampler/impl/Raytracing2DBasedSpaceSampler.cpp
         src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
@@ -185,7 +171,7 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         # assimp
-        /opt/ros/indigo/lib/libassimp_devel.so
+        /opt/ros/$ENV{ROS_DISTRO}/lib/libassimp_devel.so
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
@@ -201,6 +187,7 @@ add_dependencies(
         ${PROJECT_NAME}_generate_messages_cpp
         object_database
         world_model
+	    robot_model_services
 )
 
 target_link_libraries(
@@ -210,17 +197,18 @@ target_link_libraries(
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
+		robot_model_services_packages
+		robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
 #TEST CASES
 #SET VARIABLES TO ENABLE/DISABLE TEST BUILDING
 
-option(BUILD_ALL_TESTS "Build all tests" OFF)
+set(BUILD_ALL_TESTS FALSE)
 
 set (BUILD_TEST ${BUILD_ALL_TESTS}) #ToDo: Change Name
 set (BUILD_PARAMETERS_TEST ${BUILD_ALL_TESTS})
-set (BUILD_IK_TEST ${BUILD_ALL_TESTS})
 set (BUILD_SINGLE_SCENE_TEST ${BUILD_ALL_TESTS})
 set (BUILD_MULTI_ID_SCENE_TEST ${BUILD_ALL_TESTS})
 set (BUILD_PERFORMANCE_TEST ${BUILD_ALL_TESTS})
@@ -237,10 +225,12 @@ set (TEST_LINK_LIBRARIES
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
+		robot_model_services_packages
+		robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
-if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST OR BUILD_RAYTRACING_TEST)
+if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR  BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST OR BUILD_RAYTRACING_TEST)
 MESSAGE ("Building Tests:")
 add_library(
         ${PROJECT_NAME}_test_core
@@ -321,19 +311,6 @@ addTest(MULTI_ID_SCENE)
 
 addTest(PARAMETERS)
 
-if (BUILD_IK_TEST)
-MESSAGE (" - IK Test")
-add_executable(
-        ${PROJECT_NAME}_ik_test
-        src/test_cases/IKTest.cpp
-)
-
-target_link_libraries(
-       ${PROJECT_NAME}_ik_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
-
 addTest(PERFORMANCE)
 
 addTest(UPDATE_POINTCLOUD)
@@ -345,22 +322,5 @@ addTest(STREAM)
 addTest(RAYTRACING)
 
 addTest(RATE_VIEWPORTS)
-
-
-add_executable(
-        ${PROJECT_NAME}_robot_model
-        src/robot_model/RobotModel_Service.cpp
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_robot_model
-        ${PCL_LIBRARIES}
-        ${PROJECT_NAME}_packages_impl
-        glpk
-        ${catkin_LIBRARIES}
-)
-
-
-
 
 

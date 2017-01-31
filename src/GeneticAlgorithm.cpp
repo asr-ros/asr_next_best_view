@@ -36,16 +36,8 @@ namespace next_best_view {
     }
 
     ViewportPointCloudPtr GeneticAlgorithm::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
-        auto begin = std::chrono::high_resolution_clock::now();
         auto selectedViewports = select(samples, iterationStep);
-        auto finish = std::chrono::high_resolution_clock::now();
-        ROS_INFO_STREAM("selection took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
-
-        begin = std::chrono::high_resolution_clock::now();
         auto newViewports = mutate(selectedViewports, iterationStep);
-        finish = std::chrono::high_resolution_clock::now();
-        // cast timediff to float in seconds
-        ROS_INFO_STREAM("mutate took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
         return newViewports;
     }
 
@@ -163,7 +155,6 @@ namespace next_best_view {
 
     ViewportPointCloudPtr GeneticAlgorithm::mutate(const ViewportPointCloudPtr &selection, int iterationStep) {
         ViewportPointCloudPtr mutatedSamples(new ViewportPointCloud());
-        ROS_INFO_STREAM("in size: " << selection->size());
         for (ViewportPoint &goodRatedViewportPoint : *selection) {
 
             // get direction vector and rotationMatrices
@@ -199,7 +190,6 @@ namespace next_best_view {
                 }
             }
         }
-        ROS_INFO_STREAM("out size: " << mutatedSamples->size());
         return mutatedSamples;
     }
 

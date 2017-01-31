@@ -13,7 +13,7 @@ namespace next_best_view {
 
 		SimpleVector3 cameraPosition = this->getPivotPointPosition() + this->getPivotPointOffset();
 
-        mWorldHelperPtr->filterOccludedObjects(cameraPosition, this->getInputCloud(), intermediateIndicesPtr, indicesPtr);
+        mWorldHelperPtr->filterOccludedObjects(cameraPosition, this->getInputPointCloud(), intermediateIndicesPtr, indicesPtr);
 	}
 }
 

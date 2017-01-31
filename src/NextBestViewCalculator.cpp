@@ -21,10 +21,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    NextBestViewCalculator::NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr,
+    NextBestViewCalculator::NextBestViewCalculator(const UnitSphereSamplerPtr &unitSphereSamplerPtr,
                                                    const MapHelperPtr &mapHelperPtr,
                                                    const SpaceSamplerPtr &spaceSamplerPtr,
-                                                   const RobotModelPtr &robotModelPtr,
+                                                   const robot_model_services::RobotModelPtr &robotModelPtr,
                                                    const CameraModelFilterPtr &cameraModelFilterPtr,
                                                    const RatingModulePtr &ratingModulePtr)
         : enable_shared_from_this(),
@@ -89,7 +89,7 @@ namespace next_best_view {
     }
 
     void NextBestViewCalculator::initializeRobotState(const ViewportPoint &currentCameraViewport) {
-        RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
+        robot_model_services::RobotStatePtr currentState = mRobotModelPtr->calculateRobotState(currentCameraViewport.getPosition(), currentCameraViewport.getSimpleQuaternion());
         //Save it.
         mRobotModelPtr->setCurrentRobotState(currentState);
         mRatingModulePtr->setRobotState(currentState);
@@ -249,10 +249,6 @@ namespace next_best_view {
         while (ros::ok()) {
             ViewportPoint intermediateResultViewport;
 
-            if (intermediateResultViewport.score) {
-                ROS_INFO_STREAM("magic");
-            }
-
             auto begin = std::chrono::high_resolution_clock::now();
             //Contractor is always divided by two.
             if (!this->doIterationStep(currentCameraViewport, currentBestViewport,
@@ -298,7 +294,6 @@ namespace next_best_view {
                 mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION METHOD", DebugHelper::CALCULATION);
                 return true;
             }
-            ROS_INFO_STREAM("rating: " << rating);
             currentBestViewport = intermediateResultViewport;
             currentBestRating = rating;
 
@@ -345,7 +340,6 @@ namespace next_best_view {
         if (mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
             // we append viewport with best utility, so we keep utilityNormalization constant or increasing
             ViewportPoint bestUtiltiyViewport = mNBVCachePtr->getAllBestUtilityViewports()->back();
-            ROS_INFO_STREAM("best utility viewport: " << bestUtiltiyViewport);
             sampleNextBestViewports->push_back(bestUtiltiyViewport);
         }
 
@@ -490,9 +484,9 @@ namespace next_best_view {
         BOOST_FOREACH(asr_msgs::AsrAttributedPoint element, msg.elements) {
             // Create a new point with pose and set object type
             ObjectPoint pointCloudPoint(element.pose);
-            pointCloudPoint.r = 0;
-            pointCloudPoint.g = 255;
-            pointCloudPoint.b = 0;
+            pointCloudPoint.color.r = 0;
+            pointCloudPoint.color.g = 255;
+            pointCloudPoint.color.b = 0;
             pointCloudPoint.type = element.type;
             pointCloudPoint.identifier = element.identifier;
 
@@ -969,11 +963,11 @@ namespace next_best_view {
         return mSpaceSamplerPtr;
     }
 
-    void NextBestViewCalculator::setRobotModel(const RobotModelPtr &robotModelPtr) {
+    void NextBestViewCalculator::setRobotModel(const robot_model_services::RobotModelPtr &robotModelPtr) {
         mRobotModelPtr = robotModelPtr;
     }
 
-    RobotModelPtr NextBestViewCalculator::getRobotModel() {
+    robot_model_services::RobotModelPtr NextBestViewCalculator::getRobotModel() {
         return mRobotModelPtr;
     }
 
