@@ -6,10 +6,8 @@ bool found
 string[] object_type_name_list
 geometry_msgs/Pose resulting_pose
 next_best_view/RobotStateMessage robot_state
-float32 rating
 # utility
 float32 utility
-float32 unnormalized_utility
 float32 utility_normalization
 # total costs
 float32 inverse_costs

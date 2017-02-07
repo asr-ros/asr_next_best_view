@@ -109,7 +109,7 @@ namespace next_best_view {
 
         virtual ~DefaultRatingModule();
 
-        void setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr);
+        void setInputCloud(const ObjectPointCloudPtr &pointCloudPtr);
 
         bool setBestScoreContainer(const ViewportPoint &currentViewport, ViewportPoint &candidateViewport);
 
@@ -225,16 +225,6 @@ namespace next_best_view {
          * \brief resets the cached data for a call of setBestScoreContainer
          */
         void resetCache();
-
-        /**
-         * @brief updateUtilityNormalization
-         * @param viewports
-         * @param utilityNormalization
-         */
-        void updateUtilityNormalization(ViewportPointCloudPtr &viewports, float utilityNormalization);
-
-
-        void updateUtilityNormalization(ViewportPoint &viewport, float utilityNormalization);
 
     private:
         /*!

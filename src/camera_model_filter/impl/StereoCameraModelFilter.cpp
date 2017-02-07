@@ -38,8 +38,8 @@ namespace next_best_view {
 		mLeftCameraModelFilter.setFarClippingPlane(this->getFarClippingPlane());
 		mLeftCameraModelFilter.setPivotPointPosition(this->getPivotPointPosition());
 		mLeftCameraModelFilter.setOrientation(this->getOrientation());
-        mLeftCameraModelFilter.setInputPointCloud(this->getInputPointCloud());
-        mLeftCameraModelFilter.setInputPointIndices(this->getInputPointIndices());
+		mLeftCameraModelFilter.setInputCloud(this->getInputCloud());
+		mLeftCameraModelFilter.setIndices(this->getIndices());
 
 		// set up right camera
 		mRightCameraModelFilter.setHorizontalFOV(this->getHorizontalFOV());
@@ -48,8 +48,8 @@ namespace next_best_view {
 		mRightCameraModelFilter.setFarClippingPlane(this->getFarClippingPlane());
 		mRightCameraModelFilter.setPivotPointPosition(this->getPivotPointPosition());
 		mRightCameraModelFilter.setOrientation(this->getOrientation());
-        mRightCameraModelFilter.setInputPointCloud(this->getInputPointCloud());
-        mRightCameraModelFilter.setInputPointIndices(this->getInputPointIndices());
+		mRightCameraModelFilter.setInputCloud(this->getInputCloud());
+		mRightCameraModelFilter.setIndices(this->getIndices());
 
 		this->setParametersChanged(false);
 	}
@@ -92,7 +92,7 @@ namespace next_best_view {
 			mLeftCameraModelFilter.filter(leftIndicesPtr);
 
 			// setting the left indices as resource
-            mRightCameraModelFilter.setInputPointIndices(leftIndicesPtr);
+			mRightCameraModelFilter.setIndices(leftIndicesPtr);
 			mRightCameraModelFilter.filter(indicesPtr);
 		}
 	}

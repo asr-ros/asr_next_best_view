@@ -46,8 +46,8 @@ namespace next_best_view {
 
 		// orientation and position
 		mFrustumCullingPtr->setCameraPose(getCameraPoseMatrix(cameraPosition, pivotPointOrientation));
-        mFrustumCullingPtr->setIndices(this->getInputPointIndices());
-        mFrustumCullingPtr->setInputCloud(this->getInputPointCloud());
+		mFrustumCullingPtr->setIndices(this->getIndices());
+		mFrustumCullingPtr->setInputCloud(this->getInputCloud());
 
 		// start filtering.
 		mFrustumCullingPtr->filter(*indicesPtr);

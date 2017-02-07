@@ -102,7 +102,7 @@ namespace next_best_view {
 	    upperPoint[0] += currentSpacePosition[0];
 	    upperPoint[1] += currentSpacePosition[1];
 
-        // lower Point
+        //lower Point
 	    SimpleVector3 lowerPoint(x * 2.0 * horizontalSpacing + offsetting, -.5 * interPointSpacing + y * 1.5 * radius, 0);
 	    lowerPoint[0] += currentSpacePosition[0];
 	    lowerPoint[1] += currentSpacePosition[1];

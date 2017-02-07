@@ -34,7 +34,7 @@ namespace next_best_view {
 
 		// Calculate maximum span
 		SimpleVector4 minVector, maxVector;
-		pcl::getMinMax3D(*this->getObjectPointCloud(), minVector, maxVector);
+		pcl::getMinMax3D(*this->getInputCloud(), minVector, maxVector);
 		// the surrounding cube.
 		SimpleVector3 spanCube = maxVector.block<3,1>(0,0) - minVector.block<3,1>(0,0);
 

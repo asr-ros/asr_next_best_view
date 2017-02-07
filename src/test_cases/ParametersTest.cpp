@@ -518,17 +518,16 @@ public:
             SimpleVector3 pos(initialPose.position.x, initialPose.position.y, initialPose.position.z);
             SimpleQuaternion q(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
 
-            NextBestViewCalculatorPtr nbvCalcPtr = NBV->getCalculator();
-            ViewportPoint viewport(pos, q);
-            viewport.child_indices = nbvCalcPtr->getActiveIndices();
-            nbvCalcPtr->doFrustumCulling(viewport);
+            NextBestViewCalculator nbvCalc = NBV->getCalculator();
+            ViewportPoint viewport;
+            nbvCalc.doFrustumCulling(pos, q, nbvCalc.getActiveIndices(), viewport);
 
             viewport.object_type_set = typeSet;
 
             ROS_INFO_STREAM("Original state: pan " << robotStatePtr->pan << " tilt " << robotStatePtr->tilt
                                         << " rotation " << robotStatePtr->rotation
                                         << " x " << robotStatePtr->x << " y " << robotStatePtr->y);
-            if (nbvCalcPtr->getRatingModule()->setSingleScoreContainer(viewport, viewport))
+            if (nbvCalc.getRatingModule()->setSingleScoreContainer(viewport, viewport))
                 ROS_INFO_STREAM("Original viewport: utility " << viewport.score->getWeightedNormalizedUtility() << " inverseCosts " << viewport.score->getWeightedInverseCosts()
                                     << " rating " << viewport.score->getWeightedNormalizedUtility() * viewport.score->getWeightedInverseCosts());
             else

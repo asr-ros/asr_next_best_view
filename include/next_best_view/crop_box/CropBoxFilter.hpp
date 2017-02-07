@@ -28,7 +28,7 @@ namespace next_best_view {
     /*!
      * \brief The CropBoxFilter class, used to filter objects in crop boxes.
      */
-    class CropBoxFilter : public GeneralFilter<ObjectPoint> {
+    class CropBoxFilter : public GeneralFilter {
     private:
         boost::shared_ptr<std::vector<CropBoxWrapperPtr>> mCropBoxPtrList;
 

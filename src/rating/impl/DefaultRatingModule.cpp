@@ -44,9 +44,9 @@ DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, d
 
 DefaultRatingModule::~DefaultRatingModule() { }
 
-void DefaultRatingModule::setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+void DefaultRatingModule::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
     // set input cloud in parent class
-    RatingModule::setObjectPointCloud(pointCloudPtr);
+    RatingModule::setInputCloud(pointCloudPtr);
 
     mInputCloudChanged = true;
 }
@@ -89,19 +89,6 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
     return success;
 }
 
-void DefaultRatingModule::updateUtilityNormalization(ViewportPointCloudPtr &viewports, float utilityNormalization) {
-    BOOST_FOREACH(ViewportPoint &viewport, *viewports) {
-        updateUtilityNormalization(viewport, utilityNormalization);
-    }
-}
-
-void DefaultRatingModule::updateUtilityNormalization(ViewportPoint &viewport, float utilityNormalization) {
-    viewport.score->setUtilityNormalization(utilityNormalization);
-
-    float weightedNormalizedUtility = mOmegaUtility * viewport.score->getUnweightedUnnormalizedUtility() / utilityNormalization;
-    viewport.score->setWeightedNormalizedUtility(weightedNormalizedUtility);
-}
-
 bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, ViewportPoint &bestViewport) {
     mDebugHelperPtr->writeNoticeably("STARTING DEFAULTRATINGMODULE::GET-BEST-VIEWPORT METHOD",
                 DebugHelper::RATING);
@@ -123,7 +110,12 @@ bool DefaultRatingModule::getBestViewport(ViewportPointCloudPtr &viewports, View
         }
     }
 
-    updateUtilityNormalization(viewports, utilityNormalization);
+    BOOST_FOREACH(ViewportPoint viewport, *viewports) {
+        viewport.score->setUtilityNormalization(utilityNormalization);
+
+        float weightedNormalizedUtility = mOmegaUtility * viewport.score->getUnweightedUnnormalizedUtility() / utilityNormalization;
+        viewport.score->setWeightedNormalizedUtility(weightedNormalizedUtility);
+    }
 
     // sort the viewports by rating
     if (mDebugHelperPtr->getLevel() & DebugHelper::RATING) {
@@ -342,7 +334,7 @@ void DefaultRatingModule::setUtilityParameters(bool useOrientationUtility, bool 
 
 float DefaultRatingModule::getNormalizedRating(float deviation, float threshold) {
     if (deviation < threshold) {
-        return 1.0 - deviation / threshold;
+        return .5 + .5 * cos(deviation * M_PI / threshold);
     }
     return 0.0;
 }
@@ -368,7 +360,7 @@ void DefaultRatingModule::setUnweightedUnnormalizedObjectUtilities(const Viewpor
 
     // build the sum of the orientation and frustum position utilities of all object points in the candidate camera view with the given type
     BOOST_FOREACH(int index, *(candidateViewport.child_indices)) {
-        ObjectPoint& objectPoint = this->getObjectPointCloud()->at(index);
+        ObjectPoint& objectPoint = this->getInputCloud()->at(index);
 
         if (objectPoint.type != objectType) {
             continue;
@@ -479,7 +471,7 @@ void DefaultRatingModule::setRatingNormalization() {
 
 void DefaultRatingModule::setMaxRecognitionCosts() {
     mMaxRecognitionCosts = 0;
-    ObjectPointCloudPtr inputCloud = this->getObjectPointCloud();
+    ObjectPointCloudPtr inputCloud = this->getInputCloud();
 
     double maxRecognitionCosts = 0;
     std::vector<std::string> types;

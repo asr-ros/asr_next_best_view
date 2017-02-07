@@ -48,7 +48,7 @@ tiltMax: 25
 mSigma: 3.0
 mRatingNormalAngleThreshold: 45.0 # used to rate angles in rating module
 mHypothesisUpdaterAngleThreshold: 45.0  # used to rate angles in hypothesis updater module
-radius: 0.2 # hexagon space sample radius
+radius: 0.15 # hexagon space sample radius
 sampleSizeUnitSphereSampler: 384 # number of samples created by SpiralApproxUnitSphereSampler. Greater -> more precise orientation.
 colThresh: 40 # greater values results in problems during simulation in navigation. Smaller -> more distance to obstacles.
 epsilon: 0.01
@@ -61,30 +61,11 @@ sampleSizeMapBasedRandomSpaceSampler: 100
 # spaceSamplerId == 2 => MapBasedRandomSpaceSampler
 # spaceSamplerId == 3 => PlaneSubSpaceSampler
 # spaceSamplerId == 4 => Raytracing2DBasedSpaceSampler
-# spaceSamplerId == 5 => HypothesisSpaceSampler
-spaceSamplerId: 5
-# spaceSamplePatternId == 1 => HexagonSpaceSamplePattern
-spaceSamplePatternId: 1 # atm only used by HypothesisSpaceSampler
+spaceSamplerId: 1
 # sphereSamplerId == 1 => SpiralApproxUnitSphereSampler
 sphereSamplerId: 1
 maxIterationSteps: 20
-minIterationSteps: 5
-enableClustering: true # if hypothesis pointcloud should be clustered
-#filters
-enableClusterFilter: true
-enableMapFilter: true
-enableKDTreeFilter: true # if off we have no nearby hypothesis (child_indices) for frustum culling
 removeInvalidNormals: false
-# used by genetic algorithm
-enableGA: true
-improvementIterationsGA: 20
-maxAngleGA: 15.0
-radiusGA: 0.2
-minIterationsGA: 1 # when genetic algorithm should be used
-# cache
-cacheResults: true # if results should be cached for next nbv calls with the same pc
-# prediciton
-enablePrediction: false
 useMinUtility: true
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
 debugLevels: [PARAMETERS] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER

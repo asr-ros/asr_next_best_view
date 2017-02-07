@@ -30,13 +30,13 @@ namespace next_best_view {
 
     void CropBoxFilter::doFiltering(IndicesPtr &indicesPtr) {
 
-        ObjectPointCloudPtr inputObjectPointCloudPtr = this->getInputPointCloud();
+        ObjectPointCloudPtr inputObjectPointCloudPtr = this->getInputCloud();
         ObjectPointCloudPtr processingPointCloudPtr = nullptr;
 
-        if (getInputPointIndices() == nullptr) {
+        if (getIndices() == nullptr) {
             processingPointCloudPtr = inputObjectPointCloudPtr;
         } else {
-            processingPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*inputObjectPointCloudPtr, *getInputPointIndices()));
+            processingPointCloudPtr = ObjectPointCloudPtr(new ObjectPointCloud(*inputObjectPointCloudPtr, *getIndices()));
         }
 
         //Filter the point cloud

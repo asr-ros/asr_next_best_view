@@ -164,7 +164,7 @@ namespace next_best_view {
     }
 
     visualization_msgs::Marker MarkerHelper::getTriangleListMarker(int id, std::vector<SimpleVector3> vertices,
-                                                                    std::vector<SimpleVector4> colors, std::string ns)
+                                                                    std::vector<SimpleVector4> colors, string ns)
     {
         visualization_msgs::Marker marker = getBasicMarker(id, SimpleVector3(0,0,0), SimpleQuaternion(1,0,0,0),
                                                                 SimpleVector3(1,1,1), SimpleVector4(0,0,0,1), ns);

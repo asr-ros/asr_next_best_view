@@ -78,7 +78,6 @@ namespace next_best_view {
         DefaultScoreContainerPtr score;
         // old idx in the saved datastructure to reorder
         unsigned int oldIdx;
-        // TODO: consider caching robotstate here.
 	public:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) : DefaultViewportPoint(SimpleVector3(pose.position.x, pose.position.y, pose.position.z)) {

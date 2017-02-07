@@ -121,9 +121,7 @@ add_library(
         src/rating/BaseScoreContainer.cpp
         src/rating/RatingModule.cpp
         src/space_sampler/SpaceSampler.cpp
-        src/space_sampler/SpaceSamplePattern.cpp
         src/unit_sphere_sampler/UnitSphereSampler.cpp
-        src/cluster/ClusterExtraction.cpp
 )
 
 add_library(
@@ -140,23 +138,12 @@ add_library(
         src/space_sampler/impl/Raytracing2DBasedSpaceSampler.cpp
         src/space_sampler/impl/MapBasedHexagonSpaceSampler.cpp
         src/space_sampler/impl/MapBasedRandomSpaceSampler.cpp
-        src/space_sampler/impl/HypothesisSpaceSampler.cpp
-        src/space_sampler/impl/HexagonSpaceSamplePattern.cpp
-        src/filter/sample_point/MapSpaceSampleFilter.cpp
-        src/filter/sample_point/HypothesisClusterSpaceSampleFilter.cpp
-        src/filter/sample_point/HypothesisKDTreeSpaceSampleFilter.cpp
         src/unit_sphere_sampler/impl/SpiralApproxUnitSphereSampler.cpp
-        src/cluster/impl/EuclideanPCLClusterExtraction.cpp
         src/crop_box/CropBoxFilter.cpp
         src/crop_box/CropBoxWrapper.cpp
         src/pcl/DefaultViewportPoint.cpp
         src/pcl/RealObjectPoint.cpp
         src/pcl/SpaceSamplePoint.cpp
-        src/pcl/BoundingBox.cpp
-        src/NextBestViewCache.cpp
-        src/NextBestViewCalculator.cpp
-        src/NextBestViewPrediction.cpp
-        src/GeneticAlgorithm.cpp
 )
 target_link_libraries(
         ${PROJECT_NAME}_packages_impl

@@ -24,19 +24,19 @@ namespace next_best_view {
 
 	CommonClass::~CommonClass() { }
 
-	void CommonClass::setObjectPointCloud(const ObjectPointCloudPtr &pointCloudPtr) {
-        mObjectPointCloudPtr = pointCloudPtr;
+	void CommonClass::setInputCloud(const ObjectPointCloudPtr &pointCloudPtr) {
+		mPointCloudPtr = pointCloudPtr;
 	}
 
-	ObjectPointCloudPtr& CommonClass::getObjectPointCloud() {
-        return mObjectPointCloudPtr;
+	ObjectPointCloudPtr& CommonClass::getInputCloud() {
+		return mPointCloudPtr;
 	}
 
-    void CommonClass::setObjectPointIndices(const IndicesPtr &indicesPtr) {
-        mObjectPointIndicesPtr = indicesPtr;
+	void CommonClass::setIndices(const IndicesPtr &indicesPtr) {
+		mIndicesPtr = indicesPtr;
 	}
 
-    IndicesPtr& CommonClass::getObjectPointIndices() {
-        return mObjectPointIndicesPtr;
+	IndicesPtr& CommonClass::getIndices() {
+		return mIndicesPtr;
 	}
 }
