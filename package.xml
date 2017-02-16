@@ -3,7 +3,7 @@
   <version>1.0.0</version>
   <description>This package calculates the position and orientation for a robot where it is most likely to find and recognize an object</description>
   <author>Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij</author>
-  <maintainer email="pascal.meissner@posteo.de">Meißner Pascal</maintainer>
+  <maintainer email="asr-ros@lists.kit.edu">Meißner Pascal</maintainer>
   <license>BSD-derived</license>
 
   <buildtool_depend>catkin</buildtool_depend>
