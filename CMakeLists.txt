@@ -22,7 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   kdl_parser
   costmap_2d
-  rapidxml
+  asr_rapidxml
   dynamic_reconfigure
   voxel_grid
   robot_model_services

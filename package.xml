@@ -20,7 +20,7 @@
   <build_depend>visualization_msgs</build_depend>
   <build_depend>asr_msgs</build_depend>
   <build_depend>world_model</build_depend>
-  <build_depend>rapidxml</build_depend>
+  <build_depend>asr_rapidxml</build_depend>
   <build_depend>voxel_grid</build_depend>
   <build_depend>assimp</build_depend>
   <build_depend>robot_model_services</build_depend>
@@ -37,7 +37,7 @@
   <run_depend>actionlib</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>rapidxml</run_depend>
+  <run_depend>asr_rapidxml</run_depend>
   <run_depend>voxel_grid</run_depend>
   <run_depend>assimp</run_depend>
   <run_depend>robot_model_services</run_depend>
