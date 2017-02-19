@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   geometry_msgs
-  object_database
+  asr_object_database
   message_generation
   sensor_msgs
   nav_msgs
@@ -30,7 +30,7 @@ find_package(catkin REQUIRED COMPONENTS
   #  assimp
 )
 
-message(WARNING "Object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
+message(WARNING "Asr_object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -172,7 +172,7 @@ add_executable(
 add_dependencies(
         ${PROJECT_NAME}
         ${PROJECT_NAME}_generate_messages_cpp
-        object_database
+        asr_object_database
         world_model
 	    robot_model_services
 )
