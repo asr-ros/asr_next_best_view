@@ -25,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   asr_rapidxml
   dynamic_reconfigure
   voxel_grid
-  robot_model_services
+  asr_robot_model_services
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
   #  assimp
 )
@@ -87,7 +87,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper 
-  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid robot_model_services
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid asr_robot_model_services
   DEPENDS system_lib
 )
 
@@ -174,7 +174,7 @@ add_dependencies(
         ${PROJECT_NAME}_generate_messages_cpp
         asr_object_database
         world_model
-	    robot_model_services
+	    asr_robot_model_services
 )
 
 target_link_libraries(
@@ -184,8 +184,8 @@ target_link_libraries(
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
-		robot_model_services_packages
-		robot_model_services_packages_impl
+		asr_robot_model_services_packages
+		asr_robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
@@ -212,8 +212,8 @@ set (TEST_LINK_LIBRARIES
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
-		robot_model_services_packages
-		robot_model_services_packages_impl
+		asr_robot_model_services_packages
+		asr_robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
