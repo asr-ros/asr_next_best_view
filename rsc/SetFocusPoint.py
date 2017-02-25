@@ -58,7 +58,7 @@ def ptu_callback(data):
 def get_robot_state():
     global ptu
 
-    sub_ptu = rospy.Subscriber('/ptu_driver/state', JointState, ptu_callback)
+    sub_ptu = rospy.Subscriber('/asr_flir_ptu_driver/state', JointState, ptu_callback)
 
     future = time() + 2
     while not ptu and time() < future:
