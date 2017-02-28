@@ -23,7 +23,7 @@ from actionlib import *
 from actionlib.msg import *
 import numpy
 from time import time
-from ptu_controller.msg import PTUMovementGoal, PTUMovementAction
+from asr_flir_ptu_controller.msg import PTUMovementGoal, PTUMovementAction
 from next_best_view.srv import GetPose, CalculateCameraPoseCorrection, CalculateCameraPose, TriggerFrustumVisualization
 from next_best_view.msg import RobotStateMessage
 from sensor_msgs.msg import JointState
@@ -58,7 +58,7 @@ def ptu_callback(data):
 def get_robot_state():
     global ptu
 
-    sub_ptu = rospy.Subscriber('/ptu_driver/state', JointState, ptu_callback)
+    sub_ptu = rospy.Subscriber('/asr_flir_ptu_driver/state', JointState, ptu_callback)
 
     future = time() + 2
     while not ptu and time() < future:

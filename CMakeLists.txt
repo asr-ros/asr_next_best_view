@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   geometry_msgs
-  object_database
+  asr_object_database
   message_generation
   sensor_msgs
   nav_msgs
@@ -22,15 +22,15 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   kdl_parser
   costmap_2d
-  rapidxml
+  asr_rapidxml
   dynamic_reconfigure
   voxel_grid
-  robot_model_services
+  asr_robot_model_services
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
   #  assimp
 )
 
-message(WARNING "Object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
+message(WARNING "Asr_object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -87,7 +87,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper 
-  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid robot_model_services
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid asr_robot_model_services
   DEPENDS system_lib
 )
 
@@ -97,7 +97,9 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
-  /opt/ros/kinetic/include/assimp_devel
+
+  /opt/ros/$ENV{ROS_DISTRO}/include/assimp_devel
+
 )
 
 
@@ -158,7 +160,9 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         # assimp
-        /opt/ros/kinetic/lib/libassimp_devel.so
+
+        /opt/ros/$ENV{ROS_DISTRO}/lib/libassimp_devel.so
+
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
@@ -172,9 +176,9 @@ add_executable(
 add_dependencies(
         ${PROJECT_NAME}
         ${PROJECT_NAME}_generate_messages_cpp
-        object_database
+        asr_object_database
         world_model
-	    robot_model_services
+	    asr_robot_model_services
 )
 
 target_link_libraries(
@@ -184,19 +188,18 @@ target_link_libraries(
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
-		robot_model_services_packages
-		robot_model_services_packages_impl
+		asr_robot_model_services_packages
+		asr_robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
 #TEST CASES
 #SET VARIABLES TO ENABLE/DISABLE TEST BUILDING
 
-option(BUILD_ALL_TESTS "Build all tests" OFF)
+set(BUILD_ALL_TESTS FALSE)
 
 set (BUILD_TEST ${BUILD_ALL_TESTS}) #ToDo: Change Name
 set (BUILD_PARAMETERS_TEST ${BUILD_ALL_TESTS})
-set (BUILD_IK_TEST ${BUILD_ALL_TESTS})
 set (BUILD_SINGLE_SCENE_TEST ${BUILD_ALL_TESTS})
 set (BUILD_MULTI_ID_SCENE_TEST ${BUILD_ALL_TESTS})
 set (BUILD_PERFORMANCE_TEST ${BUILD_ALL_TESTS})
@@ -213,10 +216,12 @@ set (TEST_LINK_LIBRARIES
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
+		asr_robot_model_services_packages
+		asr_robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
-if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR BUILD_IK_TEST OR BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST OR BUILD_RAYTRACING_TEST)
+if (BUILD_TEST OR BUILD_PARAMETERS_TEST OR  BUILD_SINGLE_SCENE_TEST OR  BUILD_MULTI_ID_SCENE_TEST OR BUILD_PERFORMANCE_TEST OR BUILD_UPDATE_POINTCLOUD_TEST OR BUILD_MATH_TEST OR BUILD_STREAM_TEST OR BUILD_RATE_VIEWPORTS_TEST OR BUILD_RAYTRACING_TEST)
 MESSAGE ("Building Tests:")
 add_library(
         ${PROJECT_NAME}_test_core
@@ -296,19 +301,6 @@ addTest(SINGLE_SCENE)
 addTest(MULTI_ID_SCENE)
 
 addTest(PARAMETERS)
-
-if (BUILD_IK_TEST)
-MESSAGE (" - IK Test")
-add_executable(
-        ${PROJECT_NAME}_ik_test
-        src/test_cases/IKTest.cpp
-)
-
-target_link_libraries(
-       ${PROJECT_NAME}_ik_test
-        ${TEST_LINK_LIBRARIES}
-)
-endif ()
 
 addTest(PERFORMANCE)
 

@@ -22,18 +22,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ros/ros.h>
 #include <string>
 #include <map>
-#include "object_database/ObjectMetaData.h"
+#include "asr_object_database/ObjectMetaData.h"
 #include "world_model/GetRecognizerName.h"
 #include "world_model/GetIntermediateObjectWeight.h"
 
 namespace next_best_view {
-    typedef object_database::ObjectMetaData::Response ObjectMetaDataResponse;
+    typedef asr_object_database::ObjectMetaData::Response ObjectMetaDataResponse;
     typedef ObjectMetaDataResponse::Ptr ObjectMetaDataResponsePtr;
     typedef world_model::GetIntermediateObjectWeight::Response IntermediateObjectWeightResponse;
     typedef IntermediateObjectWeightResponse::Ptr IntermediateObjectWeightResponsePtr;
 
     /**
-     * The ObjectManager class delivers a possibility to handle request to the object_database and cache their responses in a map.
+     * The ObjectManager class delivers a possibility to handle request to the asr_object_database and cache their responses in a map.
      */
     class ObjectHelper {
     private:
@@ -50,7 +50,7 @@ namespace next_best_view {
 
             State() : mNodeHandle() {
                 object_metadata_service_client = mNodeHandle.serviceClient
-                        <object_database::ObjectMetaData>("/object_database/object_meta_data");
+                        <asr_object_database::ObjectMetaData>("/asr_object_database/object_meta_data");
                 recognizer_name_service_client = mNodeHandle.serviceClient
                         <world_model::GetRecognizerName>("/env/world_model/get_recognizer_name");
                 intermediate_object_weight_service_client = mNodeHandle.serviceClient
@@ -87,12 +87,12 @@ namespace next_best_view {
                     ROS_ERROR_STREAM("No recognizer name received from world_model for object type " << objectTypeName << ".");
                 }
 
-                object_database::ObjectMetaData objectMetaData;
+                asr_object_database::ObjectMetaData objectMetaData;
                 objectMetaData.request.object_type = objectTypeName;
                 objectMetaData.request.recognizer = recognizer;
 
                 if (!statePtr->object_metadata_service_client.exists()) {
-                    ROS_ERROR_STREAM("/object_database/object_meta_data service is not available");
+                    ROS_ERROR_STREAM("/asr_object_database/object_meta_data service is not available");
                     return ObjectMetaDataResponsePtr();
                 }
                 statePtr->object_metadata_service_client.call(objectMetaData);

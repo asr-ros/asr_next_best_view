@@ -23,9 +23,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "world_model/EmptyViewportList.h"
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/test_cases/BaseTest.h"
-#include "next_best_view/robot_model/impl/MILDRobotModel.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotModelWithExactIK.hpp"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include <robot_model_services/robot_model/impl/MILDRobotModel.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotModelWithExactIK.hpp>
+#include <robot_model_services/robot_model/impl/MILDRobotState.hpp>
 #include "next_best_view/helper/MathHelper.hpp"
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "typedef.hpp"
@@ -429,11 +429,11 @@ public:
 
             SetAttributedPointCloud apc;
 
-            MILDRobotModelWithExactIK robot;
+            robot_model_services::MILDRobotModelWithExactIK robot;
             SimpleVector3 position(initialPose.position.x, initialPose.position.y, initialPose.position.z);
             SimpleQuaternion orientation(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
-            MILDRobotStatePtr robotStatePtr(new MILDRobotState());
-            robotStatePtr = boost::static_pointer_cast<MILDRobotState>(robot.calculateRobotState(robotStatePtr, position, orientation));
+            robot_model_services::MILDRobotStatePtr robotStatePtr(new robot_model_services::MILDRobotState());
+            robotStatePtr = boost::static_pointer_cast<robot_model_services::MILDRobotState>(robot.calculateRobotState(robotStatePtr, position, orientation));
 
             ROS_INFO_STREAM("Set point cloud consisting of one object type with " << cloudSize << " occurances.");
 
@@ -486,9 +486,9 @@ public:
 
 
                 ObjectPoint objectPoint(pose);
-                objectPoint.r = 0;
-                objectPoint.g = 255;
-                objectPoint.b = 0;
+                objectPoint.color.r = 0;
+                objectPoint.color.g = 255;
+                objectPoint.color.b = 0;
                 objectPoint.type = elementType;
 
                 objectPointCloudPtr->push_back(objectPoint);

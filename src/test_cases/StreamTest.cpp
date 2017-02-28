@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <boost/test/included/unit_test.hpp>
 #include "next_best_view/test_cases/BaseTest.h"
-#include "next_best_view/robot_model/impl/MILDRobotState.hpp"
+#include <robot_model_services/robot_model/impl/MILDRobotState.hpp>
 #include "next_best_view/rating/impl/DefaultScoreContainer.hpp"
 #include <sstream>
 #include <string>
@@ -45,7 +45,7 @@ public:
         ObjectPoint objectPoint = ObjectPoint(SimpleVector3(1, 2, 3));
         SamplePoint samplePoint = SamplePoint(SimpleVector3(1, 2, 3));
         ViewportPoint viewportPoint = ViewportPoint();
-        MILDRobotState mildRobotState = MILDRobotState(1.0, 2.0, 3.0, 4.0, 5.0);
+        robot_model_services::MILDRobotState mildRobotState = robot_model_services::MILDRobotState(1.0, 2.0, 3.0, 4.0, 5.0);
         DefaultScoreContainer defaultScoreContainer = DefaultScoreContainer();
         defaultScoreContainer.setUnweightedInverseMovementCostsBaseRotation(1.7);
         defaultScoreContainer.setUnweightedUnnormalizedObjectUtilitiy("PlateDeep", 0.1);

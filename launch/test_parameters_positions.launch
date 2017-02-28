@@ -1,9 +1,9 @@
 <launch>
 	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" /-->
-	<include file="$(find mild_navigation)/launch/simulation_floor.launch" />
+	<include file="$(find asr_mild_navigation)/launch/simulation/simulation_floor.launch" />
 	<include file="$(find world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
-	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
+	<include file="$(find asr_flir_ptu_driver)/launch/ptu_left_mock.launch" />
 	<include file="$(find next_best_view)/launch/RobotModelServiceSim.launch" />
 	<node pkg="next_best_view" type="next_best_view_parameters_test" name="nbv" output="screen">
 
@@ -13,7 +13,7 @@
           	<rosparam file="$(find next_best_view)/rsc/VisualizationConfig.yaml"/>
 		<rosparam file="$(find next_best_view)/rsc/TopicsConfig.yaml"/>
                 <rosparam file="$(find next_best_view)/rsc/costmap_params.yaml" command="load"/>
-                <rosparam file="$(find mild_navigation)/config/simulation/global_costmap_params.yaml" command="load"/>
+                <rosparam file="$(find asr_mild_navigation)/rsc/global_costmap_params.yaml" command="load"/>
                 <param name="mCropBoxListFilePath" value="$(find next_best_view)/rsc/CropBoxListHighResolution.xml"/>
                 <param name="mMapsImagePath" value="$(find next_best_view)/rsc"/>
 
@@ -23,5 +23,9 @@
 		
 		<param name="configurable_point_clouds/test" value="false"/>
 		<param name="side_objects/test" value="false"/>
+		
+		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_services_settings_sim.yaml"/>
+		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_frames.yaml"/>
+	  	<rosparam file="$(find asr_robot_model_services)/rsc/TopicsConfig.yaml"/>
 	</node>
 </launch>

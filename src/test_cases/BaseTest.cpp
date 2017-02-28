@@ -88,7 +88,7 @@ using namespace dynamic_reconfigure;
     }
 
     void BaseTest::setInitialRobotState(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {
-        MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
+        robot_model_services::MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
 
         SetInitRobotState sirb;
         sirb.request.robotState.pan = statePtr->pan;
@@ -110,13 +110,13 @@ using namespace dynamic_reconfigure;
         }
     }
 
-    MILDRobotStatePtr BaseTest::getRobotState(const geometry_msgs::Pose &initialPose) {
+    robot_model_services::MILDRobotStatePtr BaseTest::getRobotState(const geometry_msgs::Pose &initialPose) {
         tf::Quaternion q(initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z, initialPose.orientation.w);
         tf::Matrix3x3 m(q);
         double yaw, pitch, roll;
         m.getRPY(roll, pitch, yaw);
 
-        MILDRobotStatePtr statePtr(new MILDRobotState(0, 0, yaw, initialPose.position.x, initialPose.position.y));
+        robot_model_services::MILDRobotStatePtr statePtr(new robot_model_services::MILDRobotState(0, 0, yaw, initialPose.position.x, initialPose.position.y));
 
         return statePtr;
     }

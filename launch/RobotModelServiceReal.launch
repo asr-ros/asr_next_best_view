@@ -5,5 +5,5 @@
 	  <!-- this is used by costmap -->
           <rosparam file="$(find next_best_view)/rsc/costmap_params.yaml" command="load"/>
 	</node>
-	<include file="$(find robot_model_services)/launch/RobotModelServiceReal.launch" />
+	<include file="$(find asr_robot_model_services)/launch/RobotModelServiceReal.launch" />
 </launch>

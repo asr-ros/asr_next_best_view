@@ -1,10 +1,10 @@
 <launch>
     <env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
-	<include file="$(find mild_navigation)/launch/simulation_manual.launch" />
+	<include file="$(find asr_mild_navigation)/launch/simulation_manual.launch" />
 	<include file="$(find next_best_view)/launch/RobotModelServiceSim.launch" />
 	<include file="$(find world_model)/launch/world_model.launch" />
-	<include file="$(find ptu_driver)/launch/ptu_left_mock.launch" />
+	<include file="$(find asr_flir_ptu_driver)/launch/ptu_left_mock.launch" />
 	<node pkg="next_best_view" type="next_best_view" name="nbv" output="screen">
 	  <rosparam file="$(find next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
 	  <rosparam file="$(find next_best_view)/rsc/VisualizationConfig.yaml"/>
