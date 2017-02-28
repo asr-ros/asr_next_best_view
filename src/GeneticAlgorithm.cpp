@@ -24,11 +24,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA)
+    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA, int nViewportsPerBB)
         : mNBVCachePtr(nbvCachePtr),
           mMapHelperPtr(mapHelperPtr),
           mClusterExtractionPtr(clusterExtractionPtr),
-          mMinIterationGA(minIterationGA) {
+          mMinIterationGA(minIterationGA),
+          mNViewportsPerBB(nViewportsPerBB) {
         setRadius(radius);
         setMaxAngle(improvementAngle);
         setImprovementIterationSteps(improvementIterations);
@@ -72,9 +73,9 @@ namespace next_best_view {
 
 
         // some parameters to converge faster with increasing iterations.
-        float selectedViewportsInterspacing = 0.07 * pow(2, -(iterationStep - mMinIterationGA));
-        selectedViewportsInterspacing = max(0.07f, selectedViewportsInterspacing);
-        unsigned int nViewportsToSelectPerBB = 1 * pow(2, -(iterationStep - mMinIterationGA));
+        float selectedViewportsInterspacing = 0.2 * pow(2, -(iterationStep - mMinIterationGA));
+        selectedViewportsInterspacing = max(0.2f, selectedViewportsInterspacing);
+        unsigned int nViewportsToSelectPerBB = mNViewportsPerBB * pow(2, -(iterationStep - mMinIterationGA));
         nViewportsToSelectPerBB = max(static_cast<unsigned int>(1), nViewportsToSelectPerBB);
         BOOST_REVERSE_FOREACH (ViewportPoint &p, *population) {
             int bbIdx = 0;
@@ -271,5 +272,13 @@ namespace next_best_view {
 
     void GeneticAlgorithm::setImprovementIterationSteps(int iterationImprovmentSteps) {
         mImprovementIterationSteps = iterationImprovmentSteps;
+    }
+
+    int GeneticAlgorithm::getNViewportsPerBB() const {
+        return mNViewportsPerBB;
+    }
+
+    void GeneticAlgorithm::setNViewportsPerBB(int nViewportsPerBB) {
+        mNViewportsPerBB = nViewportsPerBB;
     }
 }

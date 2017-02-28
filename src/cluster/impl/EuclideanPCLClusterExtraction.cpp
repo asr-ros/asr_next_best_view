@@ -56,6 +56,7 @@ namespace next_best_view {
             mDebugHelperPtr->writeNoticeably(std::stringstream() << "number of clusters: " << clusterIndices.size(), DebugHelper::CALCULATION);
 
             // determine bb per cluster
+            mDebugHelperPtr->write("Clusters:", DebugHelper::CALCULATION);
             int i = 0;
             for (pcl::PointIndices &indices : clusterIndices) {
                 // create cluster pc
@@ -71,6 +72,7 @@ namespace next_best_view {
 
                 mClustersCachePtr->push_back(BoundingBoxPtr(new BoundingBox(minPoint.getPosition(), maxPoint.getPosition())));
                 i++;
+                mDebugHelperPtr->write(std::stringstream() << *(mClustersCachePtr->back()), DebugHelper::CALCULATION);
             }
         }
         return mClustersCachePtr;

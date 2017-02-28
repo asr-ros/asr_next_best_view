@@ -343,12 +343,16 @@ namespace next_best_view {
             sampleNextBestViewports->push_back(bestUtiltiyViewport);
         }
 
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "samples viewport pc size (including filter except culling): " << sampleNextBestViewports->size(), DebugHelper::CALCULATION);
+
         // rate
         ViewportPointCloudPtr ratedNextBestViewportsPtr;
         if (!rateViewports(sampleNextBestViewports, currentCameraViewport, ratedNextBestViewportsPtr)) {
             mDebugHelperPtr->writeNoticeably("ENDING DO-ITERATION-STEP METHOD", DebugHelper::CALCULATION);
             return false;
         }
+
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "rated viewport pc size:" << ratedNextBestViewportsPtr->size(), DebugHelper::CALCULATION);
 
         // sort
         // ascending -> last element has best rating
@@ -382,6 +386,12 @@ namespace next_best_view {
             mNBVCachePtr->updateCache(ratedNextBestViewportsPtr);
         }
         //        mVisHelperPtr->triggerSamplingVisualization(ratedNextBestViewportsPtr, Color(1, 0, 0, 1), "ratedViewports");
+
+        // output stuff
+        float bestUtility = ratedNextBestViewportsPtr->front().score->getUtilityNormalization();
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "best rated Viewport: " << mRatingModulePtr->getRating(resultViewport.score), DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "best Viewport util: " << resultViewport.score->getUnweightedUnnormalizedUtility(), DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "best utility: " << bestUtility, DebugHelper::CALCULATION);
 
         //Visualize iteration step and its result.
         mVisHelperPtr->triggerIterationVisualization(iterationStep, resultViewport,
@@ -459,6 +469,9 @@ namespace next_best_view {
 
         mDebugHelperPtr->write(std::stringstream() << "Number of active normals before update: " << getNumberActiveNormals(),
                                DebugHelper::CALCULATION);
+
+
+        mDebugHelperPtr->write(std::stringstream() << "Viewport calc: " << viewportPoint, DebugHelper::HYPOTHESIS_UPDATER);
 
         unsigned int deactivatedNormals = mHypothesisUpdaterPtr->update(objectTypeSetPtr, viewportPoint);
 
@@ -588,7 +601,7 @@ namespace next_best_view {
     }
 
     void NextBestViewCalculator::filterUnrechableNormals() {
-        ROS_INFO_STREAM("filtering now unreachable normals");
+        mDebugHelperPtr->writeNoticeably("filtering now unreachable normals", DebugHelper::CALCULATION);
         auto begin = std::chrono::high_resolution_clock::now();
         // TODO always use hypothesissampler
         // TODO remove objects with 0 normals?
@@ -686,6 +699,7 @@ namespace next_best_view {
 
     SamplePointCloudPtr NextBestViewCalculator::generateSpaceSamples(SimpleVector3 spaceSampleStartVector, double contractor, double pointCloudHeight) {
         SamplePointCloudPtr sampledSpacePointCloudPtr = mSpaceSamplerPtr->getSampledSpacePointCloud(spaceSampleStartVector, contractor);
+        mDebugHelperPtr->write(std::stringstream() << "# generated space samples: " << sampledSpacePointCloudPtr->size(), DebugHelper::CALCULATION);
 
         //Set height of sample points as it is set to zero by space sampler
         this->setHeight(sampledSpacePointCloudPtr, pointCloudHeight);
@@ -700,7 +714,8 @@ namespace next_best_view {
         mSpaceSamplingFilterChainPtr->filter(filteredIndicesPtr);
         auto finish = std::chrono::high_resolution_clock::now();
         // cast timediff to float in seconds
-        ROS_INFO_STREAM("space sample filter chain took " << std::chrono::duration<float>(finish-begin).count() << " seconds.");
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "space sample filter chain took " << std::chrono::duration<float>(finish-begin).count() << " seconds.", DebugHelper::CALCULATION);
+        mDebugHelperPtr->writeNoticeably(std::stringstream() << "space sample filter chain removed " << (sampledSpacePointCloudPtr->size()-filteredIndicesPtr->size()) << "/" << sampledSpacePointCloudPtr->size() << "space samples", DebugHelper::CALCULATION);
 
         return SamplePointCloudPtr(new SamplePointCloud(*sampledSpacePointCloudPtr, *filteredIndicesPtr));
     }

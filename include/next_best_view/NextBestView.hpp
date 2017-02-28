@@ -395,7 +395,7 @@ public:
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
             // ga
-            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsGA, mConfig.maxAngleGA, mConfig.radiusGA, mConfig.minIterationsGA);
+            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsGA, mConfig.maxAngleGA, mConfig.radiusGA, mConfig.minIterationsGA, mConfig.nViewportsPerBB);
             mCalculatorPtr->setMinIterationGA(mConfig.minIterationsGA);
             mCalculatorPtr->setGeneticAlgorithmPtr(mGeneticAlgorithmPtr);
 
@@ -920,7 +920,6 @@ public:
         // convert data types
         SimpleVector3 point = TypeHelper::getSimpleVector3(request.pose_for_update);
         SimpleQuaternion orientation = TypeHelper::getSimpleQuaternion(request.pose_for_update);
-        ViewportPoint viewportPoint;
         mDebugHelperPtr->write(std::stringstream() << "Do frustum culling: ActiveIndices="
                                         << mCalculatorPtr->getActiveIndices()->size(),
                                     DebugHelper::SERVICE_CALLS);
@@ -934,7 +933,7 @@ public:
 
         // copy objects to be updated from list to set
         ObjectTypeSetPtr objectTypeSetPtr = ObjectTypeSetPtr(new ObjectTypeSet(request.object_type_name_list.begin(), request.object_type_name_list.end()));
-        unsigned int deactivatedNormals = mCalculatorPtr->updateObjectPointCloud(objectTypeSetPtr, viewportPoint);
+        unsigned int deactivatedNormals = mCalculatorPtr->updateObjectPointCloud(objectTypeSetPtr, updateViewport);
 
 	    response.deactivated_object_normals = deactivatedNormals;
 

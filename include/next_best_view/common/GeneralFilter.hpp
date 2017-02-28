@@ -43,12 +43,12 @@ namespace next_best_view {
         /*!
          * \brief shared pointer to the point cloud that should be filtered.
          */
-        PointCloudPtr<T> mFilterInputPointCloudPtr;
+        PointCloudPtr<T> mInputPointCloudPtr;
 
         /*!
          * \brief shared pointer to the active indices of the former declared point cloud.
          */
-        IndicesPtr mFilterInputPointIndicesPtr;
+        IndicesPtr mInputPointIndicesPtr;
 
 	public:
 		/*!
@@ -63,14 +63,14 @@ namespace next_best_view {
          * \param pointCloudPtr the shared pointer to point cloud
          */
         virtual void setInputPointCloud(const PointCloudPtr<T> &pointCloudPtr) {
-            mFilterInputPointCloudPtr = pointCloudPtr;
+            mInputPointCloudPtr = pointCloudPtr;
         }
 
         /*!
          * \return the shared pointer to the point cloud.
          */
         virtual PointCloudPtr<T>& getInputPointCloud() {
-            return mFilterInputPointCloudPtr;
+            return mInputPointCloudPtr;
         }
 
         /*!
@@ -78,14 +78,14 @@ namespace next_best_view {
          * \param indicesPtr the shared pointer to indices.
          */
         void setInputPointIndices(const IndicesPtr &indicesPtr) {
-            mFilterInputPointIndicesPtr = indicesPtr;
+            mInputPointIndicesPtr = indicesPtr;
         }
 
         /*!
          * \return the shared pointer to the active indices of the point cloud.
          */
         IndicesPtr& getInputPointIndices() {
-            return mFilterInputPointIndicesPtr;
+            return mInputPointIndicesPtr;
         }
 
 		/*!

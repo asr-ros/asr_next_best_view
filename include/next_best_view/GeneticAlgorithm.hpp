@@ -43,10 +43,11 @@ namespace next_best_view {
         float mMaxAngle;
         float mRadius;
         int mMinIterationGA;
+        int mNViewportsPerBB;
 
 
     public:
-        GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA);
+        GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA, int nViewportsPerBB);
 
         ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
 
@@ -61,6 +62,10 @@ namespace next_best_view {
         int getImprovementIterationSteps() const;
 
         void setImprovementIterationSteps(int iterationSteps);
+
+        int getNViewportsPerBB() const;
+
+        void setNViewportsPerBB(int value);
 
     private:
         ViewportPointCloudPtr select(const ViewportPointCloudPtr &in, int iterationStep);
