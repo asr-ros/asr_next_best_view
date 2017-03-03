@@ -86,7 +86,7 @@ public:
             return;
         }
 
-        GetNextBestView nbv;
+        asr_next_best_view::GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 
         if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
@@ -96,7 +96,7 @@ public:
 
         if (nbv.response.found)
         {
-            TriggerFrustumVisualization tfv;
+            asr_next_best_view::TriggerFrustumVisualization tfv;
             tfv.request.current_pose = nbv.response.resulting_pose;
             mTriggerFrustumVisClient.call(tfv.request, tfv.response);
 

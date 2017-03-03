@@ -1,9 +1,9 @@
 <launch>
-	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" /-->
+	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find asr_next_best_view)/log/rosconsole.config" /-->
 	<include file="$(find asr_mild_navigation)/launch/simulation/simulation_slam.launch" />
-	<include file="$(find next_best_view)/launch/next_best_view_core_sim.launch" />
-	<include file="$(find world_model)/launch/world_model.launch" />
+	<include file="$(find asr_next_best_view)/launch/next_best_view_core_sim.launch" />
+	<include file="$(find asr_world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
 	<include file="$(find asr_flir_ptu_driver)/launch/ptu_left_mock.launch" />
-	<node pkg="next_best_view" type="next_best_view_single_scene_test" name="test" output="screen"/>
+	<node pkg="asr_next_best_view" type="next_best_view_single_scene_test" name="test" output="screen"/>
 </launch>

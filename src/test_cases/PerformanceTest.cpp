@@ -49,7 +49,7 @@ public:
         std::vector<int> nThreadsPerTestRun;
         nh.getParam("/test/nThreads", nThreadsPerTestRun);
 
-        ResetCalculator reca;
+        asr_next_best_view::ResetCalculator reca;
         std::chrono::time_point<std::chrono::system_clock> start, end;
 	
         double totalTimeNBV, totalTimeUpdate;
@@ -166,7 +166,7 @@ public:
                         ROS_ERROR("Could not set initial point cloud");
                     }
                     ros::Rate r(2);
-                    GetNextBestView nbv;
+                    asr_next_best_view::GetNextBestView nbv;
                     nbv.request.current_pose = initialPose;
                     //ViewportPointCloudPtr viewportPointCloudPtr(new ViewportPointCloud());
                     bool setPointCloud = false;
@@ -204,7 +204,7 @@ public:
                             break;
                         }
 
-                        UpdatePointCloud upc_req;
+                        asr_next_best_view::UpdatePointCloud upc_req;
                         upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
                         upc_req.request.pose_for_update = nbv.response.resulting_pose;
 

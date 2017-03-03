@@ -34,12 +34,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <dynamic_reconfigure/Reconfigure.h>
 
 #include "next_best_view/NextBestView.hpp"
-#include "next_best_view/GetNextBestView.h"
-#include "next_best_view/SetAttributedPointCloud.h"
-#include "next_best_view/SetInitRobotState.h"
-#include "next_best_view/ResetCalculator.h"
-#include "next_best_view/UpdatePointCloud.h"
-#include "next_best_view/TriggerFrustumVisualization.h"
+#include "asr_next_best_view/GetNextBestView.h"
+#include "asr_next_best_view/SetAttributedPointCloud.h"
+#include "asr_next_best_view/SetInitRobotState.h"
+#include "asr_next_best_view/ResetCalculator.h"
+#include "asr_next_best_view/UpdatePointCloud.h"
+#include "asr_next_best_view/TriggerFrustumVisualization.h"
 #include "asr_msgs/AsrAttributedPoint.h"
 
 #include "next_best_view/helper/MathHelper.hpp"

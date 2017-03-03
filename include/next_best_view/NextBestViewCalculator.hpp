@@ -936,7 +936,7 @@ private:
             }
         } else {
             //Insert the meshpath
-            objectsResources[pointCloudPoint.type] = "package://next_best_view/rsc/sphere.dae";
+            objectsResources[pointCloudPoint.type] = "package://asr_next_best_view/rsc/sphere.dae";
         }
         return true;
     }

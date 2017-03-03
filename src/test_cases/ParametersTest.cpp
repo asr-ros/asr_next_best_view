@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define BOOST_TEST_STATIC_LINK
 
 #include <boost/test/included/unit_test.hpp>
-#include "world_model/EmptyViewportList.h"
+#include "asr_world_model/EmptyViewportList.h"
 #include "next_best_view/NextBestView.hpp"
 #include "next_best_view/test_cases/BaseTest.h"
 #include <robot_model_services/robot_model/impl/MILDRobotModel.hpp>
@@ -122,8 +122,8 @@ public:
                 return;
 
             world_model::EmptyViewportList empty;
-            ros::service::waitForService("/env/world_model/empty_viewport_list", -1);
-            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
+            ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
+            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
             ROS_INFO("Generiere Häufungspunkte");
             // Häufungspunkte
@@ -175,7 +175,7 @@ public:
             initialPose.orientation.y = orientation.y();
             initialPose.orientation.z = orientation.z();
 
-            GetNextBestView getNBV;
+            asr_next_best_view::GetNextBestView getNBV;
 
             this->setInitialPose(initialPose, NBV);
 
@@ -186,7 +186,7 @@ public:
             getNBV.request.current_pose = initialPose;
             NBV->processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
 
-            TriggerFrustumVisualization tfv;
+            asr_next_best_view::TriggerFrustumVisualization tfv;
             tfv.request.current_pose = getNBV.response.resulting_pose;
             NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
 
@@ -246,8 +246,8 @@ public:
             return;
 
         world_model::EmptyViewportList empty;
-        ros::service::waitForService("/env/world_model/empty_viewport_list", -1);
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
+        ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
+        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
         // object poses
         unsigned int pcSize = 3;
@@ -323,7 +323,7 @@ public:
             this->setInitialPose(initialPose, NBV);
 
             // calculate NBV
-            GetNextBestView getNBV;
+            asr_next_best_view::GetNextBestView getNBV;
 
             emptyViewportsClient.call(empty);
 
@@ -335,7 +335,7 @@ public:
             if (!getNBV.response.found) {
                 ROS_ERROR("No NBV found!");
             } else {
-                TriggerFrustumVisualization tfv;
+                asr_next_best_view::TriggerFrustumVisualization tfv;
                 tfv.request.current_pose = getNBV.response.resulting_pose;
                 NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
             }
@@ -356,9 +356,9 @@ public:
 
         ROS_INFO("Running side object test");
 
-        GetNextBestView getNBV;
+        asr_next_best_view::GetNextBestView getNBV;
         world_model::EmptyViewportList empty;
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/world_model/empty_viewport_list");
+        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
         ofstream outputFile(mOutputPath + "testSideObject.dat");
         if(outputFile.is_open()) {
@@ -511,7 +511,7 @@ public:
 
             ROS_INFO("Got next best view");
 
-            TriggerFrustumVisualization tfv;
+            asr_next_best_view::TriggerFrustumVisualization tfv;
             tfv.request.current_pose = getNBV.response.resulting_pose;
             NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
 
@@ -533,7 +533,7 @@ public:
             else
                 ROS_INFO("Original viewport utility <= 0");
 
-            TriggerFrustumVisualization triggerFrustumVis;
+            asr_next_best_view::TriggerFrustumVisualization triggerFrustumVis;
             triggerFrustumVis.request.current_pose = viewport.getPose();
             NBV->processTriggerOldFrustumVisualization(triggerFrustumVis.request, triggerFrustumVis.response);
 

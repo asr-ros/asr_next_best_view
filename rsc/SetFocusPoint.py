@@ -24,8 +24,8 @@ from actionlib.msg import *
 import numpy
 from time import time
 from asr_flir_ptu_controller.msg import PTUMovementGoal, PTUMovementAction
-from next_best_view.srv import GetPose, CalculateCameraPoseCorrection, CalculateCameraPose, TriggerFrustumVisualization
-from next_best_view.msg import RobotStateMessage
+from asr_next_best_view.srv import GetPose, CalculateCameraPoseCorrection, CalculateCameraPose, TriggerFrustumVisualization
+from asr_next_best_view.msg import RobotStateMessage
 from sensor_msgs.msg import JointState
 import tf
 import tf2_ros

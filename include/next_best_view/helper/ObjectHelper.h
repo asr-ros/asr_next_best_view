@@ -23,13 +23,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <string>
 #include <map>
 #include "asr_object_database/ObjectMetaData.h"
-#include "world_model/GetRecognizerName.h"
-#include "world_model/GetIntermediateObjectWeight.h"
+#include "asr_world_model/GetRecognizerName.h"
+#include "asr_world_model/GetIntermediateObjectWeight.h"
 
 namespace next_best_view {
     typedef asr_object_database::ObjectMetaData::Response ObjectMetaDataResponse;
     typedef ObjectMetaDataResponse::Ptr ObjectMetaDataResponsePtr;
-    typedef world_model::GetIntermediateObjectWeight::Response IntermediateObjectWeightResponse;
+    typedef asr_world_model::GetIntermediateObjectWeight::Response IntermediateObjectWeightResponse;
     typedef IntermediateObjectWeightResponse::Ptr IntermediateObjectWeightResponsePtr;
 
     /**
@@ -52,9 +52,9 @@ namespace next_best_view {
                 object_metadata_service_client = mNodeHandle.serviceClient
                         <asr_object_database::ObjectMetaData>("/asr_object_database/object_meta_data");
                 recognizer_name_service_client = mNodeHandle.serviceClient
-                        <world_model::GetRecognizerName>("/env/world_model/get_recognizer_name");
+                        <asr_world_model::GetRecognizerName>("/env/asr_world_model/get_recognizer_name");
                 intermediate_object_weight_service_client = mNodeHandle.serviceClient
-                        <world_model::GetIntermediateObjectWeight>("/env/world_model/get_intermediate_object_weight");
+                        <asr_world_model::GetIntermediateObjectWeight>("/env/asr_world_model/get_intermediate_object_weight");
             }
         };
 
@@ -73,11 +73,11 @@ namespace next_best_view {
             ObjectMetaDataResponsePtr responsePtr = statePtr->object_metadata_cache[objectTypeName];
 
             if (!responsePtr) {
-                world_model::GetRecognizerName getRecognizerName;
+                asr_world_model::GetRecognizerName getRecognizerName;
                 getRecognizerName.request.object_type = objectTypeName;
 
                 if (!statePtr->recognizer_name_service_client.exists()) {
-                    ROS_ERROR_STREAM("/env/world_model/get_recognizer_name service is not available");
+                    ROS_ERROR_STREAM("/env/asr_world_model/get_recognizer_name service is not available");
                 }
                 statePtr->recognizer_name_service_client.call(getRecognizerName);
 
@@ -115,11 +115,11 @@ namespace next_best_view {
             IntermediateObjectWeightResponsePtr responsePtr = statePtr->intermediate_object_cache[objectTypeName];
 
             if (!responsePtr) {
-                world_model::GetIntermediateObjectWeight getIntermediateObjectWeight;
+                asr_world_model::GetIntermediateObjectWeight getIntermediateObjectWeight;
                 getIntermediateObjectWeight.request.object_type = objectTypeName;
 
                 if (!statePtr->intermediate_object_weight_service_client.exists()) {
-                    ROS_ERROR_STREAM("/env/world_model/get_intermediate_object_weight service is not available");
+                    ROS_ERROR_STREAM("/env/asr_world_model/get_intermediate_object_weight service is not available");
                     return IntermediateObjectWeightResponsePtr();
                 }
                 statePtr->intermediate_object_weight_service_client.call(getIntermediateObjectWeight);

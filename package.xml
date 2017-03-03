@@ -1,5 +1,5 @@
 <package>
-  <name>next_best_view</name>
+  <name>asr_next_best_view</name>
   <version>1.0.0</version>
   <description>This package calculates the position and orientation for a robot where it is most likely to find and recognize an object</description>
   <author>Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij</author>
@@ -18,13 +18,13 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
   <build_depend>asr_msgs</build_depend>
-  <build_depend>world_model</build_depend>
+  <build_depend>asr_world_model</build_depend>
   <build_depend>asr_rapidxml</build_depend>
   <build_depend>voxel_grid</build_depend>
   <build_depend>assimp</build_depend>
   <build_depend>asr_robot_model_services</build_depend>
 
-  <run_depend>world_model</run_depend>
+  <run_depend>asr_world_model</run_depend>
   <run_depend>asr_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>

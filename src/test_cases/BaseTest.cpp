@@ -47,21 +47,21 @@ using namespace dynamic_reconfigure;
     void BaseTest::initRosServices() {
         // services
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
-        mSetInitRobotStateClient = mNodeHandle->serviceClient<SetInitRobotState>("/nbv/set_init_robot_state");
+        mSetInitRobotStateClient = mNodeHandle->serviceClient<asr_next_best_view::SetInitRobotState>("/nbv/set_init_robot_state");
         ros::service::waitForService("/nbv/set_point_cloud", -1);
-        mSetPointCloudClient = mNodeHandle->serviceClient<SetAttributedPointCloud>("/nbv/set_point_cloud");
+        mSetPointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::SetAttributedPointCloud>("/nbv/set_point_cloud");
         ros::service::waitForService("/nbv/get_point_cloud", -1);
-        mGetPointCloudClient = mNodeHandle->serviceClient<GetAttributedPointCloud>("/nbv/get_point_cloud");
+        mGetPointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::GetAttributedPointCloud>("/nbv/get_point_cloud");
         ros::service::waitForService("/nbv/next_best_view", -1);
-        mGetNextBestViewClient = mNodeHandle->serviceClient<GetNextBestView>("/nbv/next_best_view");
+        mGetNextBestViewClient = mNodeHandle->serviceClient<asr_next_best_view::GetNextBestView>("/nbv/next_best_view");
         ros::service::waitForService("/nbv/update_point_cloud", -1);
-        mUpdatePointCloudClient = mNodeHandle->serviceClient<UpdatePointCloud>("/nbv/update_point_cloud");
+        mUpdatePointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
-        mResetCalculatorClient = mNodeHandle->serviceClient<ResetCalculator>("/nbv/reset_nbv_calculator");
+        mResetCalculatorClient = mNodeHandle->serviceClient<asr_next_best_view::ResetCalculator>("/nbv/reset_nbv_calculator");
         ros::service::waitForService("/nbv/set_parameters", -1);
-        mDynParametersClient = mNodeHandle->serviceClient<Reconfigure>("/nbv/set_parameters");
+        mDynParametersClient = mNodeHandle->serviceClient<asr_next_best_view::Reconfigure>("/nbv/set_parameters");
         ros::service::waitForService("/nbv/trigger_frustum_visualization", -1);
-        mTriggerFrustumVisClient = mNodeHandle->serviceClient<TriggerFrustumVisualization>("/nbv/trigger_frustum_visualization");
+        mTriggerFrustumVisClient = mNodeHandle->serviceClient<asr_next_best_view::TriggerFrustumVisualization>("/nbv/trigger_frustum_visualization");
     }
 
     void BaseTest::setInitialPose(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {
@@ -90,7 +90,7 @@ using namespace dynamic_reconfigure;
     void BaseTest::setInitialRobotState(const geometry_msgs::Pose &initialPose, boost::shared_ptr<NextBestView> nbv) {
         robot_model_services::MILDRobotStatePtr statePtr = this->getRobotState(initialPose);
 
-        SetInitRobotState sirb;
+        asr_next_best_view::SetInitRobotState sirb;
         sirb.request.robotState.pan = statePtr->pan;
         sirb.request.robotState.tilt = statePtr->tilt;
         sirb.request.robotState.rotation = statePtr->rotation;

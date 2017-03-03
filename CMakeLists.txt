@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(next_best_view)
+project(asr_next_best_view)
 
 add_definitions(-std=gnu++0x -Wall)
 
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   nav_msgs
   asr_msgs
-  world_model
+  asr_world_model
   actionlib
   tf
   eigen_conversions
@@ -177,7 +177,7 @@ add_dependencies(
         ${PROJECT_NAME}
         ${PROJECT_NAME}_generate_messages_cpp
         asr_object_database
-        world_model
+        asr_world_model
 	    asr_robot_model_services
 )
 
