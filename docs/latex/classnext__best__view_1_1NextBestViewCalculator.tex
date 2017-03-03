@@ -1,0 +1,260 @@
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator}{\section{next\-\_\-best\-\_\-view\-:\-:\-Next\-Best\-View\-Calculator \-Class \-Reference}
+\label{classnext__best__view_1_1NextBestViewCalculator}\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+}
+
+
+{\ttfamily \#include $<$\-Next\-Best\-View\-Calculator.\-hpp$>$}
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classnext__best__view_1_1NextBestViewCalculator_a94c4f7c92d2d77aecf544e4f3a624fac}{\-Next\-Best\-View\-Calculator} (const \hyperlink{namespacenext__best__view_ad3328c7d2bb2185c972df039061ad6f5}{\-Unit\-Sphere\-Sampler\-Ptr} \&unit\-Sphere\-Sampler\-Ptr=\hyperlink{namespacenext__best__view_ad3328c7d2bb2185c972df039061ad6f5}{\-Unit\-Sphere\-Sampler\-Ptr}(), const \hyperlink{namespacenext__best__view_af3d0f8204bad3e34940c86ba619815cc}{\-Space\-Sampler\-Ptr} \&space\-Sampler\-Ptr=\hyperlink{namespacenext__best__view_af3d0f8204bad3e34940c86ba619815cc}{\-Space\-Sampler\-Ptr}(), const \hyperlink{namespacenext__best__view_ad248a43c564dbbea474aa87f0fb56b22}{\-Robot\-Model\-Ptr} \&robot\-Model\-Ptr=\hyperlink{namespacenext__best__view_ad248a43c564dbbea474aa87f0fb56b22}{\-Robot\-Model\-Ptr}(), const \hyperlink{namespacenext__best__view_a75c548145a1fdcdc491efbda66e9f440}{\-Camera\-Model\-Filter\-Ptr} \&camera\-Model\-Filter\-Ptr=\hyperlink{namespacenext__best__view_a75c548145a1fdcdc491efbda66e9f440}{\-Camera\-Model\-Filter\-Ptr}(), const \hyperlink{namespacenext__best__view_a0fd3a238157d0632d802531f590682ec}{\-Rating\-Module\-Ptr} \&rating\-Module\-Ptr=\hyperlink{namespacenext__best__view_a0fd3a238157d0632d802531f590682ec}{\-Rating\-Module\-Ptr}())
+\item 
+bool \hyperlink{classnext__best__view_1_1NextBestViewCalculator_ad10c898d341188d3b2dc3a2b0acc61b3}{calculate\-Next\-Best\-View} (const \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{\-Viewport\-Point} \&current\-Camera\-Viewport, \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{\-Viewport\-Point} \&result\-Viewport)
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a8c78f8b100cd7bd781bd6890b98b710b}{update\-Object\-Points} (const \hyperlink{namespacenext__best__view_adc2a48dc71f39dea04334b16d75a8e34}{\-Viewport\-Point} \&viewport\-Point)
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_abd0df021aacd30cb092a879b875cc639}{set\-Point\-Cloud\-From\-Message} (const \-Point\-Cloud\-Message \&msg)
+\begin{DoxyCompactList}\small\item\em /// \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_ac34821aae2b9120165a1cf0605b422de}{set\-Point\-Cloud\-Ptr} (const \hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \&point\-Cloud\-Ptr)
+\item 
+\hyperlink{namespacenext__best__view_af8b3b448f67ab117bb7c59bc7c34f0b3}{\-Object\-Point\-Cloud\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_ad9ad5d603acaf4e67184a8855bf18869}{get\-Point\-Cloud\-Ptr} ()
+\item 
+\hyperlink{namespacenext__best__view_aab5cd60b86a4a57ae8c69c2e2570679f}{\-Kd\-Tree\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a4548e087d890aa7ab8d41f20e2bd58e7}{get\-Kd\-Tree\-Ptr} ()
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_aef5624aeaec1b999a3c90f9557af1b9b}{set\-Unit\-Sphere\-Sampler} (const \hyperlink{namespacenext__best__view_ad3328c7d2bb2185c972df039061ad6f5}{\-Unit\-Sphere\-Sampler\-Ptr} \&unit\-Sphere\-Sampler\-Ptr)
+\item 
+\hyperlink{namespacenext__best__view_ad3328c7d2bb2185c972df039061ad6f5}{\-Unit\-Sphere\-Sampler\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a761207de26f962e0437107c06a716b5e}{get\-Unit\-Sphere\-Sampler} ()
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a8e4fb71df53008e7a23f028f1531dfa0}{set\-Space\-Sampler} (const \hyperlink{namespacenext__best__view_af3d0f8204bad3e34940c86ba619815cc}{\-Space\-Sampler\-Ptr} \&space\-Sampler\-Ptr)
+\item 
+\hyperlink{namespacenext__best__view_af3d0f8204bad3e34940c86ba619815cc}{\-Space\-Sampler\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a4641467bbfa8d652c9d93e0589af7b22}{get\-Space\-Sampler} ()
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a7bee92fcaa8fcde9e71b50ad9c553480}{set\-Robot\-Model} (const \hyperlink{namespacenext__best__view_ad248a43c564dbbea474aa87f0fb56b22}{\-Robot\-Model\-Ptr} \&robot\-Model\-Ptr)
+\item 
+\hyperlink{namespacenext__best__view_ad248a43c564dbbea474aa87f0fb56b22}{\-Robot\-Model\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_ad8aa77e7341f5e6da8946bc3bc2fd60b}{get\-Robot\-Model} ()
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a9a6edf64487998d3fcea474ad6580738}{set\-Camera\-Model\-Filter} (const \hyperlink{namespacenext__best__view_a75c548145a1fdcdc491efbda66e9f440}{\-Camera\-Model\-Filter\-Ptr} \&camera\-Model\-Filter\-Ptr)
+\item 
+\hyperlink{namespacenext__best__view_a75c548145a1fdcdc491efbda66e9f440}{\-Camera\-Model\-Filter\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a21bc919940a7bb078679706e05defaf9}{get\-Camera\-Model\-Filter} ()
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a180931d8a9f47d34fbe285d744058574}{set\-Rating\-Module} (const \hyperlink{namespacenext__best__view_a0fd3a238157d0632d802531f590682ec}{\-Rating\-Module\-Ptr} \&rating\-Module\-Ptr)
+\item 
+\hyperlink{namespacenext__best__view_a0fd3a238157d0632d802531f590682ec}{\-Rating\-Module\-Ptr} \hyperlink{classnext__best__view_1_1NextBestViewCalculator_ab3ae17ee6c0083e7541406cc6cd4f840}{get\-Rating\-Module} ()
+\item 
+void \hyperlink{classnext__best__view_1_1NextBestViewCalculator_a677eda7f0bcd8b9d2f9374c3781e2fb1}{set\-Epsilon} (float epsilon)
+\item 
+float \hyperlink{classnext__best__view_1_1NextBestViewCalculator_ac757d1710a046b37628ebb452eb9c428}{get\-Epsilon} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a94c4f7c92d2d77aecf544e4f3a624fac}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!\-Next\-Best\-View\-Calculator@{\-Next\-Best\-View\-Calculator}}
+\index{\-Next\-Best\-View\-Calculator@{\-Next\-Best\-View\-Calculator}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{\-Next\-Best\-View\-Calculator}]{\setlength{\rightskip}{0pt plus 5cm}{\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::\-Next\-Best\-View\-Calculator} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Unit\-Sphere\-Sampler\-Ptr} \&}]{unit\-Sphere\-Sampler\-Ptr = {\ttfamily {\bf \-Unit\-Sphere\-Sampler\-Ptr}()}, }
+\item[{const {\bf \-Space\-Sampler\-Ptr} \&}]{space\-Sampler\-Ptr = {\ttfamily {\bf \-Space\-Sampler\-Ptr}()}, }
+\item[{const {\bf \-Robot\-Model\-Ptr} \&}]{robot\-Model\-Ptr = {\ttfamily {\bf \-Robot\-Model\-Ptr}()}, }
+\item[{const {\bf \-Camera\-Model\-Filter\-Ptr} \&}]{camera\-Model\-Filter\-Ptr = {\ttfamily {\bf \-Camera\-Model\-Filter\-Ptr}()}, }
+\item[{const {\bf \-Rating\-Module\-Ptr} \&}]{rating\-Module\-Ptr = {\ttfamily {\bf \-Rating\-Module\-Ptr}()}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a94c4f7c92d2d77aecf544e4f3a624fac}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_ad10c898d341188d3b2dc3a2b0acc61b3}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!calculate\-Next\-Best\-View@{calculate\-Next\-Best\-View}}
+\index{calculate\-Next\-Best\-View@{calculate\-Next\-Best\-View}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{calculate\-Next\-Best\-View}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::calculate\-Next\-Best\-View} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Viewport\-Point} \&}]{current\-Camera\-Viewport, }
+\item[{{\bf \-Viewport\-Point} \&}]{result\-Viewport}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_ad10c898d341188d3b2dc3a2b0acc61b3}
+\-Calculates the next best view. \hypertarget{classnext__best__view_1_1NextBestViewCalculator_a21bc919940a7bb078679706e05defaf9}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Camera\-Model\-Filter@{get\-Camera\-Model\-Filter}}
+\index{get\-Camera\-Model\-Filter@{get\-Camera\-Model\-Filter}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Camera\-Model\-Filter\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a21bc919940a7bb078679706e05defaf9}
+\begin{DoxyReturn}{\-Returns}
+the pointer to the camera model filter 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_ac757d1710a046b37628ebb452eb9c428}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Epsilon@{get\-Epsilon}}
+\index{get\-Epsilon@{get\-Epsilon}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Epsilon}]{\setlength{\rightskip}{0pt plus 5cm}float {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Epsilon} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_ac757d1710a046b37628ebb452eb9c428}
+\begin{DoxyReturn}{\-Returns}
+epsilon 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a4548e087d890aa7ab8d41f20e2bd58e7}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Kd\-Tree\-Ptr@{get\-Kd\-Tree\-Ptr}}
+\index{get\-Kd\-Tree\-Ptr@{get\-Kd\-Tree\-Ptr}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Kd\-Tree\-Ptr}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Kd\-Tree\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Kd\-Tree\-Ptr} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a4548e087d890aa7ab8d41f20e2bd58e7}
+\begin{DoxyReturn}{\-Returns}
+the point cloud pointer 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_ad9ad5d603acaf4e67184a8855bf18869}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Point\-Cloud\-Ptr@{get\-Point\-Cloud\-Ptr}}
+\index{get\-Point\-Cloud\-Ptr@{get\-Point\-Cloud\-Ptr}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Point\-Cloud\-Ptr}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Object\-Point\-Cloud\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Point\-Cloud\-Ptr} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_ad9ad5d603acaf4e67184a8855bf18869}
+\begin{DoxyReturn}{\-Returns}
+the point cloud pointer 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_ab3ae17ee6c0083e7541406cc6cd4f840}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Rating\-Module@{get\-Rating\-Module}}
+\index{get\-Rating\-Module@{get\-Rating\-Module}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Rating\-Module}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Rating\-Module\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Rating\-Module} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_ab3ae17ee6c0083e7541406cc6cd4f840}
+\begin{DoxyReturn}{\-Returns}
+the pointer to the rating module. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_ad8aa77e7341f5e6da8946bc3bc2fd60b}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Robot\-Model@{get\-Robot\-Model}}
+\index{get\-Robot\-Model@{get\-Robot\-Model}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Robot\-Model}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Robot\-Model\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Robot\-Model} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_ad8aa77e7341f5e6da8946bc3bc2fd60b}
+\begin{DoxyReturn}{\-Returns}
+the robot ptr 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a4641467bbfa8d652c9d93e0589af7b22}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Space\-Sampler@{get\-Space\-Sampler}}
+\index{get\-Space\-Sampler@{get\-Space\-Sampler}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Space\-Sampler}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Space\-Sampler\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Space\-Sampler} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a4641467bbfa8d652c9d93e0589af7b22}
+\begin{DoxyReturn}{\-Returns}
+the pointer to the space sampler. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a761207de26f962e0437107c06a716b5e}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!get\-Unit\-Sphere\-Sampler@{get\-Unit\-Sphere\-Sampler}}
+\index{get\-Unit\-Sphere\-Sampler@{get\-Unit\-Sphere\-Sampler}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{get\-Unit\-Sphere\-Sampler}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Unit\-Sphere\-Sampler\-Ptr} {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::get\-Unit\-Sphere\-Sampler} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a761207de26f962e0437107c06a716b5e}
+\begin{DoxyReturn}{\-Returns}
+the unit sphere sampler. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a9a6edf64487998d3fcea474ad6580738}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Camera\-Model\-Filter@{set\-Camera\-Model\-Filter}}
+\index{set\-Camera\-Model\-Filter@{set\-Camera\-Model\-Filter}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Camera\-Model\-Filter\-Ptr} \&}]{camera\-Model\-Filter\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a9a6edf64487998d3fcea474ad6580738}
+\-Sets the camera model filter. 
+\begin{DoxyParams}{\-Parameters}
+{\em camera\-Model\-Filter\-Ptr} & -\/ the pointer to the camera model filter. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a677eda7f0bcd8b9d2f9374c3781e2fb1}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Epsilon@{set\-Epsilon}}
+\index{set\-Epsilon@{set\-Epsilon}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Epsilon}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Epsilon} (
+\begin{DoxyParamCaption}
+\item[{float}]{epsilon}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a677eda7f0bcd8b9d2f9374c3781e2fb1}
+
+\begin{DoxyParams}{\-Parameters}
+{\em epsilon} & -\/ error threshold \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_abd0df021aacd30cb092a879b875cc639}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Point\-Cloud\-From\-Message@{set\-Point\-Cloud\-From\-Message}}
+\index{set\-Point\-Cloud\-From\-Message@{set\-Point\-Cloud\-From\-Message}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Point\-Cloud\-From\-Message}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Point\-Cloud\-From\-Message} (
+\begin{DoxyParamCaption}
+\item[{const \-Point\-Cloud\-Message \&}]{msg}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_abd0df021aacd30cb092a879b875cc639}
+
+
+/// 
+
+\-Sets the point cloud points from point cloud message 
+\begin{DoxyParams}{\-Parameters}
+{\em message} & -\/ message containing the point cloud \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_ac34821aae2b9120165a1cf0605b422de}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Point\-Cloud\-Ptr@{set\-Point\-Cloud\-Ptr}}
+\index{set\-Point\-Cloud\-Ptr@{set\-Point\-Cloud\-Ptr}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Point\-Cloud\-Ptr}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Point\-Cloud\-Ptr} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Object\-Point\-Cloud\-Ptr} \&}]{point\-Cloud\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_ac34821aae2b9120165a1cf0605b422de}
+\-Sets the point cloud ptr. \hypertarget{classnext__best__view_1_1NextBestViewCalculator_a180931d8a9f47d34fbe285d744058574}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Rating\-Module@{set\-Rating\-Module}}
+\index{set\-Rating\-Module@{set\-Rating\-Module}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Rating\-Module}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Rating\-Module} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Rating\-Module\-Ptr} \&}]{rating\-Module\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a180931d8a9f47d34fbe285d744058574}
+\-Sets the rating module. 
+\begin{DoxyParams}{\-Parameters}
+{\em rating\-Module\-Ptr} & -\/ the pointer to the rating module \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a7bee92fcaa8fcde9e71b50ad9c553480}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Robot\-Model@{set\-Robot\-Model}}
+\index{set\-Robot\-Model@{set\-Robot\-Model}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Robot\-Model}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Robot\-Model} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Robot\-Model\-Ptr} \&}]{robot\-Model\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a7bee92fcaa8fcde9e71b50ad9c553480}
+sets the robot model 
+\begin{DoxyParams}{\-Parameters}
+{\em robot\-Model\-Ptr} & -\/ the pointer to robot model. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a8e4fb71df53008e7a23f028f1531dfa0}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Space\-Sampler@{set\-Space\-Sampler}}
+\index{set\-Space\-Sampler@{set\-Space\-Sampler}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Space\-Sampler}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Space\-Sampler} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Space\-Sampler\-Ptr} \&}]{space\-Sampler\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a8e4fb71df53008e7a23f028f1531dfa0}
+\-Sets the space sampler. 
+\begin{DoxyParams}{\-Parameters}
+{\em space\-Sampler\-Ptr} & -\/ the pointer to the space sampler \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_aef5624aeaec1b999a3c90f9557af1b9b}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!set\-Unit\-Sphere\-Sampler@{set\-Unit\-Sphere\-Sampler}}
+\index{set\-Unit\-Sphere\-Sampler@{set\-Unit\-Sphere\-Sampler}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{set\-Unit\-Sphere\-Sampler}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::set\-Unit\-Sphere\-Sampler} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Unit\-Sphere\-Sampler\-Ptr} \&}]{unit\-Sphere\-Sampler\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_aef5624aeaec1b999a3c90f9557af1b9b}
+\-Sets the unit sphere sampler. 
+\begin{DoxyParams}{\-Parameters}
+{\em unit\-Sphere\-Sampler\-Ptr} & -\/ the pointer to the unit sphere sampler \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1NextBestViewCalculator_a8c78f8b100cd7bd781bd6890b98b710b}{\index{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}!update\-Object\-Points@{update\-Object\-Points}}
+\index{update\-Object\-Points@{update\-Object\-Points}!next_best_view::NextBestViewCalculator@{next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator}}
+\subsubsection[{update\-Object\-Points}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Next\-Best\-View\-Calculator\-::update\-Object\-Points} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Viewport\-Point} \&}]{viewport\-Point}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1NextBestViewCalculator_a8c78f8b100cd7bd781bd6890b98b710b}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/\hyperlink{NextBestViewCalculator_8hpp}{\-Next\-Best\-View\-Calculator.\-hpp}\end{DoxyCompactItemize}

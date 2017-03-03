@@ -1,0 +1,5 @@
+asr_msgs/AsrAttributedPointCloud point_cloud
+asr_msgs/AsrViewport[] viewports_to_filter
+---
+bool is_valid
+NormalsInfo[] normals_per_object

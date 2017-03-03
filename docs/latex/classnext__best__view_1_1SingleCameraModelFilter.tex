@@ -1,0 +1,160 @@
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter}{\section{next\-\_\-best\-\_\-view\-:\-:\-Single\-Camera\-Model\-Filter \-Class \-Reference}
+\label{classnext__best__view_1_1SingleCameraModelFilter}\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+}
+
+
+\hyperlink{classnext__best__view_1_1SingleCameraModelFilter}{\-Single\-Camera\-Model\-Filter} class implements the frustum filter for a single camera.  
+
+
+
+
+{\ttfamily \#include $<$\-Single\-Camera\-Model\-Filter.\-hpp$>$}
+
+\-Inheritance diagram for next\-\_\-best\-\_\-view\-:\-:\-Single\-Camera\-Model\-Filter\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classnext__best__view_1_1SingleCameraModelFilter}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classnext__best__view_1_1SingleCameraModelFilter_ad953b21f7252766a8c2fc76e9a537d0c}{\-Single\-Camera\-Model\-Filter} (const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} pivot\-Point\-Offset=\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3}())
+\begin{DoxyCompactList}\small\item\em constructs a new camera model filter object. \end{DoxyCompactList}\item 
+virtual \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a699ac2237bc6adc305fb8f61f538edeb}{$\sim$\-Single\-Camera\-Model\-Filter} ()
+\begin{DoxyCompactList}\small\item\em destructs the single camera model filter object. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a7a79f48ef0338edf335235ad9375983a}{filter} (\hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \&indices\-Ptr)
+\begin{DoxyCompactList}\small\item\em returns all objects which are inside of the camera frustum. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a68be7c60b145d1f20a29ddcd6a40a7c8}{set\-Pivot\-Point\-Offset} (const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \&pivot\-Point\-Offset)
+\begin{DoxyCompactList}\small\item\em sets the offset between the pivot point and the actual camera position. \end{DoxyCompactList}\item 
+\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a672704857851579c57d5eb4121b955e0}{get\-Pivot\-Point\-Offset} ()
+\item 
+viz\-::\-Marker\-Array\-Ptr \hyperlink{classnext__best__view_1_1SingleCameraModelFilter_a6571b3bc2a6d318bbdb26183e89fd585}{get\-Visualization\-Marker\-Array} (uint32\-\_\-t \&sequence, double lifetime=30.\-0)
+\begin{DoxyCompactList}\small\item\em returns a array of markers containing the visualization of the camera frustum. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\hyperlink{classnext__best__view_1_1SingleCameraModelFilter}{\-Single\-Camera\-Model\-Filter} class implements the frustum filter for a single camera. 
+
+\begin{DoxyAuthor}{\-Author}
+\-Ralf \-Schleicher 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2014 
+\end{DoxyDate}
+\begin{DoxyVersion}{\-Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyCopyright}{\-Copyright}
+\-G\-N\-U \-Public \-License 
+\end{DoxyCopyright}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter_ad953b21f7252766a8c2fc76e9a537d0c}{\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}!\-Single\-Camera\-Model\-Filter@{\-Single\-Camera\-Model\-Filter}}
+\index{\-Single\-Camera\-Model\-Filter@{\-Single\-Camera\-Model\-Filter}!next_best_view::SingleCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+\subsubsection[{\-Single\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}{\bf next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter\-::\-Single\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Vector3}}]{pivot\-Point\-Offset = {\ttfamily {\bf \-Simple\-Vector3}()}}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SingleCameraModelFilter_ad953b21f7252766a8c2fc76e9a537d0c}
+
+
+constructs a new camera model filter object. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em pivot\-Point\-Offset} & the offset to the pivot point \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter_a699ac2237bc6adc305fb8f61f538edeb}{\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}!$\sim$\-Single\-Camera\-Model\-Filter@{$\sim$\-Single\-Camera\-Model\-Filter}}
+\index{$\sim$\-Single\-Camera\-Model\-Filter@{$\sim$\-Single\-Camera\-Model\-Filter}!next_best_view::SingleCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+\subsubsection[{$\sim$\-Single\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter\-::$\sim$\-Single\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1SingleCameraModelFilter_a699ac2237bc6adc305fb8f61f538edeb}
+
+
+destructs the single camera model filter object. 
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter_a7a79f48ef0338edf335235ad9375983a}{\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}!filter@{filter}}
+\index{filter@{filter}!next_best_view::SingleCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+\subsubsection[{filter}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter\-::filter} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Indices\-Ptr} \&}]{indices\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1SingleCameraModelFilter_a7a79f48ef0338edf335235ad9375983a}
+
+
+returns all objects which are inside of the camera frustum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em indices\-Ptr} & \mbox{[}out\mbox{]} a pointer to indices which gets filled with the indices of objects which are in the frustum \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1CameraModelFilter_ae8cbc5f9451ea9e32ff6942ce9f89a87}{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}.
+
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter_a672704857851579c57d5eb4121b955e0}{\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}!get\-Pivot\-Point\-Offset@{get\-Pivot\-Point\-Offset}}
+\index{get\-Pivot\-Point\-Offset@{get\-Pivot\-Point\-Offset}!next_best_view::SingleCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Pivot\-Point\-Offset}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Simple\-Vector3} {\bf next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter\-::get\-Pivot\-Point\-Offset} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SingleCameraModelFilter_a672704857851579c57d5eb4121b955e0}
+\begin{DoxyReturn}{\-Returns}
+the offset to the pivot point 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter_a6571b3bc2a6d318bbdb26183e89fd585}{\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}!get\-Visualization\-Marker\-Array@{get\-Visualization\-Marker\-Array}}
+\index{get\-Visualization\-Marker\-Array@{get\-Visualization\-Marker\-Array}!next_best_view::SingleCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Visualization\-Marker\-Array}]{\setlength{\rightskip}{0pt plus 5cm}viz\-::\-Marker\-Array\-Ptr {\bf next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter\-::get\-Visualization\-Marker\-Array} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t \&}]{sequence, }
+\item[{double}]{lifetime = {\ttfamily 30.0}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1SingleCameraModelFilter_a6571b3bc2a6d318bbdb26183e89fd585}
+
+
+returns a array of markers containing the visualization of the camera frustum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em sequence} & \mbox{[}in / out\mbox{]} a number used for unique identifying of the markers in the array \\
+\hline
+{\em lifetime} & the lifetime of each marker \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the visualization for that camera filter setting 
+\end{DoxyReturn}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1CameraModelFilter_a0c8b846280f21a94ca69c694a3214ad1}{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}.
+
+\hypertarget{classnext__best__view_1_1SingleCameraModelFilter_a68be7c60b145d1f20a29ddcd6a40a7c8}{\index{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}!set\-Pivot\-Point\-Offset@{set\-Pivot\-Point\-Offset}}
+\index{set\-Pivot\-Point\-Offset@{set\-Pivot\-Point\-Offset}!next_best_view::SingleCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Pivot\-Point\-Offset}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Single\-Camera\-Model\-Filter\-::set\-Pivot\-Point\-Offset} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Vector3} \&}]{pivot\-Point\-Offset}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1SingleCameraModelFilter_a68be7c60b145d1f20a29ddcd6a40a7c8}
+
+
+sets the offset between the pivot point and the actual camera position. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em pivot\-Point\-Offset} & \mbox{[}in\mbox{]} the pivot point offset. \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/camera\-\_\-model\-\_\-filter/impl/\hyperlink{SingleCameraModelFilter_8hpp}{\-Single\-Camera\-Model\-Filter.\-hpp}\end{DoxyCompactItemize}

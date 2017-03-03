@@ -1,0 +1,96 @@
+\hypertarget{classnext__best__view_1_1KdTree}{\section{next\-\_\-best\-\_\-view\-:\-:\-Kd\-Tree \-Class \-Reference}
+\label{classnext__best__view_1_1KdTree}\index{next\-\_\-best\-\_\-view\-::\-Kd\-Tree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}}
+}
+
+
+{\ttfamily \#include $<$\-Kd\-Tree.\-hpp$>$}
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classnext__best__view_1_1KdTree_ae2ffbca6b9804287827dfaa49027d617}{set\-Input\-Cloud} (const \-Point\-Cloud\-Const\-Ptr \&point\-Cloud\-Const\-Ptr, const \-Indices\-Const\-Ptr \&indices\-Const\-Ptr=\-Indices\-Const\-Ptr())
+\item 
+int \hyperlink{classnext__best__view_1_1KdTree_a570d91ef93d9504821796bc4db333292}{nearest\-K\-Search} (const \-Real\-Object \&reference\-Point, int k, \-Indices \&result\-Indices, \-Squared\-Distances \&result\-Squared\-Distances) const 
+\item 
+int \hyperlink{classnext__best__view_1_1KdTree_ad163788a1640679bbd81c8be19b4c9dd}{radius\-Search} (const \-Real\-Object \&reference\-Point, double distance, \-Indices \&result\-Indices, \-Squared\-Distances \&result\-Squared\-Distances, unsigned int max\-Nn) const 
+\item 
+std\-::string \hyperlink{classnext__best__view_1_1KdTree_a981ea325af5d0333683bf93b56db3ec1}{get\-Name} () const 
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1KdTree_a981ea325af5d0333683bf93b56db3ec1}{\index{next\-\_\-best\-\_\-view\-::\-Kd\-Tree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}!get\-Name@{get\-Name}}
+\index{get\-Name@{get\-Name}!next_best_view::KdTree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}}
+\subsubsection[{get\-Name}]{\setlength{\rightskip}{0pt plus 5cm}std\-::string {\bf next\-\_\-best\-\_\-view\-::\-Kd\-Tree\-::get\-Name} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1KdTree_a981ea325af5d0333683bf93b56db3ec1}
+\hypertarget{classnext__best__view_1_1KdTree_a570d91ef93d9504821796bc4db333292}{\index{next\-\_\-best\-\_\-view\-::\-Kd\-Tree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}!nearest\-K\-Search@{nearest\-K\-Search}}
+\index{nearest\-K\-Search@{nearest\-K\-Search}!next_best_view::KdTree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}}
+\subsubsection[{nearest\-K\-Search}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf next\-\_\-best\-\_\-view\-::\-Kd\-Tree\-::nearest\-K\-Search} (
+\begin{DoxyParamCaption}
+\item[{const \-Real\-Object \&}]{reference\-Point, }
+\item[{int}]{k, }
+\item[{\-Indices \&}]{result\-Indices, }
+\item[{\-Squared\-Distances \&}]{result\-Squared\-Distances}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1KdTree_a570d91ef93d9504821796bc4db333292}
+returns the k nearest points around the reference point 
+\begin{DoxyParams}{\-Parameters}
+{\em reference\-Point} & (in) reference point to search around \\
+\hline
+{\em k} & (in) the cound of points to find \\
+\hline
+{\em result\-Indices} & (out) containing the resulting indices afterwards, gets formatted to k results a-\/priori \\
+\hline
+{\em result\-Squared\-Distances} & (out) containing the squared distances afterwards, gets formatted to k results a-\/priori. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the count of objects found. 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1KdTree_ad163788a1640679bbd81c8be19b4c9dd}{\index{next\-\_\-best\-\_\-view\-::\-Kd\-Tree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}!radius\-Search@{radius\-Search}}
+\index{radius\-Search@{radius\-Search}!next_best_view::KdTree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}}
+\subsubsection[{radius\-Search}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf next\-\_\-best\-\_\-view\-::\-Kd\-Tree\-::radius\-Search} (
+\begin{DoxyParamCaption}
+\item[{const \-Real\-Object \&}]{reference\-Point, }
+\item[{double}]{distance, }
+\item[{\-Indices \&}]{result\-Indices, }
+\item[{\-Squared\-Distances \&}]{result\-Squared\-Distances, }
+\item[{unsigned int}]{max\-Nn}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1KdTree_ad163788a1640679bbd81c8be19b4c9dd}
+\-Returns the points contained in a sphere around the reference point with distance 'distance' 
+\begin{DoxyParams}{\-Parameters}
+{\em reference\-Point} & (in) the point to be used for radius search \\
+\hline
+{\em distance} & (in) the maximum distance for search of an object. \\
+\hline
+{\em result\-Indices} & (out) the vector containing the found indices afterwards \\
+\hline
+{\em result\-Squared\-Distances} & (out) the vector containing the squared distances afterwards \\
+\hline
+{\em max\-Nn} & (in) the maximum count of elements to be found. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classnext__best__view_1_1KdTree_ae2ffbca6b9804287827dfaa49027d617}{\index{next\-\_\-best\-\_\-view\-::\-Kd\-Tree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}!set\-Input\-Cloud@{set\-Input\-Cloud}}
+\index{set\-Input\-Cloud@{set\-Input\-Cloud}!next_best_view::KdTree@{next\-\_\-best\-\_\-view\-::\-Kd\-Tree}}
+\subsubsection[{set\-Input\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Kd\-Tree\-::set\-Input\-Cloud} (
+\begin{DoxyParamCaption}
+\item[{const \-Point\-Cloud\-Const\-Ptr \&}]{point\-Cloud\-Const\-Ptr, }
+\item[{const \-Indices\-Const\-Ptr \&}]{indices\-Const\-Ptr = {\ttfamily \-Indices\-Const\-Ptr()}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classnext__best__view_1_1KdTree_ae2ffbca6b9804287827dfaa49027d617}
+\-Sets the input cloud to be operated on. 
+\begin{DoxyParams}{\-Parameters}
+{\em point\-Cloud\-Ptr} & the pointer to the point cloud used. \\
+\hline
+{\em indices\-Ptr} & the pointer to the active indices used. \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/deprecated/\hyperlink{KdTree_8hpp}{\-Kd\-Tree.\-hpp}\end{DoxyCompactItemize}

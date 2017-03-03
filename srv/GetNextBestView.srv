@@ -1,0 +1,18 @@
+geometry_msgs/Pose current_pose
+---
+# we might use here RatedViewport
+bool found
+#List of types of objects being searched in given nbv.
+string[] object_type_name_list
+geometry_msgs/Pose resulting_pose
+asr_next_best_view/RobotStateMessage robot_state
+# utility
+float32 utility
+float32 utility_normalization
+# total costs
+float32 inverse_costs
+# specific costs
+float32 base_translation_inverse_costs
+float32 base_rotation_inverse_costs
+float32 ptu_movement_inverse_costs
+float32 recognition_inverse_costs

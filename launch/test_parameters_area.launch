@@ -1,0 +1,41 @@
+<launch>
+	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find asr_next_best_view)/log/rosconsole.config" /-->
+	<include file="$(find asr_mild_navigation)/launch/simulation/simulation_floor.launch" />
+	<include file="$(find asr_world_model)/launch/world_model.launch" />
+	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
+	<include file="$(find asr_flir_ptu_driver)/launch/ptu_left_mock.launch" />
+	<include file="$(find asr_next_best_view)/launch/RobotModelServiceSim.launch" />
+	<node pkg="asr_next_best_view" type="next_best_view_parameters_test" name="nbv" output="screen">
+
+		<param name="output_path" value="$(find asr_next_best_view)/rsc/" />
+	
+		<rosparam file="$(find asr_next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
+          	<rosparam file="$(find asr_next_best_view)/rsc/VisualizationConfig.yaml"/>
+		<rosparam file="$(find asr_next_best_view)/rsc/TopicsConfig.yaml"/>
+                <rosparam file="$(find asr_next_best_view)/rsc/costmap_params.yaml" command="load" ns="global_costmap"/>
+                <rosparam file="$(find asr_mild_navigation)/rsc/global_costmap_params.yaml" command="load"/>
+                <param name="mCropBoxListFilePath" value="$(find asr_next_best_view)/rsc/CropBoxListHighResolution.xml"/>
+                <param name="mMapsImagePath" value="$(find asr_next_best_view)/rsc"/>
+
+		<param name="configurable_point_clouds/test" value="true"/>
+		<param name="configurable_point_clouds/distance" value="0.5"/>
+		<rosparam param="configurable_point_clouds/object_types_1">[CeylonTea]</rosparam>
+		<rosparam param="configurable_point_clouds/object_types_2">[CoffeeFilters2]</rosparam>
+		<param name="configurable_point_clouds/elements_1" value="10"/>
+		<param name="configurable_point_clouds/elements_2" value="10"/>
+		<rosparam param="configurable_point_clouds/position_deviation_1">[0.1, 0.1, 0.1]</rosparam>
+		<rosparam param="configurable_point_clouds/position_deviation_2">[0.15, 0.15, 0.15]</rosparam>
+		<param name="configurable_point_clouds/orientation_deviation_1" value="0"/>
+		<param name="configurable_point_clouds/orientation_deviation_2" value="0"/>
+		<rosparam param="configurable_point_clouds/CeylonTea_orientation">[-90.0 , 90.0, 0.0]</rosparam>
+		<rosparam param="configurable_point_clouds/CoffeeFilters2_orientation">[-90.0 , 90.0, 0.0]</rosparam>
+		
+		<param name="positions/test" value="false"/>
+		<param name="side_objects/test" value="false"/>
+		
+		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_services_settings_sim.yaml"/>
+		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_frames.yaml"/>
+	  	<rosparam file="$(find asr_robot_model_services)/rsc/TopicsConfig.yaml"/>
+	</node>
+</launch>
+ 

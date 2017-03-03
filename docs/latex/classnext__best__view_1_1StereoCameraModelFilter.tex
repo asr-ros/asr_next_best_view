@@ -1,0 +1,183 @@
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter}{\section{next\-\_\-best\-\_\-view\-:\-:\-Stereo\-Camera\-Model\-Filter \-Class \-Reference}
+\label{classnext__best__view_1_1StereoCameraModelFilter}\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+}
+
+
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter}{\-Stereo\-Camera\-Model\-Filter} class implements the frustum filtering for stereo cameras.  
+
+
+
+
+{\ttfamily \#include $<$\-Stereo\-Camera\-Model\-Filter.\-hpp$>$}
+
+\-Inheritance diagram for next\-\_\-best\-\_\-view\-:\-:\-Stereo\-Camera\-Model\-Filter\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classnext__best__view_1_1StereoCameraModelFilter}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bc}{\-Filtering\-Type} \{ \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bca64a172eb76db0ab76e9c3770020a4f06}{\-L\-E\-F\-T}, 
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bcad597adcefed24c9fe0194f5b83b37be3}{\-R\-I\-G\-H\-T}, 
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bca2608572ea4db2aad0aeed31021cd7ee4}{\-B\-O\-T\-H}, 
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bcaaaa3cd4a57f778fccb9b4ac45fb00f53}{\-I\-N\-T\-E\-R\-S\-E\-C\-T\-I\-O\-N}
+ \}
+\begin{DoxyCompactList}\small\item\em describes the filtering type of the filter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a9aab892f9b2aa95196071372b5bd31f4}{\-Stereo\-Camera\-Model\-Filter} (const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \&left\-Camera\-Pivot\-Point\-Offset=\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3}(), const \hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3} \&right\-Camera\-Pivot\-Point\-Offset=\hyperlink{namespacenext__best__view_a59fc75b908e198bc02a9b19ba88edf12}{\-Simple\-Vector3}())
+\begin{DoxyCompactList}\small\item\em constructor for the \hyperlink{classnext__best__view_1_1StereoCameraModelFilter}{\-Stereo\-Camera\-Model\-Filter} object \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_aff3d4b4ab7190c685d3f5d038875a998}{filter} (\hyperlink{namespacenext__best__view_a89edd5f370254b5c7689adfede9fe6a7}{\-Indices\-Ptr} \&indices\-Ptr)
+\begin{DoxyCompactList}\small\item\em returns all objects which are inside of the camera frustum. \end{DoxyCompactList}\item 
+void \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a446a3184aae602df1e4f2c28d2436ffb}{set\-Filtering\-Type} (\hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bc}{\-Filtering\-Type} type)
+\begin{DoxyCompactList}\small\item\em sets the filtering type. \end{DoxyCompactList}\item 
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bc}{\-Filtering\-Type} \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_abd99d9424fdffd297500bcd24aa23e2e}{get\-Filtering\-Type} ()
+\item 
+viz\-::\-Marker\-Array\-Ptr \hyperlink{classnext__best__view_1_1StereoCameraModelFilter_afdacd39e902f1fb1e1f5893d60849d11}{get\-Visualization\-Marker\-Array} (uint32\-\_\-t \&sequence, double lifetime=30.\-0)
+\begin{DoxyCompactList}\small\item\em returns a array of markers containing the visualization of the camera frustum. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\hyperlink{classnext__best__view_1_1StereoCameraModelFilter}{\-Stereo\-Camera\-Model\-Filter} class implements the frustum filtering for stereo cameras. 
+
+\-The stereo camera model makes actually twice the use of the \hyperlink{classnext__best__view_1_1SingleCameraModelFilter}{\-Single\-Camera\-Model\-Filter}. \-Therefore it may be possible to implement different camera orientations in here either. \begin{DoxyAuthor}{\-Author}
+\-Ralf \-Schleicher 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2014 
+\end{DoxyDate}
+\begin{DoxyVersion}{\-Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyCopyright}{\-Copyright}
+\-G\-N\-U \-Public \-License 
+\end{DoxyCopyright}
+
+
+\subsection{\-Member \-Enumeration \-Documentation}
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bc}{\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!\-Filtering\-Type@{\-Filtering\-Type}}
+\index{\-Filtering\-Type@{\-Filtering\-Type}!next_best_view::StereoCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+\subsubsection[{\-Filtering\-Type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter\-::\-Filtering\-Type}}}\label{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bc}
+
+
+describes the filtering type of the filter. 
+
+\-If \-L\-E\-F\-T or \-R\-I\-G\-H\-T is used, only the camera filter of the left or the right camera will be used. \-On \-B\-O\-T\-H the results of left and right will be combined. \-And on intersection only the points which are in the left and the right frustum will be minded. \begin{Desc}
+\item[\-Enumerator\-: ]\par
+\begin{description}
+\index{\-L\-E\-F\-T@{\-L\-E\-F\-T}!next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!\-L\-E\-F\-T@{\-L\-E\-F\-T}}\item[{\em 
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bca64a172eb76db0ab76e9c3770020a4f06}{\-L\-E\-F\-T}\label{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bca64a172eb76db0ab76e9c3770020a4f06}
+}]\index{\-R\-I\-G\-H\-T@{\-R\-I\-G\-H\-T}!next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!\-R\-I\-G\-H\-T@{\-R\-I\-G\-H\-T}}\item[{\em 
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bcad597adcefed24c9fe0194f5b83b37be3}{\-R\-I\-G\-H\-T}\label{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bcad597adcefed24c9fe0194f5b83b37be3}
+}]\index{\-B\-O\-T\-H@{\-B\-O\-T\-H}!next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!\-B\-O\-T\-H@{\-B\-O\-T\-H}}\item[{\em 
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bca2608572ea4db2aad0aeed31021cd7ee4}{\-B\-O\-T\-H}\label{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bca2608572ea4db2aad0aeed31021cd7ee4}
+}]\index{\-I\-N\-T\-E\-R\-S\-E\-C\-T\-I\-O\-N@{\-I\-N\-T\-E\-R\-S\-E\-C\-T\-I\-O\-N}!next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!\-I\-N\-T\-E\-R\-S\-E\-C\-T\-I\-O\-N@{\-I\-N\-T\-E\-R\-S\-E\-C\-T\-I\-O\-N}}\item[{\em 
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bcaaaa3cd4a57f778fccb9b4ac45fb00f53}{\-I\-N\-T\-E\-R\-S\-E\-C\-T\-I\-O\-N}\label{classnext__best__view_1_1StereoCameraModelFilter_a60feeec608139dd1bc248f43b7a0b9bcaaaa3cd4a57f778fccb9b4ac45fb00f53}
+}]\end{description}
+\end{Desc}
+
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a9aab892f9b2aa95196071372b5bd31f4}{\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!\-Stereo\-Camera\-Model\-Filter@{\-Stereo\-Camera\-Model\-Filter}}
+\index{\-Stereo\-Camera\-Model\-Filter@{\-Stereo\-Camera\-Model\-Filter}!next_best_view::StereoCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+\subsubsection[{\-Stereo\-Camera\-Model\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}{\bf next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter\-::\-Stereo\-Camera\-Model\-Filter} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Simple\-Vector3} \&}]{left\-Camera\-Pivot\-Point\-Offset = {\ttfamily {\bf \-Simple\-Vector3}()}, }
+\item[{const {\bf \-Simple\-Vector3} \&}]{right\-Camera\-Pivot\-Point\-Offset = {\ttfamily {\bf \-Simple\-Vector3}()}}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1StereoCameraModelFilter_a9aab892f9b2aa95196071372b5bd31f4}
+
+
+constructor for the \hyperlink{classnext__best__view_1_1StereoCameraModelFilter}{\-Stereo\-Camera\-Model\-Filter} object 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em left\-Camera\-Pivot\-Point\-Offset} & \mbox{[}in\mbox{]} the offset to the pivot point for the left camera \\
+\hline
+{\em right\-Camera\-Pivot\-Point\-Offset} & \mbox{[}in\mbox{]} the offset to the pivot point for the right camera \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_aff3d4b4ab7190c685d3f5d038875a998}{\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!filter@{filter}}
+\index{filter@{filter}!next_best_view::StereoCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+\subsubsection[{filter}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter\-::filter} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Indices\-Ptr} \&}]{indices\-Ptr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1StereoCameraModelFilter_aff3d4b4ab7190c685d3f5d038875a998}
+
+
+returns all objects which are inside of the camera frustum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em indices\-Ptr} & \mbox{[}out\mbox{]} a pointer to indices which gets filled with the indices of objects which are in the frustum \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1CameraModelFilter_ae8cbc5f9451ea9e32ff6942ce9f89a87}{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}.
+
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_abd99d9424fdffd297500bcd24aa23e2e}{\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!get\-Filtering\-Type@{get\-Filtering\-Type}}
+\index{get\-Filtering\-Type@{get\-Filtering\-Type}!next_best_view::StereoCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Filtering\-Type}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Filtering\-Type} {\bf next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter\-::get\-Filtering\-Type} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1StereoCameraModelFilter_abd99d9424fdffd297500bcd24aa23e2e}
+\begin{DoxyReturn}{\-Returns}
+the filtering type 
+\end{DoxyReturn}
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_afdacd39e902f1fb1e1f5893d60849d11}{\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!get\-Visualization\-Marker\-Array@{get\-Visualization\-Marker\-Array}}
+\index{get\-Visualization\-Marker\-Array@{get\-Visualization\-Marker\-Array}!next_best_view::StereoCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+\subsubsection[{get\-Visualization\-Marker\-Array}]{\setlength{\rightskip}{0pt plus 5cm}viz\-::\-Marker\-Array\-Ptr {\bf next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter\-::get\-Visualization\-Marker\-Array} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t \&}]{sequence, }
+\item[{double}]{lifetime = {\ttfamily 30.0}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classnext__best__view_1_1StereoCameraModelFilter_afdacd39e902f1fb1e1f5893d60849d11}
+
+
+returns a array of markers containing the visualization of the camera frustum. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em sequence} & \mbox{[}in / out\mbox{]} a number used for unique identifying of the markers in the array \\
+\hline
+{\em lifetime} & the lifetime of each marker \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the visualization for that camera filter setting 
+\end{DoxyReturn}
+
+
+\-Implements \hyperlink{classnext__best__view_1_1CameraModelFilter_a0c8b846280f21a94ca69c694a3214ad1}{next\-\_\-best\-\_\-view\-::\-Camera\-Model\-Filter}.
+
+\hypertarget{classnext__best__view_1_1StereoCameraModelFilter_a446a3184aae602df1e4f2c28d2436ffb}{\index{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}!set\-Filtering\-Type@{set\-Filtering\-Type}}
+\index{set\-Filtering\-Type@{set\-Filtering\-Type}!next_best_view::StereoCameraModelFilter@{next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter}}
+\subsubsection[{set\-Filtering\-Type}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf next\-\_\-best\-\_\-view\-::\-Stereo\-Camera\-Model\-Filter\-::set\-Filtering\-Type} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Filtering\-Type}}]{type}
+\end{DoxyParamCaption}
+)}}\label{classnext__best__view_1_1StereoCameraModelFilter_a446a3184aae602df1e4f2c28d2436ffb}
+
+
+sets the filtering type. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em type} & the type of filtering \\
+\hline
+\end{DoxyParams}
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/next\-\_\-best\-\_\-view/camera\-\_\-model\-\_\-filter/impl/\hyperlink{StereoCameraModelFilter_8hpp}{\-Stereo\-Camera\-Model\-Filter.\-hpp}\end{DoxyCompactItemize}
