@@ -32,7 +32,7 @@ namespace next_best_view {
     class NextBestViewCalculator;
     typedef boost::shared_ptr<NextBestViewCalculator> NextBestViewCalculatorPtr;
 
-    class GeneticAlgorithm {
+    class EvolutionaryAlgorithm {
     private:
         // pair<double, std::vector<Eigen::matrix3f>> is the radius in angle (double) and a number of rotations around radius
         std::vector<std::pair<double, std::vector<SimpleVector3>>> mPositionOffsetsPerRadius;
@@ -42,12 +42,12 @@ namespace next_best_view {
         int mImprovementIterationSteps;
         float mMaxAngle;
         float mRadius;
-        int mMinIterationGA;
+        int mMinIterationEA;
         int mNViewportsPerBB;
 
 
     public:
-        GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA, int nViewportsPerBB);
+        EvolutionaryAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr,  ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationEA, int nViewportsPerBB);
 
         ViewportPointCloudPtr selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep);
 
@@ -84,6 +84,6 @@ namespace next_best_view {
 
         void setPositionOffsets();
     };
-    typedef boost::shared_ptr<GeneticAlgorithm> GeneticAlgorithmPtr;
+    typedef boost::shared_ptr<EvolutionaryAlgorithm> EvolutionaryAlgorithmPtr;
 }
 

@@ -169,7 +169,7 @@ private:
     RatingModuleAbstractFactoryPtr mRatingModuleFactoryPtr;
     HypothesisUpdaterAbstractFactoryPtr mHypothesisUpdaterFactoryPtr;
     ClusterExtractionPtr mClusterExtractionPtr;
-    GeneticAlgorithmPtr mGeneticAlgorithmPtr;
+    EvolutionaryAlgorithmPtr mEvolutionaryAlgorithmPtr;
 
 public:
     /*!
@@ -385,8 +385,7 @@ public:
             mCalculatorPtr->setEnableCropBoxFiltering(mConfig.enableCropBoxFiltering);
             mCalculatorPtr->setRemoveInvalidNormals(mConfig.removeInvalidNormals);
             mCalculatorPtr->setCacheResults(mConfig.cacheResults);
-            mCalculatorPtr->setEnablePrediction(mConfig.enablePrediction);
-            mCalculatorPtr->setEnableGA(mConfig.enableGA);
+            mCalculatorPtr->setEnableEA(mConfig.enableEA);
             mCalculatorPtr->setEnableClustering(mConfig.enableClustering);
 
             // filter
@@ -394,10 +393,10 @@ public:
             mCalculatorPtr->setEnableKDTreeFilter(mConfig.enableKDTreeFilter);
             mCalculatorPtr->setEnableMapFilter(mConfig.enableMapFilter);
 
-            // ga
-            mGeneticAlgorithmPtr = boost::make_shared<GeneticAlgorithm>(mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsGA, mConfig.maxAngleGA, mConfig.radiusGA, mConfig.minIterationsGA, mConfig.nViewportsPerBB);
-            mCalculatorPtr->setMinIterationGA(mConfig.minIterationsGA);
-            mCalculatorPtr->setGeneticAlgorithmPtr(mGeneticAlgorithmPtr);
+            // ea
+            mEvolutionaryAlgorithmPtr = boost::make_shared<EvolutionaryAlgorithm>(mCalculatorPtr->getNBVCachePtr(), mMapHelperPtr, mClusterExtractionPtr, mConfig.improvementIterationsEA, mConfig.maxAngleEA, mConfig.radiusEA, mConfig.minIterationsEA, mConfig.nViewportsPerBB);
+            mCalculatorPtr->setMinIterationEA(mConfig.minIterationsEA);
+            mCalculatorPtr->setEvolutionaryAlgorithmPtr(mEvolutionaryAlgorithmPtr);
 
             // min utility
             float minUtility;

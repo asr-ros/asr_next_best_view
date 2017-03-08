@@ -41,7 +41,6 @@ namespace next_best_view {
           mThreadRatingModules(mNumberOfThreads),
           mNBVCachePtr(new NextBestViewCache()) {
 
-        mFirstNBVCallIsRunning = false;
 //        setMapHelper(mapHelperPtr);
         mDebugHelperPtr = DebugHelper::getInstance();
     }
@@ -55,19 +54,6 @@ namespace next_best_view {
             mRatedSortedViewportsPreIteration->clear();
         }
         mNBVCachePtr->clearRatingCache();
-
-        // avoid eternal looping from nbv prediction
-        if (mEnablePrediction && !mFirstNBVCallIsRunning) {
-            // NBVPrediction calls this method, so we have to make sure we won't loop call this method.
-            mFirstNBVCallIsRunning = true;
-            ViewportPointCloudPtr resultViewports = mNBVPredictionPtr->getNBVPredictions(currentCameraViewport);
-            mFirstNBVCallIsRunning = false;
-            if (resultViewports->empty()) {
-                return false;
-            }
-            resultViewport = resultViewports->at(0);
-            return true;
-        }
 
         //Calculate robot configuration corresponding to current camera viewport of robot.
         initializeRobotState(currentCameraViewport);
@@ -316,7 +302,7 @@ namespace next_best_view {
         if (iterationStep == 0 && mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
             // we rated the same pc before, so we can use utility to get a first good set
             sampleNextBestViewports = mNBVCachePtr->getAllBestUtilityViewports();
-        } else if (!mEnableGA || iterationStep < mMinIterationGA) {
+        } else if (!mEnableEA || iterationStep < mMinIterationEA) {
             // we do normal sampling
             //Calculate grid for resolution given in this iteration step.
             SamplePointCloudPtr sampledSpacePointCloudPtr = generateSpaceSamples(currentBestPosition, contractor, currentBestPosition[2]);
@@ -333,8 +319,8 @@ namespace next_best_view {
             //Create list of all view ports that are checked during this iteration step.
             sampleNextBestViewports = combineSamples(sampledSpacePointCloudPtr, sampledOrientationsPtr);
         } else {
-            // we use ga and cache to generate nbv samples
-            sampleNextBestViewports = mGeneticAlgorithmPtr->selectAndMutate(mRatedSortedViewportsPreIteration, iterationStep);
+            // we use ea and cache to generate nbv samples
+            sampleNextBestViewports = mEvolutionaryAlgorithmPtr->selectAndMutate(mRatedSortedViewportsPreIteration, iterationStep);
         }
 
         if (mCacheResults && !mNBVCachePtr->isUtilityCacheEmpty()) {
@@ -1006,7 +992,6 @@ namespace next_best_view {
         mMapHelperPtr = mapHelperPtr;
         mVisHelperPtr = VisualizationHelperPtr(new VisualizationHelper(mMapHelperPtr));
         NextBestViewCalculatorPtr thisPtr = shared_from_this();
-        mNBVPredictionPtr = NextBestViewPredictionPtr(new NextBestViewPrediction(thisPtr, mVisHelperPtr));
     }
 
     MapHelperPtr NextBestViewCalculator::getMapHelper() {
@@ -1143,14 +1128,6 @@ namespace next_best_view {
         return mEnableClustering;
     }
 
-    bool NextBestViewCalculator::getEnablePrediction() const {
-        return mEnablePrediction;
-    }
-
-    void NextBestViewCalculator::setEnablePrediction(bool enablePrediction) {
-        mEnablePrediction = enablePrediction;
-    }
-
     void NextBestViewCalculator::setEnableClustering(bool enableClustering) {
         mEnableClustering = enableClustering;
     }
@@ -1229,28 +1206,28 @@ namespace next_best_view {
         mMapSpaceSampleFilterPtr->setPostFilter(mHypothesisKDTreeSpaceSampleFilterPtr);
     }
 
-    int NextBestViewCalculator::getMinIterationGA() const {
-        return mMinIterationGA;
+    int NextBestViewCalculator::getMinIterationEA() const {
+        return mMinIterationEA;
     }
 
-    void NextBestViewCalculator::setMinIterationGA(int minIterationGA) {
-        mMinIterationGA = minIterationGA;
+    void NextBestViewCalculator::setMinIterationEA(int minIterationEA) {
+        mMinIterationEA = minIterationEA;
     }
 
-    GeneticAlgorithmPtr NextBestViewCalculator::getGeneticAlgorithmPtr() const {
-        return mGeneticAlgorithmPtr;
+    EvolutionaryAlgorithmPtr NextBestViewCalculator::getEvolutionaryAlgorithmPtr() const {
+        return mEvolutionaryAlgorithmPtr;
     }
 
-    void NextBestViewCalculator::setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &geneticAlgorithmPtr) {
-        mGeneticAlgorithmPtr = geneticAlgorithmPtr;
+    void NextBestViewCalculator::setEvolutionaryAlgorithmPtr(const EvolutionaryAlgorithmPtr &evolutionaryAlgorithmPtr) {
+        mEvolutionaryAlgorithmPtr = evolutionaryAlgorithmPtr;
     }
 
-    bool NextBestViewCalculator::getEnableGA() const {
-        return mEnableGA;
+    bool NextBestViewCalculator::getEnableEA() const {
+        return mEnableEA;
     }
 
-    void NextBestViewCalculator::setEnableGA(bool enableGA) {
-        mEnableGA = enableGA;
+    void NextBestViewCalculator::setEnableEA(bool enableEA) {
+        mEnableEA = enableEA;
     }
 
     NextBestViewCachePtr NextBestViewCalculator::getNBVCachePtr() const {

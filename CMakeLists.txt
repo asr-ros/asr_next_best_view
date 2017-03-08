@@ -157,8 +157,7 @@ add_library(
         src/pcl/BoundingBox.cpp
         src/NextBestViewCache.cpp
         src/NextBestViewCalculator.cpp
-        src/NextBestViewPrediction.cpp
-        src/GeneticAlgorithm.cpp
+        src/EvolutionaryAlgorithm.cpp
 )
 target_link_libraries(
         ${PROJECT_NAME}_packages_impl

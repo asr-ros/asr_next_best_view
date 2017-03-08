@@ -31,8 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <boost/range/irange.hpp>
 
 #include "next_best_view/NextBestViewCache.hpp"
-#include "next_best_view/NextBestViewPrediction.hpp"
-#include "next_best_view/GeneticAlgorithm.hpp"
+#include "next_best_view/EvolutionaryAlgorithm.hpp"
 
 #include "next_best_view/hypothesis_updater/HypothesisUpdater.hpp"
 #include <robot_model_services/robot_model/RobotModel.hpp>
@@ -59,12 +58,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace next_best_view {
 
-class GeneticAlgorithm;
-typedef boost::shared_ptr<GeneticAlgorithm> GeneticAlgorithmPtr;
+class EvolutionaryAlgorithm;
+typedef boost::shared_ptr<EvolutionaryAlgorithm> EvolutionaryAlgorithmPtr;
 class NextBestViewCache;
 typedef boost::shared_ptr<NextBestViewCache> NextBestViewCachePtr;
-class NextBestViewPrediction;
-typedef boost::shared_ptr<NextBestViewPrediction> NextBestViewPredictionPtr;
 class NextBestViewCalculator;
 typedef boost::shared_ptr<NextBestViewCalculator> NextBestViewCalculatorPtr;
 
@@ -122,17 +119,15 @@ private:
 
     bool mRemoveInvalidNormals;
     bool mEnableClustering;
-    bool mEnablePrediction;
-    bool mEnableGA;
+    bool mEnableEA;
 
     // 2d grid which contains best viewport (utility) per element
     // wheter results should be cached for next nbvs
     bool mCacheResults;
     NextBestViewCachePtr mNBVCachePtr;
-    NextBestViewPredictionPtr mNBVPredictionPtr;
 
-    int mMinIterationGA;
-    GeneticAlgorithmPtr mGeneticAlgorithmPtr;
+    int mMinIterationEA;
+    EvolutionaryAlgorithmPtr mEvolutionaryAlgorithmPtr;
     ViewportPointCloudPtr mRatedSortedViewportsPreIteration;
 
 public:
@@ -537,10 +532,6 @@ public:
 
     void setEnableClustering(bool enableClustering);
 
-    bool getEnablePrediction() const;
-
-    void setEnablePrediction(bool enablePrediction);
-
     // filters en/disable
     bool getEnableClusterFilter() const;
 
@@ -570,17 +561,17 @@ public:
 
     void setSpaceSamplingFilterChainPtr();
 
-    int getMinIterationGA() const;
+    int getMinIterationEA() const;
 
-    void setMinIterationGA(int minIterationGA);
+    void setMinIterationEA(int minIterationEA);
 
-    GeneticAlgorithmPtr getGeneticAlgorithmPtr() const;
+    EvolutionaryAlgorithmPtr getEvolutionaryAlgorithmPtr() const;
 
-    void setGeneticAlgorithmPtr(const GeneticAlgorithmPtr &geneticAlgorithmPtr);
+    void setEvolutionaryAlgorithmPtr(const EvolutionaryAlgorithmPtr &evolutionaryAlgorithmPtr);
 
-    bool getEnableGA() const;
+    bool getEnableEA() const;
 
-    void setEnableGA(bool enableGA);
+    void setEnableEA(bool enableEA);
 
     NextBestViewCachePtr getNBVCachePtr() const;
 

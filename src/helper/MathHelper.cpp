@@ -206,35 +206,4 @@ namespace next_best_view {
                 abs(q1.z() - q2.z()) < 0.0001 &&
                 abs(q1.w() - q2.w()) < 0.0001;
     }
-
-    /**
-    * @brief isSubSetOf opposite of isSuperSetOf
-    * @param indexSetSub
-    * @param indexSetSuper
-    * @return
-    */
-    bool MathHelper::isSubSetOf(const Indices& indexSetSub, const Indices& indexSetSuper) {
-        return MathHelper::isSuperSetOf(indexSetSuper, indexSetSub);
-    }
-
-    /**
-    * @brief isSuperSet
-    * @param indexSetSuper
-    * @param indexSetSub
-    * @return true if indexSetSuper is a superSet of indexSetSub,
-    *         false if indexSetSub contains an index that indexSetSuper does not contain.
-    */
-    bool MathHelper::isSuperSetOf(const Indices& indexSetSuper, const Indices& indexSetSub) {
-        // TODO consider using a set/sorted vector with binary search
-        if (indexSetSuper.size() < indexSetSub.size()) {
-            return false;
-        }
-        for (int i : indexSetSub) {
-            if (std::find(indexSetSuper.begin(), indexSetSuper.end(), i) == indexSetSuper.end()) {
-                // didn't find i (from subSet) in superSet
-                return false;
-            }
-        }
-        return true;
-    }
 }

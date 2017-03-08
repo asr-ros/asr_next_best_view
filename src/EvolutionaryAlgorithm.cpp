@@ -17,18 +17,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 
-#include "next_best_view/GeneticAlgorithm.hpp"
+#include "next_best_view/EvolutionaryAlgorithm.hpp"
 #include "boost/range/irange.hpp"
 #include <chrono>
 #include <algorithm>
 
 namespace next_best_view {
 
-    GeneticAlgorithm::GeneticAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationGA, int nViewportsPerBB)
+    EvolutionaryAlgorithm::EvolutionaryAlgorithm(NextBestViewCachePtr nbvCachePtr, const MapHelperPtr &mapHelperPtr, ClusterExtractionPtr clusterExtractionPtr, int improvementIterations, float improvementAngle, float radius, int minIterationEA, int nViewportsPerBB)
         : mNBVCachePtr(nbvCachePtr),
           mMapHelperPtr(mapHelperPtr),
           mClusterExtractionPtr(clusterExtractionPtr),
-          mMinIterationGA(minIterationGA),
+          mMinIterationEA(minIterationEA),
           mNViewportsPerBB(nViewportsPerBB) {
         setRadius(radius);
         setMaxAngle(improvementAngle);
@@ -36,13 +36,13 @@ namespace next_best_view {
         setPositionOffsets();
     }
 
-    ViewportPointCloudPtr GeneticAlgorithm::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
+    ViewportPointCloudPtr EvolutionaryAlgorithm::selectAndMutate(const ViewportPointCloudPtr &samples, int iterationStep) {
         auto selectedViewports = select(samples, iterationStep);
         auto newViewports = mutate(selectedViewports, iterationStep);
         return newViewports;
     }
 
-    ViewportPointCloudPtr GeneticAlgorithm::select(const ViewportPointCloudPtr &in, int iterationStep) {
+    ViewportPointCloudPtr EvolutionaryAlgorithm::select(const ViewportPointCloudPtr &in, int iterationStep) {
         ViewportPointCloudPtr result(new ViewportPointCloud());
         // TODO: we ignore in, which is the alternative if nbvCache is not used.
         ViewportPointCloudPtr bestUtilityViewports = mNBVCachePtr->getAllBestUtilityViewports();
@@ -52,7 +52,7 @@ namespace next_best_view {
         return result;
     }
 
-    ViewportPointCloudPtr GeneticAlgorithm::selectFromSortedViewports(const ViewportPointCloudPtr &population, int iterationStep) {
+    ViewportPointCloudPtr EvolutionaryAlgorithm::selectFromSortedViewports(const ViewportPointCloudPtr &population, int iterationStep) {
         ViewportPointCloudPtr selection(new ViewportPointCloud());
 
         // bbs, the location where selection must be in
@@ -73,9 +73,9 @@ namespace next_best_view {
 
 
         // some parameters to converge faster with increasing iterations.
-        float selectedViewportsInterspacing = 0.2 * pow(2, -(iterationStep - mMinIterationGA));
+        float selectedViewportsInterspacing = 0.2 * pow(2, -(iterationStep - mMinIterationEA));
         selectedViewportsInterspacing = max(0.2f, selectedViewportsInterspacing);
-        unsigned int nViewportsToSelectPerBB = mNViewportsPerBB * pow(2, -(iterationStep - mMinIterationGA));
+        unsigned int nViewportsToSelectPerBB = mNViewportsPerBB * pow(2, -(iterationStep - mMinIterationEA));
         nViewportsToSelectPerBB = max(static_cast<unsigned int>(1), nViewportsToSelectPerBB);
         BOOST_REVERSE_FOREACH (ViewportPoint &p, *population) {
             int bbIdx = 0;
@@ -133,7 +133,7 @@ namespace next_best_view {
         }
         // number of bbs where we select from
         int nBBsToSelectFrom = INT_MAX;
-        if (iterationStep - mMinIterationGA > 3) {
+        if (iterationStep - mMinIterationEA > 3) {
             // if we iterated 4 or more times we generate samples from only 1 bb
             nBBsToSelectFrom = 1;
         }
@@ -154,17 +154,17 @@ namespace next_best_view {
         return selection;
     }
 
-    ViewportPointCloudPtr GeneticAlgorithm::mutate(const ViewportPointCloudPtr &selection, int iterationStep) {
+    ViewportPointCloudPtr EvolutionaryAlgorithm::mutate(const ViewportPointCloudPtr &selection, int iterationStep) {
         ViewportPointCloudPtr mutatedSamples(new ViewportPointCloud());
         for (ViewportPoint &goodRatedViewportPoint : *selection) {
 
-            // get direction vector and rotationMatrices
+            // get direction vector and rotationTransformations
             SimpleVector3 dirVector = MathHelper::quatToDir(goodRatedViewportPoint.getSimpleQuaternion());
 
             // with this loop we can adapt the range of modifications,
             // (0, mImprovementIterationSteps) would do all modifications in each step which is pretty costy and not really worth it < 0.01% improvement
             for (int i : boost::irange(iterationStep, iterationStep + 1)) {
-                std::vector<SimpleQuaternion> rotationMatrices = calculateRotationTransformations(dirVector, i);
+                std::vector<SimpleQuaternion> rotationTransformations = calculateRotationTransformations(dirVector, i);
                 std::vector<SimpleVector3> positionOffsets = mPositionOffsetsPerRadius.at(i).second;
 
                 // do the mutation on goodRatedViewport
@@ -175,9 +175,9 @@ namespace next_best_view {
                         continue;
                     }
 
-                    for (SimpleQuaternion &rotationMatrix : rotationMatrices) { // for each rotation transformation
-                        // SimpleVector3 orientation = rotationMatrix * dirVector;
-                        SimpleQuaternion quat = rotationMatrix * goodRatedViewportPoint.getSimpleQuaternion();//MathHelper::dirToQuat(orientation);
+                    for (SimpleQuaternion &rotationTransformation : rotationTransformations) { // for each rotation transformation
+                        // SimpleVector3 orientation = rotationTransformation * dirVector;
+                        SimpleQuaternion quat = rotationTransformation * goodRatedViewportPoint.getSimpleQuaternion();//MathHelper::dirToQuat(orientation);
 
                         // copy viewportPoint, but change quat
                         ViewportPoint viewport(pos, quat);
@@ -194,32 +194,32 @@ namespace next_best_view {
         return mutatedSamples;
     }
 
-    std::vector<SimpleQuaternion> GeneticAlgorithm::calculateRotationTransformations(SimpleVector3 dirVector, int iterationStep) {
+    std::vector<SimpleQuaternion> EvolutionaryAlgorithm::calculateRotationTransformations(SimpleVector3 dirVector, int iterationStep) {
         double r = pow(1.4, -static_cast<double>(iterationStep)) * mMaxAngle;
         float degToRad = M_PI / 180.0;
         SimpleVector3 up(0, 0, 1);
         // upVector x dirVector is the vector where we have to rotate around
         SimpleVector3 rotAxis = up.cross(dirVector);
-        std::vector<SimpleQuaternion> rotationMatrices;
+        std::vector<SimpleQuaternion> rotationTransformations;
         SimpleQuaternion h1, h2, v1, v2, id;
         h1 = Eigen::AngleAxisf(-r * degToRad, rotAxis);
         h2 = Eigen::AngleAxisf( r * degToRad, rotAxis);
         v1 = Eigen::AngleAxisf(-r * degToRad, up);
         v2 = Eigen::AngleAxisf( r * degToRad, up);
         id = Eigen::AngleAxisf( 0, up);
-        rotationMatrices.push_back(h1);
-        rotationMatrices.push_back(h2);
-        rotationMatrices.push_back(v1);
-        rotationMatrices.push_back(v2);
-        rotationMatrices.push_back(h1 * v1);
-        rotationMatrices.push_back(h2 * v1);
-        rotationMatrices.push_back(h1 * v2);
-        rotationMatrices.push_back(h2 * v2);
-        rotationMatrices.push_back(id);
-        return rotationMatrices;
+        rotationTransformations.push_back(h1);
+        rotationTransformations.push_back(h2);
+        rotationTransformations.push_back(v1);
+        rotationTransformations.push_back(v2);
+        rotationTransformations.push_back(h1 * v1);
+        rotationTransformations.push_back(h2 * v1);
+        rotationTransformations.push_back(h1 * v2);
+        rotationTransformations.push_back(h2 * v2);
+        rotationTransformations.push_back(id);
+        return rotationTransformations;
     }
 
-    void GeneticAlgorithm::setPositionOffsets() {
+    void EvolutionaryAlgorithm::setPositionOffsets() {
         // to transform degree to radians, because degree angles are more readable
         float degToRad = M_PI / 180.0;
 
@@ -250,35 +250,35 @@ namespace next_best_view {
         }
     }
 
-    float GeneticAlgorithm::getMaxAngle() const {
+    float EvolutionaryAlgorithm::getMaxAngle() const {
         return mMaxAngle;
     }
 
-    void GeneticAlgorithm::setMaxAngle(float maxAngle) {
+    void EvolutionaryAlgorithm::setMaxAngle(float maxAngle) {
         mMaxAngle = maxAngle;
     }
 
-    float GeneticAlgorithm::getRadius() const {
+    float EvolutionaryAlgorithm::getRadius() const {
         return mRadius;
     }
 
-    void GeneticAlgorithm::setRadius(float radius) {
+    void EvolutionaryAlgorithm::setRadius(float radius) {
         mRadius = radius;
     }
 
-    int GeneticAlgorithm::getImprovementIterationSteps() const {
+    int EvolutionaryAlgorithm::getImprovementIterationSteps() const {
         return mImprovementIterationSteps;
     }
 
-    void GeneticAlgorithm::setImprovementIterationSteps(int iterationImprovmentSteps) {
+    void EvolutionaryAlgorithm::setImprovementIterationSteps(int iterationImprovmentSteps) {
         mImprovementIterationSteps = iterationImprovmentSteps;
     }
 
-    int GeneticAlgorithm::getNViewportsPerBB() const {
+    int EvolutionaryAlgorithm::getNViewportsPerBB() const {
         return mNViewportsPerBB;
     }
 
-    void GeneticAlgorithm::setNViewportsPerBB(int nViewportsPerBB) {
+    void EvolutionaryAlgorithm::setNViewportsPerBB(int nViewportsPerBB) {
         mNViewportsPerBB = nViewportsPerBB;
     }
 }
