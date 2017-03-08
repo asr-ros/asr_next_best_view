@@ -342,7 +342,7 @@ void DefaultRatingModule::setUtilityParameters(bool useOrientationUtility, bool 
 
 float DefaultRatingModule::getNormalizedRating(float deviation, float threshold) {
     if (deviation < threshold) {
-        return 1.0 - deviation / threshold;
+        return .5 + .5 * cos(deviation * M_PI / threshold);
     }
     return 0.0;
 }

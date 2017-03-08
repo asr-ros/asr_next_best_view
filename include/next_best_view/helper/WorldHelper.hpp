@@ -113,6 +113,9 @@ namespace next_best_view {
          */
         void loadVoxelGrid(std::string filePath);
 
+
+
+
         /*!
          * \brief parses the given XML file describing the environment. The output parameters cover the same world object for the same index
          * \param filePath [in] the path to the XML file describing the environment
@@ -121,7 +124,7 @@ namespace next_best_view {
          * \param orientations [out] the orientations listed in the file
          * \param scales [out] the scales listed in the file
          */
-        void parseXMLFile(const string &filePath, std::vector<string> &meshResources, std::vector<SimpleVector3> &positions,
+        void parseXMLFile(const std::string &filePath, std::vector<std::string> &meshResources, std::vector<SimpleVector3> &positions,
                                                     std::vector<SimpleQuaternion> &orientations, std::vector<SimpleVector3> &scales);
 
         /*!

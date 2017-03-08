@@ -2,9 +2,9 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b next_best_view 
+\b asr_next_best_view 
 
-The next_best_view package.
+The asr_next_best_view package.
 
 
 */

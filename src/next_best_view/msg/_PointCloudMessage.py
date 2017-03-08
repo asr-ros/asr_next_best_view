@@ -5,16 +5,16 @@ import genpy
 import struct
 
 import geometry_msgs.msg
-import next_best_view.msg
+import asr_next_best_view.msg
 
 class PointCloudMessage(genpy.Message):
   _md5sum = "fc8288a0cdd89ce554a8f9e4bb864989"
-  _type = "next_best_view/PointCloudMessage"
+  _type = "asr_next_best_view/PointCloudMessage"
   _has_header = False #flag to mark the presence of a Header object
   _full_text = """# PointCloud Elements
 PointCloudElement[] elements
 ================================================================================
-MSG: next_best_view/PointCloudElement
+MSG: asr_next_best_view/PointCloudElement
 
 string object_type
 geometry_msgs/Pose pose
@@ -42,7 +42,7 @@ float64 w
 
 """
   __slots__ = ['elements']
-  _slot_types = ['next_best_view/PointCloudElement[]']
+  _slot_types = ['asr_next_best_view/PointCloudElement[]']
 
   def __init__(self, *args, **kwds):
     """
@@ -111,7 +111,7 @@ float64 w
       (length,) = _struct_I.unpack(str[start:end])
       self.elements = []
       for i in range(0, length):
-        val1 = next_best_view.msg.PointCloudElement()
+        val1 = asr_next_best_view.msg.PointCloudElement()
         start = end
         end += 4
         (length,) = _struct_I.unpack(str[start:end])
@@ -179,7 +179,7 @@ float64 w
       (length,) = _struct_I.unpack(str[start:end])
       self.elements = []
       for i in range(0, length):
-        val1 = next_best_view.msg.PointCloudElement()
+        val1 = asr_next_best_view.msg.PointCloudElement()
         start = end
         end += 4
         (length,) = _struct_I.unpack(str[start:end])

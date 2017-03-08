@@ -22,12 +22,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace next_best_view {
 
     std::ostream& operator<<(std::ostream &strm, const next_best_view::SpaceSamplePoint &p) {
-        strm << "point: {" << endl << p.getPoint() << "}" << endl;
+        strm << "point: {" << std::endl << p.getPoint() << "}" << std::endl;
 
         if (p.child_indices != nullptr)
-            strm << "child_indices.size: " << p.child_indices->size() << endl;
+            strm << "child_indices.size: " << p.child_indices->size() << std::endl;
         else
-            strm << "child_indices: nullptr" << endl;
+            strm << "child_indices: nullptr" << std::endl;
 
         return strm;
     }

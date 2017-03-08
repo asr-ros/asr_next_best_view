@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(next_best_view)
+project(asr_next_best_view)
 
 add_definitions(-std=gnu++0x -Wall)
 
@@ -7,12 +7,12 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   geometry_msgs
-  object_database
+  asr_object_database
   message_generation
   sensor_msgs
   nav_msgs
   asr_msgs
-  world_model
+  asr_world_model
   actionlib
   tf
   eigen_conversions
@@ -22,15 +22,15 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   kdl_parser
   costmap_2d
-  rapidxml
+  asr_rapidxml
   dynamic_reconfigure
   voxel_grid
-  robot_model_services
+  asr_robot_model_services
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
   #  assimp
 )
 
-message(WARNING "Object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
+message(WARNING "Asr_object_database needs the packages 'assimp' which does not provide .cmake files. Install them manually.")
 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -87,7 +87,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper 
-  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid robot_model_services
+  CATKIN_DEPENDS roscpp roslib message_runtime voxel_grid asr_robot_model_services
   DEPENDS system_lib
 )
 
@@ -97,7 +97,9 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   # temporary workaround as assimp does not provide a .cmake file but just a .pc file
+
   /opt/ros/$ENV{ROS_DISTRO}/include/assimp_devel
+
 )
 
 
@@ -171,7 +173,9 @@ target_link_libraries(
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         # assimp
+
         /opt/ros/$ENV{ROS_DISTRO}/lib/libassimp_devel.so
+
 )
 
 FILE(GLOB_RECURSE HEADERS "include/*.hpp"  "include/*.h")
@@ -185,9 +189,9 @@ add_executable(
 add_dependencies(
         ${PROJECT_NAME}
         ${PROJECT_NAME}_generate_messages_cpp
-        object_database
-        world_model
-	    robot_model_services
+        asr_object_database
+        asr_world_model
+	    asr_robot_model_services
 )
 
 target_link_libraries(
@@ -197,8 +201,8 @@ target_link_libraries(
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
-		robot_model_services_packages
-		robot_model_services_packages_impl
+		asr_robot_model_services_packages
+		asr_robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 
@@ -225,8 +229,8 @@ set (TEST_LINK_LIBRARIES
         ${PROJECT_NAME}_packages_impl
         ${PCL_LIBRARIES}
         glpk
-		robot_model_services_packages
-		robot_model_services_packages_impl
+		asr_robot_model_services_packages
+		asr_robot_model_services_packages_impl
         ${catkin_LIBRARIES}
 )
 

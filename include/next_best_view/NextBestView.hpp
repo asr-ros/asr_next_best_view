@@ -33,23 +33,23 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 // ROS Includes
 #include <object_database/ObjectManager.h>
 #include <dynamic_reconfigure/server.h>
-#include <next_best_view/DynamicParametersConfig.h>
+#include <asr_next_best_view/DynamicParametersConfig.h>
 
 // Local Includes
 #include "typedef.hpp"
-#include "next_best_view/RatedViewport.h"
-#include "next_best_view/RateViewports.h"
-#include "next_best_view/RemoveObjects.h"
-#include "next_best_view/NormalsInfo.h"
-#include "next_best_view/TriggerFrustumVisualization.h"
-#include "next_best_view/TriggerFrustumsAndPointCloudVisualization.h"
-#include "next_best_view/GetAttributedPointCloud.h"
-#include "next_best_view/GetNextBestView.h"
-#include "next_best_view/SetAttributedPointCloud.h"
-#include "next_best_view/SetInitRobotState.h"
-#include "next_best_view/ResetCalculator.h"
-#include "next_best_view/UpdatePointCloud.h"
-#include "next_best_view/GetActiveNormals.h"
+#include "asr_next_best_view/RatedViewport.h"
+#include "asr_next_best_view/RateViewports.h"
+#include "asr_next_best_view/RemoveObjects.h"
+#include "asr_next_best_view/NormalsInfo.h"
+#include "asr_next_best_view/TriggerFrustumVisualization.h"
+#include "asr_next_best_view/TriggerFrustumsAndPointCloudVisualization.h"
+#include "asr_next_best_view/GetAttributedPointCloud.h"
+#include "asr_next_best_view/GetNextBestView.h"
+#include "asr_next_best_view/SetAttributedPointCloud.h"
+#include "asr_next_best_view/SetInitRobotState.h"
+#include "asr_next_best_view/ResetCalculator.h"
+#include "asr_next_best_view/UpdatePointCloud.h"
+#include "asr_next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
@@ -141,8 +141,8 @@ private:
     bool mCurrentlyPublishingVisualization;
 
     // dynconfig
-    dynamic_reconfigure::Server<DynamicParametersConfig> mDynamicReconfigServer;
-    DynamicParametersConfig mConfig;
+    dynamic_reconfigure::Server<asr_next_best_view::DynamicParametersConfig> mDynamicReconfigServer;
+    asr_next_best_view::DynamicParametersConfig mConfig;
     uint32_t mConfigLevel;
     bool mFirstRun;
     enum ConfigLevelType {
@@ -185,7 +185,7 @@ public:
         mCalculatorPtr = NextBestViewCalculatorPtr(new NextBestViewCalculator());
 
         mFirstRun = true;
-        dynamic_reconfigure::Server<next_best_view::DynamicParametersConfig>::CallbackType f = boost::bind(&NextBestView::dynamicReconfigureCallback, this, _1, _2);
+        dynamic_reconfigure::Server<asr_next_best_view::DynamicParametersConfig>::CallbackType f = boost::bind(&NextBestView::dynamicReconfigureCallback, this, _1, _2);
         mDynamicReconfigServer.setCallback(f);
 
         // TODO is this necessary or does dynReconfig always call callback once at the beginning?
@@ -602,9 +602,9 @@ public:
         }
     }
 
-    bool processResetCalculatorServiceCall(ResetCalculator::Request &request, ResetCalculator::Response &response) {
+    bool processResetCalculatorServiceCall(asr_next_best_view::ResetCalculator::Request &request, asr_next_best_view::ResetCalculator::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV RESET-CALCULATOR SERVICE CALL", DebugHelper::SERVICE_CALLS);
-        mConfigLevel = numeric_limits<uint32_t>::max();
+        mConfigLevel = std::numeric_limits<uint32_t>::max();
         initialize();
 
         response.succeeded = true;
@@ -612,7 +612,7 @@ public:
         return true;
     }
 
-    bool processRateViewports(RateViewports::Request &request, RateViewports::Response &response) {
+    bool processRateViewports(asr_next_best_view::RateViewports::Request &request, asr_next_best_view::RateViewports::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV RATE-VIEWPORTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
         if (request.viewports.empty()) {
@@ -664,13 +664,13 @@ public:
             nextRatedViewportOldIdx = ratedSampleViewportsPtr->at(nextRatedViewportIdx).oldIdx;
         }
         for (i = 0; i < sampleViewportsPtr->size(); i++) {
-            RatedViewport responseViewport;
+            asr_next_best_view::RatedViewport responseViewport;
             if (i != nextRatedViewportOldIdx) {
                 ViewportPoint unratedViewport = sampleViewportsPtr->at(i);
                 responseViewport.pose = unratedViewport.getPose();
                 responseViewport.oldIdx = i;
                 if (unratedViewport.object_type_set->size() > 0) {
-                    responseViewport.object_type_name_list = std::vector<string>(unratedViewport.object_type_set->size());
+                    responseViewport.object_type_name_list = std::vector<std::string>(unratedViewport.object_type_set->size());
                     std::copy(unratedViewport.object_type_set->begin(),
                               unratedViewport.object_type_set->end(),
                               responseViewport.object_type_name_list.begin());
@@ -681,7 +681,7 @@ public:
                 responseViewport.pose = ratedViewport.getPose();
                 responseViewport.oldIdx = i;
                 if (ratedViewport.object_type_set->size() > 0) {
-                    responseViewport.object_type_name_list = std::vector<string>(ratedViewport.object_type_set->size());
+                    responseViewport.object_type_name_list = std::vector<std::string>(ratedViewport.object_type_set->size());
                     std::copy(ratedViewport.object_type_set->begin(),
                               ratedViewport.object_type_set->end(),
                               responseViewport.object_type_name_list.begin());
@@ -703,7 +703,7 @@ public:
         }
 
         // sort
-        std::stable_sort(response.sortedRatedViewports.begin(), response.sortedRatedViewports.end(), [](RatedViewport a, RatedViewport b)
+        std::stable_sort(response.sortedRatedViewports.begin(), response.sortedRatedViewports.end(), [](asr_next_best_view::RatedViewport a, asr_next_best_view::RatedViewport b)
         {
             return a.rating > b.rating;
         });
@@ -712,7 +712,7 @@ public:
         return true;
     }
 
-    bool processRemoveObjects(RemoveObjects::Request &request, RemoveObjects::Response &response) {
+    bool processRemoveObjects(asr_next_best_view::RemoveObjects::Request &request, asr_next_best_view::RemoveObjects::Response &response) {
 
         mDebugHelperPtr->writeNoticeably("STARTING NBV REMOVE-OBJECTS SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
@@ -745,7 +745,7 @@ public:
         }
     }
 
-    bool processGetPointCloudServiceCall(GetAttributedPointCloud::Request &request, GetAttributedPointCloud::Response &response) {
+    bool processGetPointCloudServiceCall(asr_next_best_view::GetAttributedPointCloud::Request &request, asr_next_best_view::GetAttributedPointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
         // minNumberNormals defaults to 1 if not set
@@ -757,7 +757,7 @@ public:
         return true;
     }
 
-    bool processSetPointCloudServiceCall(SetAttributedPointCloud::Request &request, SetAttributedPointCloud::Response &response) {
+    bool processSetPointCloudServiceCall(asr_next_best_view::SetAttributedPointCloud::Request &request, asr_next_best_view::SetAttributedPointCloud::Response &response) {
 
         mDebugHelperPtr->writeNoticeably("STARTING NBV SET-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
@@ -792,7 +792,7 @@ public:
         // object ^= object type + identifier
         std::vector<std::pair<std::string, std::string>> typeAndIds = mCalculatorPtr->getTypeAndIds();
         for (auto &typeAndId : typeAndIds) {
-            NormalsInfo curNormalsInfo;
+            asr_next_best_view::NormalsInfo curNormalsInfo;
             std::string type = typeAndId.first;
             std::string identifier = typeAndId.second;
             unsigned int activeNormals = mCalculatorPtr->getNumberActiveNormals(type, identifier);
@@ -812,7 +812,7 @@ public:
 
     }
 
-    bool processSetInitRobotStateServiceCall(SetInitRobotState::Request &request, SetInitRobotState::Response &response) {
+    bool processSetInitRobotStateServiceCall(asr_next_best_view::SetInitRobotState::Request &request, asr_next_best_view::SetInitRobotState::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV SET-INIT-ROBOT-STATE SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
         robot_model_services::MILDRobotStatePtr currentRobotStatePtr(new robot_model_services::MILDRobotState());
@@ -832,7 +832,7 @@ public:
     }
 
     //COMMENT?
-    bool processGetNextBestViewServiceCall(GetNextBestView::Request &request, GetNextBestView::Response &response) {
+    bool processGetNextBestViewServiceCall(asr_next_best_view::GetNextBestView::Request &request, asr_next_best_view::GetNextBestView::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         // Current camera view (frame of camera) of the robot.
         ViewportPoint currentCameraViewport(request.current_pose);
@@ -866,7 +866,7 @@ public:
         robot_model_services::RobotStatePtr state = mCalculatorPtr->getRobotModel()->calculateRobotState(resultingViewport.getPosition(), resultingViewport.getSimpleQuaternion());
         robot_model_services::MILDRobotStatePtr mildState = boost::static_pointer_cast<robot_model_services::MILDRobotState>(state);
 
-        RobotStateMessage robotStateMsg;
+        asr_next_best_view::RobotStateMessage robotStateMsg;
         robotStateMsg.pan = mildState->pan;
         robotStateMsg.tilt = mildState->tilt;
         robotStateMsg.rotation = mildState->rotation;
@@ -894,7 +894,7 @@ public:
         return true;
     }
 
-    bool processUpdatePointCloudServiceCall(UpdatePointCloud::Request &request, UpdatePointCloud::Response &response) {
+    bool processUpdatePointCloudServiceCall(asr_next_best_view::UpdatePointCloud::Request &request,asr_next_best_view:: UpdatePointCloud::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV UPDATE-POINT-CLOUD SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
         // output
@@ -914,7 +914,7 @@ public:
             objects += object;
         }
 
-        mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
+        //mDebugHelperPtr->write(std::stringstream() << "Updating with pose: " << pose, DebugHelper::SERVICE_CALLS);
         mDebugHelperPtr->write(std::stringstream() << "Updating objects: " << objects, DebugHelper::SERVICE_CALLS);
 
         // convert data types
@@ -943,8 +943,8 @@ public:
         return true;
     }
 
-    bool processTriggerFrustumVisualization(TriggerFrustumVisualization::Request &request,
-                                            TriggerFrustumVisualization::Response &response)
+    bool processTriggerFrustumVisualization(asr_next_best_view::TriggerFrustumVisualization::Request &request,
+                                            asr_next_best_view::TriggerFrustumVisualization::Response &response)
     {
         mDebugHelperPtr->writeNoticeably("STARTING NBV TRIGGER-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         geometry_msgs::Pose pose = request.current_pose;
@@ -958,8 +958,8 @@ public:
         return true;
     }
 
-    bool processTriggerOldFrustumVisualization(TriggerFrustumVisualization::Request &request,
-                                               TriggerFrustumVisualization::Response &response)
+    bool processTriggerOldFrustumVisualization(asr_next_best_view::TriggerFrustumVisualization::Request &request,
+                                               asr_next_best_view::TriggerFrustumVisualization::Response &response)
     {
         mDebugHelperPtr->writeNoticeably("STARTING NBV TRIGGER-OLD-FRUSTUM-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
         geometry_msgs::Pose pose = request.current_pose;
@@ -973,8 +973,8 @@ public:
         return true;
     }
 
-    bool processTriggerFrustumsAndPointCloudVisualization(TriggerFrustumsAndPointCloudVisualization::Request &request,
-                                                         TriggerFrustumsAndPointCloudVisualization::Response &response)
+    bool processTriggerFrustumsAndPointCloudVisualization(asr_next_best_view::TriggerFrustumsAndPointCloudVisualization::Request &request,
+                                                         asr_next_best_view::TriggerFrustumsAndPointCloudVisualization::Response &response)
     {
         mDebugHelperPtr->writeNoticeably("STARTING NBV TRIGGER-FRUSTUMS-AND-POINT-CLOUD-VISUALIZATION SERVICE CALL", DebugHelper::SERVICE_CALLS);
 
@@ -1136,7 +1136,7 @@ public:
         return typeToMeshResource;
     }
 
-    void dynamicReconfigureCallback(DynamicParametersConfig &config, uint32_t level) {
+    void dynamicReconfigureCallback(asr_next_best_view::DynamicParametersConfig &config, uint32_t level) {
         // TODO consider that services and this and other stuff is called parallel
         ROS_INFO_STREAM("Parameters updated");
         ROS_INFO_STREAM("level: " << level);
@@ -1145,6 +1145,6 @@ public:
         initialize();
     }
 };
-typedef boost::shared_ptr<DynamicParametersConfig> DynamicParametersConfigPtr;
+typedef boost::shared_ptr<asr_next_best_view::DynamicParametersConfig> DynamicParametersConfigPtr;
 }
 

@@ -98,7 +98,7 @@ public:
 		// Setze PointCloud
         mSetPointCloudClient.call(apc.request, apc.response);
 
-		GetNextBestView nbv;
+		asr_next_best_view::GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 		int x = 1;
 		while(ros::ok()) {
@@ -113,7 +113,7 @@ public:
 				break;
 			}
 
-            UpdatePointCloud upc_req;
+            asr_next_best_view::UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
 

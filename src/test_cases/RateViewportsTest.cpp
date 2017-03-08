@@ -20,10 +20,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define BOOST_TEST_STATIC_LINK
 
 #include <boost/test/included/unit_test.hpp>
-#include "next_best_view/test_cases/BaseTest.h"
-#include "next_best_view/GetAttributedPointCloud.h"
-#include "next_best_view/RateViewports.h"
-#include "next_best_view/RatedViewport.h"
+#include "asr_next_best_view/test_cases/BaseTest.h"
+#include "asr_next_best_view/GetAttributedPointCloud.h"
+#include "asr_next_best_view/RateViewports.h"
+#include "asr_next_best_view/RatedViewport.h"
 
 using namespace next_best_view;
 using namespace boost::unit_test;
@@ -91,7 +91,7 @@ public:
             ROS_ERROR("Could not set initial point cloud.");
         }
 
-        GetAttributedPointCloud gpc;
+        asr_next_best_view::GetAttributedPointCloud gpc;
         if (!mGetPointCloudClient.call(gpc)) {
             ROS_ERROR("Could not get initial point cloud.");
         }
@@ -103,16 +103,16 @@ public:
 
         ros::ServiceClient rateViewportsClient;
         ros::service::waitForService("/nbv/rate_viewports", -1);
-        rateViewportsClient = mNodeHandle->serviceClient<RateViewports>("/nbv/rate_viewports");
+        rateViewportsClient = mNodeHandle->serviceClient<asr_next_best_view::RateViewports>("/nbv/rate_viewports");
 
         // get nbv
-        GetNextBestView nbv;
+        asr_next_best_view::GetNextBestView nbv;
         if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
             ROS_ERROR("Something went wrong in next best view");
             return;
         }
 
-        RateViewports rateViewports;
+        asr_next_best_view::RateViewports rateViewports;
         std::vector<std::string> requestObjectTypes = { "Smacks" };
         rateViewports.request.object_type_name_list = requestObjectTypes;
         rateViewports.request.current_pose = initialPose;
@@ -122,7 +122,7 @@ public:
             ROS_ERROR("Something went wrong in rate viewports");
             return;
         }
-        RatedViewport ratedViewport = rateViewports.response.sortedRatedViewports[0];
+        asr_next_best_view::RatedViewport ratedViewport = rateViewports.response.sortedRatedViewports[0];
         ROS_INFO_STREAM("nbv: " << nbv.response);
         ROS_INFO_STREAM("ratedView: " << ratedViewport);
         BOOST_CHECK_MESSAGE(rateViewports.request.viewports.size() == rateViewports.response.sortedRatedViewports.size(), "ratedViewports should be equal");
@@ -176,7 +176,7 @@ public:
         BOOST_CHECK_MESSAGE(ratedViewport.object_type_name_list.size() == requestObjectTypes.size(), "object_type_name_list was modified");
 
         ROS_INFO_STREAM("rated viewports:");
-        for (RatedViewport viewport : rateViewports.response.sortedRatedViewports) {
+        for (asr_next_best_view::RatedViewport viewport : rateViewports.response.sortedRatedViewports) {
             ROS_INFO_STREAM(viewport);
         }
 

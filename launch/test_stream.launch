@@ -1,4 +1,4 @@
 <launch>
-	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find next_best_view)/log/rosconsole.config" /-->
-	<node pkg="next_best_view" type="next_best_view_stream_test" name="test" output="screen" />
+	<!--env name="ROSCONSOLE_CONFIG_FILE" value="$(find asr_next_best_view)/log/rosconsole.config" /-->
+	<node pkg="asr_next_best_view" type="next_best_view_stream_test" name="test" output="screen" />
 </launch>

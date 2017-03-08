@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <boost/test/included/unit_test.hpp>
 #include "next_best_view/test_cases/BaseTest.h"
-#include "next_best_view/GetAttributedPointCloud.h"
+#include "asr_next_best_view/GetAttributedPointCloud.h"
 
 using namespace next_best_view;
 using namespace boost::unit_test;
@@ -34,8 +34,8 @@ public:
     virtual ~MultiIdSceneTest() {}
 
     void iterationTest() {
-        GetAttributedPointCloud gpc;
-        SetAttributedPointCloud apc;
+        asr_next_best_view::GetAttributedPointCloud gpc;
+        asr_next_best_view::SetAttributedPointCloud apc;
 
         ROS_INFO("Generiere Häufungspunkte");
         // Häufungspunkte
@@ -132,7 +132,7 @@ public:
         }
 
         ros::Rate r(2);
-        GetNextBestView nbv;
+        asr_next_best_view::GetNextBestView nbv;
         nbv.request.current_pose = initialPose;
 
         int x = 1;
@@ -222,7 +222,7 @@ public:
                 break;
             }
 
-            UpdatePointCloud upc_req;
+            asr_next_best_view::UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
             if(!mUpdatePointCloudClient.call(upc_req)) {

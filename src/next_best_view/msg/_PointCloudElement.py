@@ -8,7 +8,7 @@ import geometry_msgs.msg
 
 class PointCloudElement(genpy.Message):
   _md5sum = "0da2bb70a0d7aa5d39de0e0fb845657b"
-  _type = "next_best_view/PointCloudElement"
+  _type = "asr_next_best_view/PointCloudElement"
   _has_header = False #flag to mark the presence of a Header object
   _full_text = """
 string object_type

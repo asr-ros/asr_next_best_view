@@ -386,7 +386,7 @@ std::string WorldHelper::getAbsolutePath(std::string filePath)
     }
     else if (boost::starts_with(filePath, "."))
     {
-        result = ros::package::getPath("next_best_view") + filePath.substr(1);
+        result = ros::package::getPath("asr_next_best_view") + filePath.substr(1);
     }
     else
     {

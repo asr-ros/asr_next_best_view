@@ -35,8 +35,8 @@ public:
     virtual ~SingleSceneTest() {}
 
     void iterationTest() {
-        GetAttributedPointCloud gpc;
-		SetAttributedPointCloud apc;
+        asr_next_best_view::GetAttributedPointCloud gpc;
+		asr_next_best_view::SetAttributedPointCloud apc;
 
 		ROS_INFO("Generiere Häufungspunkte");
 		// Häufungspunkte
@@ -112,7 +112,7 @@ public:
 		// Setze PointCloud
         mSetPointCloudClient.call(apc.request, apc.response);
         ros::Rate r(2);
-		GetNextBestView nbv;
+		asr_next_best_view::GetNextBestView nbv;
 		nbv.request.current_pose = initialPose;
         bool setPointCloud = false;
 		int x = 1;
@@ -173,7 +173,7 @@ public:
 				break;
 			}
 
-            UpdatePointCloud upc_req;
+            asr_next_best_view::UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
             upc_req.request.pose_for_update = nbv.response.resulting_pose;
 

@@ -5,7 +5,7 @@ bool found
 #List of types of objects being searched in given nbv.
 string[] object_type_name_list
 geometry_msgs/Pose resulting_pose
-next_best_view/RobotStateMessage robot_state
+asr_next_best_view/RobotStateMessage robot_state
 float32 rating
 # utility
 float32 utility

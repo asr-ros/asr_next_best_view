@@ -22,22 +22,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace next_best_view {
 
     std::ostream& operator<<(std::ostream &strm, const next_best_view::RealObjectPoint &p) {
-        strm << "pose: {" << endl << p.getPose() << "}" << endl;
+        strm << "pose: {" << std::endl << p.getPose() << "}" << std::endl;
 
-        strm << "type: " << p.type << endl;
+        strm << "type: " << p.type << std::endl;
         if (p.normal_vectors != nullptr)
-            strm << "normal_vectors.size: " << p.normal_vectors->size() << endl;
+            strm << "normal_vectors.size: " << p.normal_vectors->size() << std::endl;
         else
-            strm << "normal_vectors: nullptr" << endl;
+            strm << "normal_vectors: nullptr" << std::endl;
 
         if (p.active_normal_vectors != nullptr)
-            strm << "active_normal_vectors.size: " << p.active_normal_vectors->size() << endl;
+            strm << "active_normal_vectors.size: " << p.active_normal_vectors->size() << std::endl;
         else
-            strm << "active_normal_vectors: nullptr" << endl;
+            strm << "active_normal_vectors: nullptr" << std::endl;
 
-        strm << "color: {" << endl << p.color << "}" << endl;
+        strm << "color: {" << std::endl << p.color << "}" << std::endl;
 
-        strm << "intermediate_object_weight: " << p.intermediate_object_weight << endl;
+        strm << "intermediate_object_weight: " << p.intermediate_object_weight << std::endl;
 
         return strm;
     }
