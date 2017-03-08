@@ -26,7 +26,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sstream>
 #include <string>
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 class StreamTest : public BaseTest {

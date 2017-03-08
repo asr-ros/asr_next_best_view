@@ -30,7 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "typedef.hpp"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 /*!
@@ -121,9 +121,9 @@ public:
             if (!this->getParameter("configurable_point_clouds/orientation_deviation_2", orientationDeviation2))
                 return;
 
-            world_model::EmptyViewportList empty;
+            asr_world_model::EmptyViewportList empty;
             ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
-            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
+            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
             ROS_INFO("Generiere Häufungspunkte");
             // Häufungspunkte
@@ -136,7 +136,7 @@ public:
             orientations[1] = SimpleQuaternion(0.967, 0.000, 0.000, -0.256);
             orientations[0] = this->getOrientation(orientations[1], 0, 0, 180);
 
-            SetAttributedPointCloud apc;
+            asr_next_best_view::SetAttributedPointCloud apc;
 
             //create first point cloud
             for (int i = 0; i < elements1; i++) {
@@ -175,7 +175,7 @@ public:
             initialPose.orientation.y = orientation.y();
             initialPose.orientation.z = orientation.z();
 
-            asr_next_best_view::GetNextBestView getNBV;
+            GetNextBestView getNBV;
 
             this->setInitialPose(initialPose, NBV);
 
@@ -245,9 +245,9 @@ public:
         if (!this->getParameter("positions/element_orientation", elementOrientationList))
             return;
 
-        world_model::EmptyViewportList empty;
+        asr_world_model::EmptyViewportList empty;
         ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
+        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
         // object poses
         unsigned int pcSize = 3;
@@ -357,8 +357,8 @@ public:
         ROS_INFO("Running side object test");
 
         asr_next_best_view::GetNextBestView getNBV;
-        world_model::EmptyViewportList empty;
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
+        asr_world_model::EmptyViewportList empty;
+        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
         ofstream outputFile(mOutputPath + "testSideObject.dat");
         if(outputFile.is_open()) {
@@ -518,16 +518,17 @@ public:
             SimpleVector3 pos(initialPose.position.x, initialPose.position.y, initialPose.position.z);
             SimpleQuaternion q(initialPose.orientation.w, initialPose.orientation.x, initialPose.orientation.y, initialPose.orientation.z);
 
-            NextBestViewCalculator nbvCalc = NBV->getCalculator();
-            ViewportPoint viewport;
-            nbvCalc.doFrustumCulling(pos, q, nbvCalc.getActiveIndices(), viewport);
+            NextBestViewCalculatorPtr nbvCalc = NBV->getCalculator();
+            ViewportPoint viewport(pos, q);
+            viewport.child_indices = nbvCalc->getActiveIndices();
+            nbvCalc->doFrustumCulling(viewport);
 
             viewport.object_type_set = typeSet;
 
             ROS_INFO_STREAM("Original state: pan " << robotStatePtr->pan << " tilt " << robotStatePtr->tilt
                                         << " rotation " << robotStatePtr->rotation
                                         << " x " << robotStatePtr->x << " y " << robotStatePtr->y);
-            if (nbvCalc.getRatingModule()->setSingleScoreContainer(viewport, viewport))
+            if (nbvCalc->getRatingModule()->setSingleScoreContainer(viewport, viewport))
                 ROS_INFO_STREAM("Original viewport: utility " << viewport.score->getWeightedNormalizedUtility() << " inverseCosts " << viewport.score->getWeightedInverseCosts()
                                     << " rating " << viewport.score->getWeightedNormalizedUtility() * viewport.score->getWeightedInverseCosts());
             else

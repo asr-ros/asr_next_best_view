@@ -20,12 +20,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define BOOST_TEST_STATIC_LINK
 
 #include <boost/test/included/unit_test.hpp>
-#include "asr_next_best_view/test_cases/BaseTest.h"
+#include "next_best_view/test_cases/BaseTest.h"
 #include "asr_next_best_view/GetAttributedPointCloud.h"
 #include "asr_next_best_view/RateViewports.h"
 #include "asr_next_best_view/RatedViewport.h"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 class RateViewportsTest : public BaseTest {

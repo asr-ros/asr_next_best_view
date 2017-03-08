@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/test_cases/BaseTest.h"
 #include "asr_next_best_view/GetAttributedPointCloud.h"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 class MultiIdSceneTest : public BaseTest{

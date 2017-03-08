@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/test_cases/BaseTest.h"
 #include "asr_next_best_view/GetAttributedPointCloud.h"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 class UpdatePointCloudTest : public BaseTest{
@@ -86,11 +86,11 @@ public:
         ROS_INFO("Generiere Häufungspunkte");
         // anzahl Häufungspunkte
         int nHp = 2;
-        SimpleVector3* location = new SimpleVector3[nHp];
+        next_best_view::SimpleVector3* location = new SimpleVector3[nHp];
         location[0] = SimpleVector3(-1.5, -2.4, 0.7);
-        location[1] = SimpleVector3(-1.3, -2.4,  0.7)
+        location[1] = SimpleVector3(-1.3, -2.4,  0.7);
 
-        SimpleQuaternion* orientation = new SimpleQuaternion[nHp];
+        next_best_view::SimpleQuaternion* orientation = new SimpleQuaternion[nHp];
         orientation[0] = euler2Quaternion(-90, 180.0, 0.0);
         orientation[1] = euler2Quaternion(-90, 0.0, 0.0);
 

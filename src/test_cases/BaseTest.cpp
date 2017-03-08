@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/test_cases/BaseTest.h"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace dynamic_reconfigure;
 
     BaseTest::BaseTest() {
@@ -46,21 +46,29 @@ using namespace dynamic_reconfigure;
 
     void BaseTest::initRosServices() {
         // services
+        cout << "waiting for /nbv/set_init_robot_state" << std::endl;
         ros::service::waitForService("/nbv/set_init_robot_state", -1);
         mSetInitRobotStateClient = mNodeHandle->serviceClient<asr_next_best_view::SetInitRobotState>("/nbv/set_init_robot_state");
         ros::service::waitForService("/nbv/set_point_cloud", -1);
+        cout << "waiting for /nbv/set_point_cloud" << std::endl;
         mSetPointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::SetAttributedPointCloud>("/nbv/set_point_cloud");
         ros::service::waitForService("/nbv/get_point_cloud", -1);
+        cout << "waiting for /nbv/get_point_cloud" << std::endl;
         mGetPointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::GetAttributedPointCloud>("/nbv/get_point_cloud");
         ros::service::waitForService("/nbv/next_best_view", -1);
+        cout << "waiting for /nbv/next_best_view" << std::endl;
         mGetNextBestViewClient = mNodeHandle->serviceClient<asr_next_best_view::GetNextBestView>("/nbv/next_best_view");
         ros::service::waitForService("/nbv/update_point_cloud", -1);
+        cout << "waiting for /nbv/update_point_cloud" << std::endl;
         mUpdatePointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
+        cout << "waiting for /nbv/reset_nbv_calculator" << std::endl;
         mResetCalculatorClient = mNodeHandle->serviceClient<asr_next_best_view::ResetCalculator>("/nbv/reset_nbv_calculator");
         ros::service::waitForService("/nbv/set_parameters", -1);
-        mDynParametersClient = mNodeHandle->serviceClient<asr_next_best_view::Reconfigure>("/nbv/set_parameters");
+        cout << "waiting for /nbv/set_parameters" << std::endl;
+        mDynParametersClient = mNodeHandle->serviceClient<dynamic_reconfigure::Reconfigure>("/nbv/set_parameters");
         ros::service::waitForService("/nbv/trigger_frustum_visualization", -1);
+        cout << "waiting for /nbv/trigger_frustum_visualization" << std::endl;
         mTriggerFrustumVisClient = mNodeHandle->serviceClient<asr_next_best_view::TriggerFrustumVisualization>("/nbv/trigger_frustum_visualization");
     }
 
