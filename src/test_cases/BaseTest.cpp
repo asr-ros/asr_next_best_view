@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/test_cases/BaseTest.h"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace dynamic_reconfigure;
 
     BaseTest::BaseTest() {
@@ -58,8 +58,8 @@ using namespace dynamic_reconfigure;
         mUpdatePointCloudClient = mNodeHandle->serviceClient<asr_next_best_view::UpdatePointCloud>("/nbv/update_point_cloud");
         ros::service::waitForService("/nbv/reset_nbv_calculator", -1);
         mResetCalculatorClient = mNodeHandle->serviceClient<asr_next_best_view::ResetCalculator>("/nbv/reset_nbv_calculator");
-        ros::service::waitForService("/nbv/set_parameters", -1);
-        mDynParametersClient = mNodeHandle->serviceClient<asr_next_best_view::Reconfigure>("/nbv/set_parameters");
+        //ros::service::waitForService("/nbv/set_parameters", -1);
+        //mDynParametersClient = mNodeHandle->serviceClient<dynamic_reconfigure::Reconfigure>("/nbv/set_parameters");
         ros::service::waitForService("/nbv/trigger_frustum_visualization", -1);
         mTriggerFrustumVisClient = mNodeHandle->serviceClient<asr_next_best_view::TriggerFrustumVisualization>("/nbv/trigger_frustum_visualization");
     }

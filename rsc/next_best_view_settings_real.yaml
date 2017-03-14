@@ -11,7 +11,6 @@ fovx: 30
 fovy: 20
 ncp: 0.4 # distance to NearClippingPlane in meter
 fcp: 1.5 # distance to FarClippingPlane in meter
-show_space_sampling: true
 show_point_cloud: true
 show_frustum_point_cloud: true
 show_frustum_marker_array: true

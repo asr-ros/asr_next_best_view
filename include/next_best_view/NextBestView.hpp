@@ -130,7 +130,7 @@ private:
     /*!
      * visualization settings
      */
-    bool mShowSpaceSampling, mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray, mShowNormals;
+    bool mShowPointcloud, mShowFrustumPointCloud, mShowFrustumMarkerArray, mShowNormals;
     bool mCurrentlyPublishingVisualization;
 
     // dynconfig
@@ -360,7 +360,6 @@ public:
             mNodeHandle.getParam("/scene_exploration_sm/min_utility_for_moving", minUtility);
             mCalculator.setMinUtility(minUtility);
 
-            mShowSpaceSampling = mConfig.show_space_sampling;
             mShowPointcloud = mConfig.show_point_cloud;
             mShowFrustumPointCloud = mConfig.show_frustum_point_cloud;
             mShowFrustumMarkerArray = mConfig.show_frustum_marker_array;

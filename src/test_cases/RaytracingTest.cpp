@@ -4,7 +4,7 @@
 
 #include "next_best_view/test_cases/BaseTest.h"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 class RaytracingTest : public BaseTest {

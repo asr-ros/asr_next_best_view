@@ -30,7 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "next_best_view/rating/impl/DefaultRatingModule.hpp"
 #include "typedef.hpp"
 
-using namespace next_best_view;
+using namespace asr_next_best_view;
 using namespace boost::unit_test;
 
 /*!
@@ -121,9 +121,9 @@ public:
             if (!this->getParameter("configurable_point_clouds/orientation_deviation_2", orientationDeviation2))
                 return;
 
-            world_model::EmptyViewportList empty;
+            asr_world_model::EmptyViewportList empty;
             ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
-            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
+            ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
             ROS_INFO("Generiere Häufungspunkte");
             // Häufungspunkte
@@ -245,9 +245,9 @@ public:
         if (!this->getParameter("positions/element_orientation", elementOrientationList))
             return;
 
-        world_model::EmptyViewportList empty;
+        asr_world_model::EmptyViewportList empty;
         ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
+        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
         // object poses
         unsigned int pcSize = 3;
@@ -357,8 +357,8 @@ public:
         ROS_INFO("Running side object test");
 
         asr_next_best_view::GetNextBestView getNBV;
-        world_model::EmptyViewportList empty;
-        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
+        asr_world_model::EmptyViewportList empty;
+        ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
         ofstream outputFile(mOutputPath + "testSideObject.dat");
         if(outputFile.is_open()) {
