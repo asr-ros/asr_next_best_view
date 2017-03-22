@@ -49,7 +49,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "asr_next_best_view/SetInitRobotState.h"
 #include "asr_next_best_view/ResetCalculator.h"
 #include "asr_next_best_view/UpdatePointCloud.h"
-#include "asr_next_best_view/GetActiveNormals.h"
 #include "next_best_view/helper/MapHelper.hpp"
 #include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"

@@ -63,7 +63,6 @@ add_service_files(
    TriggerFrustumsAndPointCloudVisualization.srv
    ResetCalculator.srv
    RateViewports.srv
-   GetActiveNormals.srv
    RemoveObjects.srv
 )
 
