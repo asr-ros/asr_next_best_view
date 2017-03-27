@@ -185,7 +185,7 @@ void WorldHelper::worldToVoxelGridCoordinates(const SimpleVector3 &worldPos, std
     }
 
     unsigned int size = result.size();
-    if (size == 1)
+    if (size == 1 || size == 2)
         return;
 
     // change 2 coordinates
