@@ -5,7 +5,7 @@
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
 	<include file="$(find asr_flir_ptu_driver)/launch/ptu_left_mock.launch" />
 	<include file="$(find asr_next_best_view)/launch/RobotModelServiceSim.launch" />
-	<node pkg="asr_next_best_view" type="next_best_view_parameters_test" name="nbv" output="screen">
+	<node pkg="asr_next_best_view" type="asr_next_best_view_parameters_test" name="nbv" output="screen">
 
 		<param name="output_path" value="$(find asr_next_best_view)/rsc/" />
 	

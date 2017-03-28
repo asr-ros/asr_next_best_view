@@ -5,5 +5,5 @@
 	<include file="$(find asr_world_model)/launch/world_model.launch" />
 	<include file="$(find recognition_for_grasping)/launch/recognition_manager.launch" />
 	<include file="$(find asr_flir_ptu_driver)/launch/ptu_left_mock.launch" />
-	<node pkg="asr_next_best_view" type="next_best_view_multi_id_scene_test" name="test" output="screen"/>
+	<node pkg="asr_next_best_view" type="asr_next_best_view_multi_id_scene_test" name="test" output="screen"/>
 </launch>
