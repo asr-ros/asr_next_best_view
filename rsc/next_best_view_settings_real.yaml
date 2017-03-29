@@ -67,4 +67,4 @@ maxIterationSteps: 20
 removeInvalidNormals: false
 useMinUtility: true
 nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
-debugLevels: [NONE] # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
+debugLevels: "[NONE]" # ALL, NONE, PARAMETERS, SERVICE_CALLS, VISUALIZATION, CALCULATION, RATING, ROBOT_MODEL, MAP, WORLD, VOXEL_GRID, FILTER, IK_RATING, SPACE_SAMPLER, HYPOTHESIS_UPDATER
