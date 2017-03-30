@@ -144,9 +144,9 @@ bool DebugHelper::checkLevel(DebugLevel level) {
 }
 
 void DebugHelper::setLevels() {
-    std::vector<std::string> levels;
-    mNodeHandle.param("debugLevels", levels, std::vector<std::string>());
-    mLevels = parseLevels(levels);
+    std::string levels;
+    mNodeHandle.getParam("debugLevels", levels);
+    setLevels(levels);
 }
 
 void DebugHelper::setLevels(std::string levelsStr) {
