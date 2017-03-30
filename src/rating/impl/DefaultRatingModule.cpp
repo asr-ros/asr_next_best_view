@@ -29,6 +29,7 @@ DefaultRatingModule::DefaultRatingModule() : RatingModule(), mNormalAngleThresho
 }
 
 DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, double ncp,
+                                         bool useTargetRobotState,
                                          const robot_model_services::RobotModelPtr &robotModelPtr,
                                          const MapHelperPtr &mapHelperPtr,
                                          const CameraModelFilterPtr &cameraModelFilterPtr) :
@@ -37,6 +38,7 @@ DefaultRatingModule::DefaultRatingModule(double fovV, double fovH, double fcp, d
     mFovH = fovH;
     mFcp = fcp;
     mNcp = ncp;
+    mUseTargetRobotState = useTargetRobotState;
     mRobotModelPtr = robotModelPtr;
     mMapHelperPtr = mapHelperPtr;
     mCameraModelFilterPtr = cameraModelFilterPtr;
@@ -325,6 +327,19 @@ void DefaultRatingModule::setOmegaParameters(double omegaUtility, double omegaPa
     this->setRatingNormalization();
 }
 
+void DefaultRatingModule::setFrustumParameters(double fovV, double fovH, double fcp, double ncp)
+{
+    mFovV = fovV;
+    mFovH = fovH;
+    mFcp = fcp;
+    mNcp = ncp;
+}
+
+void DefaultRatingModule::setUseTargetRobotState(bool useTargetRobotState)
+{
+    mUseTargetRobotState = useTargetRobotState;
+}
+
 void DefaultRatingModule::setUtilityParameters(bool useOrientationUtility, bool useProximityUtility, bool useSideUtility)
 {
     this->mUseOrientationUtility = useOrientationUtility;
@@ -403,11 +418,15 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
     // calculate the full movement costs
     double fullCosts = mWeightedInverseMovementCosts + mUnweightedInverseRecognitionCosts * mOmegaRecognition;
 
-    robot_model_services::MILDRobotStatePtr state = boost::static_pointer_cast<robot_model_services::MILDRobotState>(mTargetState);
-    SimpleVector3 basePosition(state->x, state->y, 0);
-    if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(basePosition))) {
-         fullCosts = -1.0;
+    if (mUseTargetRobotState)
+    {
+        robot_model_services::MILDRobotStatePtr state = boost::static_pointer_cast<robot_model_services::MILDRobotState>(mTargetState);
+        SimpleVector3 basePosition(state->x, state->y, 0);
+        if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(basePosition))) {
+            fullCosts = -1.0;
+        }
     }
+
     return fullCosts;
 }
 

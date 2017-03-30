@@ -53,6 +53,9 @@ namespace next_best_view {
         double mOmegaBase;
         double mOmegaRecognition;
 
+        // whether it should be checked if the calculated target robot state is reachable
+        bool mUseTargetRobotState = false;
+
         /*
          *  parameters to disable / enable parts of utility calculation
          */
@@ -102,7 +105,7 @@ namespace next_best_view {
 	public:
 		DefaultRatingModule();
 
-        DefaultRatingModule(double mFovV, double mFovH, double mFcp, double mNcp,
+        DefaultRatingModule(double fovV, double fovH, double fcp, double ncp, bool useTargetRobotState,
                                 const robot_model_services::RobotModelPtr &robotModelPtr = robot_model_services::RobotModelPtr(),
                                 const MapHelperPtr &mapHelperPtr = MapHelperPtr(),
                                 const CameraModelFilterPtr &cameraModelFilterPtr = CameraModelFilterPtr());
@@ -209,6 +212,10 @@ namespace next_best_view {
         float getNormalizedAngleUtility(const SimpleVector3 v1, const SimpleVector3 v2, double angleThreshold);
 
         void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
+
+        void setFrustumParameters(double fovV, double fovH, double fcp, double ncp);
+
+        void setUseTargetRobotState(bool useTargetRobotState);
 
         void setUtilityParameters(bool useOrientationUtility = true, bool useProximityUtility = true, bool useSideUtility = true);
 

@@ -31,6 +31,7 @@ namespace next_best_view {
     private:
         double mFovx, mFovy;
         double mFcp, mNcp;
+        double mUseTargetRobotState;
         robot_model_services::RobotModelAbstractFactoryPtr mRobotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr mCameraModelFilterFactoryPtr;
         MapHelperPtr mMapHelperPtr;
@@ -42,6 +43,7 @@ namespace next_best_view {
     public:
         DefaultRatingModuleFactory(double fovx, double fovy,
                                    double fcp, double ncp,
+                                   double useTargetRobotState,
                                    robot_model_services::RobotModelAbstractFactoryPtr robotModelFactory, CameraModelFilterAbstractFactoryPtr cameraModelFilterFactory,
 				   MapHelperPtr mapHelper,
                                    double angleThreshold,
@@ -50,6 +52,7 @@ namespace next_best_view {
                                    bool useOrientationUtility, bool useProximityUtility, bool useSideUtility)
             : mFovx(fovx), mFovy(fovy),
               mFcp(fcp), mNcp(ncp),
+              mUseTargetRobotState(useTargetRobotState),
               mRobotModelFactoryPtr(robotModelFactory), mCameraModelFilterFactoryPtr(cameraModelFilterFactory),
               mMapHelperPtr(mapHelper),
               mAngleThreshold(angleThreshold),
@@ -59,7 +62,7 @@ namespace next_best_view {
         { }
 
         RatingModulePtr createRatingModule() {
-            DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(mFovx, mFovy, mFcp, mNcp, mRobotModelFactoryPtr->createRobotModel(), mMapHelperPtr, mCameraModelFilterFactoryPtr->createCameraModelFilter()));
+            DefaultRatingModulePtr defaultRatingModule = DefaultRatingModulePtr(new DefaultRatingModule(mFovx, mFovy, mFcp, mNcp, mUseTargetRobotState, mRobotModelFactoryPtr->createRobotModel(), mMapHelperPtr, mCameraModelFilterFactoryPtr->createCameraModelFilter()));
             defaultRatingModule->setNormalAngleThreshold(mAngleThreshold);
             defaultRatingModule->setOmegaParameters(mOmegaUtility, mOmegaPan, mOmegaTilt, mOmegaRot, mOmegaBase, mOmegaRecognizer);
             defaultRatingModule->setUtilityParameters(mUseOrientationUtility, mUseProximityUtility, mUseSideUtility);

@@ -30,6 +30,7 @@ worldFilePath: ./rsc/world/world.xml
 visualizeRaytracing: false
 # ratingModuleId == 1 => DefaultRatingModule
 ratingModuleId: 1
+useTargetRobotState: false # whether it should be checked if the calculated target robot state is reachable
 # enable parts of utility calculation
 useOrientationUtility: true
 useProximityUtility: true

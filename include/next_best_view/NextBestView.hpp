@@ -319,6 +319,8 @@ public:
          * The rating module calculates the use and the costs of an operation.
          * - ratingModuleId == 1 => DefaultRatingModule
          */
+        mDebugHelperPtr->write(std::stringstream() << "useTargetRobotState: " << mConfig.useTargetRobotState, DebugHelper::PARAMETERS);
+
         if (mConfigLevel & ratingConfig) {
             if (mRatingModuleFactoryPtr) {
                 mRatingModuleFactoryPtr.reset();
@@ -507,6 +509,7 @@ public:
             return RatingModuleAbstractFactoryPtr(
                         new DefaultRatingModuleFactory(mConfig.fovx, mConfig.fovy,
                                                        mConfig.fcp, mConfig.ncp,
+                                                       mConfig.useTargetRobotState,
                                                        robotModelFactoryPtr, cameraModelFactoryPtr, mMapHelperPtr,
                                                        mConfig.mRatingNormalAngleThreshold / 180.0 * M_PI,
                                                        mConfig.mOmegaUtility, mConfig.mOmegaPan, mConfig.mOmegaTilt,
