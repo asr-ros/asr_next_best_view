@@ -439,11 +439,14 @@ public:
         SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
         SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
         SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
-   	    // data for 3D raytracing
-        WorldHelperPtr worldHelperPtr = initializeWorldHelper();
+
+        WorldHelperPtr worldHelperPtr;
 
         switch (moduleId) {
         case 1:
+            // data for 3D raytracing
+            worldHelperPtr = initializeWorldHelper();
+
             return CameraModelFilterAbstractFactoryPtr(
                         new Raytracing3DBasedStereoCameraModelFilterFactory(worldHelperPtr,
                                                                             leftCameraPivotPointOffset, rightCameraPivotPointOffset,
@@ -463,6 +466,9 @@ public:
              * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
              * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
              */
+            // data for 3D raytracing
+            worldHelperPtr = initializeWorldHelper();
+
             return CameraModelFilterAbstractFactoryPtr(
                         new Raytracing3DBasedSingleCameraModelFilterFactory(worldHelperPtr,
                                                                             oneCameraPivotPointOffset,
