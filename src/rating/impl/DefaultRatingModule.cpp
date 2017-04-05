@@ -216,8 +216,8 @@ float DefaultRatingModule::getProximityUtility(const ViewportPoint &viewport, co
     float projection = MathHelper::getDotProduct(-cameraOrientationVector, objectToCameraVector);
 
     // determine the distance of the object to the mid of the frustum
-    float distanceToMid = abs(projection-(mFcp+mNcp)/2.0);
-    float distanceThreshold = abs((mFcp-mNcp)/2.0);
+    float distanceToMid = std::abs(projection-(mFcp+mNcp)/2.0);
+    float distanceThreshold = std::abs((mFcp-mNcp)/2.0);
 
     float utility = this->getNormalizedRating(distanceToMid, distanceThreshold);
 
@@ -424,6 +424,8 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
         SimpleVector3 basePosition(state->x, state->y, 0);
         if (!mMapHelperPtr->isOccupancyValueAcceptable(mMapHelperPtr->getRaytracingMapOccupancyValue(basePosition))) {
             fullCosts = -1.0;
+            mDebugHelperPtr->write(std::stringstream() << "View removed because the calculated robot state isn't reachable.",
+                        DebugHelper::RATING);
         }
     }
 

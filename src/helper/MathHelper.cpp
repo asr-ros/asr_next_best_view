@@ -85,7 +85,7 @@ namespace next_best_view {
     }
 
 	Precision MathHelper::getMinimumAngleDifference(const Precision &firstAngle, const Precision &secondAngle) {
-		Precision angleDiff = fabs(firstAngle - secondAngle);
+                Precision angleDiff = std::fabs(firstAngle - secondAngle);
 		return fmin(angleDiff, 2 * M_PI - angleDiff);
 	}
 
@@ -179,8 +179,8 @@ namespace next_best_view {
 	}
 
     bool MathHelper::vector3Equal(SimpleVector3 v1, SimpleVector3 v2) {
-        return abs(v1[0] - v2[0]) < 0.0001 &&
-                abs(v1[1] - v2[1]) < 0.0001 &&
-                abs(v1[2] - v2[2]) < 0.0001;
+        return std::abs(v1[0] - v2[0]) < 0.0001 &&
+                std::abs(v1[1] - v2[1]) < 0.0001 &&
+                std::abs(v1[2] - v2[2]) < 0.0001;
     }
 }

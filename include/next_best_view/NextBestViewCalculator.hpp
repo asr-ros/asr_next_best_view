@@ -382,7 +382,7 @@ private:
             mDebugHelperPtr->write(std::stringstream() << "IterationStep: " << iterationStep, DebugHelper::CALCULATION);
 
             //First condition is runtime optimization to not iterate around current pose. Second is general abort criterion.
-            if (abs(rating - currentBestRating) <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
+            if (std::abs(rating - currentBestRating) <= this->getEpsilon() || iterationStep >= mMaxIterationSteps) {
                 //Stop once position displacement (resp. differing view at sufficient space sampling resolution) is small enough.
                 resultViewport = intermediateResultViewport;
                 ROS_INFO_STREAM ("Next-best-view estimation SUCCEEDED. Took " << iterationStep << " iterations");

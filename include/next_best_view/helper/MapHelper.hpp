@@ -280,7 +280,7 @@ namespace next_best_view {
 			bool rayTracingSucceeded = true;
 
 			// tracing along the x-axis
-			for (int32_t offsetX = 0; offsetX <= abs(distanceX) + 1 && diff[0] != 0; offsetX += 1) {
+                        for (int32_t offsetX = 0; offsetX <= std::abs(distanceX) + 1 && diff[0] != 0; offsetX += 1) {
 				double x = (fromMapX + signumX * offsetX) * resolution;
 				double t = (x - fromPoint[0]) / diff[0];
 				double y = fromPoint[1] + t * diff[1];
@@ -302,7 +302,7 @@ namespace next_best_view {
 			}
 
 			// tracing along the y axis.
-			for (int32_t offsetY = 0; offsetY <= abs(distanceY) + 1 && diff[1] != 0; offsetY += 1) {
+                        for (int32_t offsetY = 0; offsetY <= std::abs(distanceY) + 1 && diff[1] != 0; offsetY += 1) {
 				double y = (fromMapY + signumY * offsetY) * resolution;
 				double t = (y - fromPoint[1]) / diff[1];
 				double x = fromPoint[0] + t * diff[0];

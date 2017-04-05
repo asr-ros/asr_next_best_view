@@ -360,7 +360,7 @@ public:
         asr_world_model::EmptyViewportList empty;
         ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
-        ofstream outputFile(mOutputPath + "testSideObject.dat");
+        std::ofstream outputFile(mOutputPath + "testSideObject.dat");
         if(outputFile.is_open()) {
             outputFile << "#Objekt steht zuerst gegenüber vom Roboter und wird dann seitlich verschoben \n",
             outputFile << "#Verschiebung des Objekts\tVeränderung Pan\t\tVeränderung Rotation\tVeränderung x\tVeränderung y \n";
@@ -593,7 +593,7 @@ public:
             occupancyValue = mMapHelper.getRaytracingMapOccupancyValue(randomVector);
         } while(!mMapHelper.isOccupancyValueAcceptable(occupancyValue));
 
-        vector<double> typeOrientation = typeToOrientation[objectTypeNames[iteration % objectTypeNames.size()]];
+        std::vector<double> typeOrientation = typeToOrientation[objectTypeNames[iteration % objectTypeNames.size()]];
         float randomDeviation = MathHelper::getRandomNumber(0, orientationDeviation);
         SimpleQuaternion randomOrientation = this->getOrientation(orientation, 0.0, 0.0, randomDeviation);
         SimpleQuaternion quaternion = this->getOrientation(randomOrientation, typeOrientation[0], typeOrientation[1], typeOrientation[2]);

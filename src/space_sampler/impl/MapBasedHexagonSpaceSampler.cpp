@@ -96,7 +96,7 @@ namespace next_best_view {
 
          1, 2, 3, 4 are the vertical sample points if we iterate over y with fixed x, the horizontal ones are iterated over x with a fixed y
         */
-	    double offsetting = abs(y) % 2 == 0 ? horizontalSpacing : 0.0;
+            double offsetting = std::abs(y) % 2 == 0 ? horizontalSpacing : 0.0;
         // upperPoint
 	    SimpleVector3 upperPoint(x * 2.0 * horizontalSpacing + offsetting, .5 * interPointSpacing + y * 1.5 * radius, 0);
 	    upperPoint[0] += currentSpacePosition[0];

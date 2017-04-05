@@ -893,8 +893,8 @@ private:
         mNodeHandle.getParam("/nbv/GridMarker_ScaleZ", GridMarkerScaleZ);
         mNodeHandle.getParam("/nbv/GridMarker_RGBA", GridMarkerRGBA);
 
-        double xwidth = abs(spaceSamplerPtr->getXtop() - spaceSamplerPtr->getXbot());
-        double ywidth = abs(spaceSamplerPtr->getYtop() - spaceSamplerPtr->getYbot());
+        double xwidth = std::abs(spaceSamplerPtr->getXtop() - spaceSamplerPtr->getXbot());
+        double ywidth = std::abs(spaceSamplerPtr->getYtop() - spaceSamplerPtr->getYbot());
         double xmid = (spaceSamplerPtr->getXtop() + spaceSamplerPtr->getXbot())/2.0;
         double ymid =  (spaceSamplerPtr->getYtop() + spaceSamplerPtr->getYbot())/2.0;
 

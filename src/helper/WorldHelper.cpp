@@ -436,7 +436,7 @@ void WorldHelper::loadMeshFile(const std::string &meshResource, const SimpleVect
             aiVector3D aiVertex = mesh->mVertices[j];
             SimpleVector3 vertex = TypeHelper::getSimpleVector3(aiVertex);
             vertex = vertex.cwiseProduct(scale);
-            if (!orientation.norm() < EPSILON)
+            if (!(orientation.norm() < EPSILON))
                 vertex = normalizedOrientation.toRotationMatrix() * vertex;
             vertex += position;
             vertices.push_back(vertex);
@@ -749,7 +749,7 @@ bool WorldHelper::voxelVerticesAreNeighbours(const SimpleVector3& vertexA, const
 
     for (unsigned int i = 0; i < 3; i++)
     {
-        if (abs(vertexA[i] - vertexB[i]) > EPSILON)
+        if (std::abs(vertexA[i] - vertexB[i]) > EPSILON)
             count++;
     }
 
@@ -796,7 +796,7 @@ bool WorldHelper::lineIntersectsVoxelHelper(const SimpleVector3& lineStartPos, c
     for(unsigned int i = 0; i < 3; i++)
     {
         // coordinate number i does not change
-        if (abs(direction[i]) < EPSILON)
+        if (std::abs(direction[i]) < EPSILON)
             continue;
 
         // set current t
@@ -846,10 +846,10 @@ bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, cons
     double a = lineDirection.dot(normal);
     double b = lineStartPos.dot(normal) + d;
 
-    if (abs(a) < EPSILON)
+    if (std::abs(a) < EPSILON)
     {
         // line parallel to triangle
-        if (abs(lineStartPos.dot(normal) + d) < EPSILON)
+        if (std::abs(lineStartPos.dot(normal) + d) < EPSILON)
         {
             // intersection in one plain
             std::vector<double> tList;
@@ -863,20 +863,20 @@ bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, cons
                     double coeff = 0;
                     for (int k = 0; k < 3; k++)
                     {
-                        if (abs(triangleEdge[k]) < EPSILON || abs(lineDirection[k]) < EPSILON)
+                        if (std::abs(triangleEdge[k]) < EPSILON || std::abs(lineDirection[k]) < EPSILON)
                         {
-                            if (abs(triangleEdge[k]) < EPSILON && abs(lineDirection[k]) < EPSILON)
+                            if (std::abs(triangleEdge[k]) < EPSILON && std::abs(lineDirection[k]) < EPSILON)
                                 continue;
                             coeff = 0;
                             break;
                         }
 
-                        if (abs(coeff) < EPSILON)
+                        if (std::abs(coeff) < EPSILON)
                         {
                             // coeff not set -> set it
                             coeff = triangleEdge[k] / lineDirection[k];
                         }
-                        else if (abs(coeff - triangleEdge[k] / lineDirection[k]) > EPSILON)
+                        else if (std::abs(coeff - triangleEdge[k] / lineDirection[k]) > EPSILON)
                         {
                             // coeff differs -> linearly independant
                             coeff = 0;
@@ -884,7 +884,7 @@ bool WorldHelper::lineIntersectsTriangle(const SimpleVector3& lineStartPos, cons
                         }
                     }
 
-                    if (abs(coeff) < EPSILON)
+                    if (std::abs(coeff) < EPSILON)
                     {
                         Eigen::Matrix<double, 3, 2> A;
                         Eigen::Matrix<double, 3, 1> b;
