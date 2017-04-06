@@ -85,8 +85,6 @@ private:
     double mMinUtility;
     bool mRequireMinUtility;
 
-    bool mRemoveInvalidNormals;
-
 public:
 
     NextBestViewCalculator(const UnitSphereSamplerPtr & unitSphereSamplerPtr = UnitSphereSamplerPtr(),
@@ -714,86 +712,10 @@ public:
 
         this->setPointCloudPtr(outputPointCloudPtr);
 
-        if (mRemoveInvalidNormals) {
-            filterUnrechableNormals();
-        }
-
         return true;
     }
 
 private:
-
-    /**
-     * @brief filterUnrechableNormals this method really removes them so active_normals_vectors.size() == normal_vectors.size() is true.
-     */
-    void filterUnrechableNormals() {
-        ROS_INFO_STREAM("filtering now unreachable normals");
-        // Get discretized set of camera orientations (pan, tilt) that are to be considered at each robot position considered during iterative optimization.
-        // TODO: better sampling for all objects, maybe use current robot position? or create around object hypothesis
-        ViewportPointCloudPtr sampleNextBestViewports = generateSampleViewports(SimpleVector3(0, 0, 0), 1.0 / pow(2.0, 2.0), 1.32);
-
-        // remove all removeable normals
-        for (ViewportPoint sample : *sampleNextBestViewports) {
-            if (!doFrustumCulling(mCameraModelFilterPtr, sample))
-                continue;
-            mHypothesisUpdaterPtr->update(mObjectTypeSetPtr, sample);
-        }
-
-        mVisHelperPtr->resetSamplingVisualization();
-        mVisHelperPtr->triggerSamplingVisualization(sampleNextBestViewports, Color(1, 0, 1, 1), "ratedViewports");
-
-        // for each object make invalid normals -> valid normals
-        for (ObjectPoint &o : *mPointCloudPtr) {
-            // debug print invalid normals
-            if (mDebugHelperPtr->getLevel() & DebugHelper::CALCULATION) {
-                std::stringstream ssInvalidNormals;
-                for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
-                    if(i != 0) {
-                        ssInvalidNormals << ",";
-                    }
-                    ssInvalidNormals << (*o.active_normal_vectors)[i];
-                }
-                std::string s = ssInvalidNormals.str();
-                mDebugHelperPtr->write(std::stringstream() << "invalid ones: " << s, DebugHelper::CALCULATION);
-            }
-
-            // copy remaining normals = normals that cannot be removed
-            Indices invalidNormalVectorIndices = *o.active_normal_vectors;
-            std::sort(invalidNormalVectorIndices.begin(), invalidNormalVectorIndices.end());
-
-            // all normal vectors indices
-            Indices allNormalIndices(o.normal_vectors->size());
-            std::iota(allNormalIndices.begin(), allNormalIndices.end(), 0);
-
-            // all normal vector indices \ invalid ones
-            IndicesPtr validNormalVectors(new Indices(allNormalIndices.size()));
-            auto it = std::set_difference(allNormalIndices.begin(), allNormalIndices.end(), invalidNormalVectorIndices.begin(), invalidNormalVectorIndices.end(), validNormalVectors->begin());
-            validNormalVectors->resize(it - validNormalVectors->begin());
-            o.active_normal_vectors = validNormalVectors;
-
-            // set normal_vectors
-            SimpleVector3CollectionPtr newNormalVectors = SimpleVector3CollectionPtr(new SimpleVector3Collection());
-            for (int i : *o.active_normal_vectors) {
-                newNormalVectors->push_back(o.normal_vectors->at(i));
-            }
-            o.normal_vectors = newNormalVectors;
-            // now all normal vectors are active
-            std::iota(o.active_normal_vectors->begin(), o.active_normal_vectors->end(), 0);
-
-            // debug print valid normals
-            if (mDebugHelperPtr->getLevel() & DebugHelper::CALCULATION) {
-                std::stringstream ssValidNormals;
-                for(size_t i = 0; i < o.active_normal_vectors->size(); ++i) {
-                    if(i != 0) {
-                        ssValidNormals << ",";
-                    }
-                    ssValidNormals << (*o.active_normal_vectors)[i];
-                }
-                std::string s = ssValidNormals.str();
-                mDebugHelperPtr->write(std::stringstream() << "valid ones: " << s, DebugHelper::CALCULATION);
-            }
-        }
-    }
 
     /**
      * @brief generateSampleViewports
@@ -1314,14 +1236,6 @@ public:
 
     void setMinUtility(double minUtility) {
         mMinUtility = minUtility;
-    }
-
-    bool getRemoveInvalidNormals() const {
-        return mRemoveInvalidNormals;
-    }
-
-    void setRemoveInvalidNormals(bool removeInvalidNormals) {
-        mRemoveInvalidNormals = removeInvalidNormals;
     }
 
     bool getRequireMinUtility() const {
