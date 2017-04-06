@@ -24,7 +24,6 @@
 		<param name="configurable_point_clouds/test" value="false"/>
 		<param name="side_objects/test" value="false"/>
 		
-		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_services_settings_sim.yaml"/>
 		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_frames.yaml"/>
 	  	<rosparam file="$(find asr_robot_model_services)/rsc/TopicsConfig.yaml"/>
 	</node>
