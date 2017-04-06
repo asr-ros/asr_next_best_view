@@ -35,7 +35,7 @@ message(WARNING "Asr_object_database needs the packages 'assimp' which does not 
 find_package(PCL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(cmake_modules REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 generate_dynamic_reconfigure_options(rsc/DynamicParameters.cfg)
 
