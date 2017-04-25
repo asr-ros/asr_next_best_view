@@ -33,7 +33,7 @@ public:
     virtual ~UpdatePointCloudTest() {}
 
     int test(SetAttributedPointCloud apc, std::vector<std::string> object_type_name_list) {
-        ROS_INFO("Setze initiale Pose");
+        ROS_INFO("Setting initial pose");
         geometry_msgs::Pose initialPose;
         initialPose.position.x = -0.383223;
         initialPose.position.y = 0.157997;
@@ -44,7 +44,7 @@ public:
         initialPose.orientation.w = 0.74528563;
         this->setInitialPose(initialPose);
 
-        // Setze PointCloud
+        // Set point cloud
         if (!mSetPointCloudClient.call(apc.request, apc.response)) {
             ROS_ERROR("Could not set initial point cloud.");
         }
@@ -60,7 +60,7 @@ public:
         int i = 1;
         int deactivatedNormals = 0;
         while(ros::ok() && i <= 3) {
-            ROS_INFO_STREAM("Kalkuliere NBV " << i);
+            ROS_INFO_STREAM("Calculating NBV #" << i);
             if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                 ROS_ERROR("Something went wrong in next best view");
                 break;
@@ -83,8 +83,8 @@ public:
     void iterationTest() {
         SetAttributedPointCloud apc;
 
-        ROS_INFO("Generiere Häufungspunkte");
-        // anzahl Häufungspunkte
+        ROS_INFO("Generating point cloud");
+        // number of objects in point cloud
         int nHp = 2;
         next_best_view::SimpleVector3* location = new SimpleVector3[nHp];
         location[0] = SimpleVector3(-0.43232, 0.6958, 0.7211);

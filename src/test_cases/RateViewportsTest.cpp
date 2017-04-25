@@ -75,7 +75,7 @@ public:
             }
         }
 
-        ROS_INFO("Setze initiale Pose");
+        ROS_INFO("Setting initial pose");
         geometry_msgs::Pose initialPose;
         initialPose.position.x = -0.383223;
         initialPose.position.y = 0.157997;

@@ -160,7 +160,7 @@ public:
                     this->setInitialPose(initialPose);
 
                     //ros::Duration(5).sleep();
-                    // Setze PointCloud
+                    // Set point cloud
                     if (!mSetPointCloudClient.call(apc.request, apc.response))
                     {
                         ROS_ERROR("Could not set initial point cloud");
@@ -188,7 +188,7 @@ public:
                             }
                         }
 
-                        ROS_INFO_STREAM("Kalkuliere NBV "<< x);
+                        ROS_INFO_STREAM("Calculating NBV #"<< x);
                         start = std::chrono::system_clock::now();
                         if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                             ROS_ERROR("Something went wrong in next best view");

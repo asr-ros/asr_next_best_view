@@ -125,8 +125,8 @@ public:
             ros::service::waitForService("/env/asr_world_model/empty_viewport_list", -1);
             ros::ServiceClient emptyViewportsClient = mGlobalNodeHandle.serviceClient<asr_world_model::EmptyViewportList>("/env/asr_world_model/empty_viewport_list");
 
-            ROS_INFO("Generiere Häufungspunkte");
-            // Häufungspunkte
+            ROS_INFO("Generating point cloud");
+
             int hpSize = 2;
             SimpleVector3* hp = new SimpleVector3[hpSize];
             hp[0] = SimpleVector3(30.5, 5.8, 1.32);
@@ -154,8 +154,8 @@ public:
                 apc.request.point_cloud.elements.push_back(element);
             }
 
-            ROS_INFO("Setze initiale Pose");
-            // interpoliere zwischen Roboter Position und Punktwolke
+            ROS_INFO("Setting initial pose");
+            // interpolate between robot position and point cloud
             SimpleVector3 position;
             position[0] = hp[0][0] + distance * (hp[1][0] - hp[0][0]) + 0.2;
             position[1] = hp[0][1] + distance * (hp[1][1] - hp[0][1]) + 0.3;
@@ -165,7 +165,7 @@ public:
 
             geometry_msgs::Pose initialPose;
 
-            //Pose in der Mitte von CeylonTea und CoffeeFilters
+            // pose between the two point cloud positions
             initialPose.position.x = position[0];
             initialPose.position.y = position[1];
             initialPose.position.z = position[2];
@@ -195,12 +195,12 @@ public:
 
             float distanceToPC = sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2));
             if (sqrt(pow(robotX - hp[0](0), 2) + pow(robotY - hp[0](1), 2)) < sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2))) {
-                ROS_INFO("Roboter bewegt sich zur 1. Objekt-Punktwolke.");
+                ROS_INFO("Robot chooses 1st object point cloud.");
             }
             else {
-                ROS_INFO("Roboter bewegt sich zur 2. Objekt-Punktwolke.");
+                ROS_INFO("Robot chooses 2nd object point cloud.");
             }
-            ROS_INFO("Abstand zur Punktwolke: %f", distanceToPC);
+            ROS_INFO("Distance to point cloud: %f", distanceToPC);
 
             ROS_INFO("To run another test, enter a distance factor between 0 an 1 or press ENTER to run the test again with the same distance factor.");
             ROS_INFO("Type <quit> or whatever to exit.");
@@ -362,8 +362,8 @@ public:
 
         std::ofstream outputFile(mOutputPath + "testSideObject.dat");
         if(outputFile.is_open()) {
-            outputFile << "#Objekt steht zuerst gegenüber vom Roboter und wird dann seitlich verschoben \n",
-            outputFile << "#Verschiebung des Objekts\tVeränderung Pan\t\tVeränderung Rotation\tVeränderung x\tVeränderung y \n";
+            outputFile << "#At first, object is located face-to-face to the robot and is then translated sideways arpind the robot\n",
+            outputFile << "#Translation angle\tDifference pan\t\tDifference rotation\tDifference x\tDifference y\n";
         }
 
         ROS_INFO("Getting parameters");

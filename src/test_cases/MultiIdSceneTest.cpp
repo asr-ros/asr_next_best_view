@@ -37,8 +37,8 @@ public:
         asr_next_best_view::GetAttributedPointCloud gpc;
         asr_next_best_view::SetAttributedPointCloud apc;
 
-        ROS_INFO("Generiere Häufungspunkte");
-        // Häufungspunkte
+        ROS_INFO("Generating point cloud");
+
         int hpSize_scene1 = 6;
         int hpSize_scene2 = 3;
         SimpleVector3* hp_scene1 = new SimpleVector3[hpSize_scene1];
@@ -110,7 +110,7 @@ public:
             }
         }
 
-        ROS_INFO("Setze initiale Pose");
+        ROS_INFO("Setting initial pose");
         geometry_msgs::Pose initialPose;
         initialPose.position.x = 1.04865884781;
         initialPose.position.y = 0.846048951149;
@@ -122,7 +122,7 @@ public:
         initialPose.orientation.z = 0.744128113166;
         this->setInitialPose(initialPose);
 
-        // Setze PointCloud
+        // set point cloud
         if (!mSetPointCloudClient.call(apc.request, apc.response)) {
             ROS_ERROR("Could not set initial point cloud.");
         }
@@ -154,7 +154,7 @@ public:
                 }
             }
 
-            ROS_INFO_STREAM("Kalkuliere NBV " << x);
+            ROS_INFO_STREAM("Calculating NBV #" << x);
             if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
                 ROS_ERROR("Something went wrong in next best view");
                 break;
@@ -248,7 +248,6 @@ test_suite* init_unit_test_suite( int argc, char* argv[] ) {
 
     boost::shared_ptr<MultiIdSceneTest> testPtr(new MultiIdSceneTest());
 
-    //evaluation->add(BOOST_CLASS_TEST_CASE(&MultiSceneTest::visualizeSingleObjectWithNormals, testPtr));
     evaluation->add(BOOST_CLASS_TEST_CASE(&MultiIdSceneTest::iterationTest, testPtr));
 
     framework::master_test_suite().add(evaluation);

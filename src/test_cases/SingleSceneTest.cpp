@@ -38,8 +38,8 @@ public:
         asr_next_best_view::GetAttributedPointCloud gpc;
 		asr_next_best_view::SetAttributedPointCloud apc;
 
-		ROS_INFO("Generiere Häufungspunkte");
-		// Häufungspunkte
+        ROS_INFO("Generating point cloud");
+
         int hpSize = 4;
 		SimpleVector3* hp = new SimpleVector3[hpSize];
         hp[0] = SimpleVector3(-1.35357105732, 1.06068396568,0.8);
@@ -97,7 +97,7 @@ public:
 			}
 		}
 
-		ROS_INFO("Setze initiale Pose");
+        ROS_INFO("Setting initial pose");
 		geometry_msgs::Pose initialPose;
         initialPose.position.x = -0.974955737591;
         initialPose.position.y = -0.157173499465;
@@ -109,7 +109,7 @@ public:
         initialPose.orientation.z = 0.695335281472;
 		this->setInitialPose(initialPose);
 
-		// Setze PointCloud
+        // Set point cloud
         mSetPointCloudClient.call(apc.request, apc.response);
         ros::Rate r(2);
 		asr_next_best_view::GetNextBestView nbv;
@@ -132,7 +132,7 @@ public:
                 }
             }
 
-            ROS_INFO_STREAM("Kalkuliere NBV "<< x);
+            ROS_INFO_STREAM("Calculating NBV #"<< x);
             if (!mGetNextBestViewClient.call(nbv.request, nbv.response)) {
 				ROS_ERROR("Something went wrong in next best view");
 				break;

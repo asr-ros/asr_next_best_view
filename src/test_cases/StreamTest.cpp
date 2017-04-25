@@ -37,7 +37,7 @@ public:
 
     void testString(std::string stringToTest, std::vector<std::string> occurrencesInString) {
         for (auto occurrence : occurrencesInString) {
-            BOOST_CHECK_MESSAGE(stringToTest.find(occurrence) != std::string::npos, "attribut " + occurrence + " nicht gefunden");
+            BOOST_CHECK_MESSAGE(stringToTest.find(occurrence) != std::string::npos, "attribute " + occurrence + " not found");
         }
     }
 

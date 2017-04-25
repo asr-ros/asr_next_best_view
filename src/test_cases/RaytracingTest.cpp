@@ -39,7 +39,7 @@ public:
 
         SimpleQuaternion objectOrientation = TypeHelper::getSimpleQuaternion(objectOrientationList);
 
-        ROS_INFO("Setze initiale Pose");
+        ROS_INFO("Setting initial pose");
         geometry_msgs::Pose initialPose;
         initialPose.position.x = robotPosition[0];
         initialPose.position.y = robotPosition[1];
