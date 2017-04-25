@@ -35,9 +35,9 @@ public:
 
     virtual ~StreamTest() {}
 
-    void testString(string stringToTest, std::vector<string> occurrencesInString) {
+    void testString(std::string stringToTest, std::vector<std::string> occurrencesInString) {
         for (auto occurrence : occurrencesInString) {
-            BOOST_CHECK_MESSAGE(stringToTest.find(occurrence) != string::npos, "attribut " + occurrence + " nicht gefunden");
+            BOOST_CHECK_MESSAGE(stringToTest.find(occurrence) != std::string::npos, "attribut " + occurrence + " nicht gefunden");
         }
     }
 
@@ -63,39 +63,39 @@ public:
         mildRobotStateSs << mildRobotState;
         defaultScoreContainerSs << defaultScoreContainer;
 
-        string objectPointStr = objectPointSs.str();
-        string samplePointStr = samplePointSs.str();
-        string viewportPointStr = viewportPointSs.str();
-        string mildRobotStateStr = mildRobotStateSs.str();
-        string defaultScoreContainerStr = defaultScoreContainerSs.str();
+        std::string objectPointStr = objectPointSs.str();
+        std::string samplePointStr = samplePointSs.str();
+        std::string viewportPointStr = viewportPointSs.str();
+        std::string mildRobotStateStr = mildRobotStateSs.str();
+        std::string defaultScoreContainerStr = defaultScoreContainerSs.str();
 
-        std::vector<string> objectPointAttrs = {
+        std::vector<std::string> objectPointAttrs = {
             "x: 1",
             "w:",
             "r:",
             "intermediate_object_weight:"
         };
 
-        std::vector<string>  samplePointAttrs = {
+        std::vector<std::string>  samplePointAttrs = {
             "x: 1",
             "child_indices:"
         };
 
-        std::vector<string>  viewportPointAttrs = {
+        std::vector<std::string>  viewportPointAttrs = {
             "x: 0",
             "w: 0",
             "score:",
             "object_type_set:"
         };
 
-        std::vector<string>  mildRobotStateAttrs = {
+        std::vector<std::string>  mildRobotStateAttrs = {
             "pan:",
             "tilt:",
             "x:",
             "rotation:"
         };
 
-        std::vector<string>  defaultScoreContainerAttrs = {
+        std::vector<std::string>  defaultScoreContainerAttrs = {
             "utilityNormalization: 42",
             "unweightedInverseMovementCostsBaseRotation: 1.7",
             "objectUtility:",
@@ -110,11 +110,11 @@ public:
         testString(mildRobotStateStr, mildRobotStateAttrs);
         testString(defaultScoreContainerStr, defaultScoreContainerAttrs);
 
-        cout << "ObjectPoint: " << endl << objectPoint << endl;
-        cout << "SamplePoint: " << endl << samplePoint << endl;
-        cout << "ViewportPoint: " << endl << viewportPoint << endl;
-        cout << "MILDRobotState: " << endl << mildRobotState << endl;
-        cout << "DefaultScoreContainer: " << endl << defaultScoreContainer << endl;
+        std::cout << "ObjectPoint: " << std::endl << objectPoint << std::endl;
+        std::cout << "SamplePoint: " << std::endl << samplePoint << std::endl;
+        std::cout << "ViewportPoint: " << std::endl << viewportPoint << std::endl;
+        std::cout << "MILDRobotState: " << std::endl << mildRobotState << std::endl;
+        std::cout << "DefaultScoreContainer: " << std::endl << defaultScoreContainer << std::endl;
     }
 };
 
