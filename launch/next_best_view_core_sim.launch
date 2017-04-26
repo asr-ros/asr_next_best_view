@@ -1,18 +1,23 @@
 <launch>
-    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find asr_next_best_view)/log/rosconsole.config" />
-    <include file="$(find asr_next_best_view)/launch/RobotModelServiceSim.launch" /> 
-    <node pkg="asr_next_best_view" type="asr_next_best_view" name="nbv" output="screen" >
-		<!-- get external params from  robot_model_services package-->
-		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_frames.yaml"/>
-	  	<rosparam file="$(find asr_robot_model_services)/rsc/TopicsConfig.yaml"/>
+	<env name="ROSCONSOLE_CONFIG_FILE" value="$(find asr_next_best_view)/log/rosconsole.config" />
+	<include file="$(find asr_next_best_view)/launch/RobotModelServiceSim.launch" />
+	<node pkg="asr_next_best_view" type="asr_next_best_view" name="nbv" output="screen" >
+                <!-- get external params from  robot_model_services package-->
+                <rosparam file="$(find asr_robot_model_services)/rsc/robot_model_services_settings_sim.yaml"/>
+                <rosparam file="$(find asr_robot_model_services)/rsc/robot_model_frames.yaml"/>
+		<rosparam file="$(find asr_robot_model_services)/rsc/TopicsConfig.yaml"/>
 		
-	  	<rosparam file="$(find asr_next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
-	  	<rosparam file="$(find asr_next_best_view)/rsc/VisualizationConfig.yaml"/>
-	  	<rosparam file="$(find asr_next_best_view)/rsc/TopicsConfig.yaml"/>
-	  	<!-- this is used by costmap -->
-        <rosparam file="$(find asr_next_best_view)/rsc/costmap_params.yaml" command="load"/>
-        <!-- CropBoxListTableFitWithNormals CropBoxListWholeRoomWithNormals-->
-        <param name="mCropBoxListFilePath" value="$(find asr_next_best_view)/rsc/CropBoxListTableFit.xml"/>
-	  	<param name="mMapsImagePath" value="$(find asr_next_best_view)/rsc"/>
+		<rosparam file="$(find asr_next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
+		<rosparam file="$(find asr_next_best_view)/rsc/VisualizationConfig.yaml"/>
+		<rosparam file="$(find asr_next_best_view)/rsc/TopicsConfig.yaml"/>
+
+                <!-- this is used by costmap -->
+		<rosparam file="$(find asr_next_best_view)/rsc/costmap_params.yaml" command="load"/>
+
+                <!-- path to save costmap image -->
+                <param name="mMapsImagePath" value="$(find asr_next_best_view)/rsc"/>
+
+                <!-- CropBoxListTableFitWithNormals CropBoxListWholeRoomWithNormals-->
+		<param name="mCropBoxListFilePath" value="$(find asr_next_best_view)/rsc/CropBoxListTableFit.xml"/>
 	</node>
 </launch>

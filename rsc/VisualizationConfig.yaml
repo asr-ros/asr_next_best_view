@@ -1,3 +1,8 @@
+show_point_cloud: true
+show_frustum_point_cloud: true
+show_frustum_marker_array: true
+show_normals: true
+
 SpaceSamplingMarker_Scale: 0.05
 SpaceSamplingMarker_RGBA: [1, 0, 0, 0.5]
 GridMarker_ScaleZ: 0.1
