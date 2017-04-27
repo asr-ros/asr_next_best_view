@@ -322,7 +322,7 @@ void DefaultRatingModule::setOmegaParameters(double omegaUtility, double omegaPa
     this->mOmegaTilt = omegaTilt;
     this->mOmegaRot = omegaRot;
     this->mOmegaBase = omegaBase;
-    this->mOmegaRecognition = omegaRecognition;
+    this->mOmegaRecognizer = omegaRecognition;
 
     this->setRatingNormalization();
 }
@@ -416,7 +416,7 @@ double DefaultRatingModule::getWeightedInverseCosts(const ViewportPoint &sourceV
     mUnweightedInverseRecognitionCosts = this->getUnweightedInverseRecognitionCosts(targetViewport);
 
     // calculate the full movement costs
-    double fullCosts = mWeightedInverseMovementCosts + mUnweightedInverseRecognitionCosts * mOmegaRecognition;
+    double fullCosts = mWeightedInverseMovementCosts + mUnweightedInverseRecognitionCosts * mOmegaRecognizer;
 
     if (mUseTargetRobotState)
     {
@@ -487,7 +487,7 @@ void DefaultRatingModule::setWeightedInverseMovementCosts() {
 }
 
 void DefaultRatingModule::setRatingNormalization() {
-    mRatingNormalization = mOmegaUtility + mOmegaBase + mOmegaPTU + mOmegaRot + mOmegaRecognition;
+    mRatingNormalization = mOmegaUtility + mOmegaBase + mOmegaPTU + mOmegaRot + mOmegaRecognizer;
 }
 
 void DefaultRatingModule::setMaxRecognitionCosts() {

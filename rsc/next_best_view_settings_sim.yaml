@@ -2,10 +2,10 @@
 
 maxIterationSteps: 20
 epsilon: 0.01 # minimum rating difference of NBVs from 2 consecutive iteration steps. As long as this difference is bigger than epsilon, further iteration steps are executed.
-nRatingThreads: -1 # -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
+nRatingThreads: -1 # number of rating threads used to rate views. -1 gets an optimal a number of threads, otherwise the {nRatingThreads} threads are used
 
-useMinUtility: true
-enableCropBoxFiltering : false
+useMinUtility: true # if true, views are filtered by a minimum required utility. All generated views that are below are removed
+enableCropBoxFiltering : false # whether crop box filtering should be used, so that all points of the point_cloud which are at the outside will be removed
 
 
 # ----- RATING -----
@@ -34,11 +34,6 @@ enableIntermediateObjectWeighting : false
 
 # ----- CAMERA MODEL FILTER -----
 
-fovx: 30
-fovy: 20
-ncp: 0.4 # distance to NearClippingPlane in meter
-fcp: 1.5 # distance to FarClippingPlane in meter
-
 # cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
 # cameraFilterId == 2 => StereoCameraModelFilter
 # cameraFilterId == 3 => Raytracing3DBasedSingleCameraModelFilter
@@ -46,6 +41,11 @@ fcp: 1.5 # distance to FarClippingPlane in meter
 # Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
 # Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
 cameraFilterId: 2
+
+fovx: 30 # horizontal field of view in degree
+fovy: 20 # vertical field of view in degree
+ncp: 0.4 # distance of near clipping plane in meters
+fcp: 1.5 # distance of far clipping plane in meters
 
 # raytracing
 voxelSize: 0.04

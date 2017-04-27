@@ -51,7 +51,7 @@ namespace next_best_view {
         double mOmegaTilt;
         double mOmegaRot;
         double mOmegaBase;
-        double mOmegaRecognition;
+        double mOmegaRecognizer;
 
         // whether it should be checked if the calculated target robot state is reachable
         bool mUseTargetRobotState = false;

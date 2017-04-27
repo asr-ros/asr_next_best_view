@@ -1,7 +1,7 @@
-show_point_cloud: true
-show_frustum_point_cloud: true
-show_frustum_marker_array: true
-show_normals: true
+show_point_cloud: true # whether the point cloud should be visualized
+show_frustum_point_cloud: true # whether the point cloud in the frustum should be visualized separately
+show_frustum_marker_array: true # whether the frustum should be visualized
+show_normals: true # whether object normals should be shown
 
 SpaceSamplingMarker_Scale: 0.05
 SpaceSamplingMarker_RGBA: [1, 0, 0, 0.5]
