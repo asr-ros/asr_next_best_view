@@ -26,7 +26,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/ColorRGBA.h>
 #include <vector>
-#include <assimp_devel/vector3.h>
 #include "typedef.hpp"
 
 namespace next_best_view {
@@ -37,14 +36,12 @@ namespace next_best_view {
 		static SimpleVector3 getSimpleVector3(const geometry_msgs::Pose &pose);
 		static SimpleVector3 getSimpleVector3(const geometry_msgs::Point &point);
         static SimpleVector3 getSimpleVector3(const std::vector<double> &vector);
-        static SimpleVector3 getSimpleVector3(const aiVector3D &vector);
         static SimpleVector4 getSimpleVector4(const std::vector<double> &vector);
         static SimpleVector4 getSimpleVector4(const std_msgs::ColorRGBA &color);
 		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Pose &pose);
 		static SimpleQuaternion getSimpleQuaternion(const geometry_msgs::Quaternion &quaternion);
         static SimpleQuaternion getSimpleQuaternion(const std::vector<double> &vector);
         static geometry_msgs::Vector3 getVector3(const SimpleVector3 &vector);
-        static aiVector3D getAiVector3D(const SimpleVector3& vector);
         static std_msgs::ColorRGBA getColor(const SimpleVector4 &vector);
 	};
 }

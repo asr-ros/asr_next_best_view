@@ -25,7 +25,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <pcl-1.7/pcl/kdtree/kdtree_flann.h>
 #include <pcl-1.7/pcl/filters/frustum_culling.h>
 #include <pcl-1.7/pcl/filters/crop_box.h>
-#include <voxel_grid/voxel_grid.h>
 #include <set>
 #include <vector>
 
@@ -126,10 +125,6 @@ namespace next_best_view {
     typedef boost::shared_ptr<ObjectTypeSet> ObjectTypeSetPtr;
     typedef std::set<ObjectTypeSetPtr> ObjectTypePowerSet;
     typedef boost::shared_ptr<ObjectTypePowerSet> ObjectTypePowerSetPtr;
-
-    // voxel grid types
-    typedef voxel_grid::VoxelGrid VoxelGrid;
-    typedef boost::shared_ptr<VoxelGrid> VoxelGridPtr;
 
     // visualization
     typedef SimpleVector4 Color;

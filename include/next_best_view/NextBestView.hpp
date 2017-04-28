@@ -50,19 +50,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "asr_next_best_view/ResetCalculator.h"
 #include "asr_next_best_view/UpdatePointCloud.h"
 #include "next_best_view/helper/MapHelper.hpp"
-#include "next_best_view/helper/WorldHelper.hpp"
 #include "next_best_view/NextBestViewCalculator.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
 #include "asr_msgs/AsrAttributedPointCloud.h"
 #include "asr_msgs/AsrAttributedPoint.h"
 #include "asr_msgs/AsrViewport.h"
-#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilter.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilter.hpp"
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilter.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedSingleCameraModelFilterFactory.hpp"
 #include "next_best_view/camera_model_filter/impl/SingleCameraModelFilterFactory.hpp"
-#include "next_best_view/camera_model_filter/impl/Raytracing3DBasedStereoCameraModelFilterFactory.hpp"
 #include "next_best_view/camera_model_filter/impl/StereoCameraModelFilterFactory.hpp"
 #include "next_best_view/helper/DebugHelper.hpp"
 #include "next_best_view/helper/VisualizationsHelper.hpp"
@@ -279,12 +274,8 @@ public:
 
         /*
          * Intializes cameraModelFilter with a CameraModelFilter subclass specified by the parameter cameraFilterId :
-         * - cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
-         * - cameraFilterId == 2 => StereoCameraModelFilter
-         * - cameraFilterId == 3 => Raytracing3DBasedSingleCameraModelFilter
-         * - cameraFilterId == 4 => SingleCameraModelFilter
-         * Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
-         * Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
+         * - cameraFilterId == 1 => StereoCameraModelFilter
+         * - cameraFilterId == 2 => SingleCameraModelFilter
          */
         if (mConfigLevel & cameraModelConfig) {
             if (mCameraModelFactoryPtr) {
@@ -386,16 +377,6 @@ public:
         }
     }
 
-	WorldHelperPtr initializeWorldHelper() {
-        mDebugHelperPtr->write(std::stringstream() << "worldFilePath: " << mConfig.worldFilePath, DebugHelper::PARAMETERS);
-        mDebugHelperPtr->write(std::stringstream() << "voxelSize: " << mConfig.voxelSize, DebugHelper::PARAMETERS);
-        mDebugHelperPtr->write(std::stringstream() << "worldHeight: " << mConfig.worldHeight, DebugHelper::PARAMETERS);
-
-        MapHelperPtr mapHelperPtr = mCalculator.getMapHelper();
-
-        return WorldHelperPtr(new WorldHelper(mapHelperPtr, mConfig.worldFilePath, mConfig.voxelSize, mConfig.worldHeight, mConfig.visualizeRaytracing));
-    }
-
     UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
@@ -438,42 +419,14 @@ public:
         SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
         SimpleVector3 oneCameraPivotPointOffset = (leftCameraPivotPointOffset + rightCameraPivotPointOffset) * 0.5;
 
-        WorldHelperPtr worldHelperPtr;
-
         switch (moduleId) {
         case 1:
-            // data for 3D raytracing
-            worldHelperPtr = initializeWorldHelper();
-
-            return CameraModelFilterAbstractFactoryPtr(
-                        new Raytracing3DBasedStereoCameraModelFilterFactory(worldHelperPtr,
-                                                                            leftCameraPivotPointOffset, rightCameraPivotPointOffset,
-                                                                            mConfig.fovx, mConfig.fovy,
-                                                                            mConfig.fcp, mConfig.ncp,
-                                                                            mConfig.speedFactorRecognizer));
-        case 2:
             return CameraModelFilterAbstractFactoryPtr(
                         new StereoCameraModelFilterFactory(leftCameraPivotPointOffset, rightCameraPivotPointOffset,
                                                            mConfig.fovx, mConfig.fovy,
                                                            mConfig.fcp, mConfig.ncp,
                                                            mConfig.speedFactorRecognizer));
-        case 3:
-            /* MapBasedSingleCameraModelFilterPtr is a specialization of the abstract CameraModelFilter class.
-             * The camera model filter takes account for the fact, that there are different cameras around in the real world.
-             * In respect of the parameters of these cameras the point cloud gets filtered by theses camera filters. Plus
-             * the map-based version of the camera filter also uses the knowledge of obstacles or walls between the camera and
-             * the object to be observed. So, map-based in this context means that the way from the lens to the object is ray-traced.
-             */
-            // data for 3D raytracing
-            worldHelperPtr = initializeWorldHelper();
-
-            return CameraModelFilterAbstractFactoryPtr(
-                        new Raytracing3DBasedSingleCameraModelFilterFactory(worldHelperPtr,
-                                                                            oneCameraPivotPointOffset,
-                                                                            mConfig.fovx, mConfig.fovy,
-                                                                            mConfig.fcp, mConfig.ncp,
-                                                                            mConfig.speedFactorRecognizer));
-        case 4:
+        case 2:
             return CameraModelFilterAbstractFactoryPtr(
                         new SingleCameraModelFilterFactory(oneCameraPivotPointOffset,
                                                            mConfig.fovx, mConfig.fovy,

@@ -29,30 +29,19 @@ useOrientationUtility: true
 useProximityUtility: true
 useSideUtility: true
 
-enableIntermediateObjectWeighting : false
+enableIntermediateObjectWeighting : false # whether intermediate object weighting should be used for calculating the NextBestView
 
 
 # ----- CAMERA MODEL FILTER -----
 
-# cameraFilterId == 1 => Raytracing3DBasedStereoCameraModelFilter
-# cameraFilterId == 2 => StereoCameraModelFilter
-# cameraFilterId == 3 => Raytracing3DBasedSingleCameraModelFilter
-# cameraFilterId == 4 => SingleCameraModelFilter
-# Note that the first 2 ids are stereo based filters, while the last 2 are based on a single camera.
-# Furthermore even ids don't use ray tracing, while odd ids use ray tracing.
-cameraFilterId: 2
+# cameraFilterId == 1 => StereoCameraModelFilter
+# cameraFilterId == 2 => SingleCameraModelFilter
+cameraFilterId: 1
 
 fovx: 30 # horizontal field of view in degree
 fovy: 20 # vertical field of view in degree
 ncp: 0.4 # distance of near clipping plane in meters
 fcp: 1.5 # distance of far clipping plane in meters
-
-# raytracing
-voxelSize: 0.04
-worldHeight: 3
-worldFilePath: ./rsc/world/world.xml
-visualizeRaytracing: false
-
 
 # ----- HYPOTHESIS UPDATER -----
 
