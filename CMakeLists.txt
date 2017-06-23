@@ -82,12 +82,12 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_helper 
   CATKIN_DEPENDS roscpp roslib message_runtime asr_robot_model_services
-  DEPENDS system_lib
+  #DEPENDS system_lib
 )
 
 include_directories(
   include
-  ${Eigen_INCLUDE_DIRS}
+  ${Eigen3_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
