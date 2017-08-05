@@ -208,7 +208,7 @@ public:
         //////////////////////////////////////////////////////////////////
         // HERE STARTS THE CONFIGURATION OF THE NEXTBESTVIEW CALCULATOR //
         //////////////////////////////////////////////////////////////////
-        /* The NextBestViewCalculator consists of multiple modules which interact w/ each other. By this
+        /* The NextBestViewCalculator consists of multiple modules which interact with each other. By this
          * interaction we get a result for the next best view which suites our constraints best.
          *
          * The modules namely are:
@@ -289,8 +289,8 @@ public:
         /* MILDRobotModel is a specialization of the abstract RobotModel class.
          * The robot model maps takes the limitations of the used robot into account and by this it is possible to filter out
          * non-reachable configurations of the robot which can therefore be ignored during calculation.
-         * - robotModelId == 1 => MILDRobotModelWithExactIK
-         * - robotModelId == 2 => MILDRobotModelWithApproximatedIK
+         * - robotModelId == 1 => MILDRobotModelWithExactInverseKinematic
+         * - robotModelId == 2 => MILDRobotModelWithApproximatedIinverseKinematic
          */
         mDebugHelperPtr->write(std::stringstream() << "panMin: " << mConfig.panMin, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "panMax: " << mConfig.panMax, DebugHelper::PARAMETERS);
@@ -321,9 +321,9 @@ public:
             mCalculator.setRatingModuleAbstractFactoryPtr(mRatingModuleFactoryPtr);
         }
 
-        // TODO: defaulthypothesisupdater is missing
         /* PerspectiveHypothesisUpdater is a specialization of the abstract HypothesisUpdater.
          * - hypothesisUpdaterId == 1 => PerspectiveHypothesisUpdater
+		 * - hypothesisUpdaterId == 2 => DefaultHypothesisUpdater
          */
         if (mConfigLevel & hypothesisUpdaterConfig) {
             if (mHypothesisUpdaterFactoryPtr) {
@@ -376,7 +376,10 @@ public:
             mRemoveObjectsServer = mNodeHandle.advertiseService("remove_objects", &NextBestView::processRemoveObjects, this);
         }
     }
-
+	
+	/* The UnitSphereSampler generates orientations to generate views. 
+	 *
+	 */
     UnitSphereSamplerAbstractFactoryPtr createSphereSamplerFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
@@ -389,6 +392,9 @@ public:
         }
     }
 
+	/* SpaceSampler generates positions to generate views. 
+	 * The diffrent sampler samples in diffrent ways the given xy-plane where the robot can stay for the next view.
+	 */
     SpaceSamplerAbstractFactoryPtr createSpaceSamplerFromConfig(int moduleId) {
         switch (moduleId)
         {
@@ -414,6 +420,10 @@ public:
         }
     }
 
+	/* CameraModelFilter used to find hypotheses inside a camera frustum
+	 * Case 1 use the fustrum of both cameras of the stereo camera. Hypotheses are placed sectional area of the fustrum.
+	 * Case 2 hypotheses ware only placed in one fustrum of one camera.
+	 */
     CameraModelFilterAbstractFactoryPtr createCameraModelFromConfig(int moduleId) {
         SimpleVector3 leftCameraPivotPointOffset = SimpleVector3(0.0, -0.067, 0.04);
         SimpleVector3 rightCameraPivotPointOffset = SimpleVector3(0.0, 0.086, 0.04);
@@ -440,6 +450,10 @@ public:
         }
     }
 
+	/* Creates the RobotModel, with are used for kinematic calculations of the robot.
+	 *
+	 */
+
     robot_model_services::RobotModelAbstractFactoryPtr createRobotModelFromConfig(int moduleId) {
         switch (moduleId) {
         case 1:
@@ -456,6 +470,8 @@ public:
         }
     }
 
+	/* RatingModules are used to rate the gerenrated views.
+	*/
     RatingModuleAbstractFactoryPtr createRatingModuleFromConfig(int moduleId) {
         robot_model_services::RobotModelAbstractFactoryPtr robotModelFactoryPtr;
         CameraModelFilterAbstractFactoryPtr cameraModelFactoryPtr;
@@ -480,6 +496,8 @@ public:
         }
     }
 
+	/*The HypothesisUpdater removes normales inside the frustum which are seen from the robot position (Camera View).
+	*/
     HypothesisUpdaterAbstractFactoryPtr createHypothesisUpdaterFromConfig(int moduleId) {
         DefaultRatingModuleFactoryPtr ratingModuleFactoryPtr;
         switch (moduleId) {
@@ -727,7 +745,8 @@ public:
         return true;
     }
 
-    //COMMENT?
+    /* With this service call you can calculate the next next_best_view, given the last next_best_view.
+	*/
     bool processGetNextBestViewServiceCall(asr_next_best_view::GetNextBestView::Request &request, asr_next_best_view::GetNextBestView::Response &response) {
         mDebugHelperPtr->writeNoticeably("STARTING NBV GET-NEXT-BEST-VIEW SERVICE CALL", DebugHelper::SERVICE_CALLS);
         // Current camera view (frame of camera) of the robot.

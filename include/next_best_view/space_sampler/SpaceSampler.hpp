@@ -22,7 +22,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/common/CommonClass.hpp"
 
-//ToDo rename & comment (xtop,xbot,ytop,ybot)
+/* SpaceSampler generates positions to generate views. 
+ * The diffrent sampler samples in diffrent ways the given xy-plane where the robot can stay for the next view.
+ */
 
 namespace next_best_view {
 	/*!
@@ -60,7 +62,7 @@ namespace next_best_view {
 		virtual SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition, float contractor) = 0;
 
 		/*!
-		 * \param samples the count of samples to be created
+		 * \param samples: the count of samples to be created
 		 */
 		void setSamples(const uint32_t &samples);
 
