@@ -37,12 +37,12 @@ namespace next_best_view {
 
 	public:
 		/*!
-		 * \brief ctor
+		 * \brief constructor
 		 */
 		CommonClass();
 
 		/*!
-		 * \brief pure virtual dtor.
+		 * \brief pure virtual deconstructor.
 		 */
 		virtual ~CommonClass() = 0;
 

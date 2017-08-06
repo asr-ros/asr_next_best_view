@@ -67,6 +67,9 @@ namespace next_best_view {
     public:
         ObjectHelper() {}
 
+		/* Gets the meta date of one object from the world_model with the name of objectTypeName.
+		 *
+		 */
         ObjectMetaDataResponsePtr getObjectMetaData(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
 
@@ -108,7 +111,9 @@ namespace next_best_view {
             return responsePtr;
         }
 
-        //Comment !
+        /* Gets the intermediate object from the world_model with the name of objectTypeName.
+		 *
+		 */
         IntermediateObjectWeightResponsePtr getIntermediateObjectValue(std::string objectTypeName) {
             boost::shared_ptr<State> statePtr = InstancePtr();
 

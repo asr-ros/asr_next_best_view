@@ -41,6 +41,9 @@ namespace next_best_view {
 		int32_t y;
 		int8_t occupancy;
 	public:
+	    /* Compare two positions (firstIndex, secondIndex) on the map which one is closer two the source. 
+		 *
+		 */
 		static bool topologicalCompare(const RayTracingIndex &source, const RayTracingIndex &firstIndex, const RayTracingIndex &secondIndex) {
 			SimpleVector2 sourceVector(source.x, source.y);
 			SimpleVector2 firstIndexVector(firstIndex.x, firstIndex.y);
@@ -76,16 +79,18 @@ namespace next_best_view {
         MapHelper(const std::string &mapTopicName = "map", const std::string &getPlanServiceName = "move_base/make_plan") : mMapReceived(false), mCollisionThreshold(45) {
             mDebugHelperPtr = DebugHelper::getInstance();
 
-            // set cost translation table
+            // set cost translation table to transform the costmap_2d_ros cost to next_best_view cost of the map.
             mCostTranslationTable[0] = 0;  // NO obstacle
             mCostTranslationTable[253] = 99;  // INSCRIBED obstacle
             mCostTranslationTable[254] = 100;  // LETHAL obstacle
             mCostTranslationTable[255] = -1;  // UNKNOWN
 
+			// Specific calculation of the costs on the map.
             for (int i = 1; i < 253; i++) {
                 mCostTranslationTable[i] = int8_t(1 + (97 * (i - 1)) / 251);
             }
 
+			/// We must wait for the map is published on the map server, to use the right map of the navigation.
             ros::Subscriber mapSubscriber = mGlobalNodeHandle.subscribe<nav_msgs::OccupancyGrid>(mapTopicName, 1, &MapHelper::mapReceived, this);
             while(ros::ok() && !mMapReceived) {
                 mDebugHelperPtr->write(std::stringstream() << "Waiting for map to arrive on topic '" << mapSubscriber.getTopic() << "'",
@@ -95,6 +100,7 @@ namespace next_best_view {
 				ros::Duration(0.5).sleep();
 			}
 
+			// Wait for planner services for the path calculation. Could used to calculate the drive costs to a viewpoint.
             mDebugHelperPtr->write(std::stringstream() << "waiting for service: " << getPlanServiceName, DebugHelper::MAP);
             ros::service::waitForService(getPlanServiceName, -1);
 			mGetPlanServiceClient = mGlobalNodeHandle.serviceClient<nav_msgs::GetPlan>(getPlanServiceName, true);
@@ -110,6 +116,9 @@ namespace next_best_view {
 
 		virtual ~MapHelper() { }
 	private:
+		/* Write Debug Info of the map if it received.
+		 * \param map the received map
+		 */
 		void mapReceived(nav_msgs::OccupancyGrid map) {
             mDebugHelperPtr->write("Map received", DebugHelper::MAP);
 			mMap = map;
@@ -125,6 +134,9 @@ namespace next_best_view {
             mDebugHelperPtr->write(std::stringstream() << "Map metric height: " << this->getMetricHeight(), DebugHelper::MAP);
 		}
 
+		/* Gets the costmap of the navigation and set it to global variable of the helper.
+		 *
+		 */
         void setCostmap() {
             tf::TransformListener tf(ros::Duration(10));
             std::string name = "global_costmap";
@@ -146,6 +158,9 @@ namespace next_best_view {
             mCostmap.saveMap(costmapPath);
         }
 
+		/* Transform the costmap to next_best_view parameters.
+		 *
+		 */
         void aggregateRaytracingMap() {
             mDebugHelperPtr->write("Aggregating raytracing map.", DebugHelper::MAP);
             if (mMap.info.width != mCostmap.getSizeInCellsX() || mMap.info.height != mCostmap.getSizeInCellsY()) {
@@ -239,6 +254,9 @@ namespace next_best_view {
 			return retVal;
 		}
 
+		/* Calculates the raytrace between to points and save them in ray array.
+		 *
+		 */
 		bool doRaytracing(const SimpleVector3 &fromPoint, const SimpleVector3 &toPoint, Ray &ray) {
 			// clear ray
 			ray.clear();
