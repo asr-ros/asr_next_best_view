@@ -35,9 +35,13 @@ namespace next_best_view {
 	struct DefaultScoreContainer : public BaseScoreContainer {
 	private:
 
+        // The costs if the robot must drive around
         float mMovementCostsBaseTranslation;
+        // The costs to rotate the robot (change it orientation)
         float mMovementCostsBaseRotation;
+        // Cost for move the PTU.
         float mMovementCostsPTU;
+        // The Cost for calculate a new recognition
         float mRecognitionCosts;
         // this is the UNnormalized utility, while the BaseScoreContainer contains the normalized utility
         float mUtility;

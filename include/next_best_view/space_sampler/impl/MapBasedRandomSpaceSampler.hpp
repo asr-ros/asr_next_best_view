@@ -34,6 +34,9 @@ namespace next_best_view {
          */
         MapBasedRandomSpaceSampler(const MapHelperPtr &mapHelperPtr, unsigned int sampleSize) : mMapHelperPtr(mapHelperPtr), mSampleSize(sampleSize) {}
 
+        /*!
+         * \return a point cloud containing a set of points in the space.
+         */
         SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
     };
 

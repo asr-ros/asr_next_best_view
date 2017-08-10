@@ -52,7 +52,11 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa pcl::PointXYZ
 	 */
-  //Comment?
+
+    /*
+     * Struct with functions.
+     * Stand for one datapoint of the pointcloud. Describe the position and orientation of one Point in the viewport.
+     */
 	struct DefaultViewportPoint {
 	public:
 		PCL_ADD_POINT4D;
@@ -79,6 +83,9 @@ namespace next_best_view {
         // old idx in the saved datastructure to reorder
         unsigned int oldIdx;
 	public:
+        /*
+         * Constructor, with set the quaterion of the current orientation of the point.
+         */
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         DefaultViewportPoint(const gm::Pose &pose = gm::Pose()) : DefaultViewportPoint(SimpleVector3(pose.position.x, pose.position.y, pose.position.z)) {
             child_indices = IndicesPtr(new Indices());
@@ -89,6 +96,9 @@ namespace next_best_view {
 			qz = pose.orientation.z;
 		}
 
+        /*
+         * Sets the position paramerts, based on the current point position.
+         */
 		DefaultViewportPoint(const SimpleVector3 &vector, const SimpleQuaternion &orientation = SimpleQuaternion(1.0, 0.0, 0.0, 0.0)) : qw(orientation.w()), qx(orientation.x()), qy(orientation.y()), qz(orientation.z()) {
 			x = vector[0];
 			y = vector[1];

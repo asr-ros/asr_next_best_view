@@ -44,13 +44,21 @@ namespace next_best_view {
          */
         // the threshold for the angle between the orientation of an object and the camera orientation
         double mNormalAngleThreshold;
+        // horizontal and vertical field of view in degree
         double mFovV,mFovH;
+        // distance of far and near clipping plane in meters
         double mFcp,mNcp;
+        // weight of the utility
         double mOmegaUtility;
+        // weight of the movement costs of the pan-axis for the PTU
         double mOmegaPan;
+        // weight of the movement costs of the tilt-axis for the PTU
         double mOmegaTilt;
+        // weight of the rotation costs of the robot base
         double mOmegaRot;
+        // weight of the translational movement costs of the robot base
         double mOmegaBase;
+        // weight of the recognition costs
         double mOmegaRecognizer;
 
         // whether it should be checked if the calculated target robot state is reachable
@@ -211,6 +219,9 @@ namespace next_best_view {
          */
         float getNormalizedAngleUtility(const SimpleVector3 v1, const SimpleVector3 v2, double angleThreshold);
 
+        /*!
+         * \brief Set the weights of the movements of each component
+         */
         void setOmegaParameters(double omegaUtility, double omegaPan, double omegaTilt, double omegaRot, double omegaBase, double omegaRecognition);
 
         void setFrustumParameters(double fovV, double fovH, double fcp, double ncp);

@@ -45,6 +45,9 @@ namespace next_best_view {
 		 */
 		virtual ~Raytracing2DBasedSpaceSampler();
 
+        /*!
+         * \return a point cloud containing a set of points in the space.
+         */
 		SamplePointCloudPtr getSampledSpacePointCloud(SimpleVector3 currentSpacePosition = SimpleVector3(), float contractor = 1.0);
 	};
 

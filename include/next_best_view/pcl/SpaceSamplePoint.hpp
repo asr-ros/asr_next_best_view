@@ -49,7 +49,9 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa pcl::PointXYZ
 	 */
-  //Comment?
+    /* Describes a point in the space in the point cloud.
+     * Space Points stands for possible position of the robot to look at objects.
+     */
 	struct SpaceSamplePoint {
 	public:
 		PCL_ADD_POINT4D;

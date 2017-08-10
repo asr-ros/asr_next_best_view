@@ -50,7 +50,9 @@ namespace next_best_view {
 	 * \copyright GNU Public License
 	 * \sa pcl::PointXYZ
 	 */
-  //Comment?
+    /*
+     * Describes a Object in the pointcloud.
+     */
 	struct RealObjectPoint {
         PCL_ADD_POINT4D;
 
@@ -63,7 +65,9 @@ namespace next_best_view {
 			};
 		};
 
+        //Type of the object
         std::string type;
+        //Identifier of the object
         std::string identifier;
 		SimpleVector3CollectionPtr normal_vectors;
 		IndicesPtr active_normal_vectors;
