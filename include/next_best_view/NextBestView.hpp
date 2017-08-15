@@ -192,9 +192,6 @@ public:
 
         /* These are the parameters for the CameraModelFilter. By now they will be kept in here, but for the future they'd better
          * be defined in the CameraModelFilter specialization class.
-         * TODO: Export these parameters to the specialization of the CameraModelFilter class. This makes sense, because you have to
-         * keep in mind that there are stereo cameras which might have slightly different settings of the frustums. So we will be
-         * able to adjust the parameters for each camera separateley.
          */
         mDebugHelperPtr->write(std::stringstream() << "fovx: " << mConfig.fovx, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "fovy: " << mConfig.fovy, DebugHelper::PARAMETERS);
@@ -240,9 +237,6 @@ public:
         }
 
         /* MapHelper does get the maps on which we are working on and modifies them for use with applications like raytracing and others.
-         * TODO: The maps may have areas which are marked feasible but in fact are not, because of different reasons. The main
-         * reason may be that the map may contain areas where the robot cannot fit through and therefore cannot move to the
-         * wanted position. You have to consider if there is any possibility to mark these areas as non-feasible.
          */
         if (mConfigLevel & mapHelperConfig) {
             mMapHelperPtr = MapHelperPtr(new MapHelper());
@@ -297,7 +291,6 @@ public:
         mDebugHelperPtr->write(std::stringstream() << "tiltMin: " << mConfig.tiltMin, DebugHelper::PARAMETERS);
         mDebugHelperPtr->write(std::stringstream() << "tiltMax: " << mConfig.tiltMax, DebugHelper::PARAMETERS);
 
-        // TODO: some robot model params are not taken from config
         if (mConfigLevel & robotModelConfig) {
             if (mRobotModelFactoryPtr) {
                 mRobotModelFactoryPtr.reset();
