@@ -14,7 +14,7 @@
 		<rosparam file="$(find asr_next_best_view)/rsc/TopicsConfig.yaml"/>
                 <rosparam file="$(find asr_next_best_view)/rsc/costmap_params.yaml" command="load" ns="global_costmap"/>
                 <rosparam file="$(find asr_mild_navigation)/rsc/global_costmap_params.yaml" command="load"/>
-                <param name="mCropBoxListFilePath" value="$(find asr_next_best_view)/rsc/CropBoxListHighResolution.xml"/>
+                <param name="mCropBoxListFilePath" value="$(find asr_next_best_view)/param/CropBoxListHighResolution.xml"/>
                 <param name="mMapsImagePath" value="$(find asr_next_best_view)/rsc"/>
 
 		<param name="configurable_point_clouds/test" value="true"/>
@@ -33,7 +33,7 @@
 		<param name="positions/test" value="false"/>
 		<param name="side_objects/test" value="false"/>
 		
-		<rosparam file="$(find asr_robot_model_services)/rsc/robot_model_frames.yaml"/>
-	  	<rosparam file="$(find asr_robot_model_services)/rsc/TopicsConfig.yaml"/>
+		<rosparam file="$(find asr_robot_model_services)/param/robot_model_frames.yaml"/>
+	  	<rosparam file="$(find asr_robot_model_services)/param/TopicsConfig.yaml"/>
 	</node>
 </launch>
