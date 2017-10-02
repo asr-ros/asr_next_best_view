@@ -763,11 +763,17 @@ public:
         }
         //Return the optimization result including its parameters.
         response.found = true;
-        response.resulting_pose = resultingViewport.getPose();
+        response.viewport.pose = resultingViewport.getPose();
 
         // copying the objects to be searched for into a list
-        response.object_type_name_list = ObjectTypeList(resultingViewport.object_type_set->size());
-        std::copy(resultingViewport.object_type_set->begin(), resultingViewport.object_type_set->end(), response.object_type_name_list.begin());
+        response.viewport.object_type_name_list = ObjectTypeList(resultingViewport.object_type_set->size());
+        std::copy(resultingViewport.object_type_set->begin(), resultingViewport.object_type_set->end(), response.viewport.object_type_name_list.begin());
+
+        // parameters of the viewport
+        response.viewport.fovx = mConfig.fovx;
+        response.viewport.fovy = mConfig.fovy;
+        response.viewport.ncp = mConfig.ncp;
+        response.viewport.fcp = mConfig.fcp;
 
         //Reconstruct robot configuration for next best camera viewport (once known when estimating its costs) for outpout purposes.
         // TODO: This solution is very dirty because we get the specialization of RobotState and this will break if we change the RobotModel and RobotState type.

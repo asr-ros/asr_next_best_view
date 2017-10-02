@@ -1,10 +1,7 @@
 geometry_msgs/Pose current_pose
 ---
-# we might use here RatedViewport
 bool found
-#List of types of objects being searched in given nbv.
-string[] object_type_name_list
-geometry_msgs/Pose resulting_pose
+asr_msgs/AsrViewport viewport
 asr_next_best_view/RobotStateMessage robot_state
 # utility
 float32 utility
