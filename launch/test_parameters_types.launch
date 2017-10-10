@@ -9,10 +9,10 @@
 
 		<param name="output_path" value="$(find asr_next_best_view)/rsc/" />
 	
-		<rosparam file="$(find asr_next_best_view)/rsc/next_best_view_settings_sim.yaml"/>
-          	<rosparam file="$(find asr_next_best_view)/rsc/VisualizationConfig.yaml"/>
-		<rosparam file="$(find asr_next_best_view)/rsc/TopicsConfig.yaml"/>
-                <rosparam file="$(find asr_next_best_view)/rsc/costmap_params.yaml" command="load" ns="global_costmap"/>
+		<rosparam file="$(find asr_next_best_view)/param/next_best_view_settings_sim.yaml"/>
+          	<rosparam file="$(find asr_next_best_view)/param/VisualizationConfig.yaml"/>
+		<rosparam file="$(find asr_next_best_view)/param/TopicsConfig.yaml"/>
+                <rosparam file="$(find asr_next_best_view)/param/costmap_params.yaml" command="load" ns="global_costmap"/>
                 <rosparam file="$(find asr_mild_navigation)/param/global_costmap_params.yaml" command="load"/>
                 <param name="mCropBoxListFilePath" value="$(find asr_next_best_view)/rsc/CropBoxListHighResolution.xml"/>
                 <param name="mMapsImagePath" value="$(find asr_next_best_view)/rsc"/>
