@@ -116,7 +116,7 @@ public:
         std::vector<std::string> requestObjectTypes = { "Smacks" };
         rateViewports.request.object_type_name_list = requestObjectTypes;
         rateViewports.request.current_pose = initialPose;
-        rateViewports.request.viewports.push_back(nbv.response.resulting_pose);
+        rateViewports.request.viewports.push_back(nbv.response.viewport.pose);
 
         if (!rateViewportsClient.call(rateViewports.request, rateViewports.response)) {
             ROS_ERROR("Something went wrong in rate viewports");
@@ -131,35 +131,35 @@ public:
         // generate multiple poses in a + shape around nbv
         double variation = 0.1;
         rateViewports = RateViewports();
-        geometry_msgs::Pose variationPose = nbv.response.resulting_pose;
+        geometry_msgs::Pose variationPose = nbv.response.viewport.pose;
         variationPose.position.x += variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.x -= variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.y += variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.y -= variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.x += 2.0 * variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.x -= 2.0 * variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.y += 2.0 * variation;
         rateViewports.request.viewports.push_back(variationPose);
 
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.y -= 2.0 * variation;
         rateViewports.request.viewports.push_back(variationPose);
 
@@ -182,7 +182,7 @@ public:
 
         // empty object_type_name_list
         rateViewports = RateViewports();
-        variationPose = nbv.response.resulting_pose;
+        variationPose = nbv.response.viewport.pose;
         variationPose.position.x += variation;
         rateViewports.request.viewports.push_back(variationPose);
 

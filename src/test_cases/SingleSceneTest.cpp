@@ -138,22 +138,22 @@ public:
 				break;
 			}
 
-            ROS_INFO_STREAM("Name list size " << nbv.response.object_type_name_list.size());
+            ROS_INFO_STREAM("Name list size " << nbv.response.viewport.object_type_name_list.size());
 
-            if (nbv.response.object_type_name_list.size() > 0)
+            if (nbv.response.viewport.object_type_name_list.size() > 0)
             {
                 mGetPointCloudClient.call(gpc);
                 apc.request.point_cloud.elements.clear();
                 apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
 
-                for(unsigned int i=0;i<nbv.response.object_type_name_list.size();i++)
+                for(unsigned int i=0;i<nbv.response.viewport.object_type_name_list.size();i++)
                 {
                     std::vector<asr_msgs::AsrAttributedPoint> temp;
-                    ROS_INFO_STREAM("Type: " << nbv.response.object_type_name_list[i]);
+                    ROS_INFO_STREAM("Type: " << nbv.response.viewport.object_type_name_list[i]);
                     for (std::vector<asr_msgs::AsrAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                     {
 
-                        if ((nbv.response.object_type_name_list[i].compare(it->type)) != 0)
+                        if ((nbv.response.viewport.object_type_name_list[i].compare(it->type)) != 0)
                         {
                             temp.push_back(*it);
                         }
@@ -174,8 +174,8 @@ public:
 			}
 
             asr_next_best_view::UpdatePointCloud upc_req;
-            upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
-            upc_req.request.pose_for_update = nbv.response.resulting_pose;
+            upc_req.request.object_type_name_list = nbv.response.viewport.object_type_name_list;
+            upc_req.request.pose_for_update = nbv.response.viewport.pose;
 
             if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
@@ -184,7 +184,7 @@ public:
 
 			x++;
 
-			nbv.request.current_pose = nbv.response.resulting_pose;
+                        nbv.request.current_pose = nbv.response.viewport.pose;
 
 			ros::spinOnce();
 			waitForEnter();

@@ -159,7 +159,7 @@ public:
                 ROS_ERROR("Something went wrong in next best view");
                 break;
             }
-            if (nbv.response.object_type_name_list.size() > 0)
+            if (nbv.response.viewport.object_type_name_list.size() > 0)
             {
                 if (!mGetPointCloudClient.call(gpc)) {
                     ROS_ERROR("Could not get point cloud.");
@@ -168,14 +168,14 @@ public:
                 apc.request.point_cloud.elements.clear();
                 apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), gpc.response.point_cloud.elements.begin(), gpc.response.point_cloud.elements.end());
 
-                for(unsigned int i=0;i<nbv.response.object_type_name_list.size();i++)
+                for(unsigned int i=0;i<nbv.response.viewport.object_type_name_list.size();i++)
                 {
-                    if (nbv.response.object_type_name_list[i] != "CeylonTea")
+                    if (nbv.response.viewport.object_type_name_list[i] != "CeylonTea")
                     {
                         std::vector<asr_msgs::AsrAttributedPoint> temp;
                         for (std::vector<asr_msgs::AsrAttributedPoint>::iterator it = apc.request.point_cloud.elements.begin(); it != apc.request.point_cloud.elements.end(); ++it)
                         {
-                            if ((nbv.response.object_type_name_list[i].compare(it->type)) != 0)
+                            if ((nbv.response.viewport.object_type_name_list[i].compare(it->type)) != 0)
                             {
                                 temp.push_back(*it);
                             }
@@ -184,7 +184,7 @@ public:
                         apc.request.point_cloud.elements.insert(apc.request.point_cloud.elements.end(), temp.begin(), temp.end());
                         setPointCloud = true;
                     }
-                    if (nbv.response.object_type_name_list[i] == "Smacks" && !scene2_isInitialized)
+                    if (nbv.response.viewport.object_type_name_list[i] == "Smacks" && !scene2_isInitialized)
                     {
                         for (std::size_t idx = 0; idx < (std::size_t)hpSize_scene2; idx++) {
 
@@ -223,15 +223,15 @@ public:
             }
 
             asr_next_best_view::UpdatePointCloud upc_req;
-            upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
-            upc_req.request.pose_for_update = nbv.response.resulting_pose;
+            upc_req.request.object_type_name_list = nbv.response.viewport.object_type_name_list;
+            upc_req.request.pose_for_update = nbv.response.viewport.pose;
             if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;
             }
             x++;
 
-            nbv.request.current_pose = nbv.response.resulting_pose;
+            nbv.request.current_pose = nbv.response.viewport.pose;
 
             ros::spinOnce();
             waitForEnter();

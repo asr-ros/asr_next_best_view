@@ -1,7 +1,9 @@
 geometry_msgs/Pose current_pose
 ---
 bool found
+# the resulting viewport
 asr_msgs/AsrViewport viewport
+# the resulting robot state
 asr_next_best_view/RobotStateMessage robot_state
 # utility
 float32 utility

@@ -205,8 +205,8 @@ public:
                         }
 
                         asr_next_best_view::UpdatePointCloud upc_req;
-                        upc_req.request.object_type_name_list = nbv.response.object_type_name_list;
-                        upc_req.request.pose_for_update = nbv.response.resulting_pose;
+                        upc_req.request.object_type_name_list = nbv.response.viewport.object_type_name_list;
+                        upc_req.request.pose_for_update = nbv.response.viewport.pose;
 
                         start = std::chrono::system_clock::now();
                         if(!mUpdatePointCloudClient.call(upc_req)) {
@@ -223,7 +223,7 @@ public:
                             break;
                         }
 
-                        nbv.request.current_pose = nbv.response.resulting_pose;
+                        nbv.request.current_pose = nbv.response.viewport.pose;
                         ros::spinOnce();
                         ros::Duration(0.5).sleep();
                     }

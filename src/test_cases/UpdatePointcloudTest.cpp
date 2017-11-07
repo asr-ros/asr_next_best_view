@@ -68,7 +68,7 @@ public:
 
             asr_next_best_view::UpdatePointCloud upc_req;
             upc_req.request.object_type_name_list = object_type_name_list;
-            upc_req.request.pose_for_update = nbv.response.resulting_pose;
+            upc_req.request.pose_for_update = nbv.response.viewport.pose;
             if(!mUpdatePointCloudClient.call(upc_req)) {
                 ROS_ERROR("Update Point Cloud failed!");
                 break;

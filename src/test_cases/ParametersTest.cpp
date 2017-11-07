@@ -187,11 +187,11 @@ public:
             NBV->processGetNextBestViewServiceCall(getNBV.request, getNBV.response);
 
             asr_next_best_view::TriggerFrustumVisualization tfv;
-            tfv.request.current_pose = getNBV.response.resulting_pose;
+            tfv.request.current_pose = getNBV.response.viewport.pose;
             NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
 
-            float robotX = getNBV.response.resulting_pose.position.x;
-            float robotY = getNBV.response.resulting_pose.position.y;
+            float robotX = getNBV.response.viewport.pose.position.x;
+            float robotY = getNBV.response.viewport.pose.position.y;
 
             float distanceToPC = sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2));
             if (sqrt(pow(robotX - hp[0](0), 2) + pow(robotY - hp[0](1), 2)) < sqrt(pow(robotX - hp[1](0), 2) + pow(robotY - hp[1](1), 2))) {
@@ -336,7 +336,7 @@ public:
                 ROS_ERROR("No NBV found!");
             } else {
                 asr_next_best_view::TriggerFrustumVisualization tfv;
-                tfv.request.current_pose = getNBV.response.resulting_pose;
+                tfv.request.current_pose = getNBV.response.viewport.pose;
                 NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
             }
 
@@ -512,7 +512,7 @@ public:
             ROS_INFO("Got next best view");
 
             asr_next_best_view::TriggerFrustumVisualization tfv;
-            tfv.request.current_pose = getNBV.response.resulting_pose;
+            tfv.request.current_pose = getNBV.response.viewport.pose;
             NBV->processTriggerFrustumVisualization(tfv.request, tfv.response);
 
             SimpleVector3 pos(initialPose.position.x, initialPose.position.y, initialPose.position.z);
