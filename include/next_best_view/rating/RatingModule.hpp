@@ -62,6 +62,7 @@ namespace next_best_view {
 
         /*!
          * \brief sets the score container for one filtered camera viewport
+		 * Before calling this method, the method resetCache() should be called.
          * \param currentViewport [in] the current camera viewport
          * \param candidateViewport [in,out] the filtered candidate camera viewport
          * \return whether the rating is feasible or not

@@ -74,6 +74,7 @@ bool DefaultRatingModule::setBestScoreContainer(const ViewportPoint &currentView
         }
 
         // if the rating is not feasible: skip adding to point cloud
+		// here we don't need to call resetCache() because we make use of the cache
         if (!this->setSingleScoreContainer(currentViewport, viewport)) {
             continue;
         }
