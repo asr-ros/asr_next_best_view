@@ -158,9 +158,10 @@ add_executable(
 add_dependencies(
         ${PROJECT_NAME}
         ${PROJECT_NAME}_generate_messages_cpp
+	asr_msgs_generate_messages_cpp
         asr_object_database
         asr_world_model
-	    asr_robot_model_services
+	asr_robot_model_services
 )
 
 target_link_libraries(
