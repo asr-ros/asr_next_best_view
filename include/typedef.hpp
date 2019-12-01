@@ -21,10 +21,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define TYPEDEF_HPP_
 
 #include <eigen3/Eigen/Dense>
-#include <pcl-1.7/pcl/point_cloud.h>
-#include <pcl-1.7/pcl/kdtree/kdtree_flann.h>
-#include <pcl-1.7/pcl/filters/frustum_culling.h>
-#include <pcl-1.7/pcl/filters/crop_box.h>
+#include <pcl/point_cloud.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/filters/frustum_culling.h>
+#include <pcl/filters/crop_box.h>
 #include <set>
 #include <vector>
 
