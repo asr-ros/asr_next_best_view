@@ -21,6 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define DEFAULTSCORECONTAINER_HPP_
 
 #include <map>
+#include <vector>
 #include <boost/make_shared.hpp>
 #include "next_best_view/rating/BaseScoreContainer.hpp"
 

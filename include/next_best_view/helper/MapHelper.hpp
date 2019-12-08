@@ -138,9 +138,11 @@ namespace next_best_view {
 		 *
 		 */
         void setCostmap() {
-            tf::TransformListener tf(ros::Duration(10));
+
+            tf2_ros::Buffer buffer(ros::Duration(10));
+            tf2_ros::TransformListener tf(buffer);
             std::string name = "global_costmap";
-            costmap_2d::Costmap2DROS costmapRos(name, tf);
+            costmap_2d::Costmap2DROS costmapRos(name, buffer);
             costmapRos.start();
             costmapRos.updateMap();
             costmapRos.stop();

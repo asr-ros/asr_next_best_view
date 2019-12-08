@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include <eigen3/Eigen/Dense>
-#include <pcl-1.7/pcl/point_cloud.h>
+#include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <vector>
 

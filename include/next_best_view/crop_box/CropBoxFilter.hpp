@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "next_best_view/common/GeneralFilter.hpp"
 #include "next_best_view/crop_box/CropBoxWrapper.hpp"
-#include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
+#include "pcl/filters/impl/crop_box.hpp"
 
 namespace next_best_view {
 

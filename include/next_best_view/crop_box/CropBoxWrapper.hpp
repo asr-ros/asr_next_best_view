@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include "pcl-1.7/pcl/filters/impl/crop_box.hpp"
+#include "pcl/filters/impl/crop_box.hpp"
 #include "typedef.hpp"
 
 namespace next_best_view {
