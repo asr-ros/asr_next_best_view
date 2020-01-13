@@ -1,7 +1,7 @@
 <package>
   <name>asr_next_best_view</name>
   <version>1.0.0</version>
-  <description>This package calculates the position and orientation for a robot where it is most likely to find and recognize an object</description>
+  <description>This package estimates Next-Best-Views as well as configurations (target positions and orientations) for a robot, where it is most likely to find and recognize searched objects the poses of which have, e.g., been predicted by means of ISM trees.</description>
   <author>Aumann Florian, Borella Jocelyn, Heller Florian, Meißner Pascal, Schleicher Ralf, Stöckle Patrick, Stroh Daniel, Trautmann Jeremias, Walter Milena, Wittenbeck Valerij</author>
   <maintainer email="asr-ros@lists.kit.edu">Meißner Pascal</maintainer>
   <license>BSD-derived</license>
